@@ -107,7 +107,7 @@ kotlin {
         }
 
         androidMain.dependencies {
-            // implementation(libs.firebase.analytics)
+            implementation(libs.androidx.activity.compose)
         }
 
         jvmMain.dependencies {
