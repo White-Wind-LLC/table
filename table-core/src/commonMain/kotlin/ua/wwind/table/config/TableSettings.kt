@@ -18,4 +18,5 @@ public data class TableSettings(
     val selectionMode: SelectionMode = SelectionMode.None,
 )
 
+/** Row selection behavior. */
 public enum class SelectionMode { None, Single, Multiple }

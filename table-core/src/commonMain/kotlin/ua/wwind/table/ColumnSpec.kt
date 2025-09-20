@@ -8,6 +8,25 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import ua.wwind.table.filter.data.TableFilterType
 
+/**
+ * Declarative specification of a table column.
+ *
+ * Contains header/cell content, sizing, alignment, sorting and filtering capabilities.
+ *
+ * @param key unique column key
+ * @param header composable content for the header cell
+ * @param cell composable content for each row cell
+ * @param title optional plain-text title for use in places like active filter chips
+ * @param sortable whether the column participates in sorting
+ * @param resizable whether user can resize the column
+ * @param visible whether column is currently visible
+ * @param width preferred width override; null uses table defaults
+ * @param minWidth minimal width when resizable
+ * @param alignment horizontal alignment for cell content
+ * @param filter optional filter type provided by this column
+ * @param headerDecorations whether to render built-in sort/filter icons in the header cell
+ * @param headerClickToSort whether clicking the entire header cell toggles sorting
+ */
 public data class ColumnSpec<T : Any, C>(
     val key: C,
     val header: @Composable () -> Unit,
@@ -26,9 +45,15 @@ public data class ColumnSpec<T : Any, C>(
     val headerClickToSort: Boolean = true,
 )
 
+/**
+ * DSL builder for a list of [ColumnSpec].
+ */
 public class TableColumnsBuilder<T : Any, C> internal constructor() {
     private val specs = mutableListOf<ColumnSpec<T, C>>()
 
+    /**
+     * Declare a column with the given [key] and configure it via [block].
+     */
     public fun column(
         key: C,
         block: ColumnBuilder<T, C>.() -> Unit,
@@ -42,6 +67,9 @@ public class TableColumnsBuilder<T : Any, C> internal constructor() {
 }
 
 @Suppress("TooManyFunctions")
+/**
+ * Builder for a single [ColumnSpec].
+ */
 public class ColumnBuilder<T : Any, C> internal constructor(
     private val key: C,
 ) {
@@ -58,34 +86,42 @@ public class ColumnBuilder<T : Any, C> internal constructor(
     private var headerDecorations: Boolean = true
     private var headerClickToSort: Boolean = true
 
+    /** Set simple text header. */
     public fun header(text: String) {
         header = { Text(text) }
     }
 
+    /** Set custom composable header content. */
     public fun header(content: @Composable () -> Unit) {
         header = content
     }
 
+    /** Set optional plain-text title (used for chips/tooltips). */
     public fun title(content: @Composable () -> String) {
         title = content
     }
 
+    /** Define body cell content. */
     public fun cell(content: @Composable BoxScope.(T) -> Unit) {
         cell = content
     }
 
+    /** Mark column as sortable. */
     public fun sortable() {
         sortable = true
     }
 
+    /** Enable/disable user resizing. */
     public fun resizable(value: Boolean) {
         resizable = value
     }
 
+    /** Set visibility for this column. */
     public fun visible(value: Boolean) {
         visible = value
     }
 
+    /** Set minimum and preferred width. */
     public fun width(
         min: Dp,
         pref: Dp? = null,
@@ -94,20 +130,22 @@ public class ColumnBuilder<T : Any, C> internal constructor(
         width = pref ?: width
     }
 
+    /** Set horizontal alignment for cell content. */
     public fun align(horizontal: Alignment.Horizontal) {
         alignment = horizontal
     }
 
+    /** Attach a filter type supported by this column. */
     public fun filter(type: TableFilterType<*>) {
         filter = type
     }
 
-    /** Enable or disable default sort/filter icons rendering for this header cell. */
+    /** Enable or disable default header decorations for this column. */
     public fun headerDecorations(value: Boolean) {
         headerDecorations = value
     }
 
-    /** Enable or disable click-to-sort on the whole header cell for this column. */
+    /** Enable or disable click-to-sort for the whole header cell. */
     public fun headerClickToSort(value: Boolean) {
         headerClickToSort = value
     }
@@ -130,5 +168,8 @@ public class ColumnBuilder<T : Any, C> internal constructor(
         )
 }
 
+/**
+ * DSL entry to declare table columns.
+ */
 public fun <T : Any, C> tableColumns(build: TableColumnsBuilder<T, C>.() -> Unit): List<ColumnSpec<T, C>> =
     TableColumnsBuilder<T, C>().apply(build).build()

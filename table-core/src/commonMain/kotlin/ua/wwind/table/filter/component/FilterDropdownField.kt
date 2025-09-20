@@ -25,6 +25,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.flow.Flow
 
+/**
+ * Collects a [Flow] in a composable scope, invoking [block] on each emission.
+ * Shorthand utility to avoid manual `LaunchedEffect` wiring.
+ */
 @Composable
 public fun <T> Flow<T>.collectAsEffect(block: (T) -> Unit) {
     val currentBlock = rememberUpdatedState(block)
@@ -39,6 +43,9 @@ public fun <T> Flow<T>.collectAsEffect(block: (T) -> Unit) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Suppress("LongParameterList")
 @Composable
+/**
+ * Dropdown field specialized for enum values. Optionally supports multi-select with [checked].
+ */
 public fun <E : Enum<E>> FilterDropdownField(
     currentValue: E?,
     getTitle: @Composable (E) -> String = { it.name },

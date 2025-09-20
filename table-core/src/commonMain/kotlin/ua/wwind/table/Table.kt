@@ -57,6 +57,36 @@ import ua.wwind.table.strings.StringProvider
 @Suppress("LongParameterList")
 @ExperimentalTableApi
 @Composable
+/**
+ * Composable data table that renders a header and a virtualized list of rows.
+ *
+ * - Columns are described by [columns] (`ColumnSpec`).
+ * - Data is provided via [itemsCount] and [itemAt] loader.
+ * - Sorting, filters, ordering and selection are controlled by [state].
+ *
+ * Generic parameters:
+ * - [T] actual row item type.
+ * - [C] column key type.
+ *
+ * @param itemsCount total number of rows to display
+ * @param itemAt loader that returns an item for the given index; may return null while loading
+ * @param state mutable table state (sorting, filters, order, selection)
+ * @param columns list of visible/available column specifications
+ * @param modifier layout modifier for the whole table
+ * @param placeholderRow optional row content shown when an item is null
+ * @param rowKey stable key for rows; defaults to index
+ * @param rowLeading optional leading content per non-null row (e.g., avatar, checkbox)
+ * @param rowTrailing optional trailing content per non-null row
+ * @param onRowClick row primary action handler
+ * @param onRowLongClick optional long-press handler
+ * @param contextMenu optional context menu host, invoked with item and absolute position
+ * @param customization styling hooks for rows and cells
+ * @param colors container/content colors
+ * @param strings string provider for UI text
+ * @param verticalState list scroll state
+ * @param horizontalState horizontal scroll state of the whole table
+ * @param icons header icons used for sort and filter affordances
+ */
 public fun <T : Any, C> Table(
     itemsCount: Int,
     itemAt: (Int) -> T?,

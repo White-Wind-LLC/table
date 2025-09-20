@@ -25,6 +25,10 @@ import androidx.compose.ui.unit.dp
 @OptIn(ExperimentalMaterial3Api::class)
 @Suppress("LongParameterList")
 @Composable
+/**
+ * Generic dropdown field used by filter panels to select one or many values of arbitrary type.
+ * If [checked] is provided, the menu displays checkboxes for multi-select.
+ */
 public fun FilterDropdownAnyField(
     currentValue: Any?,
     getTitle: @Composable (Any) -> String = { it.toString() },

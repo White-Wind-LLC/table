@@ -6,10 +6,15 @@ import kotlinx.datetime.LocalDate
 import kotlin.math.roundToInt
 
 @Immutable
+/**
+ * Describes the UI and behavior of a column filter for values of type [T].
+ * Each subtype enumerates supported [constraints] and, when needed, parsing/formatting helpers.
+ */
 public sealed class TableFilterType<T>(
     public open val constraints: List<FilterConstraint>,
 ) {
     @Immutable
+    /** Text filter supporting contains/starts/ends/equals constraints. */
     public data class TextTableFilter(
         override val constraints: List<FilterConstraint> =
             listOf(
@@ -21,6 +26,7 @@ public sealed class TableFilterType<T>(
     ) : TableFilterType<String>(constraints)
 
     @Immutable
+    /** Numeric filter with optional range slider support via [rangeOptions] and [delegate]. */
     public data class NumberTableFilter<T : Number>(
         override val constraints: List<FilterConstraint> =
             listOf(
@@ -35,6 +41,7 @@ public sealed class TableFilterType<T>(
         val delegate: NumberFilterDelegate<T>,
         val rangeOptions: Pair<T, T>? = null,
     ) : TableFilterType<T>(constraints) {
+        /** Parsing/formatting and comparison helpers for numeric types. */
         public interface NumberFilterDelegate<T : Number> {
             public val regex: Regex
             public val default: T
@@ -53,6 +60,7 @@ public sealed class TableFilterType<T>(
             ): Boolean
         }
 
+        /** Default helpers for Int values. */
         public object IntDelegate : NumberFilterDelegate<Int> {
             public override val regex: Regex = Regex("^-?\\d*$")
             public override val default: Int = 0
@@ -71,6 +79,7 @@ public sealed class TableFilterType<T>(
             ): Boolean = a <= b
         }
 
+        /** Default helpers for Double values. */
         public object DoubleDelegate : NumberFilterDelegate<Double> {
             public override val regex: Regex = Regex("^-?\\d*\\.?\\d*$")
             public override val default: Double = 0.0
@@ -91,6 +100,7 @@ public sealed class TableFilterType<T>(
     }
 
     @Immutable
+    /** Boolean filter with a single EQUALS constraint. */
     public data class BooleanTableFilter(
         override val constraints: List<FilterConstraint> =
             listOf(
@@ -100,6 +110,7 @@ public sealed class TableFilterType<T>(
     ) : TableFilterType<Boolean>(constraints)
 
     @Immutable
+    /** Date filter with comparison and equals constraints. */
     public data class DateTableFilter(
         override val constraints: List<FilterConstraint> =
             listOf(
@@ -112,6 +123,7 @@ public sealed class TableFilterType<T>(
     ) : TableFilterType<LocalDate>(constraints)
 
     @Immutable
+    /** Enum filter supporting IN/NOT_IN/EQUALS with custom [getTitle] provider. */
     public data class EnumTableFilter<T : Enum<T>>(
         val options: List<T>,
         override val constraints: List<FilterConstraint> =

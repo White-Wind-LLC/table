@@ -2,6 +2,7 @@ package ua.wwind.table.filter.data
 
 import ua.wwind.table.strings.UiString
 
+/** Supported filter comparison operators. */
 public enum class FilterConstraint {
     EQUALS,
     NOT_EQUALS,
@@ -19,6 +20,7 @@ public enum class FilterConstraint {
     IS_NOT_NULL,
     ;
 
+    /** Map constraint to a UI string key. */
     public fun toUiString(): UiString =
         when (this) {
             EQUALS -> UiString.FilterConstraintEquals

@@ -7,6 +7,9 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
 
 @Immutable
+/**
+ * Color palette used by the table header and rows.
+ */
 public data class TableColors(
     val headerContainerColor: Color,
     val headerContentColor: Color,
@@ -17,6 +20,7 @@ public data class TableColors(
 
 public object TableDefaults {
     @Composable
+    /** Convenience factory for default [TableColors] derived from [MaterialTheme]. */
     public fun colors(
         headerContainerColor: Color = MaterialTheme.colorScheme.surfaceContainer,
         headerContentColor: Color = MaterialTheme.colorScheme.contentColorFor(headerContainerColor),

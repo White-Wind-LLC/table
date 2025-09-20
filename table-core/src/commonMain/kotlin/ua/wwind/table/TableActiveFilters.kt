@@ -21,6 +21,16 @@ import ua.wwind.table.strings.UiString
 
 @Composable
 @Suppress("LongParameterList")
+/**
+ * Renders a compact header row with chips describing currently active filters.
+ * Provides quick clear actions for individual columns or all at once.
+ *
+ * @param columns all column specs used by the table
+ * @param state table state containing current filters
+ * @param strings string provider for localized labels
+ * @param modifier layout modifier for the chips row
+ * @param includeClearAllChip whether to include a leading "Clear" chip to reset all filters
+ */
 public fun <T : Any, C> TableActiveFilters(
     columns: List<ColumnSpec<T, C>>,
     state: TableState<C>,
