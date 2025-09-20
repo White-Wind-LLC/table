@@ -40,7 +40,7 @@ jobs:
           SIGNING_IN_MEMORY_KEY_BASE64: ${{ secrets.SIGNING_IN_MEMORY_KEY_BASE64 }}
 
       - name: Publish and Release to Maven Central
-        run: ./gradlew --no-daemon --no-parallel -PexcludeSamples=true -PLOG_LEVEL=Info :paging-core:publishAndReleaseToMavenCentral
+        run: ./gradlew --no-daemon --no-parallel -PexcludeSamples=true -PLOG_LEVEL=Info publishAndReleaseToMavenCentral
         env:
           ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
           ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}

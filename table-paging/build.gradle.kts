@@ -3,6 +3,7 @@ plugins {
     id("ua.wwind.convention.kmp.target.all")
     id("ua.wwind.convention.compose")
     id("ua.wwind.convention.logging")
+    id("ua.wwind.convention.publishing")
 }
 
 kotlin {
