@@ -11,6 +11,7 @@ import androidx.compose.ui.geometry.Offset
 import ua.wwind.paging.core.PagingData
 import ua.wwind.paging.core.getOrNull
 import ua.wwind.table.ColumnSpec
+import ua.wwind.table.ExperimentalTableApi
 import ua.wwind.table.Table
 import ua.wwind.table.component.TableHeaderDefaults
 import ua.wwind.table.component.TableHeaderIcons
@@ -22,6 +23,7 @@ import ua.wwind.table.state.TableState
 import ua.wwind.table.strings.DefaultStrings
 import ua.wwind.table.strings.StringProvider
 
+@OptIn(ExperimentalTableApi::class)
 @Composable
 @Suppress("LongParameterList", "ktlint:standard:function-naming")
 public fun <T : Any, C> Table(

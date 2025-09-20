@@ -1,7 +1,15 @@
 ### Data Table for Compose Multiplatform (Material 3)
 
+[![Maven Central](https://img.shields.io/maven-central/v/ua.wwind/table-core)](https://central.sonatype.com/artifact/ua.wwind/table-core)
+
 Compose Multiplatform data table with Material 3 look & feel. Includes a core table, a conditional formatting add‑on,
 and paging integration.
+
+### Example
+
+Here's what the data table looks like in action:
+
+![Data Table Example](docs/images/datatable-example.png)
 
 ### Modules
 
