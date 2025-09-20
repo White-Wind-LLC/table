@@ -1,6 +1,6 @@
 ### Data Table for Compose Multiplatform (Material 3)
 
-[![Maven Central](https://img.shields.io/maven-central/v/ua.wwind/table-core)](https://central.sonatype.com/artifact/ua.wwind/table-core)
+[![Maven Central](https://img.shields.io/maven-central/v/ua.wwind.table-kmp/table-core)](https://central.sonatype.com/artifact/ua.wwind.table-kmp/table-core)
 
 Compose Multiplatform data table with Material 3 look & feel. Includes a core table, a conditional formatting add‑on,
 and paging integration.
@@ -39,10 +39,10 @@ Add repository (usually `mavenCentral`) and include the modules you need:
 
 ```kotlin
 dependencies {
-    implementation("ua.wwind:table-core:1.0.2")
+    implementation("ua.wwind.table-kmp:table-core:1.0.3")
     // optional
-    implementation("ua.wwind:table-format:1.0.2")
-    implementation("ua.wwind:table-paging:1.0.2")
+    implementation("ua.wwind.table-kmp:table-format:1.0.3")
+    implementation("ua.wwind.table-kmp:table-paging:1.0.3")
 }
 ```
 

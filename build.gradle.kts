@@ -15,8 +15,6 @@ plugins {
 }
 
 allprojects {
-    group = "ua.wwind"
-
     // Apply Dokka to root and all subprojects so documentation can be generated across modules
     apply(plugin = "org.jetbrains.dokka")
 }
