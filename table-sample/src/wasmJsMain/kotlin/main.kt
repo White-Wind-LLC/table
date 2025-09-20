@@ -9,7 +9,8 @@ import ua.wwind.table.sample.SampleApp
 @OptIn(ExperimentalComposeUiApi::class)
 fun main() {
     onWasmReady {
-        ComposeViewport("root") {
+        val body = document.body ?: return@onWasmReady
+        ComposeViewport(body) {
             SampleApp()
         }
     }

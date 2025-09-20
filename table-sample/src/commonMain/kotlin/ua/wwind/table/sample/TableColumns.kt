@@ -1,11 +1,13 @@
 package ua.wwind.table.sample
 
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.filter.data.TableFilterType
 import ua.wwind.table.tableColumns
@@ -17,13 +19,13 @@ fun createTableColumns(): List<ColumnSpec<Person, PersonColumn>> {
     return tableColumns<Person, PersonColumn> {
         // Real Person fields
         column(PersonColumn.NAME) {
-            header("Name")
+            header { Text("Name", modifier = Modifier.padding(horizontal = 16.dp)) }
             title { "Name" }
             filter(TableFilterType.TextTableFilter())
-            cell { item -> Text(item.name) }
+            cell { item -> Text(item.name, modifier = Modifier.padding(horizontal = 16.dp)) }
         }
         column(PersonColumn.AGE) {
-            header("Age")
+            header { Text("Age", modifier = Modifier.padding(horizontal = 16.dp)) }
             title { "Age" }
             filter(
                 TableFilterType.NumberTableFilter(
@@ -35,19 +37,18 @@ fun createTableColumns(): List<ColumnSpec<Person, PersonColumn>> {
             cell { item ->
                 Text(
                     item.age.toString(),
-                    textAlign = TextAlign.End,
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.padding(horizontal = 16.dp),
                 )
             }
         }
         column(PersonColumn.ACTIVE) {
-            header("Active")
+            header { Text("Active", modifier = Modifier.padding(horizontal = 16.dp)) }
             title { "Active" }
             filter(TableFilterType.BooleanTableFilter())
-            cell { item -> Text(if (item.active) "Yes" else "No") }
+            cell { item -> Text(if (item.active) "Yes" else "No", modifier = Modifier.padding(horizontal = 16.dp)) }
         }
         column(PersonColumn.ID) {
-            header("ID")
+            header { Text("ID", modifier = Modifier.padding(horizontal = 16.dp)) }
             title { "ID" }
             filter(
                 TableFilterType.NumberTableFilter(
@@ -59,37 +60,36 @@ fun createTableColumns(): List<ColumnSpec<Person, PersonColumn>> {
             cell { item ->
                 Text(
                     item.id.toString(),
-                    textAlign = TextAlign.End,
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.padding(horizontal = 16.dp),
                 )
             }
         }
         column(PersonColumn.EMAIL) {
-            header("Email")
+            header { Text("Email", modifier = Modifier.padding(horizontal = 16.dp)) }
             title { "Email" }
             filter(TableFilterType.TextTableFilter())
-            cell { item -> Text(item.email) }
+            cell { item -> Text(item.email, modifier = Modifier.padding(horizontal = 16.dp)) }
         }
         column(PersonColumn.CITY) {
-            header("City")
+            header { Text("City", modifier = Modifier.padding(horizontal = 16.dp)) }
             title { "City" }
             filter(TableFilterType.TextTableFilter())
-            cell { item -> Text(item.city) }
+            cell { item -> Text(item.city, modifier = Modifier.padding(horizontal = 16.dp)) }
         }
         column(PersonColumn.COUNTRY) {
-            header("Country")
+            header { Text("Country", modifier = Modifier.padding(horizontal = 16.dp)) }
             title { "Country" }
             filter(TableFilterType.TextTableFilter())
-            cell { item -> Text(item.country) }
+            cell { item -> Text(item.country, modifier = Modifier.padding(horizontal = 16.dp)) }
         }
         column(PersonColumn.DEPARTMENT) {
-            header("Department")
+            header { Text("Department", modifier = Modifier.padding(horizontal = 16.dp)) }
             title { "Department" }
             filter(TableFilterType.TextTableFilter())
-            cell { item -> Text(item.department) }
+            cell { item -> Text(item.department, modifier = Modifier.padding(horizontal = 16.dp)) }
         }
         column(PersonColumn.SALARY) {
-            header("Salary")
+            header { Text("Salary", modifier = Modifier.padding(horizontal = 16.dp)) }
             title { "Salary" }
             filter(
                 TableFilterType.NumberTableFilter(
@@ -101,13 +101,12 @@ fun createTableColumns(): List<ColumnSpec<Person, PersonColumn>> {
             cell { item ->
                 Text(
                     "$${item.salary}",
-                    textAlign = TextAlign.End,
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.padding(horizontal = 16.dp),
                 )
             }
         }
         column(PersonColumn.RATING) {
-            header("Rating")
+            header { Text("Rating", modifier = Modifier.padding(horizontal = 16.dp)) }
             title { "Rating" }
             filter(
                 TableFilterType.NumberTableFilter(
@@ -115,19 +114,18 @@ fun createTableColumns(): List<ColumnSpec<Person, PersonColumn>> {
                     rangeOptions = 1 to 5,
                 ),
             )
-            align(Alignment.End)
+            align(Alignment.CenterHorizontally)
             cell { item ->
                 Text(
-                    "${"★".repeat(item.rating)}",
-                    textAlign = TextAlign.End,
-                    modifier = Modifier.fillMaxWidth(),
+                    "★".repeat(item.rating),
+                    modifier = Modifier.padding(horizontal = 16.dp),
                 )
             }
         }
 
         // Computed fields
         column(PersonColumn.AGE_GROUP) {
-            header("Age group")
+            header { Text("Age group", modifier = Modifier.padding(horizontal = 16.dp)) }
             title { "Age group" }
             filter(TableFilterType.TextTableFilter())
             cell { item ->
@@ -136,7 +134,7 @@ fun createTableColumns(): List<ColumnSpec<Person, PersonColumn>> {
                     item.age < 35 -> "25-34"
                     else -> "35+"
                 }
-                Text(group)
+                Text(group, modifier = Modifier.padding(horizontal = 16.dp))
             }
         }
     }

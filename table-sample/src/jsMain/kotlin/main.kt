@@ -1,5 +1,6 @@
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.window.ComposeViewport
+import kotlinx.browser.document
 import org.jetbrains.compose.web.css.padding
 import org.jetbrains.compose.web.css.px
 import org.jetbrains.compose.web.dom.Button
@@ -14,7 +15,8 @@ import ua.wwind.table.sample.SampleApp
 @OptIn(ExperimentalComposeUiApi::class)
 fun main() {
     onWasmReady {
-        ComposeViewport("root") {
+        val body = document.body ?: return@onWasmReady
+        ComposeViewport(body) {
             SampleApp()
         }
     }
