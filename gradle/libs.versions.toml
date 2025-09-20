@@ -19,32 +19,13 @@ androidx-core = "1.17.0"
 androidx-appcompat = "1.7.1"
 androidx-activityCompose = "1.11.0"
 androidx-lifecycle = "2.9.3"
-navigation = "2.9.0-rc02"
-
-# --- Data & Storage ---
-dataStore = "1.1.7"
-multiplatformSettings = "1.3.0"
 
 # --- KotlinX & Utilities ---
 kotlinx-coroutines = "1.10.2"
 coroutines-test-ver = "1.10.2"
-kotlinx-serialization = "1.9.0"
-kotlinx-immutable = "0.4.0"
 #Change after the issue is fixed https://youtrack.jetbrains.com/projects/CMP/issues/CMP-8519/Migrate-to-kotlinx-datetime-0.7.1
 kotlinx-datetime = "0.7.1-0.6.x-compat"
-kotlinx-io-core = "0.8.0"
 okio = "3.16.0"
-uri-kmp = "0.0.20"
-swiftklib = "0.6.4"
-
-# --- Networking & Images ---
-ktor = "3.3.0"
-coil = "3.3.0"
-
-# --- DI & FP ---
-koin = "4.1.1"
-koin-annotations = "2.2.0-RC1"
-arrow = "2.1.2"
 
 # --- Logging & Monitoring ---
 kermit = "2.0.8"
@@ -53,7 +34,6 @@ slf4j = "2.0.17"
 # --- UI & UX ---
 reorderable = "2.5.1"
 paging = "2.2.1"
-shimmer = "1.3.3"
 dnd = "0.4.0"
 colorpicker = "1.1.2"
 
@@ -71,73 +51,22 @@ mavenPublish = "0.34.0"
 
 [libraries]
 # --- AndroidX Core & Lifecycle ---
-androidx-core = { module = "androidx.core:core-ktx", version.ref = "androidx-core" }
-androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "androidx-appcompat" }
 androidx-lifecycle-viewmodel-compose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "androidx-lifecycle" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activityCompose" }
 
-# --- DataStore & Settings ---
-androidx-datastore = { module = "androidx.datastore:datastore", version.ref = "dataStore" }
-androidx-datastore-core-okio = { group = "androidx.datastore", name = "datastore-core-okio", version.ref = "dataStore" }
-multiplatform-settings = { module = "com.russhwolf:multiplatform-settings", version.ref = "multiplatformSettings" }
-multiplatform-settings-coroutines = { module = "com.russhwolf:multiplatform-settings-coroutines", version.ref = "multiplatformSettings" }
-multiplatform-settings-datastore = { module = "com.russhwolf:multiplatform-settings-datastore", version.ref = "multiplatformSettings" }
-multiplatform-settings-no-arg = { module = "com.russhwolf:multiplatform-settings-no-arg", version.ref = "multiplatformSettings" }
-
 # --- Kotlin & Core Utils ---
-kotlin-reflect = { group = "org.jetbrains.kotlin", name = "kotlin-reflect", version.ref = "kotlin" }
-kotlinx-collections-immutable = { module = "org.jetbrains.kotlinx:kotlinx-collections-immutable", version.ref = "kotlinx-immutable" }
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
-kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
-kotlinx-io-core = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version.ref = "kotlinx-io-core" }
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
-uri-kmp = { module = "com.eygraber:uri-kmp", version.ref = "uri-kmp" }
 
 # --- Coroutines ---
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
-kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinx-coroutines" }
 kotlinx-coroutines-swing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "kotlinx-coroutines" }
 
-# --- Networking (Ktor) ---
-ktor-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
-ktor-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
-ktor-auth = { module = "io.ktor:ktor-client-auth", version.ref = "ktor" }
-ktor-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
-ktor-serialization = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
-ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor" }
-ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
-ktor-client-js = { module = "io.ktor:ktor-client-js", version.ref = "ktor" }
-
-# --- Image Loading (Coil) ---
-coil = { module = "io.coil-kt.coil3:coil", version.ref = "coil" }
-coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
-coil-network-ktor = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "coil" }
-coil-network-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coil" }
-
-# --- Dependency Injection (Koin) ---
-koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
-koin-android = { module = "io.insert-koin:koin-android", version.ref = "koin" }
-koin-androidx-compose = { module = "io.insert-koin:koin-androidx-compose", version.ref = "koin" }
-koin-compose = { module = "io.insert-koin:koin-compose", version.ref = "koin" }
-koin-compose-viewmodel = { module = "io.insert-koin:koin-compose-viewmodel", version.ref = "koin" }
-koin-compose-viewmodel-navigation = { module = "io.insert-koin:koin-compose-viewmodel-navigation", version.ref = "koin" }
-koin-annotations = { module = "io.insert-koin:koin-annotations", version.ref = "koin-annotations" }
-koin-ksp-compiler = { module = "io.insert-koin:koin-ksp-compiler", version.ref = "koin-annotations" }
-
 # --- UI: Compose & Navigation ---
-material = { module = "org.jetbrains.compose.material:material", version.ref = "compose-multiplatform" }
-navigation = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "navigation" }
 reorderable = { module = "sh.calvin.reorderable:reorderable", version.ref = "reorderable" }
-shimmer = { module = "com.valentinilk.shimmer:compose-shimmer", version.ref = "shimmer" }
 paging-core = { module = "ua.wwind.paging:paging-core", version.ref = "paging" }
 dnd = { module = "com.mohamedrejeb.dnd:compose-dnd", version.ref = "dnd" }
 colorpicker = { module = "com.github.skydoves:colorpicker-compose", version.ref = "colorpicker" }
-
-# --- Functional Programming (Arrow) ---
-arrow-core = { group = "io.arrow-kt", name = "arrow-core", version.ref = "arrow" }
-arrow-fx = { group = "io.arrow-kt", name = "arrow-fx-coroutines", version.ref = "arrow" }
-arrow-optics = { group = "io.arrow-kt", name = "arrow-optics", version.ref = "arrow" }
-arrow-optics-ksp = { group = "io.arrow-kt", name = "arrow-optics-ksp-plugin", version.ref = "arrow" }
 
 # --- Logging & Monitoring ---
 kermit = { module = "co.touchlab:kermit", version.ref = "kermit" }
@@ -176,27 +105,12 @@ gradle-compose-hot-reload = { module = "org.jetbrains.compose.hot-reload:hot-rel
 gradle-ksp = { module = "com.google.devtools.ksp:com.google.devtools.ksp.gradle.plugin", version.ref = "ksp" }
 
 # Resources & Multiplatform tooling
-gradle-swiftklib = { module = "io.github.ttypic:plugin", version.ref = "swiftklib" }
 gradle-buildkonfig = { module = "com.codingfeline.buildkonfig:com.codingfeline.buildkonfig.gradle.plugin", version.ref = "buildKonfig" }
 gradle-detekt = { module = "io.gitlab.arturbosch.detekt:io.gitlab.arturbosch.detekt.gradle.plugin", version.ref = "detekt" }
 gradle-ktlint = { module = "org.jlleitschuh.gradle:ktlint-gradle", version.ref = "ktlint-gradle" }
 gradle-kover = { module = "org.jetbrains.kotlinx:kover-gradle-plugin", version.ref = "kover" }
 gradle-dokka = { module = "org.jetbrains.dokka:org.jetbrains.dokka.gradle.plugin", version.ref = "dokka" }
 gradle-maven-publish = { module = "com.vanniktech.maven.publish:com.vanniktech.maven.publish.gradle.plugin", version.ref = "mavenPublish" }
-
-[bundles]
-arrow = [
-    "arrow-core",
-    "arrow-fx",
-    "arrow-optics"
-]
-ktor = [
-    "ktor-core",
-    "ktor-negotiation",
-    "ktor-auth",
-    "ktor-logging",
-    "ktor-serialization",
-]
 
 [plugins]
 # --- Kotlin Toolchain ---
@@ -220,7 +134,6 @@ android-library = { id = "com.android.library", version.ref = "agp" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 
 # --- Resources & Multiplatform tooling ---
-swiftklib = { id = "io.github.ttypic.swiftklib", version.ref = "swiftklib" }
 buildKonfig = { id = "com.codingfeline.buildkonfig", version.ref = "buildKonfig" }
 
 # --- Testing utilities ---
