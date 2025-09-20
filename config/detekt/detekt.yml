@@ -1,0 +1,6 @@
+naming:
+  FunctionNaming:
+    active: true
+    # Allow PascalCase for functions annotated with @Composable
+    ignoreAnnotated:
+      - Composable

@@ -1,0 +1,60 @@
+name: Publish to Maven Central
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  publish:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Upgrade Kotlin Yarn lockfiles
+        run: ./gradlew --no-daemon -PexcludeSamples=true kotlinUpgradeYarnLock
+
+      - name: Decode GPG private key (base64)
+        run: |
+          echo "${SIGNING_IN_MEMORY_KEY_BASE64}" | base64 --decode > /tmp/signing-key.asc
+          {
+            echo 'ORG_GRADLE_PROJECT_signingInMemoryKey<<EOF'
+            cat /tmp/signing-key.asc
+            echo 'EOF'
+          } >> "$GITHUB_ENV"
+        env:
+          SIGNING_IN_MEMORY_KEY_BASE64: ${{ secrets.SIGNING_IN_MEMORY_KEY_BASE64 }}
+
+      - name: Publish and Release to Maven Central
+        run: ./gradlew --no-daemon --no-parallel -PexcludeSamples=true -PLOG_LEVEL=Info :paging-core:publishAndReleaseToMavenCentral
+        env:
+          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_IN_MEMORY_KEY_PASSWORD }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyId: ${{ secrets.SIGNING_IN_MEMORY_KEY_ID }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        if: github.ref_type == 'tag'
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          body: |
+            See the CHANGELOG for details: https://github.com/${{ github.repository }}/blob/${{ github.ref_name }}/CHANGELOG.md
+          draft: false
+          prerelease: false
+          token: ${{ secrets.RELEASE_GITHUB_TOKEN }}

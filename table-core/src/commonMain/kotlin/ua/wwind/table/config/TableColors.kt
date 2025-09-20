@@ -1,0 +1,34 @@
+package ua.wwind.table.config
+
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.contentColorFor
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
+import androidx.compose.ui.graphics.Color
+
+@Immutable
+public data class TableColors(
+    val headerContainerColor: Color,
+    val headerContentColor: Color,
+    val rowContainerColor: Color,
+    val rowSelectedContainerColor: Color,
+    val stripedRowContainerColor: Color,
+)
+
+public object TableDefaults {
+    @Composable
+    public fun colors(
+        headerContainerColor: Color = MaterialTheme.colorScheme.surfaceContainer,
+        headerContentColor: Color = MaterialTheme.colorScheme.contentColorFor(headerContainerColor),
+        rowContainerColor: Color = Color.Unspecified,
+        rowSelectedContainerColor: Color = MaterialTheme.colorScheme.tertiary,
+        stripedRowContainerColor: Color = MaterialTheme.colorScheme.surfaceContainerLowest,
+    ): TableColors =
+        TableColors(
+            headerContainerColor = headerContainerColor,
+            headerContentColor = headerContentColor,
+            rowContainerColor = rowContainerColor,
+            rowSelectedContainerColor = rowSelectedContainerColor,
+            stripedRowContainerColor = stripedRowContainerColor,
+        )
+}
