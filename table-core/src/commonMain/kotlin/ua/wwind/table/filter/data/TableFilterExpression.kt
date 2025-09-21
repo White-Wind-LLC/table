@@ -4,7 +4,11 @@ import androidx.compose.runtime.Immutable
 
 @Immutable
 /** Logical combinators used to build nested filter expressions. */
-public enum class TableCombinator { AND, OR, NOT }
+public enum class TableCombinator {
+    AND,
+    OR,
+    NOT,
+}
 
 @Immutable
 /** Base sealed type for a single-column filter predicate. */

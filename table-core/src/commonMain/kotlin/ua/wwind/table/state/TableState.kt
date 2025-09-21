@@ -68,6 +68,15 @@ public class TableState<C> internal constructor(
         private set
     public val checkedIndices: SnapshotStateList<Int> = mutableStateListOf<Int>()
 
+    // Cell selection
+    public data class SelectedCell<C>(
+        val rowIndex: Int,
+        val column: C,
+    )
+
+    public var selectedCell: SelectedCell<C>? by mutableStateOf(null)
+        private set
+
     /**
      * Move a column from [fromIndex] to [toIndex] within the current order.
      * Indices are validated; dropping after the last element is supported.
@@ -163,6 +172,17 @@ public class TableState<C> internal constructor(
         }
     }
 
+    /**
+     * Set focused row to [index] without toggling selection.
+     *
+     * Used by keyboard navigation to keep row selection in sync with the focused cell
+     * when selection mode is enabled.
+     */
+    public fun focusRow(index: Int) {
+        if (settings.selectionMode == SelectionMode.None) return
+        selectedIndex = index
+    }
+
     /** Toggle checkmark state for [index] in Multiple selection mode. */
     public fun toggleCheck(index: Int) {
         if (settings.selectionMode != SelectionMode.Multiple) return
@@ -178,6 +198,14 @@ public class TableState<C> internal constructor(
             checkedIndices.clear()
             checkedIndices.addAll(0 until count)
         }
+    }
+
+    /** Select a specific cell at [rowIndex] and [column]. */
+    public fun selectCell(
+        rowIndex: Int,
+        column: C,
+    ) {
+        selectedCell = SelectedCell(rowIndex, column)
     }
 }
 

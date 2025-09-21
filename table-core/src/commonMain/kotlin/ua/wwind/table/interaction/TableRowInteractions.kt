@@ -17,6 +17,7 @@ import ua.wwind.table.platform.isMobile
 @Suppress("LongParameterList", "CyclomaticComplexMethod")
 public fun <T : Any> Modifier.tableRowInteractions(
     item: T?,
+    onFocus: ((T) -> Unit)? = null,
     useSelectAsPrimary: Boolean,
     onSelect: ((T) -> Unit)?,
     onClick: ((T) -> Unit)?,
@@ -34,7 +35,10 @@ public fun <T : Any> Modifier.tableRowInteractions(
         if (tapHandler != null || onLongClick != null) {
             this.then(
                 Modifier.combinedClickable(
-                    onClick = tapHandler ?: ({ }),
+                    onClick = {
+                        onFocus?.invoke(item)
+                        tapHandler?.invoke()
+                    },
                     onLongClick = onLongClick?.let { { it(item) } },
                 ),
             )
@@ -47,10 +51,19 @@ public fun <T : Any> Modifier.tableRowInteractions(
                 Modifier.combinedClickable(
                     onClick =
                         if (useSelectAsPrimary) {
-                            onSelect?.let { { it(item) } }
-                                ?: ({ })
+                            onSelect?.let {
+                                {
+                                    onFocus?.invoke(item)
+                                    it(item)
+                                }
+                            } ?: { onFocus?.invoke(item) }
                         } else {
-                            onClick?.let { { it(item) } } ?: ({ })
+                            onClick?.let {
+                                {
+                                    onFocus?.invoke(item)
+                                    it(item)
+                                }
+                            } ?: { onFocus?.invoke(item) }
                         },
                     onDoubleClick = if (useSelectAsPrimary) onClick?.let { { it(item) } } else null,
                     onLongClick = onLongClick?.let { { it(item) } },
