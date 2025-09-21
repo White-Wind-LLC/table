@@ -52,6 +52,7 @@ internal fun <T : Any, C> TableHeader(
     val lazyListState = remember { LazyListState() }
     var filterColumn by remember { mutableStateOf<C?>(null) }
     val derived = rememberHeaderDerivedState(columns, state, dimensions)
+    var isResizing by remember { mutableStateOf(false) }
     val reorderState =
         rememberReorderableLazyListState(lazyListState) { from, to ->
             val leadingOffset = if (leadingColumnWidth != null) 1 else 0
@@ -76,6 +77,7 @@ internal fun <T : Any, C> TableHeader(
                     strings = strings,
                     filterColumn = filterColumn,
                     onFilterColumnChange = { filterColumn = it },
+                    isResizing = isResizing,
                 )
 
                 ColumnResizersOverlay(
@@ -85,6 +87,8 @@ internal fun <T : Any, C> TableHeader(
                     dimensions = dimensions,
                     leadingColumnWidth = leadingColumnWidth,
                     onResize = { key, newWidth -> state.resizeColumn(key, ColumnWidthAction.Set(newWidth)) },
+                    onResizeStart = { isResizing = true },
+                    onResizeEnd = { isResizing = false },
                 )
             }
         }

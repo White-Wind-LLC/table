@@ -118,10 +118,11 @@ public fun <T : Any, C> Table(
     icons: TableHeaderIcons = TableHeaderDefaults.icons(),
 ) {
     val dimensions = state.dimensions
-    val visibleColumns =
-        remember(state.columnOrder, columns) {
+    val visibleColumns by remember(columns, state.columnOrder) {
+        derivedStateOf {
             state.columnOrder.mapNotNull { key -> columns.find { it.key == key && it.visible } }
         }
+    }
     val tableWidth by remember(visibleColumns, rowLeading, state.columnWidths, state.dimensions) {
         derivedStateOf { computeTableWidth(visibleColumns, rowLeading != null, state) }
     }

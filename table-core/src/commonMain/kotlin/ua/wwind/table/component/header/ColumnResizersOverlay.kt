@@ -38,6 +38,8 @@ internal fun <T : Any, C> ColumnResizersOverlay(
     dimensions: TableDimensions,
     leadingColumnWidth: Dp?,
     onResize: (key: C, newWidth: Dp) -> Unit,
+    onResizeStart: () -> Unit = {},
+    onResizeEnd: () -> Unit = {},
 ) {
     Box(modifier = Modifier.width(tableWidth)) {
         val density = LocalDensity.current
@@ -89,11 +91,13 @@ internal fun <T : Any, C> ColumnResizersOverlay(
                                         onDragStarted = {
                                             dragStartWidth = widthResolver(spec.key)
                                             accumulatedDeltaPx = 0f
+                                            onResizeStart()
                                         },
                                         onDragStopped = {
                                             offsetX = 0f
                                             dragStartWidth = null
                                             accumulatedDeltaPx = 0f
+                                            onResizeEnd()
                                         },
                                     )
                                     .pointerHoverIcon(PointerIcon.Hand)

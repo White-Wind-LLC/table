@@ -35,6 +35,7 @@ internal fun <T : Any, C> TableHeaderRow(
     strings: StringProvider,
     filterColumn: C?,
     onFilterColumnChange: (C?) -> Unit,
+    isResizing: Boolean,
 ) {
     LazyRow(
         modifier = Modifier.width(tableWidth),
@@ -59,7 +60,11 @@ internal fun <T : Any, C> TableHeaderRow(
         }
 
         items(items = visibleColumns, key = { item -> item.key as Any }) { spec ->
-            ReorderableItem(reorderState, key = spec.key as Any) { isDragging ->
+            ReorderableItem(
+                state = reorderState,
+                key = spec.key as Any,
+                animateItemModifier = if (isResizing) Modifier else Modifier.animateItem(),
+            ) { isDragging ->
                 val elevation = animateDpAsState(if (isDragging) 16.dp else 0.dp).value
                 Surface(
                     color = style.headerColor,
