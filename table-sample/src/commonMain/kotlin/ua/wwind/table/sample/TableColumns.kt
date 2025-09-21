@@ -1,6 +1,11 @@
 package ua.wwind.table.sample
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -18,12 +23,14 @@ fun createTableColumns(): List<ColumnSpec<Person, PersonColumn>> =
         column(PersonColumn.NAME) {
             header { Text("Name", modifier = Modifier.padding(horizontal = 16.dp)) }
             title { "Name" }
+            sortable()
             filter(TableFilterType.TextTableFilter())
             cell { item -> Text(item.name, modifier = Modifier.padding(horizontal = 16.dp)) }
         }
         column(PersonColumn.AGE) {
             header { Text("Age", modifier = Modifier.padding(horizontal = 16.dp)) }
             title { "Age" }
+            sortable()
             filter(
                 TableFilterType.NumberTableFilter(
                     delegate = TableFilterType.NumberTableFilter.IntDelegate,
@@ -41,12 +48,14 @@ fun createTableColumns(): List<ColumnSpec<Person, PersonColumn>> =
         column(PersonColumn.ACTIVE) {
             header { Text("Active", modifier = Modifier.padding(horizontal = 16.dp)) }
             title { "Active" }
+            sortable()
             filter(TableFilterType.BooleanTableFilter())
             cell { item -> Text(if (item.active) "Yes" else "No", modifier = Modifier.padding(horizontal = 16.dp)) }
         }
         column(PersonColumn.ID) {
             header { Text("ID", modifier = Modifier.padding(horizontal = 16.dp)) }
             title { "ID" }
+            sortable()
             filter(
                 TableFilterType.NumberTableFilter(
                     delegate = TableFilterType.NumberTableFilter.IntDelegate,
@@ -64,30 +73,35 @@ fun createTableColumns(): List<ColumnSpec<Person, PersonColumn>> =
         column(PersonColumn.EMAIL) {
             header { Text("Email", modifier = Modifier.padding(horizontal = 16.dp)) }
             title { "Email" }
+            sortable()
             filter(TableFilterType.TextTableFilter())
             cell { item -> Text(item.email, modifier = Modifier.padding(horizontal = 16.dp)) }
         }
         column(PersonColumn.CITY) {
             header { Text("City", modifier = Modifier.padding(horizontal = 16.dp)) }
             title { "City" }
+            sortable()
             filter(TableFilterType.TextTableFilter())
             cell { item -> Text(item.city, modifier = Modifier.padding(horizontal = 16.dp)) }
         }
         column(PersonColumn.COUNTRY) {
             header { Text("Country", modifier = Modifier.padding(horizontal = 16.dp)) }
             title { "Country" }
+            sortable()
             filter(TableFilterType.TextTableFilter())
             cell { item -> Text(item.country, modifier = Modifier.padding(horizontal = 16.dp)) }
         }
         column(PersonColumn.DEPARTMENT) {
             header { Text("Department", modifier = Modifier.padding(horizontal = 16.dp)) }
             title { "Department" }
+            sortable()
             filter(TableFilterType.TextTableFilter())
             cell { item -> Text(item.department, modifier = Modifier.padding(horizontal = 16.dp)) }
         }
         column(PersonColumn.SALARY) {
             header { Text("Salary", modifier = Modifier.padding(horizontal = 16.dp)) }
             title { "Salary" }
+            sortable()
             filter(
                 TableFilterType.NumberTableFilter(
                     delegate = TableFilterType.NumberTableFilter.IntDelegate,
@@ -105,6 +119,7 @@ fun createTableColumns(): List<ColumnSpec<Person, PersonColumn>> =
         column(PersonColumn.RATING) {
             header { Text("Rating", modifier = Modifier.padding(horizontal = 16.dp)) }
             title { "Rating" }
+            sortable()
             filter(
                 TableFilterType.NumberTableFilter(
                     delegate = TableFilterType.NumberTableFilter.IntDelegate,
@@ -113,10 +128,18 @@ fun createTableColumns(): List<ColumnSpec<Person, PersonColumn>> =
             )
             align(Alignment.CenterHorizontally)
             cell { item ->
-                Text(
-                    "★".repeat(item.rating),
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(2.dp),
+                    verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(horizontal = 16.dp),
-                )
+                ) {
+                    repeat(item.rating) {
+                        Icon(
+                            imageVector = Icons.Filled.Star,
+                            contentDescription = null,
+                        )
+                    }
+                }
             }
         }
 
@@ -124,6 +147,7 @@ fun createTableColumns(): List<ColumnSpec<Person, PersonColumn>> =
         column(PersonColumn.AGE_GROUP) {
             header { Text("Age group", modifier = Modifier.padding(horizontal = 16.dp)) }
             title { "Age group" }
+            sortable()
             cell { item ->
                 val group =
                     when {

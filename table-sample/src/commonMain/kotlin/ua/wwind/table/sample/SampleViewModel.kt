@@ -3,10 +3,13 @@ package ua.wwind.table.sample
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import ua.wwind.table.ExperimentalTableApi
 import ua.wwind.table.filter.data.FilterConstraint
 import ua.wwind.table.filter.data.TableFilterState
 import ua.wwind.table.format.FormatFilterData
+import ua.wwind.table.format.data.TableCellStyleConfig
 import ua.wwind.table.format.data.TableFormatRule
 
 @OptIn(ExperimentalTableApi::class)
@@ -324,5 +327,47 @@ class SampleViewModel {
      */
     fun clear() {
         // Add cleanup logic here if needed
+    }
+
+    init {
+        // Default conditional formatting: if RATING >= 4, set content color to gold for the Rating column
+        val ratingFilter: Map<PersonColumn, TableFilterState<*>> =
+            mapOf(
+                PersonColumn.RATING to TableFilterState(
+                    constraint = FilterConstraint.GTE,
+                    values = listOf(4),
+                ),
+            )
+        val ratingRule =
+            TableFormatRule<PersonColumn, Map<PersonColumn, TableFilterState<*>>>(
+                id = 1L,
+                enabled = true,
+                base = false,
+                columns = listOf(PersonColumn.RATING),
+                cellStyle = TableCellStyleConfig(
+                    contentColor = 0xFFFFD700.toInt(), // Gold
+                ),
+                filter = ratingFilter,
+            )
+        // Default conditional formatting: if ACTIVE = false, set content color to gray for the whole row
+        val activeFilter: Map<PersonColumn, TableFilterState<*>> =
+            mapOf(
+                PersonColumn.ACTIVE to TableFilterState(
+                    constraint = FilterConstraint.EQUALS,
+                    values = listOf(false),
+                ),
+            )
+        val activeRule =
+            TableFormatRule<PersonColumn, Map<PersonColumn, TableFilterState<*>>>(
+                id = 2L,
+                enabled = true,
+                base = false,
+                columns = emptyList(),
+                cellStyle = TableCellStyleConfig(
+                    contentColor = Color.LightGray.toArgb(),
+                ),
+                filter = activeFilter,
+            )
+        rules = listOf(ratingRule, activeRule)
     }
 }
