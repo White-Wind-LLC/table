@@ -81,7 +81,7 @@ kotlin {
 
     listOf(
         iosArm64(),
-        iosSimulatorArm64()
+        iosSimulatorArm64(),
     ).forEach {
         it.binaries.framework {
             baseName = iosFrameworkBaseName
@@ -125,6 +125,5 @@ kotlin {
         iosMain.dependencies {
             // implementation(libs.firebase.analytics)
         }
-
     }
 }

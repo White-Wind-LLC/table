@@ -1,12 +1,9 @@
 package ua.wwind.table.sample
 
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.filter.data.TableFilterType
@@ -15,8 +12,8 @@ import ua.wwind.table.tableColumns
 /**
  * Create column definitions with titles, cells and optional filters for header UI.
  */
-fun createTableColumns(): List<ColumnSpec<Person, PersonColumn>> {
-    return tableColumns<Person, PersonColumn> {
+fun createTableColumns(): List<ColumnSpec<Person, PersonColumn>> =
+    tableColumns<Person, PersonColumn> {
         // Real Person fields
         column(PersonColumn.NAME) {
             header { Text("Name", modifier = Modifier.padding(horizontal = 16.dp)) }
@@ -127,15 +124,14 @@ fun createTableColumns(): List<ColumnSpec<Person, PersonColumn>> {
         column(PersonColumn.AGE_GROUP) {
             header { Text("Age group", modifier = Modifier.padding(horizontal = 16.dp)) }
             title { "Age group" }
-            filter(TableFilterType.TextTableFilter())
             cell { item ->
-                val group = when {
-                    item.age < 25 -> "<25"
-                    item.age < 35 -> "25-34"
-                    else -> "35+"
-                }
+                val group =
+                    when {
+                        item.age < 25 -> "<25"
+                        item.age < 35 -> "25-34"
+                        else -> "35+"
+                    }
                 Text(group, modifier = Modifier.padding(horizontal = 16.dp))
             }
         }
     }
-}
