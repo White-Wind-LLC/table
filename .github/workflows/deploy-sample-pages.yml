@@ -1,0 +1,50 @@
+name: Deploy table-sample to GitHub Pages
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: 'pages'
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build table-sample WASM distribution
+        run: ./gradlew --no-daemon :table-sample:wasmJsBrowserDistribution
+
+      - name: Upload Pages artifact (wasmJs)
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: table-sample/build/dist/wasmJs/productionExecutable
+
+      - id: deploy
+        name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4
