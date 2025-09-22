@@ -16,7 +16,12 @@ public data class TableSettings(
     val showActiveFiltersHeader: Boolean = false,
     /** Selection mode */
     val selectionMode: SelectionMode = SelectionMode.None,
+    /** Row height strategy: Fixed (default) or Dynamic per content. */
+    val rowHeightMode: RowHeightMode = RowHeightMode.Fixed,
 )
 
 /** Row selection behavior. */
 public enum class SelectionMode { None, Single, Multiple }
+
+/** Row height behavior. */
+public enum class RowHeightMode { Fixed, Dynamic }

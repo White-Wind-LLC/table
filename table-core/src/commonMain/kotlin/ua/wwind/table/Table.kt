@@ -7,10 +7,13 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
@@ -49,6 +52,7 @@ import ua.wwind.table.component.TableHeader
 import ua.wwind.table.component.TableHeaderDefaults
 import ua.wwind.table.component.TableHeaderIcons
 import ua.wwind.table.config.DefaultTableCustomization
+import ua.wwind.table.config.RowHeightMode
 import ua.wwind.table.config.SelectionMode
 import ua.wwind.table.config.TableCellContext
 import ua.wwind.table.config.TableCellStyle
@@ -378,6 +382,7 @@ private fun <T : Any, C> TableRowItem(
 ) {
     val dimensions = state.dimensions
     val isSelected = state.selectedIndex == index
+    val isDynamicRowHeight = state.settings.rowHeightMode == RowHeightMode.Dynamic
 
     val defaultRowBackgroundColor =
         when {
@@ -414,11 +419,28 @@ private fun <T : Any, C> TableRowItem(
         border = rowStyle?.border,
         tonalElevation = tonalElevation,
     ) {
-        Row(modifier = Modifier.width(tableWidth).then(rowStyle?.modifier ?: Modifier)) {
+        val minRowHeight: Dp? = if (isDynamicRowHeight) {
+            visibleColumns.mapNotNull { it.minRowHeight }.maxOrNull()
+        } else null
+        val maxRowHeight: Dp? = if (isDynamicRowHeight) {
+            visibleColumns.mapNotNull { it.maxRowHeight }.minOrNull()
+        } else null
+
+        var rowModifier = Modifier.width(tableWidth).then(rowStyle?.modifier ?: Modifier)
+        if (isDynamicRowHeight) {
+            rowModifier = rowModifier.height(IntrinsicSize.Min)
+            if (minRowHeight != null || maxRowHeight != null) {
+                rowModifier =
+                    rowModifier.heightIn(min = minRowHeight ?: Dp.Unspecified, max = maxRowHeight ?: Dp.Unspecified)
+            }
+        }
+
+        Row(modifier = rowModifier) {
             item?.let { itItem ->
                 if (rowLeading != null) {
                     RowLeadingSection(
-                        height = dimensions.defaultRowHeight,
+                        cellWidth = dimensions.defaultRowHeight,
+                        height = if (isDynamicRowHeight) null else dimensions.defaultRowHeight,
                         dividerThickness = dimensions.verticalDividerThickness,
                         rowLeading = rowLeading,
                         item = itItem,
@@ -447,22 +469,9 @@ private fun <T : Any, C> TableRowItem(
                     val isCellSelected =
                         state.selectedCell?.let { it.rowIndex == index && it.column == spec.key } == true
 
-                    // Measure intrinsic minimal width of the content before rendering and keep track of the max
-                    if (spec.resizable || spec.autoWidth) {
-                        ua.wwind.table.MeasureCellMinWidth(
-                            item = itItem,
-                            measureKey = Pair(spec.key, index),
-                            content = spec.cell
-                        ) { measuredMinWidth ->
-                            // Respect declared minWidth of the column
-                            val adjusted = maxOf(measuredMinWidth, spec.minWidth)
-                            state.updateMaxContentWidth(spec.key, adjusted)
-                        }
-                    }
-
                     TableCell(
                         width = width,
-                        height = dimensions.defaultRowHeight,
+                        height = if (isDynamicRowHeight) null else dimensions.defaultRowHeight,
                         dividerThickness = dimensions.verticalDividerThickness,
                         cellStyle = cellStyle,
                         alignment = spec.alignment.toCellContentAlignment(),
@@ -490,6 +499,18 @@ private fun <T : Any, C> TableRowItem(
                                     ),
                                 ),
                     ) {
+                        if (spec.resizable || spec.autoWidth) {
+                            Box(Modifier.size(0.dp)) {
+                                MeasureCellMinWidth(
+                                    item = itItem,
+                                    measureKey = Pair(spec.key, index),
+                                    content = spec.cell
+                                ) { measuredMinWidth ->
+                                    val adjusted = maxOf(measuredMinWidth, spec.minWidth)
+                                    state.updateMaxContentWidth(spec.key, adjusted)
+                                }
+                            }
+                        }
                         spec.cell.invoke(this, itItem)
                     }
                 }
@@ -497,7 +518,7 @@ private fun <T : Any, C> TableRowItem(
                 rowTrailing?.invoke(itItem)
             } ?: run {
                 Row(
-                    modifier = Modifier.height(dimensions.defaultRowHeight).padding(horizontal = 16.dp),
+                    modifier = (if (isDynamicRowHeight) Modifier else Modifier.height(dimensions.defaultRowHeight)),
                     verticalAlignment = Alignment.CenterVertically,
                 ) { placeholderRow?.invoke() }
             }
@@ -507,7 +528,8 @@ private fun <T : Any, C> TableRowItem(
 
 @Composable
 private fun <T> RowLeadingSection(
-    height: Dp,
+    cellWidth: Dp,
+    height: Dp?,
     dividerThickness: Dp,
     rowLeading: @Composable (T) -> Unit,
     item: T,
@@ -516,12 +538,12 @@ private fun <T> RowLeadingSection(
         Box(
             modifier =
                 Modifier
-                    .height(height)
-                    .width(height),
+                    .then(if (height != null) Modifier.height(height) else Modifier)
+                    .width(cellWidth),
             contentAlignment = Alignment.Center,
         ) { rowLeading(item) }
         VerticalDivider(
-            modifier = Modifier.height(height),
+            modifier = if (height != null) Modifier.height(height) else Modifier.fillMaxHeight(),
             thickness = dividerThickness,
         )
     }
@@ -531,7 +553,7 @@ private fun <T> RowLeadingSection(
 @Suppress("LongParameterList")
 private fun TableCell(
     width: Dp,
-    height: Dp,
+    height: Dp?,
     dividerThickness: Dp,
     cellStyle: TableCellStyle,
     alignment: Alignment,
@@ -549,7 +571,7 @@ private fun TableCell(
             modifier =
                 Modifier
                     .width(width)
-                    .height(height)
+                    .then(if (height != null) Modifier.height(height) else Modifier)
                     .then(backgroundModifier)
                     .then(selectionBorderModifier),
             contentAlignment = alignment,
@@ -562,7 +584,10 @@ private fun TableCell(
                 content()
             }
         }
-        VerticalDivider(modifier = Modifier.height(height), thickness = dividerThickness)
+        VerticalDivider(
+            modifier = (if (height != null) Modifier.height(height) else Modifier.fillMaxHeight()),
+            thickness = dividerThickness
+        )
     }
 }
 

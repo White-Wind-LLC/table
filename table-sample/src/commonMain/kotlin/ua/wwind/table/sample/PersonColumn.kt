@@ -15,6 +15,7 @@ enum class PersonColumn {
     DEPARTMENT,
     SALARY,
     RATING,
+    NOTES,
 
     // Computed fields
     AGE_GROUP,

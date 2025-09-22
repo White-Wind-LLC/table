@@ -34,6 +34,7 @@ fun createFilterTypes(): Map<PersonColumn, TableFilterType<*>> =
                 delegate = TableFilterType.NumberTableFilter.IntDelegate,
                 rangeOptions = 1 to 5,
             ),
+        PersonColumn.NOTES to TableFilterType.TextTableFilter(),
         // Computed fields
         PersonColumn.AGE_GROUP to TableFilterType.TextTableFilter(),
     )

@@ -14,4 +14,10 @@ data class Person(
     val department: String,
     val salary: Int,
     val rating: Int,
+    /** Multiline notes to demonstrate dynamic row height in table. */
+    val notes: String = """
+        This is a sample multi-line note for demo purposes.
+        It spans multiple lines to showcase dynamic row height.
+        You can add more content here as needed.
+    """.trimIndent(),
 )

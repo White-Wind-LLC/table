@@ -71,6 +71,7 @@ class SampleViewModel {
                     PersonColumn.DEPARTMENT -> TableFilterState<String>(constraint = null, values = null)
                     PersonColumn.SALARY -> TableFilterState<Int>(constraint = null, values = null)
                     PersonColumn.RATING -> TableFilterState<Int>(constraint = null, values = null)
+                    PersonColumn.NOTES -> TableFilterState<String>(constraint = null, values = null)
                     PersonColumn.AGE_GROUP -> TableFilterState<String>(constraint = null, values = null)
                 }
             FormatFilterData(
@@ -291,6 +292,23 @@ class SampleViewModel {
                                 from <= value && value <= to
                             }
 
+                            else -> true
+                        }
+                    if (!ok) return false
+                }
+
+                PersonColumn.NOTES -> {
+                    val value = person.notes
+                    val st = stateAny as TableFilterState<String>
+                    val query = st.values?.firstOrNull().orEmpty()
+                    val constraint = st.constraint ?: continue
+                    val ok =
+                        when (constraint) {
+                            FilterConstraint.CONTAINS -> value.contains(query, ignoreCase = true)
+                            FilterConstraint.STARTS_WITH -> value.startsWith(query, ignoreCase = true)
+                            FilterConstraint.ENDS_WITH -> value.endsWith(query, ignoreCase = true)
+                            FilterConstraint.EQUALS -> value.equals(query, ignoreCase = true)
+                            FilterConstraint.NOT_EQUALS -> !value.equals(query, ignoreCase = true)
                             else -> true
                         }
                     if (!ok) return false

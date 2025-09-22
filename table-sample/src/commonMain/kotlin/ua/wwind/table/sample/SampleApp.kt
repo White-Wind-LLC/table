@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import ua.wwind.table.ExperimentalTableApi
 import ua.wwind.table.Table
+import ua.wwind.table.config.RowHeightMode
 import ua.wwind.table.config.SelectionMode
 import ua.wwind.table.config.TableCustomization
 import ua.wwind.table.config.TableDimensions
@@ -56,6 +57,7 @@ fun SampleApp(modifier: Modifier = Modifier) {
             stripedRows = true,
             showActiveFiltersHeader = true,
             selectionMode = SelectionMode.None,
+            rowHeightMode = RowHeightMode.Dynamic,
         )
     }
 
@@ -97,6 +99,7 @@ fun SampleApp(modifier: Modifier = Modifier) {
                     PersonColumn.DEPARTMENT -> filteredPeople.sortedBy { it.department.lowercase() }
                     PersonColumn.SALARY -> filteredPeople.sortedBy { it.salary }
                     PersonColumn.RATING -> filteredPeople.sortedBy { it.rating }
+                    PersonColumn.NOTES -> filteredPeople.sortedBy { it.notes.lowercase() }
                     PersonColumn.AGE_GROUP ->
                         filteredPeople.sortedBy {
                             when {
@@ -165,6 +168,7 @@ fun SampleApp(modifier: Modifier = Modifier) {
                 PersonColumn.DEPARTMENT -> "Department"
                 PersonColumn.SALARY -> "Salary"
                 PersonColumn.RATING -> "Rating"
+                PersonColumn.NOTES -> "Notes"
                 PersonColumn.AGE_GROUP -> "Age group"
             }
         },

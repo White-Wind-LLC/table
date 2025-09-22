@@ -25,6 +25,8 @@ import ua.wwind.table.filter.data.TableFilterType
  * @param autoWidth whether to auto-fit width to measured content after first render
  * @param autoMaxWidth optional cap for auto-fitted width
  * @param alignment horizontal alignment for cell content
+ * @param minRowHeight optional minimal row height when table uses dynamic row height
+ * @param maxRowHeight optional maximal row height when table uses dynamic row height
  * @param filter optional filter type provided by this column
  * @param headerDecorations whether to render built-in sort/filter icons in the header cell
  * @param headerClickToSort whether clicking the entire header cell toggles sorting
@@ -42,6 +44,8 @@ public data class ColumnSpec<T : Any, C>(
     val autoWidth: Boolean = false,
     val autoMaxWidth: Dp? = null,
     val alignment: Alignment.Horizontal = Alignment.Start,
+    val minRowHeight: Dp? = null,
+    val maxRowHeight: Dp? = null,
     val filter: TableFilterType<*>? = null,
     /** Whether to render default header decorations (sort/filter icons) provided by the table. */
     val headerDecorations: Boolean = true,
@@ -88,6 +92,8 @@ public class ColumnBuilder<T : Any, C> internal constructor(
     private var autoWidth: Boolean = false
     private var autoMaxWidth: Dp? = null
     private var alignment: Alignment.Horizontal = Alignment.Start
+    private var minRowHeight: Dp? = null
+    private var maxRowHeight: Dp? = null
     private var filter: TableFilterType<*>? = null
     private var headerDecorations: Boolean = true
     private var headerClickToSort: Boolean = true
@@ -147,6 +153,15 @@ public class ColumnBuilder<T : Any, C> internal constructor(
         alignment = horizontal
     }
 
+    /**
+     * Configure row height bounds that will be considered when the table uses dynamic row height.
+     * If the table is in fixed height mode, these values are ignored.
+     */
+    public fun rowHeight(min: Dp? = null, max: Dp? = null) {
+        minRowHeight = min
+        maxRowHeight = max
+    }
+
     /** Attach a filter type supported by this column. */
     public fun filter(type: TableFilterType<*>) {
         filter = type
@@ -176,6 +191,8 @@ public class ColumnBuilder<T : Any, C> internal constructor(
             autoWidth = autoWidth,
             autoMaxWidth = autoMaxWidth,
             alignment = alignment,
+            minRowHeight = minRowHeight,
+            maxRowHeight = maxRowHeight,
             filter = filter,
             headerDecorations = headerDecorations,
             headerClickToSort = headerClickToSort,

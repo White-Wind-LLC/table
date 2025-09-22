@@ -149,6 +149,18 @@ fun createTableColumns(): List<ColumnSpec<Person, PersonColumn>> =
                 }
             }
         }
+        // Multiline text field to demonstrate dynamic row height
+        column(PersonColumn.NOTES) {
+            header { Text("Notes", modifier = Modifier.padding(horizontal = 16.dp)) }
+            title { "Notes" }
+            // Let the row grow by content; optionally set bounds in dynamic mode
+            rowHeight(min = 48.dp, max = 200.dp)
+            autoWidth(500.dp)
+            filter(TableFilterType.TextTableFilter())
+            cell { item ->
+                Text(item.notes, modifier = Modifier.padding(horizontal = 16.dp))
+            }
+        }
 
         // Computed fields
         column(PersonColumn.AGE_GROUP) {
