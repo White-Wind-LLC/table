@@ -56,6 +56,18 @@ public class TableState<C> internal constructor(
         mutableStateListOf<C>().apply { addAll(initialOrder.ifEmpty { initialColumns }) }
     public val columnWidths: SnapshotStateMap<C, Dp> = mutableStateMapOf<C, Dp>().apply { putAll(initialWidths) }
 
+    /**
+     * Tracks the maximum measured minimal content width per column across visible rows.
+     * Used to auto-fit columns on demand.
+     */
+    public val columnContentMaxWidths: SnapshotStateMap<C, Dp> = mutableStateMapOf()
+
+    /** Whether automatic width fitting has been applied for the empty (header-only) state. */
+    public var autoWidthAppliedForEmpty: Boolean by mutableStateOf(false)
+
+    /** Whether automatic width fitting has been applied for the first data batch render. */
+    public var autoWidthAppliedForData: Boolean by mutableStateOf(false)
+
     // Sorting
     public var sort: SortState<C>? by mutableStateOf(initialSort)
         private set
@@ -206,6 +218,29 @@ public class TableState<C> internal constructor(
         column: C,
     ) {
         selectedCell = SelectedCell(rowIndex, column)
+    }
+
+    /**
+     * Update the tracked maximum minimal content width for a [column].
+     * If the provided [width] is greater than the stored value, it will be recorded.
+     */
+    public fun updateMaxContentWidth(
+        column: C,
+        width: Dp,
+    ) {
+        val current = columnContentMaxWidths[column]
+        if (current == null || width > current) {
+            columnContentMaxWidths[column] = width
+        }
+    }
+
+    /**
+     * Set the column width override to the tracked maximum minimal content width (if available).
+     * No-op if no measured width is present for the [column].
+     */
+    public fun setColumnWidthToMaxContent(column: C) {
+        val width = columnContentMaxWidths[column] ?: return
+        columnWidths[column] = width
     }
 }
 

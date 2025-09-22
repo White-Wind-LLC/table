@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import ua.wwind.table.ColumnSpec
+import ua.wwind.table.MeasureCellMinWidth
 import ua.wwind.table.component.LocalTableHeaderCellInfo
 import ua.wwind.table.component.LocalTableHeaderIcons
 import ua.wwind.table.component.TableHeaderCellInfo
@@ -82,22 +83,25 @@ internal fun <T : Any, C> HeaderCell(
             },
         )
 
+    // Measure header content minimal width to contribute to max content width for resizable or auto-width columns
+    if (spec.resizable || spec.autoWidth) {
+        MeasureCellMinWidth(
+            item = Unit,
+            measureKey = Pair(spec.key, "header"),
+            content = { _ ->
+                HeaderContent(spec, info)
+            },
+        ) { measuredMinWidth ->
+            val adjusted = maxOf(measuredMinWidth, spec.minWidth)
+            state.updateMaxContentWidth(spec.key, adjusted)
+        }
+    }
+
     Box(
         modifier = Modifier.width(width).height(dimensions.defaultRowHeight),
         contentAlignment = Alignment.Center,
     ) {
-        Row(
-            modifier = if (spec.headerDecorations) Modifier.padding(horizontal = 16.dp) else Modifier,
-        ) {
-            CompositionLocalProvider(
-                LocalTableHeaderCellInfo provides (info as TableHeaderCellInfo<Any?>),
-            ) {
-                spec.header()
-            }
-            if (spec.headerDecorations) {
-                info.sortIcon.invoke()
-            }
-        }
+        HeaderContent(spec, info)
         if (spec.headerDecorations) {
             Box(
                 modifier = Modifier.align(Alignment.CenterEnd).padding(end = 8.dp),
@@ -109,5 +113,24 @@ internal fun <T : Any, C> HeaderCell(
             modifier = Modifier.align(Alignment.CenterEnd).height(dimensions.defaultRowHeight),
             thickness = dimensions.verticalDividerThickness,
         )
+    }
+}
+
+@Composable
+private fun HeaderContent(
+    spec: ColumnSpec<*, *>,
+    info: TableHeaderCellInfo<Any?>,
+) {
+    Row(
+        modifier = if (spec.headerDecorations) Modifier.padding(horizontal = 16.dp) else Modifier,
+    ) {
+        CompositionLocalProvider(
+            LocalTableHeaderCellInfo provides (info as TableHeaderCellInfo<Any?>),
+        ) {
+            spec.header()
+        }
+        if (spec.headerDecorations) {
+            info.sortIcon.invoke()
+        }
     }
 }

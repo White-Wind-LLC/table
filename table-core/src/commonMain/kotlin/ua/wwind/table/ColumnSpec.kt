@@ -22,6 +22,8 @@ import ua.wwind.table.filter.data.TableFilterType
  * @param visible whether column is currently visible
  * @param width preferred width override; null uses table defaults
  * @param minWidth minimal width when resizable
+ * @param autoWidth whether to auto-fit width to measured content after first render
+ * @param autoMaxWidth optional cap for auto-fitted width
  * @param alignment horizontal alignment for cell content
  * @param filter optional filter type provided by this column
  * @param headerDecorations whether to render built-in sort/filter icons in the header cell
@@ -36,7 +38,9 @@ public data class ColumnSpec<T : Any, C>(
     val resizable: Boolean = true,
     val visible: Boolean = true,
     val width: Dp? = null,
-    val minWidth: Dp = 100.dp,
+    val minWidth: Dp = 10.dp,
+    val autoWidth: Boolean = false,
+    val autoMaxWidth: Dp? = null,
     val alignment: Alignment.Horizontal = Alignment.Start,
     val filter: TableFilterType<*>? = null,
     /** Whether to render default header decorations (sort/filter icons) provided by the table. */
@@ -80,7 +84,9 @@ public class ColumnBuilder<T : Any, C> internal constructor(
     private var resizable: Boolean = true
     private var visible: Boolean = true
     private var width: Dp? = null
-    private var minWidth: Dp = 100.dp
+    private var minWidth: Dp = 10.dp
+    private var autoWidth: Boolean = false
+    private var autoMaxWidth: Dp? = null
     private var alignment: Alignment.Horizontal = Alignment.Start
     private var filter: TableFilterType<*>? = null
     private var headerDecorations: Boolean = true
@@ -130,6 +136,12 @@ public class ColumnBuilder<T : Any, C> internal constructor(
         width = pref ?: width
     }
 
+    /** Enable automatic width based on measured content on first render; optionally cap with [max]. */
+    public fun autoWidth(max: Dp? = null) {
+        autoWidth = true
+        autoMaxWidth = max
+    }
+
     /** Set horizontal alignment for cell content. */
     public fun align(horizontal: Alignment.Horizontal) {
         alignment = horizontal
@@ -161,6 +173,8 @@ public class ColumnBuilder<T : Any, C> internal constructor(
             visible = visible,
             width = width,
             minWidth = minWidth,
+            autoWidth = autoWidth,
+            autoMaxWidth = autoMaxWidth,
             alignment = alignment,
             filter = filter,
             headerDecorations = headerDecorations,

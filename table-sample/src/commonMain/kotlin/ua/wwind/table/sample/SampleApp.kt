@@ -24,6 +24,7 @@ import ua.wwind.table.ExperimentalTableApi
 import ua.wwind.table.Table
 import ua.wwind.table.config.SelectionMode
 import ua.wwind.table.config.TableCustomization
+import ua.wwind.table.config.TableDimensions
 import ua.wwind.table.config.TableSettings
 import ua.wwind.table.data.SortOrder
 import ua.wwind.table.filter.data.TableFilterState
@@ -62,6 +63,7 @@ fun SampleApp(modifier: Modifier = Modifier) {
         rememberTableState(
             columns = PersonColumn.entries,
             settings = settings,
+            dimensions = TableDimensions(defaultColumnWidth = 100.dp),
         )
 
     // Build customization based on rules + matching logic

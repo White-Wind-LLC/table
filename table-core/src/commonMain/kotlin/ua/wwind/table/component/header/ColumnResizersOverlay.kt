@@ -1,7 +1,9 @@
 package ua.wwind.table.component.header
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.hoverable
@@ -20,6 +22,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
@@ -40,6 +43,7 @@ internal fun <T : Any, C> ColumnResizersOverlay(
     onResize: (key: C, newWidth: Dp) -> Unit,
     onResizeStart: () -> Unit = {},
     onResizeEnd: () -> Unit = {},
+    onDoubleClick: (key: C) -> Unit = {},
 ) {
     Box(modifier = Modifier.width(tableWidth)) {
         val density = LocalDensity.current
@@ -55,65 +59,66 @@ internal fun <T : Any, C> ColumnResizersOverlay(
             val currentWidth = widthResolver(spec.key)
             cumulativeX += currentWidth
 
-            // Resize handle at absolute position cumulativeX
-            var offsetX by remember(spec.key) { mutableStateOf(0f) }
-            var dragStartWidth by remember(spec.key) { mutableStateOf<Dp?>(null) }
-            var accumulatedDeltaPx by remember(spec.key) { mutableStateOf(0f) }
+            if (spec.resizable) {
+                // Resize handle at absolute position cumulativeX
+                var offsetX by remember(spec.key) { mutableStateOf(0f) }
+                var dragStartWidth by remember(spec.key) { mutableStateOf<Dp?>(null) }
+                var accumulatedDeltaPx by remember(spec.key) { mutableStateOf(0f) }
 
-            val interaction = remember(spec.key) { MutableInteractionSource() }
-            val isHovered = interaction.collectIsHoveredAsState().value
-            val overlayOffset = if (index == visibleColumns.size - 1) OVERLAY_THICKNESS_DP else OVERLAY_THICKNESS_DP / 2
+                val interaction = remember(spec.key) { MutableInteractionSource() }
+                val isHovered = interaction.collectIsHoveredAsState().value
+                val overlayOffset =
+                    if (index == visibleColumns.size - 1) OVERLAY_THICKNESS_DP else OVERLAY_THICKNESS_DP / 2
 
-            Box(
-                modifier =
-                    Modifier
-                        .height(dimensions.defaultRowHeight)
-                        // Absolute placement at boundary
-                        .offset(x = cumulativeX - overlayOffset.dp, y = 0.dp)
-                        // Drag runtime pixel offset for smooth feel
-                        .offset { IntOffset(offsetX.roundToInt(), 0) }
-                        .then(
-                            if (spec.resizable) {
-                                Modifier
-                                    .hoverable(interactionSource = interaction)
-                                    .draggable(
-                                        state =
-                                            rememberDraggableState { delta ->
-                                                accumulatedDeltaPx += delta
-                                                offsetX += delta
+                Box(
+                    modifier =
+                        Modifier
+                            .height(dimensions.defaultRowHeight)
+                            // Absolute placement at boundary
+                            .offset(x = cumulativeX - overlayOffset.dp, y = 0.dp)
+                            // Drag runtime pixel offset for smooth feel
+                            .offset { IntOffset(offsetX.roundToInt(), 0) }
+                            .hoverable(interactionSource = interaction)
+                            .pointerInput(spec.key) {
+                                detectTapGestures(onDoubleTap = { onDoubleClick(spec.key) })
+                            }
+                            .combinedClickable(onDoubleClick = { onDoubleClick(spec.key) }) {}
+                            .draggable(
+                                state =
+                                    rememberDraggableState { delta ->
+                                        accumulatedDeltaPx += delta
+                                        offsetX += delta
 
-                                                val baseWidth = dragStartWidth ?: currentWidth
-                                                val totalDeltaDp = with(density) { accumulatedDeltaPx.toDp() }
-                                                val newWidth = (baseWidth + totalDeltaDp).coerceAtLeast(spec.minWidth)
-                                                onResize(spec.key, newWidth)
-                                            },
-                                        orientation = Orientation.Horizontal,
-                                        onDragStarted = {
-                                            dragStartWidth = widthResolver(spec.key)
-                                            accumulatedDeltaPx = 0f
-                                            onResizeStart()
-                                        },
-                                        onDragStopped = {
-                                            offsetX = 0f
-                                            dragStartWidth = null
-                                            accumulatedDeltaPx = 0f
-                                            onResizeEnd()
-                                        },
-                                    )
-                                    .pointerHoverIcon(PointerIcon.Hand)
-                            } else {
-                                Modifier
-                            },
-                        )
-                        .width(dimensions.verticalDividerThickness + OVERLAY_THICKNESS_DP.dp)
-                        .background(
-                            color = if (isHovered) {
-                                MaterialTheme.colorScheme.outline.copy(alpha = 0.9f)
-                            } else {
-                                androidx.compose.ui.graphics.Color.Transparent
-                            },
-                        ),
-            )
+                                        val baseWidth = dragStartWidth ?: currentWidth
+                                        val totalDeltaDp = with(density) { accumulatedDeltaPx.toDp() }
+                                        val newWidth =
+                                            (baseWidth + totalDeltaDp).coerceAtLeast(spec.minWidth)
+                                        onResize(spec.key, newWidth)
+                                    },
+                                orientation = Orientation.Horizontal,
+                                onDragStarted = {
+                                    dragStartWidth = widthResolver(spec.key)
+                                    accumulatedDeltaPx = 0f
+                                    onResizeStart()
+                                },
+                                onDragStopped = {
+                                    offsetX = 0f
+                                    dragStartWidth = null
+                                    accumulatedDeltaPx = 0f
+                                    onResizeEnd()
+                                },
+                            )
+                            .pointerHoverIcon(PointerIcon.Hand)
+                            .width(dimensions.verticalDividerThickness + OVERLAY_THICKNESS_DP.dp)
+                            .background(
+                                color = if (isHovered) {
+                                    MaterialTheme.colorScheme.outline.copy(alpha = 0.9f)
+                                } else {
+                                    androidx.compose.ui.graphics.Color.Transparent
+                                },
+                            ),
+                )
+            }
             // Advance past the divider thickness to align subsequent handles
             cumulativeX += dimensions.verticalDividerThickness
         }

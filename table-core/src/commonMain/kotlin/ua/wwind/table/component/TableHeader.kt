@@ -89,6 +89,7 @@ internal fun <T : Any, C> TableHeader(
                     onResize = { key, newWidth -> state.resizeColumn(key, ColumnWidthAction.Set(newWidth)) },
                     onResizeStart = { isResizing = true },
                     onResizeEnd = { isResizing = false },
+                    onDoubleClick = { key -> state.setColumnWidthToMaxContent(key) },
                 )
             }
         }

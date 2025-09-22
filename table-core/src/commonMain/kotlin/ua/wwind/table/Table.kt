@@ -32,6 +32,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -226,6 +227,52 @@ public fun <T : Any, C> Table(
         contextMenu = contextMenu,
         onDismiss = { contextMenuState = contextMenuState.copy(visible = false) },
     )
+
+    // Apply auto-widths in two phases:
+    // 1) when empty (headers-only), 2) when first batch of data is visible. Only once per phase.
+    AutoWidthEffect(visibleColumns, itemsCount, verticalState, state)
+}
+
+@Composable
+private fun <C, T : Any> AutoWidthEffect(
+    visibleColumns: List<ColumnSpec<T, C>>,
+    itemsCount: Int,
+    verticalState: LazyListState,
+    state: TableState<C>
+) {
+    LaunchedEffect(visibleColumns, itemsCount) {
+        withFrameNanos { /* NoOp */ }
+        snapshotFlow {
+            Triple(
+                itemsCount,
+                verticalState.layoutInfo.visibleItemsInfo.isNotEmpty(),
+                Triple(
+                    state.autoWidthAppliedForEmpty,
+                    state.autoWidthAppliedForData,
+                    state.columnContentMaxWidths.size
+                ),
+            )
+        }.collectLatest { (count, hasVisibleItems, appliedFlags) ->
+            val (emptyApplied, dataApplied, _) = appliedFlags
+            val autoColumns = visibleColumns.filter { it.autoWidth }
+            val hasAnyMeasured = autoColumns.any { state.columnContentMaxWidths.containsKey(it.key) }
+
+            // Phase 1: empty table
+            if (!emptyApplied && count == 0 && hasAnyMeasured) {
+                val widths = computeAutoWidths(visibleColumns, state)
+                if (widths.isNotEmpty()) state.setColumnWidths(widths)
+                state.autoWidthAppliedForEmpty = true
+            }
+
+            // Phase 2: first visible data
+            if (!dataApplied && hasVisibleItems && hasAnyMeasured) {
+                val widths = computeAutoWidths(visibleColumns, state)
+                if (widths.isNotEmpty()) state.setColumnWidths(widths)
+                state.autoWidthAppliedForEmpty = true
+                state.autoWidthAppliedForData = true
+            }
+        }
+    }
 }
 
 private fun <T : Any, C> computeTableWidth(
@@ -400,6 +447,19 @@ private fun <T : Any, C> TableRowItem(
                     val isCellSelected =
                         state.selectedCell?.let { it.rowIndex == index && it.column == spec.key } == true
 
+                    // Measure intrinsic minimal width of the content before rendering and keep track of the max
+                    if (spec.resizable || spec.autoWidth) {
+                        ua.wwind.table.MeasureCellMinWidth(
+                            item = itItem,
+                            measureKey = Pair(spec.key, index),
+                            content = spec.cell
+                        ) { measuredMinWidth ->
+                            // Respect declared minWidth of the column
+                            val adjusted = maxOf(measuredMinWidth, spec.minWidth)
+                            state.updateMaxContentWidth(spec.key, adjusted)
+                        }
+                    }
+
                     TableCell(
                         width = width,
                         height = dimensions.defaultRowHeight,
@@ -526,3 +586,23 @@ private fun Alignment.Horizontal.toCellContentAlignment(): Alignment =
         Alignment.End -> Alignment.CenterEnd
         else -> Alignment.CenterStart
     }
+
+private fun <C> computeAutoWidths(
+    visibleColumns: List<ColumnSpec<*, C>>,
+    state: TableState<C>,
+): Map<C, Dp> {
+    return buildMap {
+        visibleColumns.forEach { spec ->
+            if (spec.autoWidth) {
+                val measured = state.columnContentMaxWidths[spec.key]
+                val fallback = spec.width ?: state.dimensions.defaultColumnWidth
+                val base = measured ?: fallback
+                val minClamped = maxOf(base, spec.minWidth)
+                val finalWidth = spec.autoMaxWidth?.let { maxCap ->
+                    if (minClamped > maxCap) maxCap else minClamped
+                } ?: minClamped
+                put(spec.key, finalWidth)
+            }
+        }
+    }
+}

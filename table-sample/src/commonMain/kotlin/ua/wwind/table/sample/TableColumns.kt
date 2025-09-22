@@ -23,6 +23,7 @@ fun createTableColumns(): List<ColumnSpec<Person, PersonColumn>> =
         column(PersonColumn.NAME) {
             header { Text("Name", modifier = Modifier.padding(horizontal = 16.dp)) }
             title { "Name" }
+            autoWidth(500.dp)
             sortable()
             filter(TableFilterType.TextTableFilter())
             cell { item -> Text(item.name, modifier = Modifier.padding(horizontal = 16.dp)) }
@@ -30,6 +31,7 @@ fun createTableColumns(): List<ColumnSpec<Person, PersonColumn>> =
         column(PersonColumn.AGE) {
             header { Text("Age", modifier = Modifier.padding(horizontal = 16.dp)) }
             title { "Age" }
+            autoWidth()
             sortable()
             filter(
                 TableFilterType.NumberTableFilter(
@@ -48,6 +50,7 @@ fun createTableColumns(): List<ColumnSpec<Person, PersonColumn>> =
         column(PersonColumn.ACTIVE) {
             header { Text("Active", modifier = Modifier.padding(horizontal = 16.dp)) }
             title { "Active" }
+            autoWidth()
             sortable()
             filter(TableFilterType.BooleanTableFilter())
             cell { item -> Text(if (item.active) "Yes" else "No", modifier = Modifier.padding(horizontal = 16.dp)) }
@@ -55,6 +58,7 @@ fun createTableColumns(): List<ColumnSpec<Person, PersonColumn>> =
         column(PersonColumn.ID) {
             header { Text("ID", modifier = Modifier.padding(horizontal = 16.dp)) }
             title { "ID" }
+            autoWidth()
             sortable()
             filter(
                 TableFilterType.NumberTableFilter(
@@ -73,6 +77,7 @@ fun createTableColumns(): List<ColumnSpec<Person, PersonColumn>> =
         column(PersonColumn.EMAIL) {
             header { Text("Email", modifier = Modifier.padding(horizontal = 16.dp)) }
             title { "Email" }
+            autoWidth()
             sortable()
             filter(TableFilterType.TextTableFilter())
             cell { item -> Text(item.email, modifier = Modifier.padding(horizontal = 16.dp)) }
@@ -101,6 +106,7 @@ fun createTableColumns(): List<ColumnSpec<Person, PersonColumn>> =
         column(PersonColumn.SALARY) {
             header { Text("Salary", modifier = Modifier.padding(horizontal = 16.dp)) }
             title { "Salary" }
+            autoWidth()
             sortable()
             filter(
                 TableFilterType.NumberTableFilter(
@@ -119,6 +125,7 @@ fun createTableColumns(): List<ColumnSpec<Person, PersonColumn>> =
         column(PersonColumn.RATING) {
             header { Text("Rating", modifier = Modifier.padding(horizontal = 16.dp)) }
             title { "Rating" }
+            autoWidth()
             sortable()
             filter(
                 TableFilterType.NumberTableFilter(
