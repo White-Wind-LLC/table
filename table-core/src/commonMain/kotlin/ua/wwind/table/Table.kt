@@ -596,7 +596,14 @@ private fun TableCell(
     val backgroundModifier =
         if (cellStyle.background != Unspecified) Modifier.background(cellStyle.background) else Modifier
     val selectionBorderModifier =
-        if (isSelected) Modifier.border(2.dp, LocalContentColor.current, RoundedCornerShape(2.dp)) else Modifier
+        if (isSelected)
+            Modifier.border(
+                2.dp,
+                MaterialTheme.colorScheme.outline,
+                RoundedCornerShape(2.dp),
+            )
+        else
+            Modifier
 
     Row(modifier = modifier) {
         Box(
