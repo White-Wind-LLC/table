@@ -190,7 +190,7 @@ private fun <C> HeaderContent(
                 // Constrain header text area and attach tooltip only when truncated
                 val titleText = spec.title?.invoke()
                 TruncationTooltipBox(title = titleText) {
-                    Row {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                         spec.header()
                         if (spec.headerDecorations) {
                             info.sortIcon.invoke()
