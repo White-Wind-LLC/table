@@ -25,13 +25,11 @@ import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.config.TableDimensions
-import kotlin.math.roundToInt
 
-private const val OVERLAY_THICKNESS_DP = 4
+private const val OVERLAY_THICKNESS_DP = 6
 
 @Composable
 internal fun <T : Any, C> ColumnResizersOverlay(
@@ -61,7 +59,6 @@ internal fun <T : Any, C> ColumnResizersOverlay(
 
             if (spec.resizable) {
                 // Resize handle at absolute position cumulativeX
-                var offsetX by remember(spec.key) { mutableStateOf(0f) }
                 var dragStartWidth by remember(spec.key) { mutableStateOf<Dp?>(null) }
                 var accumulatedDeltaPx by remember(spec.key) { mutableStateOf(0f) }
 
@@ -76,8 +73,6 @@ internal fun <T : Any, C> ColumnResizersOverlay(
                             .height(dimensions.defaultRowHeight)
                             // Absolute placement at boundary
                             .offset(x = cumulativeX - overlayOffset.dp, y = 0.dp)
-                            // Drag runtime pixel offset for smooth feel
-                            .offset { IntOffset(offsetX.roundToInt(), 0) }
                             .hoverable(interactionSource = interaction)
                             .pointerInput(spec.key) {
                                 detectTapGestures(onDoubleTap = { onDoubleClick(spec.key) })
@@ -87,7 +82,6 @@ internal fun <T : Any, C> ColumnResizersOverlay(
                                 state =
                                     rememberDraggableState { delta ->
                                         accumulatedDeltaPx += delta
-                                        offsetX += delta
 
                                         val baseWidth = dragStartWidth ?: currentWidth
                                         val totalDeltaDp = with(density) { accumulatedDeltaPx.toDp() }
@@ -102,7 +96,6 @@ internal fun <T : Any, C> ColumnResizersOverlay(
                                     onResizeStart()
                                 },
                                 onDragStopped = {
-                                    offsetX = 0f
                                     dragStartWidth = null
                                     accumulatedDeltaPx = 0f
                                     onResizeEnd()

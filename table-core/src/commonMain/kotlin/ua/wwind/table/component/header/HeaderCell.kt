@@ -1,6 +1,7 @@
 package ua.wwind.table.component.header
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -89,7 +90,7 @@ internal fun <T : Any, C> HeaderCell(
             item = Unit,
             measureKey = Pair(spec.key, "header"),
             content = { _ ->
-                HeaderContent(spec, info)
+                MeasuredHeaderContent(spec, info)
             },
         ) { measuredMinWidth ->
             val adjusted = maxOf(measuredMinWidth, spec.minWidth)
@@ -103,16 +104,23 @@ internal fun <T : Any, C> HeaderCell(
     ) {
         HeaderContent(spec, info)
         if (spec.headerDecorations) {
-            Box(
-                modifier = Modifier.align(Alignment.CenterEnd).padding(end = 8.dp),
-            ) {
-                info.filterIcon.invoke()
-            }
+            DefaultFilterIcon(info)
         }
         VerticalDivider(
             modifier = Modifier.align(Alignment.CenterEnd).height(dimensions.defaultRowHeight),
             thickness = dimensions.verticalDividerThickness,
         )
+    }
+}
+
+@Composable
+private fun BoxScope.DefaultFilterIcon(
+    info: TableHeaderCellInfo<Any?>,
+) {
+    Box(
+        modifier = Modifier.align(Alignment.CenterEnd).padding(end = 6.dp),
+    ) {
+        info.filterIcon.invoke()
     }
 }
 
@@ -131,6 +139,21 @@ private fun HeaderContent(
         }
         if (spec.headerDecorations) {
             info.sortIcon.invoke()
+        }
+    }
+}
+
+@Composable
+private fun MeasuredHeaderContent(
+    spec: ColumnSpec<*, *>,
+    info: TableHeaderCellInfo<Any?>,
+) {
+    Row {
+        HeaderContent(spec, info)
+        if (spec.headerDecorations) {
+            Box {
+                DefaultFilterIcon(info)
+            }
         }
     }
 }
