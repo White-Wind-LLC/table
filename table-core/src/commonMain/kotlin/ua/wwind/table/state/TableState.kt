@@ -242,6 +242,17 @@ public class TableState<C> internal constructor(
         val width = columnContentMaxWidths[column] ?: return
         columnWidths[column] = width
     }
+
+    /** Tracks measured row heights in raw pixels for dynamic, precise scrolling. */
+    public val rowHeightsPx: SnapshotStateMap<Int, Int> = mutableStateMapOf()
+
+    /** Record measured row height (in px) for [index]. */
+    public fun updateRowHeight(index: Int, heightPx: Int) {
+        val current = rowHeightsPx[index]
+        if (current == null || current != heightPx) {
+            rowHeightsPx[index] = heightPx
+        }
+    }
 }
 
 /**

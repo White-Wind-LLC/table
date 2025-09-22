@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+### 1.1.1 — 2025-09-22
+
+- Fixed: Cell selection border now covers the full cell height in dynamic row height mode.
+- Fixed: Vertical scrolling to the selected cell behaves like Excel — only the next/previous row is revealed without
+  jumping.
+- Added: Precise row height measurement and caching to support minimal, direction-aware scrolling.
+- Added: Cache of measured row heights is automatically cleared when `itemsCount` changes (new data loaded).
+
+Compare: [v1.1.0...v1.1.1](https://github.com/White-Wind-LLC/table/compare/v1.1.0...v1.1.1)
+
 ### 1.1.0 — 2025-09-22
 
 - Added: Auto-fit column widths based on content (measurement utilities and smart sizing).

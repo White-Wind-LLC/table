@@ -138,12 +138,22 @@ public fun <T : Any, C> Table(
     val density = LocalDensity.current
     val coroutineScope = rememberCoroutineScope()
 
+    // Reset cached row heights when dataset size changes to avoid stale measurements
+    LaunchedEffect(itemsCount) {
+        state.rowHeightsPx.clear()
+    }
+
     // Ensure selected cell is fully visible whenever it changes (including external API calls)
+    var previousSelectedRowIndex by remember { mutableStateOf<Int?>(null) }
     LaunchedEffect(Unit) {
         snapshotFlow { state.selectedCell }.collectLatest { cell ->
             if (cell == null) return@collectLatest
             val colIndex = visibleColumns.indexOfFirst { it.key == cell.column }
             if (colIndex >= 0) {
+                val prevRow = previousSelectedRowIndex
+                val movement = if (prevRow != null && cell.rowIndex != prevRow) {
+                    if (cell.rowIndex > prevRow) 1 else -1
+                } else 0
                 ensureCellFullyVisible(
                     rowIndex = cell.rowIndex,
                     targetColIndex = colIndex,
@@ -155,7 +165,9 @@ public fun <T : Any, C> Table(
                     verticalState = verticalState,
                     horizontalState = horizontalState,
                     density = density,
+                    movement = movement,
                 )
+                previousSelectedRowIndex = cell.rowIndex
             }
         }
     }
@@ -435,7 +447,12 @@ private fun <T : Any, C> TableRowItem(
             }
         }
 
-        Row(modifier = rowModifier) {
+        Row(
+            modifier =
+                rowModifier.onGloballyPositioned { coordinates ->
+                    state.updateRowHeight(index, coordinates.size.height)
+                },
+        ) {
             item?.let { itItem ->
                 if (rowLeading != null) {
                     RowLeadingSection(
@@ -571,7 +588,7 @@ private fun TableCell(
             modifier =
                 Modifier
                     .width(width)
-                    .then(if (height != null) Modifier.height(height) else Modifier)
+                    .then(if (height != null) Modifier.height(height) else Modifier.fillMaxHeight())
                     .then(backgroundModifier)
                     .then(selectionBorderModifier),
             contentAlignment = alignment,

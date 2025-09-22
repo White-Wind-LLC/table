@@ -10,6 +10,7 @@ formatting add‑on (`table-format`), and paging integration (`table-paging`).
 Here's what the data table looks like in action:
 
 ![Data Table Example](docs/images/datatable-example.png)
+Live demo: [white-wind-llc.github.io/table](https://white-wind-llc.github.io/table/)
 
 ### Modules
 
@@ -39,10 +40,10 @@ Add repository (usually `mavenCentral`) and include the modules you need:
 
 ```kotlin
 dependencies {
-    implementation("ua.wwind.table-kmp:table-core:1.1.0")
+    implementation("ua.wwind.table-kmp:table-core:1.1.1")
     // optional
-    implementation("ua.wwind.table-kmp:table-format:1.1.0")
-    implementation("ua.wwind.table-kmp:table-paging:1.1.0")
+    implementation("ua.wwind.table-kmp:table-format:1.1.1")
+    implementation("ua.wwind.table-kmp:table-paging:1.1.1")
 }
 ```
 
@@ -211,9 +212,6 @@ content color, text style, alignment, etc.).
     - For a fully custom header, set `headerDecorations(false)` and use helpers inside `header { ... }`:
 
 ```kotlin
-import ua.wwind.table.component.TableHeaderSortIcon
-import ua.wwind.table.component.TableHeaderFilterIcon
-
 column(PersonField.Name) {
     headerDecorations(false)
     header {
@@ -269,7 +267,10 @@ val filtered = remember(items, state.filters) {
 
 ```kotlin
 Table(
-  /* ... */
+    itemsCount = items.size,
+    itemAt = { index -> items[index] },
+    state = state,
+    columns = columns,
   rowLeading = { _ -> Checkbox( /* ... */ ) },
   onRowClick = { _ -> state.toggleCheck(/* row index comes from key or context */) }
 )
@@ -294,7 +295,13 @@ val icons = TableHeaderDefaults.icons(
   filterInactive = MyFilterOutline
 )
 
-Table(/* ... */, icons = icons)
+Table(
+    itemsCount = items.size,
+    itemAt = { index -> items[index] },
+    state = state,
+    columns = columns,
+    icons = icons
+)
 ```
 
 ### Conditional formatting (table-format)
@@ -311,7 +318,7 @@ enum class PersonField { Name, Age, Rating }
 
 // Rules
 val rules = remember {
-    val ratingFilter: Map<PersonColumn, TableFilterState<*>> =
+    val ratingFilter: Map<PersonField, TableFilterState<*>> =
         mapOf(
             PersonField.Rating to TableFilterState(
                 constraint = FilterConstraint.GTE,
@@ -364,7 +371,13 @@ val customization = rememberCustomization<Person, PersonField, Person>(
   }
 )
 
-Table(/* ... */, customization = customization)
+Table(
+  itemsCount = items.size,
+  itemAt = { index -> items[index] },
+  state = state,
+  columns = columns,
+  customization = customization
+)
 
 // Optional dialog
 FormatDialog(
@@ -383,7 +396,7 @@ FormatDialog(
 
 Public API highlights:
 
-- `rememberCustomization<T, C, FILTER>(rules, matches, baseRowStyle?, baseCellStyle?) : TableCustomization<T, C>`.
+- `rememberCustomization<T, C, FILTER>(rules, matches = ...) : TableCustomization<T, C>`.
 - `TableFormatRule<FIELD, FILTER>` with `columns: List<FIELD>`, `cellStyle: TableCellStyleConfig`, `filter: FILTER`.
 - `FormatDialog(...)` and `FormatDialogSettings` for UX tweaks.
 - `FormatFilterData<E>` to describe per‑field filter controls in the dialog.

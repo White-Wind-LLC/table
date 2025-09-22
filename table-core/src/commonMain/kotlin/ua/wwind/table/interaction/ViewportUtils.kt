@@ -1,6 +1,7 @@
 package ua.wwind.table.interaction
 
 import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
@@ -8,57 +9,87 @@ import androidx.compose.ui.unit.dp
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.state.TableState
 
-/** Ensure that the given [index] row becomes fully visible in the viewport. */
-public suspend fun ensureRowFullyVisible(
+/** Ensure that the given [index] row becomes fully visible in the viewport (supports dynamic row heights). */
+public suspend fun <C> ensureRowFullyVisible(
     index: Int,
     verticalState: LazyListState,
-    rowHeight: Dp,
+    state: TableState<C>,
     density: Density,
+    movement: Int = 0,
 ) {
     val layout = verticalState.layoutInfo
     val visible = layout.visibleItemsInfo
-    val firstVisibleIndex = visible.firstOrNull()?.index
-    val lastVisibleIndex = visible.lastOrNull()?.index
-    if (firstVisibleIndex == null || lastVisibleIndex == null) {
+    if (visible.isEmpty()) {
         verticalState.animateScrollToItem(index)
         return
     }
 
+    val firstVisibleIndex = visible.first().index
+    val lastVisibleIndex = visible.last().index
     val targetInfo = visible.firstOrNull { it.index == index }
     val viewportHeight = (layout.viewportEndOffset - layout.viewportStartOffset).coerceAtLeast(0)
-    val rowHeightPx = with(density) { rowHeight.toPx() }.toInt().coerceAtLeast(1)
 
-    val scrollToBottomAlign: suspend () -> Unit = {
-        val fullyVisibleCount = (viewportHeight / rowHeightPx).coerceAtLeast(1)
-        val desiredFirstIndex = (index - (fullyVisibleCount - 1)).coerceAtLeast(0)
-        val maxFirstIndex = (layout.totalItemsCount - fullyVisibleCount).coerceAtLeast(0)
-        val clampedFirstIndex = desiredFirstIndex.coerceAtMost(maxFirstIndex)
-        verticalState.animateScrollToItem(clampedFirstIndex)
+    if (targetInfo != null) {
+        val top = targetInfo.offset
+        val bottom = targetInfo.offset + targetInfo.size
+        val epsilon = 1 // px to avoid off-by-one clipping
+        when {
+            top < 0 -> verticalState.animateScrollBy(top.toFloat())
+            bottom > viewportHeight - epsilon -> verticalState.animateScrollBy((bottom - viewportHeight).toFloat())
+        }
+        return
     }
 
-    when {
-        index < firstVisibleIndex -> {
+    if (index < firstVisibleIndex) {
+        // If moving upward and the target is immediately above, scroll just enough to reveal it at the top.
+        val prevIndex = firstVisibleIndex - 1
+        if (movement < 0 && index == prevIndex) {
+            val estimatedHeight =
+                state.rowHeightsPx[index] ?: with(density) { state.dimensions.defaultRowHeight.toPx() }.toInt()
+            val firstTop = visible.first().offset
+            val delta = (firstTop - estimatedHeight)
+            if (delta != 0) verticalState.animateScrollBy(delta.toFloat())
+            // Fine-tune once it becomes visible
+            val info = verticalState.layoutInfo.visibleItemsInfo.firstOrNull { it.index == index }
+            if (info != null && info.offset < 0) verticalState.animateScrollBy(info.offset.toFloat())
+        } else {
+            // Fallback: align to top
             verticalState.animateScrollToItem(index)
         }
+        return
+    }
 
-        index > lastVisibleIndex -> {
-            scrollToBottomAlign()
-        }
-
-        targetInfo != null -> {
-            val top = targetInfo.offset
-            val bottom = targetInfo.offset + targetInfo.size
-            val epsilon = 1 // px to avoid off-by-one clipping
-            if (top < 0) {
-                verticalState.animateScrollToItem(index)
-            } else if (bottom > viewportHeight - epsilon) {
-                scrollToBottomAlign()
+    if (index > lastVisibleIndex) {
+        // If moving downward and the target is the next row after the last visible, reveal just one row.
+        val nextIndex = lastVisibleIndex + 1
+        if (movement > 0 && index == nextIndex) {
+            val estimatedHeight =
+                state.rowHeightsPx[index] ?: with(density) { state.dimensions.defaultRowHeight.toPx() }.toInt()
+            val last = visible.last()
+            val lastBottom = last.offset + last.size
+            val desiredTop = (viewportHeight - estimatedHeight).coerceAtLeast(0)
+            val delta = (lastBottom - desiredTop).coerceAtLeast(0)
+            if (delta != 0) verticalState.animateScrollBy(delta.toFloat())
+            // Fine-tune now that it's visible
+            val info = verticalState.layoutInfo.visibleItemsInfo.firstOrNull { it.index == index }
+            if (info != null) {
+                val bottom = info.offset + info.size
+                val overflow = bottom - viewportHeight
+                if (overflow > 0) verticalState.animateScrollBy(overflow.toFloat())
+            }
+        } else {
+            // Fallback: bring into view, then bottom-align precisely
+            verticalState.animateScrollToItem(index)
+            val layoutAfter = verticalState.layoutInfo
+            val viewportHeightAfter = (layoutAfter.viewportEndOffset - layoutAfter.viewportStartOffset).coerceAtLeast(0)
+            val targetInfoAfter = layoutAfter.visibleItemsInfo.firstOrNull { it.index == index }
+            if (targetInfoAfter != null) {
+                val desiredTop2 = (viewportHeightAfter - targetInfoAfter.size).coerceAtLeast(0)
+                val delta2 = (desiredTop2 - targetInfoAfter.offset)
+                if (delta2 != 0) verticalState.animateScrollBy(delta2.toFloat())
             }
         }
-
-        else -> {
-            verticalState.animateScrollToItem(index)
-        }
+        return
     }
 }
 
@@ -123,12 +154,14 @@ public suspend fun <T : Any, C> ensureCellFullyVisible(
     verticalState: LazyListState,
     horizontalState: ScrollState,
     density: Density,
+    movement: Int = 0,
 ) {
     ensureRowFullyVisible(
         index = rowIndex,
         verticalState = verticalState,
-        rowHeight = state.dimensions.defaultRowHeight,
+        state = state,
         density = density,
+        movement = movement,
     )
     ensureColumnFullyVisible(
         targetColIndex = targetColIndex,
