@@ -2,8 +2,8 @@
 
 [![Maven Central](https://img.shields.io/maven-central/v/ua.wwind.table-kmp/table-core)](https://central.sonatype.com/artifact/ua.wwind.table-kmp/table-core)
 
-Compose Multiplatform data table with Material 3 look & feel. Includes a core table, a conditional formatting add‑on,
-and paging integration.
+Compose Multiplatform data table with Material 3 look & feel. Includes a core table (`table-core`), a conditional
+formatting add‑on (`table-format`), and paging integration (`table-paging`).
 
 ### Example
 
@@ -14,7 +14,7 @@ Here's what the data table looks like in action:
 ### Modules
 
 - `table-core`: core table (rendering, header, sorting, column resize and reordering, filtering, row selection, i18n,
-  styling/customization).
+  styling/customization; dynamic or fixed row height).
 - `table-format`: dialog and APIs for rule‑based conditional formatting for cells/rows.
 - `table-paging`: adapter on top of the core table for `PagingData` (`ua.wwind.paging`).
 
@@ -39,10 +39,19 @@ Add repository (usually `mavenCentral`) and include the modules you need:
 
 ```kotlin
 dependencies {
-    implementation("ua.wwind.table-kmp:table-core:1.0.3")
+    implementation("ua.wwind.table-kmp:table-core:1.1.0")
     // optional
-    implementation("ua.wwind.table-kmp:table-format:1.0.3")
-    implementation("ua.wwind.table-kmp:table-paging:1.0.3")
+    implementation("ua.wwind.table-kmp:table-format:1.1.0")
+    implementation("ua.wwind.table-kmp:table-paging:1.1.0")
+}
+```
+
+Opt‑in to experimental API on call sites that use the table:
+
+```kotlin
+@OptIn(ExperimentalTableApi::class)
+@Composable
+fun MyScreen() { /* ... */
 }
 ```
 
@@ -64,7 +73,10 @@ val columns = tableColumns<Person, PersonField> {
         header("Name")
         cell { Text(it.name) }
         sortable()
+        // Enable built‑in Text filter UI in header
         filter(TableFilterType.TextTableFilter())
+        // Auto‑fit to content with optional max cap
+        autoWidth(max = 500.dp)
     }
 
     column(PersonField.Age) {
@@ -82,8 +94,8 @@ val columns = tableColumns<Person, PersonField> {
 }
 ```
 
-Column options: `sortable`, `resizable`, `visible`, `width(min, pref)`, `align(...)`, `filter(...)`,
-`headerDecorations(...)`, `headerClickToSort(...)`.
+Column options: `sortable`, `resizable`, `visible`, `width(min, pref)`, `autoWidth(max)`, `align(...)`,
+`rowHeight(min, max)`, `filter(...)`, `headerDecorations(...)`, `headerClickToSort(...)`.
 
 #### 3) Table state
 
@@ -179,26 +191,202 @@ FormatDialog(
 `rememberCustomization` merges base styles with matching rules into a resulting `TableCustomization` (background,
 content color, text style, alignment, etc.).
 
-### Styling
+### Core API reference (table-core)
 
-- Colors: `TableDefaults.colors(...)` →
-  `TableColors(headerContainerColor, headerContentColor, rowContainerColor, rowSelectedContainerColor, stripedRowContainerColor)`.
-- Geometry:
-  `TableDimensions(defaultColumnWidth, defaultRowHeight, checkBoxColumnWidth, verticalDividerThickness, verticalDividerPaddingHorizontal)`.
-- Behavior:
-  `TableSettings(isDragEnabled, autoApplyFilters, autoFilterDebounce, stripedRows, showActiveFiltersHeader, selectionMode)`.
-- Customization: implement `TableCustomization<T, C>` or use `rememberCustomization(...)` from `table-format`.
-- Localization: provide a custom `StringProvider` (see `DefaultStrings` and keys in `UiString`).
+- **Composable `Table<T, C>`**: renders header and virtualized rows.
+    - **Required**: `itemsCount`, `itemAt(index)`, `state: TableState<C>`, `columns: List<ColumnSpec<T, C>>`.
+    - **Slots**: `rowLeading(T)`, `rowTrailing(T)`, `placeholderRow()`.
+    - **UX**: `onRowClick`, `onRowLongClick`, `contextMenu(item, pos, dismiss)`.
+    - **Look**: `customization`, `colors = TableDefaults.colors()`, `icons = TableHeaderDefaults.icons()`, `strings`.
+    - **Scroll**: optional `verticalState`, `horizontalState`.
+- **Columns DSL**: `tableColumns { column(key) { ... } }` produces `List<ColumnSpec<T, C>>`.
+    - Header: `header("Text")` or `header { ... }`; optional `title { "Name" }` for active filter chips.
+    - Sorting: `sortable()`, `headerClickToSort(Boolean)`.
+    - Filters UI: `filter(TableFilterType.*)`.
+    - Sizing: `width(min, pref)`, `autoWidth(max)`, `resizable(Boolean)`, `align(Alignment.Horizontal)`.
+    - Row height hints: `rowHeight(min, max)` used when `rowHeightMode = Dynamic`.
+    - Decorations: `headerDecorations(Boolean)` to hide built‑ins when fully customizing header.
+- **Header customization**
+    - When `headerDecorations = true` (default), the table places sort and filter icons automatically.
+    - For a fully custom header, set `headerDecorations(false)` and use helpers inside `header { ... }`:
 
-### Filters
+```kotlin
+import ua.wwind.table.component.TableHeaderSortIcon
+import ua.wwind.table.component.TableHeaderFilterIcon
 
-Types: `TextTableFilter`, `NumberTableFilter` (Int/Double delegates, optional range slider), `BooleanTableFilter`,
-`DateTableFilter`, `EnumTableFilter`.
+column(PersonField.Name) {
+    headerDecorations(false)
+    header {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text("Name", modifier = Modifier.padding(end = 8.dp))
+            TableHeaderSortIcon()
+            TableHeaderFilterIcon()
+        }
+    }
+    sortable()
+    filter(TableFilterType.TextTableFilter())
+}
+```
 
-State: `TableFilterState(constraint, values)`; set/reset via `TableState.setFilter(column, state)`.
+- **State**: `rememberTableState(columns, initialSort?, initialOrder?, initialWidths?, settings?, dimensions?)`.
+    - Sorting: `state.setSort(column, order?)`; current `state.sort`.
+    - Column order/size: `state.setColumnOrder(order)`, `state.resizeColumn(column, Set/Reset)`,
+      `state.setColumnWidths(map)`.
+    - Filters: `state.setFilter(column, TableFilterState(...))`; current per‑column `state.filters`.
+    - Selection: `state.toggleSelect(index)`, `state.toggleCheck(index)`, `state.toggleCheckAll(count)`,
+      `state.selectCell(row, column)`.
+- **Settings and geometry**
+    - `TableSettings`: `isDragEnabled`, `autoApplyFilters`, `autoFilterDebounce`, `stripedRows`,
+      `showActiveFiltersHeader`, `selectionMode: None/Single/Multiple`, `rowHeightMode: Fixed/Dynamic`.
+    - `TableDimensions`: `defaultColumnWidth`, `defaultRowHeight`, `checkBoxColumnWidth`, `verticalDividerThickness`,
+      `verticalDividerPaddingHorizontal`.
+    - `TableColors`: via `TableDefaults.colors(...)`.
 
-Built‑in Material 3 UI: `FilterPanel` opens from the filter icon in the header. Active filters are shown as chips in the
-optional header (enable via `showActiveFiltersHeader = true`).
+### Filters (built‑in types)
+
+- **TextTableFilter**: contains/starts/ends/equals.
+- **NumberTableFilter(Int/Double)**: gt/gte/lt/lte/equals/not_equals/between + optional range slider via `rangeOptions`.
+- **BooleanTableFilter**: equals; optional `getTitle(BooleanType)`.
+- **DateTableFilter**: gt/gte/lt/lte/equals (uses `kotlinx.datetime.LocalDate`).
+- **EnumTableFilter<T: Enum<T>>**: in/not_in/equals with `options: List<T>` and `getTitle(T)`.
+
+Applying filters to data is app‑specific. Example:
+
+```kotlin
+val filtered = remember(items, state.filters) {
+    items.filter { item ->
+        // Evaluate your domain against active state.filters
+        // See `table-sample` for a full example
+        true
+    }
+}
+```
+
+### Selection
+
+- `SelectionMode.None` (default), `Single`, `Multiple`.
+- In Multiple mode, you can render a leading checkbox column and wire actions:
+
+```kotlin
+Table(
+  /* ... */
+  rowLeading = { _ -> Checkbox( /* ... */ ) },
+  onRowClick = { _ -> state.toggleCheck(/* row index comes from key or context */) }
+)
+```
+
+### Dynamic row height and auto‑width
+
+- Dynamic height: set `rowHeightMode = RowHeightMode.Dynamic`. Use per‑column `rowHeight(min, max)` to hint bounds.
+- Auto‑width: call `autoWidth(max?)` in column builder. The table measures header + first batch of rows and applies
+  widths once per phase. Double‑click the header resizer to snap a column to its measured max content width.
+
+### Custom header icons
+
+Customize sort/filter icons:
+
+```kotlin
+val icons = TableHeaderDefaults.icons(
+  sortAsc = MyUp,
+  sortDesc = MyDown,
+  sortNeutral = MySort,
+  filterActive = MyFilterFilled,
+  filterInactive = MyFilterOutline
+)
+
+Table(/* ... */, icons = icons)
+```
+
+### Conditional formatting (table-format)
+
+- Build `TableCustomization` from rules using `rememberCustomization(rules, matches = ...)`. Row‑wide rules have
+  `columns = emptyList()`; cell‑specific rules list field keys in `columns`.
+- Use `FormatDialog(...)` to let users create/edit rules.
+
+Minimal example:
+
+```kotlin
+data class Person(val name: String, val age: Int, val rating: Int)
+enum class PersonField { Name, Age, Rating }
+
+// Rules
+val rules = remember {
+    val ratingFilter: Map<PersonColumn, TableFilterState<*>> =
+        mapOf(
+            PersonField.Rating to TableFilterState(
+                constraint = FilterConstraint.GTE,
+                values = listOf(4),
+            ),
+        )
+    val ratingRule =
+        TableFormatRule<PersonField, Map<PersonField, TableFilterState<*>>>(
+            id = 1L,
+            enabled = true,
+            base = false,
+            columns = listOf(PersonField.Rating),
+            cellStyle = TableCellStyleConfig(
+                contentColor = 0xFFFFD700.toInt(), // Gold
+            ),
+            filter = ratingFilter,
+        )
+    listOf(ratingRule)
+}
+
+// Matching logic (app‑specific)
+val customization = rememberCustomization<Person, PersonField, Person>(
+  rules = rules,
+  matches = { person, ruleFilters ->
+      for ((column, stateAny) in ruleFilters) {
+          when (column) {
+              PersonField.Rating -> {
+                  val value = person.rating
+                  val st = stateAny as TableFilterState<Int>
+                  val constraint = st.constraint ?: continue
+                  when (constraint) {
+                      FilterConstraint.GT -> value > (st.values?.getOrNull(0) ?: value)
+                      FilterConstraint.GTE -> value >= (st.values?.getOrNull(0) ?: value)
+                      FilterConstraint.LT -> value < (st.values?.getOrNull(0) ?: value)
+                      FilterConstraint.LTE -> value <= (st.values?.getOrNull(0) ?: value)
+                      FilterConstraint.EQUALS -> value == (st.values?.getOrNull(0) ?: value)
+                      FilterConstraint.NOT_EQUALS -> value != (st.values?.getOrNull(0) ?: value)
+                      FilterConstraint.BETWEEN -> {
+                          val from = st.values?.getOrNull(0) ?: value
+                          val to = st.values?.getOrNull(1) ?: value
+                          from <= value && value <= to
+                      }
+
+                      else -> true
+                  }
+              }
+              else -> true
+          }
+      }
+  }
+)
+
+Table(/* ... */, customization = customization)
+
+// Optional dialog
+FormatDialog(
+  showDialog = show,
+  rules = rules,
+  onRulesChanged = { /* persist */ },
+  getNewRule = { id -> TableFormatRule.new<PersonField, Person>(id, Person("", 0)) },
+  getTitle = { it.name },
+  filters = { rule, onApply -> emptyList() }, // build `FormatFilterData` list for your fields
+  entries = PersonField.values().toList(),
+  key = Unit,
+  strings = DefaultStrings,
+  onDismissRequest = { show = false }
+)
+```
+
+Public API highlights:
+
+- `rememberCustomization<T, C, FILTER>(rules, matches, baseRowStyle?, baseCellStyle?) : TableCustomization<T, C>`.
+- `TableFormatRule<FIELD, FILTER>` with `columns: List<FIELD>`, `cellStyle: TableCellStyleConfig`, `filter: FILTER`.
+- `FormatDialog(...)` and `FormatDialogSettings` for UX tweaks.
+- `FormatFilterData<E>` to describe per‑field filter controls in the dialog.
 
 ### Supported targets
 
@@ -206,4 +394,4 @@ optional header (enable via `showActiveFiltersHeader = true`).
 
 ### License
 
-Licensed under the Apache License, Version 2.0. See `LICENSE` or `https://www.apache.org/licenses/LICENSE-2.0.txt`.
+Licensed under the Apache License, Version 2.0. See [LICENSE](LICENSE) for details.
