@@ -1,5 +1,6 @@
 package ua.wwind.table
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -22,6 +23,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.contentColorFor
@@ -38,10 +40,12 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color.Companion.Unspecified
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalDensity
@@ -101,6 +105,7 @@ import ua.wwind.table.strings.StringProvider
  * @param verticalState list scroll state
  * @param horizontalState horizontal scroll state of the whole table
  * @param icons header icons used for sort and filter affordances
+ * @param shape surface shape of the table
  */
 public fun <T : Any, C> Table(
     itemsCount: Int,
@@ -121,6 +126,7 @@ public fun <T : Any, C> Table(
     verticalState: LazyListState = rememberLazyListState(),
     horizontalState: ScrollState = rememberScrollState(),
     icons: TableHeaderIcons = TableHeaderDefaults.icons(),
+    shape: Shape = RoundedCornerShape(4.dp),
 ) {
     val dimensions = state.dimensions
     val visibleColumns by remember(columns, state.columnOrder) {
@@ -172,11 +178,13 @@ public fun <T : Any, C> Table(
         }
     }
 
-    Column(
+    Surface(
+        shape = shape,
+        border = BorderStroke(state.dimensions.dividerThickness, MaterialTheme.colorScheme.outlineVariant),
         modifier =
             modifier
-                .fillMaxSize()
                 .horizontalScroll(horizontalState)
+                .clip(shape)
                 .tableKeyboardNavigation(
                     focusRequester = tableFocusRequester,
                     itemsCount = itemsCount,
@@ -190,52 +198,56 @@ public fun <T : Any, C> Table(
                     coroutineScope = coroutineScope,
                 ),
     ) {
-        if (state.settings.showActiveFiltersHeader) {
-            ActiveFiltersHeader(
+        Column(
+            modifier = Modifier,
+        ) {
+            if (state.settings.showActiveFiltersHeader) {
+                ActiveFiltersHeader(
+                    columns = columns,
+                    state = state,
+                    strings = strings,
+                    width = tableWidth,
+                )
+            }
+
+            TableHeader(
                 columns = columns,
                 state = state,
+                tableWidth = tableWidth,
+                headerColor = colors.headerContainerColor,
+                headerContentColor = colors.headerContentColor,
+                dimensions = dimensions,
                 strings = strings,
-                width = tableWidth,
+                leadingColumnWidth = if (rowLeading != null) dimensions.rowHeight else null,
+                icons = icons,
+            )
+            HorizontalDivider(modifier = Modifier.width(tableWidth))
+
+            TableBody(
+                itemsCount = itemsCount,
+                itemAt = itemAt,
+                rowKey = rowKey,
+                visibleColumns = visibleColumns,
+                state = state,
+                colors = colors,
+                customization = customization,
+                tableWidth = tableWidth,
+                rowLeading = rowLeading,
+                rowTrailing = rowTrailing,
+                placeholderRow = placeholderRow,
+                onRowClick = onRowClick,
+                onRowLongClick = onRowLongClick,
+                onContextMenu =
+                    contextMenu?.let {
+                        { item: T, pos: Offset ->
+                            contextMenuState = contextMenuState.copy(visible = true, position = pos, item = item)
+                        }
+                    },
+                verticalState = verticalState,
+                horizontalState = horizontalState,
+                requestTableFocus = { tableFocusRequester.requestFocus() },
             )
         }
-
-        TableHeader(
-            columns = columns,
-            state = state,
-            tableWidth = tableWidth,
-            headerColor = colors.headerContainerColor,
-            headerContentColor = colors.headerContentColor,
-            dimensions = dimensions,
-            strings = strings,
-            leadingColumnWidth = if (rowLeading != null) dimensions.defaultRowHeight else null,
-            icons = icons,
-        )
-        HorizontalDivider(modifier = Modifier.width(tableWidth))
-
-        TableBody(
-            itemsCount = itemsCount,
-            itemAt = itemAt,
-            rowKey = rowKey,
-            visibleColumns = visibleColumns,
-            state = state,
-            colors = colors,
-            customization = customization,
-            tableWidth = tableWidth,
-            rowLeading = rowLeading,
-            rowTrailing = rowTrailing,
-            placeholderRow = placeholderRow,
-            onRowClick = onRowClick,
-            onRowLongClick = onRowLongClick,
-            onContextMenu =
-                contextMenu?.let {
-                    { item: T, pos: Offset ->
-                        contextMenuState = contextMenuState.copy(visible = true, position = pos, item = item)
-                    }
-                },
-            verticalState = verticalState,
-            horizontalState = horizontalState,
-            requestTableFocus = { tableFocusRequester.requestFocus() },
-        )
     }
 
     ContextMenuHost(
@@ -299,11 +311,11 @@ private fun <T : Any, C> computeTableWidth(
     val dimensions = state.dimensions
     var sum = 0.dp
     if (hasLeading) {
-        sum += dimensions.defaultRowHeight + dimensions.verticalDividerThickness
+        sum += dimensions.rowHeight + dimensions.dividerThickness
     }
     visibleColumns.forEach { spec ->
         val w = state.columnWidths[spec.key] ?: spec.width ?: dimensions.defaultColumnWidth
-        sum += w + dimensions.verticalDividerThickness
+        sum += w + dimensions.dividerThickness
     }
     return sum
 }
@@ -367,7 +379,10 @@ private fun <T : Any, C> TableBody(
                 horizontalState = horizontalState,
                 requestTableFocus = requestTableFocus,
             )
-            HorizontalDivider(modifier = Modifier.width(tableWidth))
+            HorizontalDivider(
+                modifier = Modifier.width(tableWidth),
+                thickness = state.dimensions.dividerThickness,
+            )
         }
     }
 }
@@ -456,9 +471,9 @@ private fun <T : Any, C> TableRowItem(
             item?.let { itItem ->
                 if (rowLeading != null) {
                     RowLeadingSection(
-                        cellWidth = dimensions.defaultRowHeight,
-                        height = if (isDynamicRowHeight) null else dimensions.defaultRowHeight,
-                        dividerThickness = dimensions.verticalDividerThickness,
+                        cellWidth = dimensions.rowHeight,
+                        height = if (isDynamicRowHeight) null else dimensions.rowHeight,
+                        dividerThickness = dimensions.dividerThickness,
                         rowLeading = rowLeading,
                         item = itItem,
                     )
@@ -488,8 +503,8 @@ private fun <T : Any, C> TableRowItem(
 
                     TableCell(
                         width = width,
-                        height = if (isDynamicRowHeight) null else dimensions.defaultRowHeight,
-                        dividerThickness = dimensions.verticalDividerThickness,
+                        height = if (isDynamicRowHeight) null else dimensions.rowHeight,
+                        dividerThickness = dimensions.dividerThickness,
                         cellStyle = cellStyle,
                         alignment = spec.alignment.toCellContentAlignment(),
                         isSelected = isCellSelected,
@@ -535,7 +550,7 @@ private fun <T : Any, C> TableRowItem(
                 rowTrailing?.invoke(itItem)
             } ?: run {
                 Row(
-                    modifier = (if (isDynamicRowHeight) Modifier else Modifier.height(dimensions.defaultRowHeight)),
+                    modifier = (if (isDynamicRowHeight) Modifier else Modifier.height(dimensions.rowHeight)),
                     verticalAlignment = Alignment.CenterVertically,
                 ) { placeholderRow?.invoke() }
             }

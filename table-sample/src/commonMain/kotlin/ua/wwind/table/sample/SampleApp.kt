@@ -141,6 +141,7 @@ fun SampleApp(modifier: Modifier = Modifier) {
                 customization = customization,
                 strings = DefaultStrings,
                 rowKey = { item, _ -> item?.id ?: 0 },
+                modifier = Modifier.padding(16.dp),
             )
         }
     }

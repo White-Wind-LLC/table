@@ -1,16 +1,30 @@
 package ua.wwind.table.component.header
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.PlainTooltip
+import androidx.compose.material3.Text
+import androidx.compose.material3.TooltipBox
+import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.VerticalDivider
+import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.text.ExperimentalTextApi
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import ua.wwind.table.ColumnSpec
@@ -66,7 +80,130 @@ internal fun <T : Any, C> HeaderCell(
                     isOpen = isFilterOpen,
                     onOpen = onOpenFilter,
                     onDismiss = onDismissFilter,
-                ) {
+                )
+            },
+        )
+
+    // Measure header content minimal width to contribute to max content width for resizable or auto-width columns
+    if (spec.resizable || spec.autoWidth) {
+        MeasureCellMinWidth(
+            item = Unit,
+            measureKey = Pair(spec.key, "header"),
+            content = { _ ->
+                HeaderMeasureContent(spec, info)
+            },
+        ) { measuredMinWidth ->
+            val adjusted = maxOf(measuredMinWidth, spec.minWidth)
+            state.updateMaxContentWidth(spec.key, adjusted)
+        }
+    }
+
+    Box(
+        modifier = Modifier.width(width).height(dimensions.rowHeight),
+        contentAlignment = Alignment.Center,
+    ) {
+        HeaderContent(
+            spec = spec,
+            info = info,
+            isFilterOpen = isFilterOpen,
+            state = state,
+            onDismissFilter = onDismissFilter,
+            strings = strings,
+        )
+        VerticalDivider(
+            modifier = Modifier.align(Alignment.CenterEnd).height(dimensions.rowHeight),
+            thickness = dimensions.dividerThickness,
+        )
+    }
+}
+
+@Composable
+private fun DefaultFilterIcon(
+    info: TableHeaderCellInfo<Any?>,
+) {
+    Box(
+        modifier = Modifier.padding(end = 6.dp),
+    ) {
+        info.filterIcon.invoke()
+    }
+}
+
+@OptIn(ExperimentalTextApi::class, ExperimentalMaterial3Api::class)
+@Composable
+private fun TruncationTooltipBox(
+    title: String?,
+    content: @Composable () -> Unit,
+) {
+    if (title == null) {
+        content()
+        return
+    }
+
+    val textMeasurer = rememberTextMeasurer()
+    val textStyle = LocalTextStyle.current
+    var availableWidthPx by remember { mutableIntStateOf(0) }
+    val measuredTitleWidthPx = textMeasurer.measure(text = title, style = textStyle, maxLines = 1).size.width
+    val isTruncated = availableWidthPx in 1 until measuredTitleWidthPx
+
+    val tooltipState = rememberTooltipState(isPersistent = false)
+    val positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider()
+
+    if (isTruncated) {
+        TooltipBox(
+            positionProvider = positionProvider,
+            state = tooltipState,
+            focusable = false,
+            enableUserInput = true,
+            tooltip = { PlainTooltip { Text(title) } },
+        ) {
+            Box(modifier = Modifier.onSizeChanged { availableWidthPx = it.width }) {
+                content()
+            }
+        }
+    } else {
+        Box(modifier = Modifier.onSizeChanged { availableWidthPx = it.width }) {
+            content()
+        }
+    }
+}
+
+@Composable
+private fun <C> HeaderContent(
+    spec: ColumnSpec<*, C>,
+    info: TableHeaderCellInfo<Any?>,
+    isFilterOpen: Boolean,
+    state: TableState<C>,
+    onDismissFilter: () -> Unit,
+    strings: StringProvider,
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Row(
+            modifier = if (spec.headerDecorations) Modifier.weight(1f).padding(horizontal = 8.dp) else Modifier,
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+        ) {
+            CompositionLocalProvider(
+                LocalTableHeaderCellInfo provides (info as TableHeaderCellInfo<Any?>),
+            ) {
+                // Constrain header text area and attach tooltip only when truncated
+                val titleText = spec.title?.invoke()
+                TruncationTooltipBox(title = titleText) {
+                    Row {
+                        spec.header()
+                        if (spec.headerDecorations) {
+                            info.sortIcon.invoke()
+                        }
+                    }
+                }
+            }
+        }
+        if (spec.headerDecorations) {
+            Box {
+                DefaultFilterIcon(info)
+
+                if (isFilterOpen) {
                     @Suppress("UNCHECKED_CAST")
                     FilterPanel(
                         type = spec.filter as? TableFilterType<Any?>,
@@ -81,79 +218,24 @@ internal fun <T : Any, C> HeaderCell(
                         },
                     )
                 }
-            },
-        )
-
-    // Measure header content minimal width to contribute to max content width for resizable or auto-width columns
-    if (spec.resizable || spec.autoWidth) {
-        MeasureCellMinWidth(
-            item = Unit,
-            measureKey = Pair(spec.key, "header"),
-            content = { _ ->
-                MeasuredHeaderContent(spec, info)
-            },
-        ) { measuredMinWidth ->
-            val adjusted = maxOf(measuredMinWidth, spec.minWidth)
-            state.updateMaxContentWidth(spec.key, adjusted)
+            }
         }
-    }
-
-    Box(
-        modifier = Modifier.width(width).height(dimensions.defaultRowHeight),
-        contentAlignment = Alignment.Center,
-    ) {
-        HeaderContent(spec, info)
-        if (spec.headerDecorations) {
-            DefaultFilterIcon(info)
-        }
-        VerticalDivider(
-            modifier = Modifier.align(Alignment.CenterEnd).height(dimensions.defaultRowHeight),
-            thickness = dimensions.verticalDividerThickness,
-        )
     }
 }
 
 @Composable
-private fun BoxScope.DefaultFilterIcon(
-    info: TableHeaderCellInfo<Any?>,
-) {
-    Box(
-        modifier = Modifier.align(Alignment.CenterEnd).padding(end = 6.dp),
-    ) {
-        info.filterIcon.invoke()
-    }
-}
-
-@Composable
-private fun HeaderContent(
+private fun HeaderMeasureContent(
     spec: ColumnSpec<*, *>,
     info: TableHeaderCellInfo<Any?>,
 ) {
+    // Do not render any popups inside measured content!
     Row(
-        modifier = if (spec.headerDecorations) Modifier.padding(horizontal = 16.dp) else Modifier,
+        modifier = if (spec.headerDecorations) Modifier.padding(horizontal = 8.dp) else Modifier,
     ) {
-        CompositionLocalProvider(
-            LocalTableHeaderCellInfo provides (info as TableHeaderCellInfo<Any?>),
-        ) {
-            spec.header()
-        }
+        spec.title?.invoke()?.let { Text(it) }
         if (spec.headerDecorations) {
             info.sortIcon.invoke()
-        }
-    }
-}
-
-@Composable
-private fun MeasuredHeaderContent(
-    spec: ColumnSpec<*, *>,
-    info: TableHeaderCellInfo<Any?>,
-) {
-    Row {
-        HeaderContent(spec, info)
-        if (spec.headerDecorations) {
-            Box {
-                DefaultFilterIcon(info)
-            }
+            DefaultFilterIcon(info)
         }
     }
 }

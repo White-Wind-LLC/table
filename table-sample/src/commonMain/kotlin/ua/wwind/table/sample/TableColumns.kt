@@ -3,6 +3,7 @@ package ua.wwind.table.sample
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Icon
@@ -21,16 +22,14 @@ fun createTableColumns(): List<ColumnSpec<Person, PersonColumn>> =
     tableColumns<Person, PersonColumn> {
         // Real Person fields
         column(PersonColumn.NAME) {
-            header { Text("Name", modifier = Modifier.padding(horizontal = 16.dp)) }
-            title { "Name" }
+            header("Name")
             autoWidth(500.dp)
             sortable()
             filter(TableFilterType.TextTableFilter())
             cell { item -> Text(item.name, modifier = Modifier.padding(horizontal = 16.dp)) }
         }
         column(PersonColumn.AGE) {
-            header { Text("Age", modifier = Modifier.padding(horizontal = 16.dp)) }
-            title { "Age" }
+            header("Age")
             autoWidth()
             sortable()
             filter(
@@ -48,16 +47,14 @@ fun createTableColumns(): List<ColumnSpec<Person, PersonColumn>> =
             }
         }
         column(PersonColumn.ACTIVE) {
-            header { Text("Active", modifier = Modifier.padding(horizontal = 16.dp)) }
-            title { "Active" }
+            header("Active")
             autoWidth()
             sortable()
             filter(TableFilterType.BooleanTableFilter())
             cell { item -> Text(if (item.active) "Yes" else "No", modifier = Modifier.padding(horizontal = 16.dp)) }
         }
         column(PersonColumn.ID) {
-            header { Text("ID", modifier = Modifier.padding(horizontal = 16.dp)) }
-            title { "ID" }
+            header("ID")
             autoWidth()
             sortable()
             filter(
@@ -75,37 +72,35 @@ fun createTableColumns(): List<ColumnSpec<Person, PersonColumn>> =
             }
         }
         column(PersonColumn.EMAIL) {
-            header { Text("Email", modifier = Modifier.padding(horizontal = 16.dp)) }
-            title { "Email" }
+            header("Email")
             autoWidth()
             sortable()
             filter(TableFilterType.TextTableFilter())
             cell { item -> Text(item.email, modifier = Modifier.padding(horizontal = 16.dp)) }
         }
         column(PersonColumn.CITY) {
-            header { Text("City", modifier = Modifier.padding(horizontal = 16.dp)) }
-            title { "City" }
+            header("City")
+            autoWidth(500.dp)
             sortable()
             filter(TableFilterType.TextTableFilter())
             cell { item -> Text(item.city, modifier = Modifier.padding(horizontal = 16.dp)) }
         }
         column(PersonColumn.COUNTRY) {
-            header { Text("Country", modifier = Modifier.padding(horizontal = 16.dp)) }
-            title { "Country" }
+            header("Country")
+            autoWidth(500.dp)
             sortable()
             filter(TableFilterType.TextTableFilter())
             cell { item -> Text(item.country, modifier = Modifier.padding(horizontal = 16.dp)) }
         }
         column(PersonColumn.DEPARTMENT) {
-            header { Text("Department", modifier = Modifier.padding(horizontal = 16.dp)) }
-            title { "Department" }
+            header("Department")
+            autoWidth(500.dp)
             sortable()
             filter(TableFilterType.TextTableFilter())
             cell { item -> Text(item.department, modifier = Modifier.padding(horizontal = 16.dp)) }
         }
         column(PersonColumn.SALARY) {
-            header { Text("Salary", modifier = Modifier.padding(horizontal = 16.dp)) }
-            title { "Salary" }
+            header("Salary")
             autoWidth()
             sortable()
             filter(
@@ -123,8 +118,7 @@ fun createTableColumns(): List<ColumnSpec<Person, PersonColumn>> =
             }
         }
         column(PersonColumn.RATING) {
-            header { Text("Rating", modifier = Modifier.padding(horizontal = 16.dp)) }
-            title { "Rating" }
+            header("Rating")
             autoWidth()
             sortable()
             filter(
@@ -144,6 +138,7 @@ fun createTableColumns(): List<ColumnSpec<Person, PersonColumn>> =
                         Icon(
                             imageVector = Icons.Filled.Star,
                             contentDescription = null,
+                            modifier = Modifier.size(16.dp)
                         )
                     }
                 }
@@ -151,8 +146,7 @@ fun createTableColumns(): List<ColumnSpec<Person, PersonColumn>> =
         }
         // Multiline text field to demonstrate dynamic row height
         column(PersonColumn.NOTES) {
-            header { Text("Notes", modifier = Modifier.padding(horizontal = 16.dp)) }
-            title { "Notes" }
+            header("Notes")
             // Let the row grow by content; optionally set bounds in dynamic mode
             rowHeight(min = 48.dp, max = 200.dp)
             autoWidth(500.dp)
@@ -164,8 +158,8 @@ fun createTableColumns(): List<ColumnSpec<Person, PersonColumn>> =
 
         // Computed fields
         column(PersonColumn.AGE_GROUP) {
-            header { Text("Age group", modifier = Modifier.padding(horizontal = 16.dp)) }
-            title { "Age group" }
+            header("Age group")
+            autoWidth(500.dp)
             sortable()
             cell { item ->
                 val group =

@@ -8,8 +8,7 @@ import androidx.compose.ui.unit.dp
  */
 public data class TableDimensions(
     val defaultColumnWidth: Dp = 200.dp,
-    val defaultRowHeight: Dp = 48.dp,
-    val checkBoxColumnWidth: Dp = 80.dp,
-    val verticalDividerThickness: Dp = 1.dp,
-    val verticalDividerPaddingHorizontal: Dp = 4.dp,
+    val rowHeight: Dp = 52.dp,
+    val headerHeight: Dp = 56.dp,
+    val dividerThickness: Dp = 1.dp,
 )

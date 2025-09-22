@@ -1,6 +1,7 @@
 package ua.wwind.table.component.header
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
@@ -23,10 +24,12 @@ internal fun SortButton(
         SortOrder.ASCENDING -> icons.sortAsc
         null -> icons.sortNeutral
     }
-    val iconModifier = if (clickable) Modifier.clickable { onToggle() } else Modifier
     Icon(
         imageVector = sortIcon,
         contentDescription = null,
-        modifier = iconModifier.size(24.dp),
+        modifier = Modifier
+            .size(24.dp)
+            .then(if (clickable) Modifier.clickable { onToggle() } else Modifier)
+            .padding(start = 4.dp),
     )
 }

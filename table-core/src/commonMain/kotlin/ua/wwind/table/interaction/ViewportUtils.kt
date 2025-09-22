@@ -45,7 +45,7 @@ public suspend fun <C> ensureRowFullyVisible(
         val prevIndex = firstVisibleIndex - 1
         if (movement < 0 && index == prevIndex) {
             val estimatedHeight =
-                state.rowHeightsPx[index] ?: with(density) { state.dimensions.defaultRowHeight.toPx() }.toInt()
+                state.rowHeightsPx[index] ?: with(density) { state.dimensions.rowHeight.toPx() }.toInt()
             val firstTop = visible.first().offset
             val delta = (firstTop - estimatedHeight)
             if (delta != 0) verticalState.animateScrollBy(delta.toFloat())
@@ -64,7 +64,7 @@ public suspend fun <C> ensureRowFullyVisible(
         val nextIndex = lastVisibleIndex + 1
         if (movement > 0 && index == nextIndex) {
             val estimatedHeight =
-                state.rowHeightsPx[index] ?: with(density) { state.dimensions.defaultRowHeight.toPx() }.toInt()
+                state.rowHeightsPx[index] ?: with(density) { state.dimensions.rowHeight.toPx() }.toInt()
             val last = visible.last()
             val lastBottom = last.offset + last.size
             val desiredTop = (viewportHeight - estimatedHeight).coerceAtLeast(0)
@@ -107,11 +107,11 @@ public suspend fun <T : Any, C> ensureColumnFullyVisible(
     val dimensions = state.dimensions
     var x = 0.dp
     if (hasLeading) {
-        x += dimensions.defaultRowHeight + dimensions.verticalDividerThickness
+        x += dimensions.rowHeight + dimensions.dividerThickness
     }
     visibleColumns.take(targetColIndex).forEach { spec ->
         val w = state.columnWidths[spec.key] ?: spec.width ?: dimensions.defaultColumnWidth
-        x += w + dimensions.verticalDividerThickness
+        x += w + dimensions.dividerThickness
     }
 
     val colWidth =

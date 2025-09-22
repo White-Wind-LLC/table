@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import ua.wwind.table.filter.data.TableFilterType
@@ -100,7 +101,12 @@ public class ColumnBuilder<T : Any, C> internal constructor(
 
     /** Set simple text header. */
     public fun header(text: String) {
-        header = { Text(text) }
+        // Ensure single-line headers truncate gracefully and can signal overflow for tooltips
+        header = { Text(text = text, maxLines = 1, overflow = TextOverflow.Ellipsis, softWrap = false) }
+        // Default the title to the same text so it can be used for tooltips unless overridden
+        if (title == null) {
+            title = { text }
+        }
     }
 
     /** Set custom composable header content. */

@@ -49,11 +49,11 @@ internal fun <T : Any, C> TableHeaderRow(
                         modifier =
                             Modifier
                                 .width(leadingColumnWidth)
-                                .height(style.dimensions.defaultRowHeight),
+                                .height(style.dimensions.headerHeight),
                     )
                     VerticalDivider(
-                        modifier = Modifier.height(style.dimensions.defaultRowHeight),
-                        thickness = style.dimensions.verticalDividerThickness,
+                        modifier = Modifier.height(style.dimensions.rowHeight),
+                        thickness = style.dimensions.dividerThickness,
                     )
                 }
             }
@@ -73,7 +73,7 @@ internal fun <T : Any, C> TableHeaderRow(
                     tonalElevation = elevation,
                     modifier = Modifier.draggableHandle(),
                 ) {
-                    val width = widthResolver(spec.key) + style.dimensions.verticalDividerThickness
+                    val width = widthResolver(spec.key) + style.dimensions.dividerThickness
                     val clickableModifier =
                         if (spec.sortable && spec.headerClickToSort) {
                             Modifier.clickable { state.setSort(spec.key) }

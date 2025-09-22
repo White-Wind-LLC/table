@@ -44,10 +44,10 @@ internal fun <T> FilterPanel(
                     .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            when (val filter = type) {
+            when (type) {
                 is TableFilterType.TextTableFilter ->
                     TextFilter(
-                        filter = filter,
+                        filter = type,
                         state =
                             state as? TableFilterState<String>
                                 ?: TableFilterState(constraint = null, values = null),
@@ -60,7 +60,7 @@ internal fun <T> FilterPanel(
 
                 is TableFilterType.NumberTableFilter<*> ->
                     NumberFilter<Number>(
-                        filter = filter as TableFilterType.NumberTableFilter<Number>,
+                        filter = type as TableFilterType.NumberTableFilter<Number>,
                         state =
                             state as? TableFilterState<Number>
                                 ?: TableFilterState(constraint = null, values = null),
@@ -73,7 +73,7 @@ internal fun <T> FilterPanel(
 
                 is TableFilterType.BooleanTableFilter ->
                     BooleanFilter(
-                        filter = filter,
+                        filter = type,
                         state =
                             state as? TableFilterState<Boolean>
                                 ?: TableFilterState(constraint = null, values = null),
@@ -86,7 +86,7 @@ internal fun <T> FilterPanel(
 
                 is TableFilterType.DateTableFilter ->
                     DateFilter(
-                        filter = filter,
+                        filter = type,
                         state =
                             state as? TableFilterState<kotlinx.datetime.LocalDate>
                                 ?: TableFilterState(constraint = null, values = null),
@@ -99,7 +99,7 @@ internal fun <T> FilterPanel(
 
                 is TableFilterType.EnumTableFilter<*> ->
                     EnumFilter(
-                        filter = filter,
+                        filter = type,
                         state =
                             state as? TableFilterState<*>
                                 ?: TableFilterState<Any?>(constraint = null, values = null),

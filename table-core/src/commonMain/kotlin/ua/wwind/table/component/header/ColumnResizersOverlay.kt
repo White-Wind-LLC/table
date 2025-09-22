@@ -49,7 +49,7 @@ internal fun <T : Any, C> ColumnResizersOverlay(
         // Compute absolute X offsets (in Dp) for each column boundary divider
         var cumulativeX: Dp = 0.dp
         if (leadingColumnWidth != null) {
-            cumulativeX += leadingColumnWidth + dimensions.verticalDividerThickness
+            cumulativeX += leadingColumnWidth + dimensions.dividerThickness
             // Note: Leading divider is non-resizable; we intentionally do not draw an overlay here.
         }
 
@@ -70,7 +70,7 @@ internal fun <T : Any, C> ColumnResizersOverlay(
                 Box(
                     modifier =
                         Modifier
-                            .height(dimensions.defaultRowHeight)
+                            .height(dimensions.rowHeight)
                             // Absolute placement at boundary
                             .offset(x = cumulativeX - overlayOffset.dp, y = 0.dp)
                             .hoverable(interactionSource = interaction)
@@ -102,7 +102,7 @@ internal fun <T : Any, C> ColumnResizersOverlay(
                                 },
                             )
                             .pointerHoverIcon(PointerIcon.Hand)
-                            .width(dimensions.verticalDividerThickness + OVERLAY_THICKNESS_DP.dp)
+                            .width(dimensions.dividerThickness + OVERLAY_THICKNESS_DP.dp)
                             .background(
                                 color = if (isHovered) {
                                     MaterialTheme.colorScheme.outline.copy(alpha = 0.9f)
@@ -113,7 +113,7 @@ internal fun <T : Any, C> ColumnResizersOverlay(
                 )
             }
             // Advance past the divider thickness to align subsequent handles
-            cumulativeX += dimensions.verticalDividerThickness
+            cumulativeX += dimensions.dividerThickness
         }
     }
 }
