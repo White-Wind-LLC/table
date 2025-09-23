@@ -117,6 +117,9 @@ public class ColumnBuilder<T : Any, C> internal constructor(
     /** Set optional plain-text title (used for chips/tooltips). */
     public fun title(content: @Composable () -> String) {
         title = content
+        if (header == null) {
+            header = { Text(text = content(), maxLines = 1, overflow = TextOverflow.Ellipsis, softWrap = false) }
+        }
     }
 
     /** Define body cell content. */

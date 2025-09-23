@@ -22,14 +22,14 @@ fun createTableColumns(): List<ColumnSpec<Person, PersonColumn>> =
     tableColumns<Person, PersonColumn> {
         // Real Person fields
         column(PersonColumn.NAME) {
-            header("Name")
+            title { "Name" }
             autoWidth(500.dp)
             sortable()
             filter(TableFilterType.TextTableFilter())
             cell { item -> Text(item.name, modifier = Modifier.padding(horizontal = 16.dp)) }
         }
         column(PersonColumn.AGE) {
-            header("Age")
+            title { "Age" }
             autoWidth()
             sortable()
             filter(
@@ -47,22 +47,22 @@ fun createTableColumns(): List<ColumnSpec<Person, PersonColumn>> =
             }
         }
         column(PersonColumn.ACTIVE) {
-            header("Active")
+            title { "Active" }
             autoWidth()
             sortable()
             filter(TableFilterType.BooleanTableFilter())
             cell { item -> Text(if (item.active) "Yes" else "No", modifier = Modifier.padding(horizontal = 16.dp)) }
         }
         column(PersonColumn.ID) {
-            header("ID")
+            title { "ID" }
             autoWidth()
             sortable()
-            filter(
-                TableFilterType.NumberTableFilter(
-                    delegate = TableFilterType.NumberTableFilter.IntDelegate,
-                    rangeOptions = 1 to 1000,
-                ),
-            )
+//            filter(
+//                TableFilterType.NumberTableFilter(
+//                    delegate = TableFilterType.NumberTableFilter.IntDelegate,
+//                    rangeOptions = 1 to 1000,
+//                ),
+//            )
             align(Alignment.End)
             cell { item ->
                 Text(
@@ -72,35 +72,35 @@ fun createTableColumns(): List<ColumnSpec<Person, PersonColumn>> =
             }
         }
         column(PersonColumn.EMAIL) {
-            header("Email")
+            title { "Email" }
             autoWidth()
             sortable()
             filter(TableFilterType.TextTableFilter())
             cell { item -> Text(item.email, modifier = Modifier.padding(horizontal = 16.dp)) }
         }
         column(PersonColumn.CITY) {
-            header("City")
+            title { "City" }
             autoWidth(500.dp)
             sortable()
             filter(TableFilterType.TextTableFilter())
             cell { item -> Text(item.city, modifier = Modifier.padding(horizontal = 16.dp)) }
         }
         column(PersonColumn.COUNTRY) {
-            header("Country")
+            title { "Country" }
             autoWidth(500.dp)
             sortable()
             filter(TableFilterType.TextTableFilter())
             cell { item -> Text(item.country, modifier = Modifier.padding(horizontal = 16.dp)) }
         }
         column(PersonColumn.DEPARTMENT) {
-            header("Department")
+            title { "Department" }
             autoWidth(500.dp)
             sortable()
             filter(TableFilterType.TextTableFilter())
             cell { item -> Text(item.department, modifier = Modifier.padding(horizontal = 16.dp)) }
         }
         column(PersonColumn.SALARY) {
-            header("Salary")
+            title { "Salary" }
             autoWidth()
             sortable()
             filter(
@@ -118,7 +118,7 @@ fun createTableColumns(): List<ColumnSpec<Person, PersonColumn>> =
             }
         }
         column(PersonColumn.RATING) {
-            header("Rating")
+            title { "Rating" }
             autoWidth()
             sortable()
             filter(
@@ -146,7 +146,7 @@ fun createTableColumns(): List<ColumnSpec<Person, PersonColumn>> =
         }
         // Multiline text field to demonstrate dynamic row height
         column(PersonColumn.NOTES) {
-            header("Notes")
+            title { "Notes" }
             // Let the row grow by content; optionally set bounds in dynamic mode
             rowHeight(min = 48.dp, max = 200.dp)
             autoWidth(500.dp)
@@ -158,7 +158,7 @@ fun createTableColumns(): List<ColumnSpec<Person, PersonColumn>> =
 
         // Computed fields
         column(PersonColumn.AGE_GROUP) {
-            header("Age group")
+            title { "Age group" }
             autoWidth(500.dp)
             sortable()
             cell { item ->

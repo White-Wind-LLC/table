@@ -3,7 +3,7 @@ package ua.wwind.table.component.header
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -99,7 +99,7 @@ internal fun <T : Any, C> HeaderCell(
     }
 
     Box(
-        modifier = Modifier.width(width).height(dimensions.rowHeight),
+        modifier = Modifier.width(width).fillMaxHeight(),
         contentAlignment = Alignment.Center,
     ) {
         HeaderContent(
@@ -111,7 +111,7 @@ internal fun <T : Any, C> HeaderCell(
             strings = strings,
         )
         VerticalDivider(
-            modifier = Modifier.align(Alignment.CenterEnd).height(dimensions.rowHeight),
+            modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
             thickness = dimensions.dividerThickness,
         )
     }

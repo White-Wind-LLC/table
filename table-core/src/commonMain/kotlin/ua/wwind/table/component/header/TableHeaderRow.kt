@@ -5,7 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
@@ -49,10 +49,10 @@ internal fun <T : Any, C> TableHeaderRow(
                         modifier =
                             Modifier
                                 .width(leadingColumnWidth)
-                                .height(style.dimensions.headerHeight),
+                                .fillMaxHeight(),
                     )
                     VerticalDivider(
-                        modifier = Modifier.height(style.dimensions.rowHeight),
+                        modifier = Modifier.fillMaxHeight(),
                         thickness = style.dimensions.dividerThickness,
                     )
                 }

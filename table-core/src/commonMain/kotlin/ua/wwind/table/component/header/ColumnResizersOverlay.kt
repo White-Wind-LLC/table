@@ -10,7 +10,7 @@ import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
@@ -70,7 +70,7 @@ internal fun <T : Any, C> ColumnResizersOverlay(
                 Box(
                     modifier =
                         Modifier
-                            .height(dimensions.rowHeight)
+                            .fillMaxHeight()
                             // Absolute placement at boundary
                             .offset(x = cumulativeX - overlayOffset.dp, y = 0.dp)
                             .hoverable(interactionSource = interaction)
