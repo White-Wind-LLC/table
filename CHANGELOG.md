@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+### 1.1.3 — 2025-09-23
+
+- Fixed: Resolved header resizing bug that could cause column misalignment during dynamic layout updates.
+
+Compare: [v1.1.2...v1.1.3](https://github.com/White-Wind-LLC/table/compare/v1.1.2...v1.1.3)
+
 ### 1.1.2 — 2025-09-23
 
 - Changed: Table core and interaction internals updated (layout, dimensions, keyboard navigation, viewport utils) and
