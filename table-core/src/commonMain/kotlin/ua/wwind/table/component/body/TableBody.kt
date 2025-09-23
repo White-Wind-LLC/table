@@ -63,4 +63,23 @@ internal fun <T : Any, C> TableBody(
             )
         }
     }
+    // Offscreen prefetch of the next viewport to make PgDn precise with dynamic row heights
+    TableViewportPrefetcher(
+        itemsCount = itemsCount,
+        itemAt = itemAt,
+        visibleColumns = visibleColumns,
+        state = state,
+        colors = colors,
+        customization = customization,
+        tableWidth = tableWidth,
+        rowLeading = rowLeading,
+        rowTrailing = rowTrailing,
+        placeholderRow = placeholderRow,
+        onRowClick = onRowClick,
+        onRowLongClick = onRowLongClick,
+        onContextMenu = onContextMenu,
+        verticalState = verticalState,
+        horizontalState = horizontalState,
+        requestTableFocus = requestTableFocus,
+    )
 }

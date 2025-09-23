@@ -83,14 +83,30 @@ public fun <T : Any, C> Modifier.tableKeyboardNavigation(
                 }
 
                 Key.PageDown -> {
-                    val page = (verticalState.layoutInfo.visibleItemsInfo.size).coerceAtLeast(1)
-                    ensureFocus(currentRow + page, currentColIndex)
+                    val layoutInfo = verticalState.layoutInfo
+                    val viewportHeight =
+                        (layoutInfo.viewportEndOffset - layoutInfo.viewportStartOffset).coerceAtLeast(0)
+                    val fullyVisible = layoutInfo.visibleItemsInfo.count { item ->
+                        val top = item.offset
+                        val bottom = item.offset + item.size
+                        top >= 0 && bottom <= viewportHeight
+                    }.coerceAtLeast(1)
+                    val target = currentRow + fullyVisible
+                    ensureFocus(target, currentColIndex)
                     true
                 }
 
                 Key.PageUp -> {
-                    val page = (verticalState.layoutInfo.visibleItemsInfo.size).coerceAtLeast(1)
-                    ensureFocus(currentRow - page, currentColIndex)
+                    val layoutInfo = verticalState.layoutInfo
+                    val viewportHeight =
+                        (layoutInfo.viewportEndOffset - layoutInfo.viewportStartOffset).coerceAtLeast(0)
+                    val fullyVisible = layoutInfo.visibleItemsInfo.count { item ->
+                        val top = item.offset
+                        val bottom = item.offset + item.size
+                        top >= 0 && bottom <= viewportHeight
+                    }.coerceAtLeast(1)
+                    val target = currentRow - fullyVisible
+                    ensureFocus(target, currentColIndex)
                     true
                 }
 

@@ -78,15 +78,33 @@ public suspend fun <C> ensureRowFullyVisible(
                 if (overflow > 0) verticalState.animateScrollBy(overflow.toFloat())
             }
         } else {
-            // Fallback: bring into view, then bottom-align precisely
-            verticalState.animateScrollToItem(index)
-            val layoutAfter = verticalState.layoutInfo
-            val viewportHeightAfter = (layoutAfter.viewportEndOffset - layoutAfter.viewportStartOffset).coerceAtLeast(0)
-            val targetInfoAfter = layoutAfter.visibleItemsInfo.firstOrNull { it.index == index }
-            if (targetInfoAfter != null) {
-                val desiredTop2 = (viewportHeightAfter - targetInfoAfter.size).coerceAtLeast(0)
-                val delta2 = (desiredTop2 - targetInfoAfter.offset)
-                if (delta2 != 0) verticalState.animateScrollBy(delta2.toFloat())
+            // Fallback for multi-row downward jumps (e.g., PageDown):
+            // compute exact delta using measured/estimated heights
+            val defaultHeight = with(density) { state.dimensions.rowHeight.toPx() }.toInt()
+            fun heightOf(i: Int): Int = state.rowHeightsPx[i] ?: defaultHeight
+
+            // Sum heights between the last visible row and the target (excluding the target)
+            var betweenSum = 0
+            var i = lastVisibleIndex + 1
+            while (i < index) {
+                betweenSum += heightOf(i)
+                i++
+            }
+            val targetHeight = heightOf(index)
+
+            val last = visible.last()
+            val lastBottom = last.offset + last.size
+            val desiredTop = (viewportHeight - targetHeight).coerceAtLeast(0)
+            val delta = (lastBottom + betweenSum) - desiredTop
+            if (delta != 0) verticalState.animateScrollBy(delta.toFloat())
+
+            // Fine-tune once it becomes visible (avoid off-by-one and dynamic height adjustments)
+            val info = verticalState.layoutInfo.visibleItemsInfo.firstOrNull { it.index == index }
+            if (info != null) {
+                val bottom = info.offset + info.size
+                val overflow = bottom - viewportHeight
+                if (overflow > 0) verticalState.animateScrollBy(overflow.toFloat())
+                else if (info.offset < 0) verticalState.animateScrollBy(info.offset.toFloat())
             }
         }
         return
