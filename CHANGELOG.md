@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+### 1.1.2 — 2025-09-23
+
+- Changed: Table core and interaction internals updated (layout, dimensions, keyboard navigation, viewport utils) and
+  sample columns updated to the new header API.
+
+Compare: [v1.1.1...v1.1.2](https://github.com/White-Wind-LLC/table/compare/v1.1.1...v1.1.2)
+
 ### 1.1.1 — 2025-09-22
 
 - Fixed: Cell selection border now covers the full cell height in dynamic row height mode.
@@ -23,4 +30,3 @@ Compare: [v1.1.0...v1.1.1](https://github.com/White-Wind-LLC/table/compare/v1.1.
 - Fixed: Header column animation during resizing.
 
 Compare: `v1.0.3...v1.1.0` on GitHub (`https://github.com/White-Wind-LLC/table/compare/v1.0.3...main`).
-

@@ -40,10 +40,10 @@ Add repository (usually `mavenCentral`) and include the modules you need:
 
 ```kotlin
 dependencies {
-    implementation("ua.wwind.table-kmp:table-core:1.1.1")
+    implementation("ua.wwind.table-kmp:table-core:1.1.2")
     // optional
-    implementation("ua.wwind.table-kmp:table-format:1.1.1")
-    implementation("ua.wwind.table-kmp:table-paging:1.1.1")
+    implementation("ua.wwind.table-kmp:table-format:1.1.2")
+    implementation("ua.wwind.table-kmp:table-paging:1.1.2")
 }
 ```
 
@@ -55,6 +55,14 @@ Opt‑in to experimental API on call sites that use the table:
 fun MyScreen() { /* ... */
 }
 ```
+
+### Compatibility
+
+The following table lists compatibility information for released library versions.
+
+| Version | Kotlin | Compose Multiplatform |
+|---------|-------:|----------------------:|
+| 1.1.2   | 2.2.10 |                 1.9.0 |
 
 ### Quick start
 
@@ -408,3 +416,4 @@ Public API highlights:
 ### License
 
 Licensed under the Apache License, Version 2.0. See [LICENSE](LICENSE) for details.
+
