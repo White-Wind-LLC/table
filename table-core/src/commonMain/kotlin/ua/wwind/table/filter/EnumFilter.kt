@@ -57,10 +57,13 @@ internal fun EnumFilter(
                 FilterConstraint.IS_NULL, FilterConstraint.IS_NOT_NULL -> {
                     if (values.isNotEmpty()) values = emptyList()
                 }
+
                 FilterConstraint.EQUALS -> {
                     if (values.size > 1) values = values.take(1)
                 }
-                else -> { /* NoOp */ }
+
+                else -> { /* NoOp */
+                }
             }
             if (autoApplyFilters) {
                 onChange(TableFilterState<Any?>(filterConstraint, values))
