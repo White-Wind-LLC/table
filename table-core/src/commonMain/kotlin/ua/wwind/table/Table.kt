@@ -33,6 +33,7 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.flow.collectLatest
@@ -154,33 +155,14 @@ public fun <T : Any, C> Table(
     }
 
     // Ensure selected cell is fully visible whenever it changes (including external API calls)
-    var previousSelectedRowIndex by remember { mutableStateOf<Int?>(null) }
-    LaunchedEffect(Unit) {
-        snapshotFlow { state.selectedCell }.collectLatest { cell ->
-            if (cell == null) return@collectLatest
-            val colIndex = visibleColumns.indexOfFirst { it.key == cell.column }
-            if (colIndex >= 0) {
-                val prevRow = previousSelectedRowIndex
-                val movement = if (prevRow != null && cell.rowIndex != prevRow) {
-                    if (cell.rowIndex > prevRow) 1 else -1
-                } else 0
-                ensureCellFullyVisible(
-                    rowIndex = cell.rowIndex,
-                    targetColIndex = colIndex,
-                    targetColKey = cell.column,
-                    visibleColumns = visibleColumns,
-                    state = state,
-                    hasLeading = rowLeading != null,
-                    tableWidth = tableWidth,
-                    verticalState = verticalState,
-                    horizontalState = horizontalState,
-                    density = density,
-                    movement = movement,
-                )
-                previousSelectedRowIndex = cell.rowIndex
-            }
-        }
-    }
+    EnsureSelectedCellVisibleEffect(
+        state = state,
+        visibleColumns = visibleColumns,
+        rowLeadingPresent = rowLeading != null,
+        tableWidth = tableWidth,
+        verticalState = verticalState,
+        horizontalState = horizontalState,
+    )
     val enableScrolling = remember { !getPlatform().isMobile() }
 
     Surface(
@@ -188,29 +170,13 @@ public fun <T : Any, C> Table(
         border = BorderStroke(state.dimensions.dividerThickness, MaterialTheme.colorScheme.outlineVariant),
         modifier =
             modifier
-                .nestedScroll(blockParentScrollConnection, nestedScrollDispatcher)
-                .pointerInput(horizontalState, verticalState) {
-                    detectDragGestures(
-                        onDrag = { change, dragAmount ->
-                            change.consume()
-                            // Integrate with nested scroll: consume locally then report post-scroll
-                            val consumedX = if (dragAmount.x != 0f) {
-                                horizontalState.dispatchRawDelta(-dragAmount.x)
-                                dragAmount.x
-                            } else 0f
-                            val consumedY = if (dragAmount.y != 0f) {
-                                verticalState.dispatchRawDelta(-dragAmount.y)
-                                dragAmount.y
-                            } else 0f
-                            nestedScrollDispatcher.dispatchPostScroll(
-                                consumed = Offset(consumedX, consumedY),
-                                available = Offset.Zero,
-                                source = NestedScrollSource.UserInput,
-                            )
-                        },
-                    )
-                }
-                .horizontalScroll(horizontalState, enableScrolling)
+                .draggableTable(
+                    horizontalState = horizontalState,
+                    verticalState = verticalState,
+                    blockParentScrollConnection = blockParentScrollConnection,
+                    nestedScrollDispatcher = nestedScrollDispatcher,
+                    enableScrolling = enableScrolling,
+                )
                 .clip(shape)
                 .tableKeyboardNavigation(
                     focusRequester = tableFocusRequester,
@@ -285,5 +251,77 @@ public fun <T : Any, C> Table(
     )
 
     ApplyAutoWidthEffect(visibleColumns, itemsCount, verticalState, state)
+}
+
+private fun Modifier.draggableTable(
+    horizontalState: ScrollState,
+    verticalState: LazyListState,
+    blockParentScrollConnection: NestedScrollConnection,
+    nestedScrollDispatcher: NestedScrollDispatcher,
+    enableScrolling: Boolean,
+): Modifier =
+    this
+        .nestedScroll(blockParentScrollConnection, nestedScrollDispatcher)
+        .pointerInput(horizontalState, verticalState) {
+            detectDragGestures(
+                onDrag = { change, dragAmount ->
+                    change.consume()
+                    // Integrate with nested scroll: consume locally then report post-scroll
+                    val consumedX = if (dragAmount.x != 0f) {
+                        horizontalState.dispatchRawDelta(-dragAmount.x)
+                        dragAmount.x
+                    } else 0f
+                    val consumedY = if (dragAmount.y != 0f) {
+                        verticalState.dispatchRawDelta(-dragAmount.y)
+                        dragAmount.y
+                    } else 0f
+                    nestedScrollDispatcher.dispatchPostScroll(
+                        consumed = Offset(consumedX, consumedY),
+                        available = Offset.Zero,
+                        source = NestedScrollSource.UserInput,
+                    )
+                },
+            )
+        }
+        .horizontalScroll(horizontalState, enableScrolling)
+
+@Composable
+@Suppress("LongParameterList")
+private fun <T : Any, C> EnsureSelectedCellVisibleEffect(
+    state: TableState<C>,
+    visibleColumns: List<ColumnSpec<T, C>>,
+    rowLeadingPresent: Boolean,
+    tableWidth: Dp,
+    verticalState: LazyListState,
+    horizontalState: ScrollState,
+) {
+    val density = LocalDensity.current
+    var previousSelectedRowIndex by remember { mutableStateOf<Int?>(null) }
+    LaunchedEffect(Unit) {
+        snapshotFlow { state.selectedCell }.collectLatest { cell ->
+            if (cell == null) return@collectLatest
+            val colIndex = visibleColumns.indexOfFirst { it.key == cell.column }
+            if (colIndex >= 0) {
+                val prevRow = previousSelectedRowIndex
+                val movement = if (prevRow != null && cell.rowIndex != prevRow) {
+                    if (cell.rowIndex > prevRow) 1 else -1
+                } else 0
+                ensureCellFullyVisible(
+                    rowIndex = cell.rowIndex,
+                    targetColIndex = colIndex,
+                    targetColKey = cell.column,
+                    visibleColumns = visibleColumns,
+                    state = state,
+                    hasLeading = rowLeadingPresent,
+                    tableWidth = tableWidth,
+                    verticalState = verticalState,
+                    horizontalState = horizontalState,
+                    density = density,
+                    movement = movement,
+                )
+                previousSelectedRowIndex = cell.rowIndex
+            }
+        }
+    }
 }
 
