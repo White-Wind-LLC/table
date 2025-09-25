@@ -237,7 +237,6 @@ public fun <T : Any, C> Table(
                         }
                     },
                 verticalState = verticalState,
-                horizontalState = horizontalState,
                 requestTableFocus = { tableFocusRequester.requestFocus() },
                 enableScrolling = enableScrolling,
             )

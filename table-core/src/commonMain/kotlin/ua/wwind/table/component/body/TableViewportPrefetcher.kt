@@ -1,6 +1,5 @@
 package ua.wwind.table.component.body
 
-import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.Composable
@@ -46,7 +45,6 @@ internal fun <T : Any, C> TableViewportPrefetcher(
     onRowLongClick: ((T) -> Unit)?,
     onContextMenu: ((T, Offset) -> Unit)?,
     verticalState: LazyListState,
-    horizontalState: ScrollState,
     requestTableFocus: () -> Unit,
 ) {
     // Only meaningful for dynamic row heights
@@ -109,8 +107,6 @@ internal fun <T : Any, C> TableViewportPrefetcher(
                         onRowClick = onRowClick,
                         onRowLongClick = onRowLongClick,
                         onContextMenu = onContextMenu,
-                        verticalState = verticalState,
-                        horizontalState = horizontalState,
                         requestTableFocus = requestTableFocus,
                     )
                 }

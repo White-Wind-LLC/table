@@ -1,6 +1,5 @@
 package ua.wwind.table.component.body
 
-import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -33,7 +32,6 @@ internal fun <T : Any, C> TableBody(
     onRowLongClick: ((T) -> Unit)?,
     onContextMenu: ((T, Offset) -> Unit)?,
     verticalState: LazyListState,
-    horizontalState: ScrollState,
     requestTableFocus: () -> Unit,
     enableScrolling: Boolean,
 ) {
@@ -58,8 +56,6 @@ internal fun <T : Any, C> TableBody(
                 onRowClick = onRowClick,
                 onRowLongClick = onRowLongClick,
                 onContextMenu = onContextMenu,
-                verticalState = verticalState,
-                horizontalState = horizontalState,
                 requestTableFocus = requestTableFocus,
             )
             HorizontalDivider(
@@ -84,7 +80,6 @@ internal fun <T : Any, C> TableBody(
         onRowLongClick = onRowLongClick,
         onContextMenu = onContextMenu,
         verticalState = verticalState,
-        horizontalState = horizontalState,
         requestTableFocus = requestTableFocus,
     )
 }

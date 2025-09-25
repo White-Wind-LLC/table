@@ -51,8 +51,6 @@ internal fun <T : Any, C> TableRowItem(
     onRowClick: ((T) -> Unit)?,
     onRowLongClick: ((T) -> Unit)?,
     onContextMenu: ((T, Offset) -> Unit)?,
-    verticalState: androidx.compose.foundation.lazy.LazyListState,
-    horizontalState: androidx.compose.foundation.ScrollState,
     requestTableFocus: () -> Unit,
 ) {
     val dimensions = state.dimensions
