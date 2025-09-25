@@ -2,6 +2,7 @@ package ua.wwind.table
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.width
@@ -26,7 +27,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollDispatcher
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.flow.collectLatest
 import ua.wwind.table.component.ActiveFiltersHeader
@@ -43,6 +50,8 @@ import ua.wwind.table.interaction.ApplyAutoWidthEffect
 import ua.wwind.table.interaction.ContextMenuState
 import ua.wwind.table.interaction.ensureCellFullyVisible
 import ua.wwind.table.interaction.tableKeyboardNavigation
+import ua.wwind.table.platform.getPlatform
+import ua.wwind.table.platform.isMobile
 import ua.wwind.table.state.TableState
 import ua.wwind.table.strings.DefaultStrings
 import ua.wwind.table.strings.StringProvider
@@ -118,6 +127,27 @@ public fun <T : Any, C> Table(
     val density = LocalDensity.current
     val coroutineScope = rememberCoroutineScope()
 
+    // Consume drag and fling deltas so parent containers don't scroll while dragging inside the table
+    val blockParentScrollConnection = remember {
+        object : NestedScrollConnection {
+            // Do not let parents pre-consume drag deltas from our gestures
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset = Offset.Zero
+
+            override fun onPostScroll(
+                consumed: Offset,
+                available: Offset,
+                source: NestedScrollSource,
+            ): Offset = if (source == NestedScrollSource.UserInput) available else Offset.Zero
+
+            override suspend fun onPreFling(available: Velocity): Velocity = Velocity.Zero
+
+            override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity = available
+        }
+    }
+
+    // Used to participate in nested scroll from our custom drag handling
+    val nestedScrollDispatcher = remember { NestedScrollDispatcher() }
+
     // Reset cached row heights when dataset size changes to avoid stale measurements
     LaunchedEffect(itemsCount) {
         state.rowHeightsPx.clear()
@@ -151,13 +181,36 @@ public fun <T : Any, C> Table(
             }
         }
     }
+    val enableScrolling = remember { !getPlatform().isMobile() }
 
     Surface(
         shape = shape,
         border = BorderStroke(state.dimensions.dividerThickness, MaterialTheme.colorScheme.outlineVariant),
         modifier =
             modifier
-                .horizontalScroll(horizontalState)
+                .nestedScroll(blockParentScrollConnection, nestedScrollDispatcher)
+                .pointerInput(horizontalState, verticalState) {
+                    detectDragGestures(
+                        onDrag = { change, dragAmount ->
+                            change.consume()
+                            // Integrate with nested scroll: consume locally then report post-scroll
+                            val consumedX = if (dragAmount.x != 0f) {
+                                horizontalState.dispatchRawDelta(-dragAmount.x)
+                                dragAmount.x
+                            } else 0f
+                            val consumedY = if (dragAmount.y != 0f) {
+                                verticalState.dispatchRawDelta(-dragAmount.y)
+                                dragAmount.y
+                            } else 0f
+                            nestedScrollDispatcher.dispatchPostScroll(
+                                consumed = Offset(consumedX, consumedY),
+                                available = Offset.Zero,
+                                source = NestedScrollSource.UserInput,
+                            )
+                        },
+                    )
+                }
+                .horizontalScroll(horizontalState, enableScrolling)
                 .clip(shape)
                 .tableKeyboardNavigation(
                     focusRequester = tableFocusRequester,
@@ -220,6 +273,7 @@ public fun <T : Any, C> Table(
                 verticalState = verticalState,
                 horizontalState = horizontalState,
                 requestTableFocus = { tableFocusRequester.requestFocus() },
+                enableScrolling = enableScrolling,
             )
         }
     }

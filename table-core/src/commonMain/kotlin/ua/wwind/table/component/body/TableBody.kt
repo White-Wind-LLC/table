@@ -35,8 +35,13 @@ internal fun <T : Any, C> TableBody(
     verticalState: LazyListState,
     horizontalState: ScrollState,
     requestTableFocus: () -> Unit,
+    enableScrolling: Boolean,
 ) {
-    LazyColumn(modifier = Modifier.fillMaxSize(), state = verticalState) {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        state = verticalState,
+        userScrollEnabled = enableScrolling,
+    ) {
         items(count = itemsCount, key = { index -> rowKey(itemAt(index), index) }) { index ->
             val item = itemAt(index)
             TableRowItem(
