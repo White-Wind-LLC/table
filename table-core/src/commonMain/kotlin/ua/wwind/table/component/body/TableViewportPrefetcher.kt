@@ -10,7 +10,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.layout.SubcomposeLayout
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
@@ -41,9 +40,6 @@ internal fun <T : Any, C> TableViewportPrefetcher(
     rowLeading: (@Composable (T) -> Unit)?,
     rowTrailing: (@Composable (T) -> Unit)?,
     placeholderRow: (@Composable () -> Unit)?,
-    onRowClick: ((T) -> Unit)?,
-    onRowLongClick: ((T) -> Unit)?,
-    onContextMenu: ((T, Offset) -> Unit)?,
     verticalState: LazyListState,
     requestTableFocus: () -> Unit,
 ) {
@@ -80,7 +76,9 @@ internal fun <T : Any, C> TableViewportPrefetcher(
         }
 
         val widthPx = with(density) { tableWidth.roundToPx() }
-        val constraints = androidx.compose.ui.unit.Constraints.fixedWidth(widthPx)
+        val constraints =
+            androidx.compose.ui.unit.Constraints
+                .fixedWidth(widthPx)
 
         var total = 0
         val updates = ArrayList<Pair<Int, Int>>()
@@ -89,32 +87,34 @@ internal fun <T : Any, C> TableViewportPrefetcher(
         while (i < itemsCount && total < viewportHeightPx) {
             // Skip if already known
             val known = state.rowHeightsPx[i]
-            val h = if (known != null) {
-                known
-            } else {
-                val measurables = subcompose(slotId = i) {
-                    TableRowItem(
-                        item = itemAt(i),
-                        index = i,
-                        visibleColumns = visibleColumns,
-                        state = state,
-                        colors = colors,
-                        customization = customization,
-                        tableWidth = tableWidth,
-                        rowLeading = rowLeading,
-                        rowTrailing = rowTrailing,
-                        placeholderRow = placeholderRow,
-                        onRowClick = onRowClick,
-                        onRowLongClick = onRowLongClick,
-                        onContextMenu = onContextMenu,
-                        requestTableFocus = requestTableFocus,
-                    )
+            val h =
+                if (known != null) {
+                    known
+                } else {
+                    val measurables =
+                        subcompose(slotId = i) {
+                            TableRowItem(
+                                item = itemAt(i),
+                                index = i,
+                                visibleColumns = visibleColumns,
+                                state = state,
+                                colors = colors,
+                                customization = customization,
+                                tableWidth = tableWidth,
+                                rowLeading = rowLeading,
+                                rowTrailing = rowTrailing,
+                                placeholderRow = placeholderRow,
+                                onRowClick = null,
+                                onRowLongClick = null,
+                                onContextMenu = null,
+                                requestTableFocus = requestTableFocus,
+                            )
+                        }
+                    val placeables = measurables.map { it.measure(constraints) }
+                    (placeables.maxOfOrNull { it.height } ?: 0).also { measured ->
+                        updates += i to measured
+                    }
                 }
-                val placeables = measurables.map { it.measure(constraints) }
-                (placeables.maxOfOrNull { it.height } ?: 0).also { measured ->
-                    updates += i to measured
-                }
-            }
 
             total += h
             i++

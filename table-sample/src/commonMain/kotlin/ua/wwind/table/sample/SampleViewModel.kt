@@ -59,10 +59,11 @@ class SampleViewModel {
                 when (column) {
                     PersonColumn.NAME -> TableFilterState<String>(constraint = null, values = null)
                     PersonColumn.AGE -> TableFilterState<Int>(constraint = null, values = null)
-                    PersonColumn.ACTIVE -> TableFilterState<Boolean>(
-                        constraint = FilterConstraint.EQUALS,
-                        values = null
-                    )
+                    PersonColumn.ACTIVE ->
+                        TableFilterState<Boolean>(
+                            constraint = FilterConstraint.EQUALS,
+                            values = null,
+                        )
 
                     PersonColumn.ID -> TableFilterState<Int>(constraint = null, values = null)
                     PersonColumn.EMAIL -> TableFilterState<String>(constraint = null, values = null)
@@ -98,10 +99,10 @@ class SampleViewModel {
             // If state has no constraint or values, skip this field (not restrictive)
             if (stateAny.constraint == null ||
                 (
-                        stateAny.values == null &&
-                                stateAny.constraint != FilterConstraint.IS_NULL &&
-                                stateAny.constraint != FilterConstraint.IS_NOT_NULL
-                        )
+                    stateAny.values == null &&
+                        stateAny.constraint != FilterConstraint.IS_NULL &&
+                        stateAny.constraint != FilterConstraint.IS_NOT_NULL
+                )
             ) {
                 continue
             }
@@ -351,10 +352,11 @@ class SampleViewModel {
         // Default conditional formatting: if RATING >= 4, set content color to gold for the Rating column
         val ratingFilter: Map<PersonColumn, TableFilterState<*>> =
             mapOf(
-                PersonColumn.RATING to TableFilterState(
-                    constraint = FilterConstraint.GTE,
-                    values = listOf(4),
-                ),
+                PersonColumn.RATING to
+                    TableFilterState(
+                        constraint = FilterConstraint.GTE,
+                        values = listOf(4),
+                    ),
             )
         val ratingRule =
             TableFormatRule<PersonColumn, Map<PersonColumn, TableFilterState<*>>>(
@@ -362,18 +364,20 @@ class SampleViewModel {
                 enabled = true,
                 base = false,
                 columns = listOf(PersonColumn.RATING),
-                cellStyle = TableCellStyleConfig(
-                    contentColor = 0xFFFFD700.toInt(), // Gold
-                ),
+                cellStyle =
+                    TableCellStyleConfig(
+                        contentColor = 0xFFFFD700.toInt(), // Gold
+                    ),
                 filter = ratingFilter,
             )
         // Default conditional formatting: if ACTIVE = false, set content color to gray for the whole row
         val activeFilter: Map<PersonColumn, TableFilterState<*>> =
             mapOf(
-                PersonColumn.ACTIVE to TableFilterState(
-                    constraint = FilterConstraint.EQUALS,
-                    values = listOf(false),
-                ),
+                PersonColumn.ACTIVE to
+                    TableFilterState(
+                        constraint = FilterConstraint.EQUALS,
+                        values = listOf(false),
+                    ),
             )
         val activeRule =
             TableFormatRule<PersonColumn, Map<PersonColumn, TableFilterState<*>>>(
@@ -381,9 +385,10 @@ class SampleViewModel {
                 enabled = true,
                 base = false,
                 columns = emptyList(),
-                cellStyle = TableCellStyleConfig(
-                    contentColor = Color.LightGray.toArgb(),
-                ),
+                cellStyle =
+                    TableCellStyleConfig(
+                        contentColor = Color.LightGray.toArgb(),
+                    ),
                 filter = activeFilter,
             )
         rules = listOf(ratingRule, activeRule)

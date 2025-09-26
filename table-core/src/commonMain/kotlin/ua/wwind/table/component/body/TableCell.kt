@@ -35,14 +35,15 @@ internal fun TableCell(
     val backgroundModifier =
         if (cellStyle.background != Unspecified) Modifier.background(cellStyle.background) else Modifier
     val selectionBorderModifier =
-        if (isSelected)
+        if (isSelected) {
             Modifier.border(
                 2.dp,
                 MaterialTheme.colorScheme.outline,
                 RoundedCornerShape(2.dp),
             )
-        else
+        } else {
             Modifier
+        }
 
     Row(modifier = modifier) {
         Box(
@@ -64,7 +65,7 @@ internal fun TableCell(
         }
         VerticalDivider(
             modifier = (if (height != null) Modifier.height(height) else Modifier.fillMaxHeight()),
-            thickness = dividerThickness
+            thickness = dividerThickness,
         )
     }
 }

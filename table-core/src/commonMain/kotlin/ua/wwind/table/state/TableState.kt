@@ -72,6 +72,10 @@ public class TableState<C> internal constructor(
     public var sort: SortState<C>? by mutableStateOf(initialSort)
         private set
 
+    // Grouping by column
+    public var groupBy: C? by mutableStateOf(null)
+        private set
+
     // Filters per column
     public val filters: MutableMap<C, TableFilterState<*>> = mutableStateMapOf<C, TableFilterState<*>>()
 
@@ -163,6 +167,11 @@ public class TableState<C> internal constructor(
             }
     }
 
+    /** Enable or disable grouping by a [column] */
+    public fun setGrouping(column: C?) {
+        groupBy = column
+    }
+
     /** Set or clear filter [state] for [column]. Pass null to remove. */
     @Suppress("UNCHECKED_CAST")
     public fun <T> setFilter(
@@ -247,7 +256,10 @@ public class TableState<C> internal constructor(
     public val rowHeightsPx: SnapshotStateMap<Int, Int> = mutableStateMapOf()
 
     /** Record measured row height (in px) for [index]. */
-    public fun updateRowHeight(index: Int, heightPx: Int) {
+    public fun updateRowHeight(
+        index: Int,
+        heightPx: Int,
+    ) {
         val current = rowHeightsPx[index]
         if (current == null || current != heightPx) {
             rowHeightsPx[index] = heightPx

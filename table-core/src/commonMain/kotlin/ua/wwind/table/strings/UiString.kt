@@ -107,6 +107,11 @@ public sealed class UiString {
     public object FormatResetColor : UiString()
 
     public object FormatAlwaysApply : UiString()
+
+    // Grouping menu
+    public object GroupBy : UiString()
+
+    public object Ungroup : UiString()
 }
 
 /**
@@ -181,5 +186,8 @@ public object DefaultStrings : StringProvider {
             UiString.FormatChooseColor -> "Choose color"
             UiString.FormatResetColor -> "Reset color"
             UiString.FormatAlwaysApply -> "Always"
+            // Grouping menu
+            UiString.GroupBy -> "Group by"
+            UiString.Ungroup -> "Ungroup"
         }
 }

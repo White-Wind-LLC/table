@@ -19,13 +19,14 @@ internal fun <C> computeReorderMove(
     val fullAfterRemoval = fullOrder.toMutableList().apply { removeAt(fromIndexInFull) }
     val visibleAfterRemoval = fullAfterRemoval.filter { it in visibleKeys.toSet() }
 
-    val targetIndexInFull = if (toVisibleIndex >= visibleAfterRemoval.size) {
-        val lastVisibleKey = visibleAfterRemoval.lastOrNull()
-        if (lastVisibleKey == null) fullOrder.size else fullOrder.indexOf(lastVisibleKey) + 1
-    } else {
-        val targetBeforeKey = visibleAfterRemoval[toVisibleIndex]
-        fullOrder.indexOf(targetBeforeKey)
-    }
+    val targetIndexInFull =
+        if (toVisibleIndex >= visibleAfterRemoval.size) {
+            val lastVisibleKey = visibleAfterRemoval.lastOrNull()
+            if (lastVisibleKey == null) fullOrder.size else fullOrder.indexOf(lastVisibleKey) + 1
+        } else {
+            val targetBeforeKey = visibleAfterRemoval[toVisibleIndex]
+            fullOrder.indexOf(targetBeforeKey)
+        }
 
     return fromIndexInFull to targetIndexInFull
 }

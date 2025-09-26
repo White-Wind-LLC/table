@@ -16,6 +16,7 @@ public data class TableColors(
     val rowContainerColor: Color,
     val rowSelectedContainerColor: Color,
     val stripedRowContainerColor: Color,
+    val groupContainerColor: Color,
 )
 
 public object TableDefaults {
@@ -27,6 +28,7 @@ public object TableDefaults {
         rowContainerColor: Color = Color.Unspecified,
         rowSelectedContainerColor: Color = MaterialTheme.colorScheme.tertiary,
         stripedRowContainerColor: Color = MaterialTheme.colorScheme.surfaceContainerLowest,
+        groupContainerColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh,
     ): TableColors =
         TableColors(
             headerContainerColor = headerContainerColor,
@@ -34,5 +36,6 @@ public object TableDefaults {
             rowContainerColor = rowContainerColor,
             rowSelectedContainerColor = rowSelectedContainerColor,
             stripedRowContainerColor = stripedRowContainerColor,
+            groupContainerColor = groupContainerColor,
         )
 }

@@ -19,17 +19,19 @@ internal fun SortButton(
     clickable: Boolean,
 ) {
     if (!enabled) return
-    val sortIcon = when (order) {
-        SortOrder.DESCENDING -> icons.sortDesc
-        SortOrder.ASCENDING -> icons.sortAsc
-        null -> icons.sortNeutral
-    }
+    val sortIcon =
+        when (order) {
+            SortOrder.DESCENDING -> icons.sortDesc
+            SortOrder.ASCENDING -> icons.sortAsc
+            null -> icons.sortNeutral
+        }
     Icon(
         imageVector = sortIcon,
         contentDescription = null,
-        modifier = Modifier
-            .size(24.dp)
-            .then(if (clickable) Modifier.clickable { onToggle() } else Modifier)
-            .padding(start = 4.dp),
+        modifier =
+            Modifier
+                .size(24.dp)
+                .then(if (clickable) Modifier.clickable { onToggle() } else Modifier)
+                .padding(start = 4.dp),
     )
 }

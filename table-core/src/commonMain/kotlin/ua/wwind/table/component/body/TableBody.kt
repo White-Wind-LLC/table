@@ -42,6 +42,27 @@ internal fun <T : Any, C> TableBody(
     ) {
         items(count = itemsCount, key = { index -> rowKey(itemAt(index), index) }) { index ->
             val item = itemAt(index)
+            val groupKey = state.groupBy
+            val groupSpec = if (groupKey != null) visibleColumns.firstOrNull { it.key == groupKey } else null
+            if (item != null && groupSpec != null) {
+                val currentValue = groupSpec.valueOf(item)
+                val previousValue = if (index > 0) itemAt(index - 1)?.let { groupSpec.valueOf(it) } else null
+                if (index == 0 || currentValue != previousValue) {
+                    GroupHeaderCell(
+                        value = currentValue,
+                        item = item,
+                        spec = groupSpec,
+                        width = tableWidth,
+                        height = state.dimensions.rowHeight,
+                        colors = colors,
+                        customization = customization,
+                    )
+                    HorizontalDivider(
+                        modifier = Modifier.width(tableWidth),
+                        thickness = state.dimensions.dividerThickness,
+                    )
+                }
+            }
             TableRowItem(
                 item = item,
                 index = index,
@@ -76,9 +97,6 @@ internal fun <T : Any, C> TableBody(
         rowLeading = rowLeading,
         rowTrailing = rowTrailing,
         placeholderRow = placeholderRow,
-        onRowClick = onRowClick,
-        onRowLongClick = onRowLongClick,
-        onContextMenu = onContextMenu,
         verticalState = verticalState,
         requestTableFocus = requestTableFocus,
     )

@@ -62,7 +62,7 @@ internal fun EnumFilter(
                     if (values.size > 1) values = values.take(1)
                 }
 
-                else -> { /* NoOp */
+                else -> { // NoOp
                 }
             }
             if (autoApplyFilters) {

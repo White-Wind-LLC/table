@@ -54,17 +54,18 @@ fun SampleApp(modifier: Modifier = Modifier) {
         }
     }
 
-    val settings = remember {
-        TableSettings(
-            isDragEnabled = false,
-            autoApplyFilters = true,
-            autoFilterDebounce = 200,
-            stripedRows = true,
-            showActiveFiltersHeader = true,
-            selectionMode = SelectionMode.None,
-            rowHeightMode = RowHeightMode.Dynamic,
-        )
-    }
+    val settings =
+        remember {
+            TableSettings(
+                isDragEnabled = false,
+                autoApplyFilters = true,
+                autoFilterDebounce = 200,
+                stripedRows = true,
+                showActiveFiltersHeader = true,
+                selectionMode = SelectionMode.None,
+                rowHeightMode = RowHeightMode.Dynamic,
+            )
+        }
 
     val state =
         rememberTableState(
@@ -82,41 +83,43 @@ fun SampleApp(modifier: Modifier = Modifier) {
         )
 
     // Apply active header filters to the dataset shown in the table
-    val filteredPeople: List<Person> = viewModel.people.filter { person ->
-        viewModel.matchesPerson(person, state.filters)
-    }
+    val filteredPeople: List<Person> =
+        viewModel.people.filter { person ->
+            viewModel.matchesPerson(person, state.filters)
+        }
 
     // Apply sorting based on current table state
-    val sortedPeople: List<Person> = remember(filteredPeople, state.sort) {
-        val sortState = state.sort
-        if (sortState == null) {
-            filteredPeople
-        } else {
-            val base =
-                when (sortState.column) {
-                    PersonColumn.NAME -> filteredPeople.sortedBy { it.name.lowercase() }
-                    PersonColumn.AGE -> filteredPeople.sortedBy { it.age }
-                    PersonColumn.ACTIVE -> filteredPeople.sortedBy { it.active }
-                    PersonColumn.ID -> filteredPeople.sortedBy { it.id }
-                    PersonColumn.EMAIL -> filteredPeople.sortedBy { it.email.lowercase() }
-                    PersonColumn.CITY -> filteredPeople.sortedBy { it.city.lowercase() }
-                    PersonColumn.COUNTRY -> filteredPeople.sortedBy { it.country.lowercase() }
-                    PersonColumn.DEPARTMENT -> filteredPeople.sortedBy { it.department.lowercase() }
-                    PersonColumn.SALARY -> filteredPeople.sortedBy { it.salary }
-                    PersonColumn.RATING -> filteredPeople.sortedBy { it.rating }
-                    PersonColumn.NOTES -> filteredPeople.sortedBy { it.notes.lowercase() }
-                    PersonColumn.AGE_GROUP ->
-                        filteredPeople.sortedBy {
-                            when {
-                                it.age < 25 -> 0
-                                it.age < 35 -> 1
-                                else -> 2
+    val sortedPeople: List<Person> =
+        remember(filteredPeople, state.sort) {
+            val sortState = state.sort
+            if (sortState == null) {
+                filteredPeople
+            } else {
+                val base =
+                    when (sortState.column) {
+                        PersonColumn.NAME -> filteredPeople.sortedBy { it.name.lowercase() }
+                        PersonColumn.AGE -> filteredPeople.sortedBy { it.age }
+                        PersonColumn.ACTIVE -> filteredPeople.sortedBy { it.active }
+                        PersonColumn.ID -> filteredPeople.sortedBy { it.id }
+                        PersonColumn.EMAIL -> filteredPeople.sortedBy { it.email.lowercase() }
+                        PersonColumn.CITY -> filteredPeople.sortedBy { it.city.lowercase() }
+                        PersonColumn.COUNTRY -> filteredPeople.sortedBy { it.country.lowercase() }
+                        PersonColumn.DEPARTMENT -> filteredPeople.sortedBy { it.department.lowercase() }
+                        PersonColumn.SALARY -> filteredPeople.sortedBy { it.salary }
+                        PersonColumn.RATING -> filteredPeople.sortedBy { it.rating }
+                        PersonColumn.NOTES -> filteredPeople.sortedBy { it.notes.lowercase() }
+                        PersonColumn.AGE_GROUP ->
+                            filteredPeople.sortedBy {
+                                when {
+                                    it.age < 25 -> 0
+                                    it.age < 35 -> 1
+                                    else -> 2
+                                }
                             }
-                        }
-                }
-            if (sortState.order == SortOrder.DESCENDING) base.asReversed() else base
+                    }
+                if (sortState.order == SortOrder.DESCENDING) base.asReversed() else base
+            }
         }
-    }
 
     SampleTheme(darkTheme = isDarkTheme) {
         Surface(modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {

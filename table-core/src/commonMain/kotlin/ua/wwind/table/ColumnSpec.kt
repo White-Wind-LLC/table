@@ -17,6 +17,7 @@ import ua.wwind.table.filter.data.TableFilterType
  * @param key unique column key
  * @param header composable content for the header cell
  * @param cell composable content for each row cell
+ * @param valueOf function that extracts the comparable value of this column from [T]; used for grouping and other logic
  * @param title optional plain-text title for use in places like active filter chips
  * @param sortable whether the column participates in sorting
  * @param resizable whether user can resize the column
@@ -25,10 +26,11 @@ import ua.wwind.table.filter.data.TableFilterType
  * @param minWidth minimal width when resizable
  * @param autoWidth whether to auto-fit width to measured content after first render
  * @param autoMaxWidth optional cap for auto-fitted width
- * @param alignment horizontal alignment for cell content
+ * @param alignment alignment for cell content
  * @param minRowHeight optional minimal row height when table uses dynamic row height
  * @param maxRowHeight optional maximal row height when table uses dynamic row height
  * @param filter optional filter type provided by this column
+ * @param groupHeader optional custom renderer for the group header
  * @param headerDecorations whether to render built-in sort/filter icons in the header cell
  * @param headerClickToSort whether clicking the entire header cell toggles sorting
  */
@@ -36,6 +38,7 @@ public data class ColumnSpec<T : Any, C>(
     val key: C,
     val header: @Composable () -> Unit,
     val cell: @Composable BoxScope.(T) -> Unit,
+    val valueOf: (T) -> Any?,
     val title: (@Composable () -> String)? = null,
     val sortable: Boolean = false,
     val resizable: Boolean = true,
@@ -44,10 +47,11 @@ public data class ColumnSpec<T : Any, C>(
     val minWidth: Dp = 10.dp,
     val autoWidth: Boolean = false,
     val autoMaxWidth: Dp? = null,
-    val alignment: Alignment.Horizontal = Alignment.Start,
+    val alignment: Alignment = Alignment.CenterStart,
     val minRowHeight: Dp? = null,
     val maxRowHeight: Dp? = null,
     val filter: TableFilterType<*>? = null,
+    val groupHeader: (@Composable BoxScope.(Any?) -> Unit)? = null,
     /** Whether to render default header decorations (sort/filter icons) provided by the table. */
     val headerDecorations: Boolean = true,
     /** Whether a click on the whole header cell should toggle sort when sortable. */
@@ -65,9 +69,10 @@ public class TableColumnsBuilder<T : Any, C> internal constructor() {
      */
     public fun column(
         key: C,
+        valueOf: (T) -> Any?,
         block: ColumnBuilder<T, C>.() -> Unit,
     ) {
-        val builder = ColumnBuilder<T, C>(key)
+        val builder = ColumnBuilder<T, C>(key, valueOf)
         builder.block()
         specs += builder.build()
     }
@@ -81,6 +86,7 @@ public class TableColumnsBuilder<T : Any, C> internal constructor() {
  */
 public class ColumnBuilder<T : Any, C> internal constructor(
     private val key: C,
+    private val valueOf: ((T) -> Any?),
 ) {
     private var header: (@Composable () -> Unit)? = null
     private var title: (@Composable () -> String)? = null
@@ -92,12 +98,13 @@ public class ColumnBuilder<T : Any, C> internal constructor(
     private var minWidth: Dp = 10.dp
     private var autoWidth: Boolean = false
     private var autoMaxWidth: Dp? = null
-    private var alignment: Alignment.Horizontal = Alignment.Start
+    private var alignment: Alignment = Alignment.CenterStart
     private var minRowHeight: Dp? = null
     private var maxRowHeight: Dp? = null
     private var filter: TableFilterType<*>? = null
     private var headerDecorations: Boolean = true
     private var headerClickToSort: Boolean = true
+    private var groupHeader: (@Composable BoxScope.(Any?) -> Unit)? = null
 
     /** Set simple text header. */
     public fun header(text: String) {
@@ -157,16 +164,19 @@ public class ColumnBuilder<T : Any, C> internal constructor(
         autoMaxWidth = max
     }
 
-    /** Set horizontal alignment for cell content. */
-    public fun align(horizontal: Alignment.Horizontal) {
-        alignment = horizontal
+    /** Set alignment for cell content. */
+    public fun align(alignment: Alignment) {
+        this.alignment = alignment
     }
 
     /**
      * Configure row height bounds that will be considered when the table uses dynamic row height.
      * If the table is in fixed height mode, these values are ignored.
      */
-    public fun rowHeight(min: Dp? = null, max: Dp? = null) {
+    public fun rowHeight(
+        min: Dp? = null,
+        max: Dp? = null,
+    ) {
         minRowHeight = min
         maxRowHeight = max
     }
@@ -174,6 +184,11 @@ public class ColumnBuilder<T : Any, C> internal constructor(
     /** Attach a filter type supported by this column. */
     public fun filter(type: TableFilterType<*>) {
         filter = type
+    }
+
+    /** Optional custom renderer for the group header. */
+    public fun groupHeader(renderer: @Composable BoxScope.(Any?) -> Unit) {
+        groupHeader = renderer
     }
 
     /** Enable or disable default header decorations for this column. */
@@ -192,6 +207,7 @@ public class ColumnBuilder<T : Any, C> internal constructor(
             header = checkNotNull(header) { "Column header must be provided" },
             title = title,
             cell = checkNotNull(cell) { "Column cell must be provided" },
+            valueOf = checkNotNull(valueOf) { "Column valueOf must be provided" },
             sortable = sortable,
             resizable = resizable,
             visible = visible,
@@ -203,6 +219,7 @@ public class ColumnBuilder<T : Any, C> internal constructor(
             minRowHeight = minRowHeight,
             maxRowHeight = maxRowHeight,
             filter = filter,
+            groupHeader = groupHeader,
             headerDecorations = headerDecorations,
             headerClickToSort = headerClickToSort,
         )

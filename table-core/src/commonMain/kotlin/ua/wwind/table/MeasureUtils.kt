@@ -30,9 +30,10 @@ internal fun <T> MeasureCellMinWidth(
     // Two slots: holder[0] = latest measured px; holder[1] = last dispatched px (for de-dup).
     val holder = remember { IntArray(2) { -1 } }
     SubcomposeLayout {
-        val measurables = subcompose("measure") {
-            Box { content(item) }
-        }
+        val measurables =
+            subcompose("measure") {
+                Box { content(item) }
+            }
         holder[0] = measurables.maxOfOrNull { it.maxIntrinsicWidth(0) } ?: 0
         layout(0, 0) {}
     }

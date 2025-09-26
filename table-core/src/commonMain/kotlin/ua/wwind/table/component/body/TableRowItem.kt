@@ -92,12 +92,18 @@ internal fun <T : Any, C> TableRowItem(
         border = rowStyle?.border,
         tonalElevation = tonalElevation,
     ) {
-        val minRowHeight: Dp? = if (isDynamicRowHeight) {
-            visibleColumns.mapNotNull { it.minRowHeight }.maxOrNull()
-        } else null
-        val maxRowHeight: Dp? = if (isDynamicRowHeight) {
-            visibleColumns.mapNotNull { it.maxRowHeight }.minOrNull()
-        } else null
+        val minRowHeight: Dp? =
+            if (isDynamicRowHeight) {
+                visibleColumns.mapNotNull { it.minRowHeight }.maxOrNull()
+            } else {
+                null
+            }
+        val maxRowHeight: Dp? =
+            if (isDynamicRowHeight) {
+                visibleColumns.mapNotNull { it.maxRowHeight }.minOrNull()
+            } else {
+                null
+            }
 
         var rowModifier = Modifier.width(tableWidth).then(rowStyle?.modifier ?: Modifier)
         if (isDynamicRowHeight) {
@@ -152,7 +158,7 @@ internal fun <T : Any, C> TableRowItem(
                         height = if (isDynamicRowHeight) null else dimensions.rowHeight,
                         dividerThickness = dimensions.dividerThickness,
                         cellStyle = cellStyle,
-                        alignment = spec.alignment.toCellContentAlignment(),
+                        alignment = spec.alignment,
                         isSelected = isCellSelected,
                         modifier =
                             Modifier
@@ -182,7 +188,7 @@ internal fun <T : Any, C> TableRowItem(
                                 MeasureCellMinWidth(
                                     item = itItem,
                                     measureKey = Pair(spec.key, index),
-                                    content = spec.cell
+                                    content = spec.cell,
                                 ) { measuredMinWidth ->
                                     val adjusted = maxOf(measuredMinWidth, spec.minWidth)
                                     state.updateMaxContentWidth(spec.key, adjusted)

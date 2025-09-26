@@ -15,7 +15,7 @@ internal fun <C, T : Any> ApplyAutoWidthEffect(
     visibleColumns: List<ColumnSpec<T, C>>,
     itemsCount: Int,
     verticalState: LazyListState,
-    state: TableState<C>
+    state: TableState<C>,
 ) {
     LaunchedEffect(visibleColumns, itemsCount) {
         withFrameNanos { /* NoOp */ }
@@ -26,7 +26,7 @@ internal fun <C, T : Any> ApplyAutoWidthEffect(
                 Triple(
                     state.autoWidthAppliedForEmpty,
                     state.autoWidthAppliedForData,
-                    state.columnContentMaxWidths.size
+                    state.columnContentMaxWidths.size,
                 ),
             )
         }.collectLatest { (count, hasVisibleItems, appliedFlags) ->

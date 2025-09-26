@@ -46,9 +46,13 @@ public fun <T : Any, C> Modifier.tableKeyboardNavigation(
             val currentColIndex = cell?.let { colKeys.indexOf(it.column) }?.takeIf { it >= 0 } ?: 0
 
             fun clampRow(r: Int) = r.coerceIn(0, itemsCount.coerceAtLeast(1) - 1)
+
             fun clampCol(c: Int) = c.coerceIn(0, (colKeys.size - 1).coerceAtLeast(0))
 
-            fun ensureFocus(row: Int, colIndex: Int) {
+            fun ensureFocus(
+                row: Int,
+                colIndex: Int,
+            ) {
                 val targetRow = clampRow(row)
                 val targetColIndex = clampCol(colIndex)
                 val targetColKey = colKeys.getOrNull(targetColIndex) ?: return
@@ -71,14 +75,20 @@ public fun <T : Any, C> Modifier.tableKeyboardNavigation(
                 }
 
                 Key.DirectionDown -> {
-                    if (jumpToEdge) ensureFocus(itemsCount - 1, currentColIndex)
-                    else ensureFocus(currentRow + 1, currentColIndex)
+                    if (jumpToEdge) {
+                        ensureFocus(itemsCount - 1, currentColIndex)
+                    } else {
+                        ensureFocus(currentRow + 1, currentColIndex)
+                    }
                     true
                 }
 
                 Key.DirectionUp -> {
-                    if (jumpToEdge) ensureFocus(0, currentColIndex)
-                    else ensureFocus(currentRow - 1, currentColIndex)
+                    if (jumpToEdge) {
+                        ensureFocus(0, currentColIndex)
+                    } else {
+                        ensureFocus(currentRow - 1, currentColIndex)
+                    }
                     true
                 }
 
@@ -86,11 +96,13 @@ public fun <T : Any, C> Modifier.tableKeyboardNavigation(
                     val layoutInfo = verticalState.layoutInfo
                     val viewportHeight =
                         (layoutInfo.viewportEndOffset - layoutInfo.viewportStartOffset).coerceAtLeast(0)
-                    val fullyVisible = layoutInfo.visibleItemsInfo.count { item ->
-                        val top = item.offset
-                        val bottom = item.offset + item.size
-                        top >= 0 && bottom <= viewportHeight
-                    }.coerceAtLeast(1)
+                    val fullyVisible =
+                        layoutInfo.visibleItemsInfo
+                            .count { item ->
+                                val top = item.offset
+                                val bottom = item.offset + item.size
+                                top >= 0 && bottom <= viewportHeight
+                            }.coerceAtLeast(1)
                     val target = currentRow + fullyVisible
                     ensureFocus(target, currentColIndex)
                     true
@@ -100,25 +112,33 @@ public fun <T : Any, C> Modifier.tableKeyboardNavigation(
                     val layoutInfo = verticalState.layoutInfo
                     val viewportHeight =
                         (layoutInfo.viewportEndOffset - layoutInfo.viewportStartOffset).coerceAtLeast(0)
-                    val fullyVisible = layoutInfo.visibleItemsInfo.count { item ->
-                        val top = item.offset
-                        val bottom = item.offset + item.size
-                        top >= 0 && bottom <= viewportHeight
-                    }.coerceAtLeast(1)
+                    val fullyVisible =
+                        layoutInfo.visibleItemsInfo
+                            .count { item ->
+                                val top = item.offset
+                                val bottom = item.offset + item.size
+                                top >= 0 && bottom <= viewportHeight
+                            }.coerceAtLeast(1)
                     val target = currentRow - fullyVisible
                     ensureFocus(target, currentColIndex)
                     true
                 }
 
                 Key.MoveHome -> {
-                    if (jumpToEdge) ensureFocus(0, currentColIndex)
-                    else ensureFocus(currentRow, 0)
+                    if (jumpToEdge) {
+                        ensureFocus(0, currentColIndex)
+                    } else {
+                        ensureFocus(currentRow, 0)
+                    }
                     true
                 }
 
                 Key.MoveEnd -> {
-                    if (jumpToEdge) ensureFocus(itemsCount - 1, currentColIndex)
-                    else ensureFocus(currentRow, colKeys.lastIndex)
+                    if (jumpToEdge) {
+                        ensureFocus(itemsCount - 1, currentColIndex)
+                    } else {
+                        ensureFocus(currentRow, colKeys.lastIndex)
+                    }
                     true
                 }
 

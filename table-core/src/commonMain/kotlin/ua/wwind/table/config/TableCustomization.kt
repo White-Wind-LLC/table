@@ -1,7 +1,6 @@
 package ua.wwind.table.config
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Alignment
@@ -22,6 +21,12 @@ public interface TableCustomization<T : Any, C> {
 
     @Composable
     public fun resolveCellStyle(ctx: TableCellContext<T, C>): TableCellStyle = TableCellStyle()
+
+    /**
+     * Resolve style for a full-width group header cell
+     */
+    @Composable
+    public fun resolveGroupStyle(ctx: TableGroupContext<T, C>): TableCellStyle = TableCellStyle()
 }
 
 /** Default no-op customization. */
@@ -44,6 +49,12 @@ public data class TableCellContext<T : Any, C>(
 )
 
 @Immutable
+public data class TableGroupContext<T : Any, C>(
+    val column: C,
+    val value: Any?,
+)
+
+@Immutable
 public data class TableRowStyle(
     val modifier: Modifier = Modifier,
     val containerColor: Color = Color.Unspecified,
@@ -59,6 +70,5 @@ public data class TableCellStyle(
     val background: Color = Color.Unspecified,
     val contentColor: Color = Color.Unspecified,
     val textStyle: TextStyle? = null,
-    val horizontalArrangement: Arrangement.Horizontal = Arrangement.Start,
-    val verticalAlignment: Alignment.Vertical = Alignment.CenterVertically,
+    val alignment: Alignment = Alignment.CenterStart,
 )

@@ -1,5 +1,7 @@
 package ua.wwind.table.config
 
+import androidx.compose.ui.Alignment
+
 /**
  * Table behavior settings
  */
@@ -18,6 +20,8 @@ public data class TableSettings(
     val selectionMode: SelectionMode = SelectionMode.None,
     /** Row height strategy: Fixed (default) or Dynamic per content. */
     val rowHeightMode: RowHeightMode = RowHeightMode.Fixed,
+    /** Group content alignment */
+    val groupContentAlignment: Alignment = Alignment.CenterStart,
 )
 
 /** Row selection behavior. */

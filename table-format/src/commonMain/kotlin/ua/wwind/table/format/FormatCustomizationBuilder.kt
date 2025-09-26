@@ -1,6 +1,5 @@
 package ua.wwind.table.format
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -69,22 +68,23 @@ public fun <T : Any, C, FILTER> rememberCustomization(
 @Composable
 private fun TableCellStyle.merge(config: TableCellStyleConfig): TableCellStyle {
     val style = config.textStyle?.toTextStyle()
+    val horizontal: Alignment.Horizontal = config.horizontal?.toAlignment() ?: this.alignment.toHorizontal()
+    val vertical: Alignment.Vertical = config.vertical?.toAlignment() ?: this.alignment.toVertical()
     return this.copy(
         background = config.backgroundColor?.toColor() ?: this.background,
         contentColor = config.contentColor?.toColor() ?: this.contentColor,
         textStyle = style ?: this.textStyle,
-        horizontalArrangement = config.horizontal?.toArrangement() ?: this.horizontalArrangement,
-        verticalAlignment = config.vertical?.toAlignment() ?: this.verticalAlignment,
+        alignment = horizontal + vertical,
     )
 }
 
 internal fun Int.toColor(): Color = Color(this)
 
-private fun TableFormatHorizontalAlignment.toArrangement() =
+private fun TableFormatHorizontalAlignment.toAlignment(): Alignment.Horizontal =
     when (this) {
-        TableFormatHorizontalAlignment.START -> Arrangement.Start
-        TableFormatHorizontalAlignment.CENTER -> Arrangement.Center
-        TableFormatHorizontalAlignment.END -> Arrangement.End
+        TableFormatHorizontalAlignment.START -> Alignment.Start
+        TableFormatHorizontalAlignment.CENTER -> Alignment.CenterHorizontally
+        TableFormatHorizontalAlignment.END -> Alignment.End
     }
 
 private fun TableFormatVerticalAlignment.toAlignment() =
@@ -102,4 +102,20 @@ internal fun TableFormatTextStyle.toTextStyle(base: TextStyle = MaterialTheme.ty
         TableFormatTextStyle.ITALIC -> base.copy(fontStyle = FontStyle.Italic)
         TableFormatTextStyle.UNDERLINE -> base.copy(textDecoration = TextDecoration.Underline)
         TableFormatTextStyle.STRIKETHROUGH -> base.copy(textDecoration = TextDecoration.LineThrough)
+    }
+
+private fun Alignment.toHorizontal(): Alignment.Horizontal =
+    when (this) {
+        Alignment.TopStart, Alignment.CenterStart, Alignment.BottomStart -> Alignment.Start
+        Alignment.TopCenter, Alignment.Center, Alignment.BottomCenter -> Alignment.CenterHorizontally
+        Alignment.TopEnd, Alignment.CenterEnd, Alignment.BottomEnd -> Alignment.End
+        else -> Alignment.Start
+    }
+
+private fun Alignment.toVertical(): Alignment.Vertical =
+    when (this) {
+        Alignment.TopStart, Alignment.TopCenter, Alignment.TopEnd -> Alignment.Top
+        Alignment.CenterStart, Alignment.Center, Alignment.CenterEnd -> Alignment.CenterVertically
+        Alignment.BottomStart, Alignment.BottomCenter, Alignment.BottomEnd -> Alignment.Bottom
+        else -> Alignment.Top
     }

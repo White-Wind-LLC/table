@@ -15,7 +15,7 @@ import ua.wwind.table.platform.isMobile
  * - Mobile: tap -> select (if requested) or open, long press if provided
  */
 @Suppress("LongParameterList", "CyclomaticComplexMethod")
-public fun <T : Any> Modifier.tableRowInteractions(
+internal fun <T : Any> Modifier.tableRowInteractions(
     item: T?,
     onFocus: ((T) -> Unit)? = null,
     useSelectAsPrimary: Boolean,

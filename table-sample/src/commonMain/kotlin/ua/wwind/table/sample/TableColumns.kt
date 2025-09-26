@@ -21,14 +21,14 @@ import ua.wwind.table.tableColumns
 fun createTableColumns(): List<ColumnSpec<Person, PersonColumn>> =
     tableColumns<Person, PersonColumn> {
         // Real Person fields
-        column(PersonColumn.NAME) {
+        column(PersonColumn.NAME, { it.name }) {
             title { "Name" }
             autoWidth(500.dp)
             sortable()
             filter(TableFilterType.TextTableFilter())
             cell { item -> Text(item.name, modifier = Modifier.padding(horizontal = 16.dp)) }
         }
-        column(PersonColumn.AGE) {
+        column(PersonColumn.AGE, { it.age }) {
             title { "Age" }
             autoWidth()
             sortable()
@@ -38,7 +38,7 @@ fun createTableColumns(): List<ColumnSpec<Person, PersonColumn>> =
                     rangeOptions = 0 to 100,
                 ),
             )
-            align(Alignment.End)
+            align(Alignment.CenterEnd)
             cell { item ->
                 Text(
                     item.age.toString(),
@@ -46,14 +46,14 @@ fun createTableColumns(): List<ColumnSpec<Person, PersonColumn>> =
                 )
             }
         }
-        column(PersonColumn.ACTIVE) {
+        column(PersonColumn.ACTIVE, { it.active }) {
             title { "Active" }
             autoWidth()
             sortable()
             filter(TableFilterType.BooleanTableFilter())
             cell { item -> Text(if (item.active) "Yes" else "No", modifier = Modifier.padding(horizontal = 16.dp)) }
         }
-        column(PersonColumn.ID) {
+        column(PersonColumn.ID, valueOf = { it.id }) {
             title { "ID" }
             autoWidth()
             sortable()
@@ -63,7 +63,7 @@ fun createTableColumns(): List<ColumnSpec<Person, PersonColumn>> =
 //                    rangeOptions = 1 to 1000,
 //                ),
 //            )
-            align(Alignment.End)
+            align(Alignment.CenterEnd)
             cell { item ->
                 Text(
                     item.id.toString(),
@@ -71,35 +71,35 @@ fun createTableColumns(): List<ColumnSpec<Person, PersonColumn>> =
                 )
             }
         }
-        column(PersonColumn.EMAIL) {
+        column(PersonColumn.EMAIL, valueOf = { it.email }) {
             title { "Email" }
             autoWidth()
             sortable()
             filter(TableFilterType.TextTableFilter())
             cell { item -> Text(item.email, modifier = Modifier.padding(horizontal = 16.dp)) }
         }
-        column(PersonColumn.CITY) {
+        column(PersonColumn.CITY, { it.city }) {
             title { "City" }
             autoWidth(500.dp)
             sortable()
             filter(TableFilterType.TextTableFilter())
             cell { item -> Text(item.city, modifier = Modifier.padding(horizontal = 16.dp)) }
         }
-        column(PersonColumn.COUNTRY) {
+        column(PersonColumn.COUNTRY, { it.country }) {
             title { "Country" }
             autoWidth(500.dp)
             sortable()
             filter(TableFilterType.TextTableFilter())
             cell { item -> Text(item.country, modifier = Modifier.padding(horizontal = 16.dp)) }
         }
-        column(PersonColumn.DEPARTMENT) {
+        column(PersonColumn.DEPARTMENT, { it.department }) {
             title { "Department" }
             autoWidth(500.dp)
             sortable()
             filter(TableFilterType.TextTableFilter())
             cell { item -> Text(item.department, modifier = Modifier.padding(horizontal = 16.dp)) }
         }
-        column(PersonColumn.SALARY) {
+        column(PersonColumn.SALARY, { it.salary }) {
             title { "Salary" }
             autoWidth()
             sortable()
@@ -109,7 +109,7 @@ fun createTableColumns(): List<ColumnSpec<Person, PersonColumn>> =
                     rangeOptions = 0 to 200000,
                 ),
             )
-            align(Alignment.End)
+            align(Alignment.CenterEnd)
             cell { item ->
                 Text(
                     "$${item.salary}",
@@ -117,7 +117,7 @@ fun createTableColumns(): List<ColumnSpec<Person, PersonColumn>> =
                 )
             }
         }
-        column(PersonColumn.RATING) {
+        column(PersonColumn.RATING, { it.rating }) {
             title { "Rating" }
             autoWidth()
             sortable()
@@ -127,7 +127,7 @@ fun createTableColumns(): List<ColumnSpec<Person, PersonColumn>> =
                     rangeOptions = 1 to 5,
                 ),
             )
-            align(Alignment.CenterHorizontally)
+            align(Alignment.Center)
             cell { item ->
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(2.dp),
@@ -138,14 +138,14 @@ fun createTableColumns(): List<ColumnSpec<Person, PersonColumn>> =
                         Icon(
                             imageVector = Icons.Filled.Star,
                             contentDescription = null,
-                            modifier = Modifier.size(16.dp)
+                            modifier = Modifier.size(16.dp),
                         )
                     }
                 }
             }
         }
         // Multiline text field to demonstrate dynamic row height
-        column(PersonColumn.NOTES) {
+        column(PersonColumn.NOTES, { it.notes }) {
             title { "Notes" }
             // Let the row grow by content; optionally set bounds in dynamic mode
             rowHeight(min = 48.dp, max = 200.dp)
@@ -157,18 +157,19 @@ fun createTableColumns(): List<ColumnSpec<Person, PersonColumn>> =
         }
 
         // Computed fields
-        column(PersonColumn.AGE_GROUP) {
+        val ageGroup = { item: Person ->
+            when {
+                item.age < 25 -> "<25"
+                item.age < 35 -> "25-34"
+                else -> "35+"
+            }
+        }
+        column(PersonColumn.AGE_GROUP, ageGroup) {
             title { "Age group" }
             autoWidth(500.dp)
             sortable()
             cell { item ->
-                val group =
-                    when {
-                        item.age < 25 -> "<25"
-                        item.age < 35 -> "25-34"
-                        else -> "35+"
-                    }
-                Text(group, modifier = Modifier.padding(horizontal = 16.dp))
+                Text(ageGroup(item), modifier = Modifier.padding(horizontal = 16.dp))
             }
         }
     }

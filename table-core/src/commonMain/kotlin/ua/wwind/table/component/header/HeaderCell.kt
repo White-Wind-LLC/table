@@ -99,7 +99,10 @@ internal fun <T : Any, C> HeaderCell(
     }
 
     Box(
-        modifier = Modifier.width(width).fillMaxHeight(),
+        modifier =
+            Modifier
+                .width(width)
+                .fillMaxHeight(),
         contentAlignment = Alignment.Center,
     ) {
         HeaderContent(
@@ -118,9 +121,7 @@ internal fun <T : Any, C> HeaderCell(
 }
 
 @Composable
-private fun DefaultFilterIcon(
-    info: TableHeaderCellInfo<Any?>,
-) {
+private fun DefaultFilterIcon(info: TableHeaderCellInfo<Any?>) {
     Box(
         modifier = Modifier.padding(end = 6.dp),
     ) {

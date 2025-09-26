@@ -76,8 +76,7 @@ internal fun <T : Any, C> ColumnResizersOverlay(
                             .hoverable(interactionSource = interaction)
                             .pointerInput(spec.key) {
                                 detectTapGestures(onDoubleTap = { onDoubleClick(spec.key) })
-                            }
-                            .combinedClickable(onDoubleClick = { onDoubleClick(spec.key) }) {}
+                            }.combinedClickable(onDoubleClick = { onDoubleClick(spec.key) }) {}
                             .draggable(
                                 state =
                                     rememberDraggableState { delta ->
@@ -100,15 +99,15 @@ internal fun <T : Any, C> ColumnResizersOverlay(
                                     accumulatedDeltaPx = 0f
                                     onResizeEnd()
                                 },
-                            )
-                            .pointerHoverIcon(PointerIcon.Hand)
+                            ).pointerHoverIcon(PointerIcon.Hand)
                             .width(dimensions.dividerThickness + OVERLAY_THICKNESS_DP.dp)
                             .background(
-                                color = if (isHovered) {
-                                    MaterialTheme.colorScheme.outline.copy(alpha = 0.9f)
-                                } else {
-                                    androidx.compose.ui.graphics.Color.Transparent
-                                },
+                                color =
+                                    if (isHovered) {
+                                        MaterialTheme.colorScheme.outline.copy(alpha = 0.9f)
+                                    } else {
+                                        androidx.compose.ui.graphics.Color.Transparent
+                                    },
                             ),
                 )
             }
