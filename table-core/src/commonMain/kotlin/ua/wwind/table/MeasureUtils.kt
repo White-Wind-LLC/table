@@ -9,6 +9,7 @@ import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.layout.SubcomposeLayout
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
+import ua.wwind.table.state.LocalTableState
 
 /**
  * Measures the minimal intrinsic width of [content] and reports it via [onMeasured].
@@ -25,10 +26,11 @@ internal fun <T> MeasureCellMinWidth(
     onMeasured: (Dp) -> Unit,
 ) {
     val density = LocalDensity.current
+    val state = LocalTableState.current
     // Lightweight mutable box shared between measure (SubcomposeLayout) and effect scopes,
     // without introducing Compose state or recompositions.
     // Two slots: holder[0] = latest measured px; holder[1] = last dispatched px (for de-dup).
-    val holder = remember { IntArray(2) { -1 } }
+    val holder = remember(state) { IntArray(2) { -1 } }
     SubcomposeLayout {
         val measurables =
             subcompose("measure") {
@@ -37,7 +39,7 @@ internal fun <T> MeasureCellMinWidth(
         holder[0] = measurables.maxOfOrNull { it.maxIntrinsicWidth(0) } ?: 0
         layout(0, 0) {}
     }
-    LaunchedEffect(measureKey) {
+    LaunchedEffect(measureKey, state) {
         // Defer to the next UI frame (after the current composition/measure/layout pass).
         // This ensures SubcomposeLayout has already produced up-to-date intrinsic measurements,
         // so the value in holder[0] is valid. Triggering on the next frame avoids running too

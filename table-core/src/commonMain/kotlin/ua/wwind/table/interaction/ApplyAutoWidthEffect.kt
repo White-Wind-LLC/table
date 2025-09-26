@@ -17,7 +17,7 @@ internal fun <C, T : Any> ApplyAutoWidthEffect(
     verticalState: LazyListState,
     state: TableState<C>,
 ) {
-    LaunchedEffect(visibleColumns, itemsCount) {
+    LaunchedEffect(visibleColumns, itemsCount, state) {
         withFrameNanos { /* NoOp */ }
         snapshotFlow {
             Triple(
