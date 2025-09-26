@@ -4,7 +4,6 @@ import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.ui.unit.Density
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.state.TableState
@@ -81,6 +80,7 @@ public suspend fun <C> ensureRowFullyVisible(
             // Fallback for multi-row downward jumps (e.g., PageDown):
             // compute exact delta using measured/estimated heights
             val defaultHeight = with(density) { state.dimensions.rowHeight.toPx() }.toInt()
+
             fun heightOf(i: Int): Int = state.rowHeightsPx[i] ?: defaultHeight
 
             // Sum heights between the last visible row and the target (excluding the target)
@@ -103,8 +103,11 @@ public suspend fun <C> ensureRowFullyVisible(
             if (info != null) {
                 val bottom = info.offset + info.size
                 val overflow = bottom - viewportHeight
-                if (overflow > 0) verticalState.animateScrollBy(overflow.toFloat())
-                else if (info.offset < 0) verticalState.animateScrollBy(info.offset.toFloat())
+                if (overflow > 0) {
+                    verticalState.animateScrollBy(overflow.toFloat())
+                } else if (info.offset < 0) {
+                    verticalState.animateScrollBy(info.offset.toFloat())
+                }
             }
         }
         return
@@ -118,45 +121,47 @@ public suspend fun <T : Any, C> ensureColumnFullyVisible(
     visibleColumns: List<ColumnSpec<T, C>>,
     state: TableState<C>,
     hasLeading: Boolean,
-    tableWidth: Dp,
     horizontalState: ScrollState,
     density: Density,
 ) {
     val dimensions = state.dimensions
+
+    // Compute absolute left position of the target column within the content (px)
     var x = 0.dp
     if (hasLeading) {
         x += dimensions.rowHeight + dimensions.dividerThickness
     }
     visibleColumns.take(targetColIndex).forEach { spec ->
-        val w = state.columnWidths[spec.key] ?: spec.width ?: dimensions.defaultColumnWidth
-        x += w + dimensions.dividerThickness
+        val width = state.columnWidths[spec.key] ?: spec.width ?: dimensions.defaultColumnWidth
+        x += width + dimensions.dividerThickness
     }
 
-    val colWidth =
+    val columnWidth =
         state.columnWidths[targetColKey]
             ?: visibleColumns[targetColIndex].width
             ?: dimensions.defaultColumnWidth
 
-    val contentWidthPx = with(density) { tableWidth.toPx() }.toInt()
-    val viewportWidthPx = (contentWidthPx - horizontalState.maxValue).coerceAtLeast(0)
-    val columnLeftPx = with(density) { x.toPx() }.toInt()
-    val columnRightPx = columnLeftPx + with(density) { colWidth.toPx() }.toInt()
-    val viewportLeft = horizontalState.value
-    val viewportRight = viewportLeft + viewportWidthPx
+    // 1) Viewport coordinates relative to full content width
+    val viewportX1Px = horizontalState.value
+    val viewportX2Px = viewportX1Px + horizontalState.viewportSize
 
-    val targetScrollPx =
-        if (columnLeftPx >= viewportLeft && columnRightPx <= viewportRight) {
-            null // fully visible, no scroll
-        } else if (columnRightPx > viewportRight) {
-            // Move so that column becomes the rightmost fully visible
-            (columnRightPx - viewportWidthPx).coerceIn(0, horizontalState.maxValue)
-        } else {
-            // Move so that column becomes the first visible on the left
-            columnLeftPx.coerceIn(0, horizontalState.maxValue)
+    // 2) Selected cell coordinates
+    val cellX1Px = with(density) { x.toPx() }.toInt()
+    val cellX2Px = cellX1Px + with(density) { columnWidth.toPx() }.toInt()
+
+    // 3) Decide scroll delta (px) using when
+    val deltaPx =
+        when {
+            // a) Cell's left is left of viewport -> scroll left by delta
+            cellX1Px < viewportX1Px -> cellX1Px - viewportX1Px
+            // b) Cell's right is right of viewport -> scroll right by delta
+            cellX2Px > viewportX2Px -> cellX2Px - viewportX2Px
+            // c) Otherwise do nothing
+            else -> 0
         }
 
-    if (targetScrollPx != null && targetScrollPx != horizontalState.value) {
-        horizontalState.animateScrollTo(targetScrollPx)
+    if (deltaPx != 0) {
+        horizontalState.animateScrollBy(deltaPx.toFloat())
     }
 }
 
@@ -168,7 +173,6 @@ public suspend fun <T : Any, C> ensureCellFullyVisible(
     visibleColumns: List<ColumnSpec<T, C>>,
     state: TableState<C>,
     hasLeading: Boolean,
-    tableWidth: Dp,
     verticalState: LazyListState,
     horizontalState: ScrollState,
     density: Density,
@@ -187,7 +191,6 @@ public suspend fun <T : Any, C> ensureCellFullyVisible(
         visibleColumns = visibleColumns,
         state = state,
         hasLeading = hasLeading,
-        tableWidth = tableWidth,
         horizontalState = horizontalState,
         density = density,
     )
