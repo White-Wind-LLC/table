@@ -50,14 +50,14 @@ jobs:
           ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_IN_MEMORY_KEY_PASSWORD }}
           ORG_GRADLE_PROJECT_signingInMemoryKeyId: ${{ secrets.SIGNING_IN_MEMORY_KEY_ID }}
 
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        if: github.ref_type == 'tag'
-        with:
-          tag_name: ${{ github.ref_name }}
-          name: ${{ github.ref_name }}
-          body: |
-            See the CHANGELOG for details: https://github.com/${{ github.repository }}/blob/${{ github.ref_name }}/CHANGELOG.md
-          draft: false
-          prerelease: false
-          token: ${{ secrets.RELEASE_GITHUB_TOKEN }}
+#      - name: Create GitHub Release
+#        uses: softprops/action-gh-release@v2
+#        if: github.ref_type == 'tag'
+#        with:
+#          tag_name: ${{ github.ref_name }}
+#          name: ${{ github.ref_name }}
+#          body: |
+#            See the CHANGELOG for details: https://github.com/${{ github.repository }}/blob/${{ github.ref_name }}/CHANGELOG.md
+#          draft: false
+#          prerelease: false
+#          token: ${{ secrets.RELEASE_GITHUB_TOKEN }}
