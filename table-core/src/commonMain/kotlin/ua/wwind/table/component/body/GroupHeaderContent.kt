@@ -12,10 +12,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import ua.wwind.table.ColumnSpec
+import ua.wwind.table.component.header.ColumnHeaderDropdownMenuBox
 import ua.wwind.table.config.TableCellStyle
 import ua.wwind.table.config.TableColors
 import ua.wwind.table.config.TableCustomization
 import ua.wwind.table.config.TableGroupContext
+import ua.wwind.table.state.TableState
 import ua.wwind.table.state.currentTableState
 
 @Composable
@@ -28,7 +30,7 @@ internal fun <T : Any, C> GroupHeaderCell(
     colors: TableColors,
     customization: TableCustomization<T, C>,
 ) {
-    val state = currentTableState()
+    val state = currentTableState() as TableState<C>
     val style: TableCellStyle = customization.resolveGroupStyle(TableGroupContext(column = spec.key, value = value))
     val background: Color = if (style.background != Color.Unspecified) style.background else colors.groupContainerColor
     val contentColor: Color =
@@ -36,15 +38,20 @@ internal fun <T : Any, C> GroupHeaderCell(
 
     Surface(color = background, contentColor = contentColor) {
         ProvideTextStyle(value = style.textStyle ?: LocalTextStyle.current) {
-            Box(
-                contentAlignment = state.settings.groupContentAlignment,
-                modifier =
-                    Modifier
-                        .width(width)
-                        .height(height),
+            ColumnHeaderDropdownMenuBox(
+                spec = spec,
+                state = state,
             ) {
-                spec.groupHeader?.invoke(this, value) ?: run {
-                    spec.cell.invoke(this, item)
+                Box(
+                    contentAlignment = state.settings.groupContentAlignment,
+                    modifier =
+                        Modifier
+                            .width(width)
+                            .height(height),
+                ) {
+                    spec.groupHeader?.invoke(this, value) ?: run {
+                        spec.cell.invoke(this, item)
+                    }
                 }
             }
         }

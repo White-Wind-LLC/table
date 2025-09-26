@@ -15,6 +15,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -57,10 +58,11 @@ import ua.wwind.table.interaction.ensureCellFullyVisible
 import ua.wwind.table.interaction.tableKeyboardNavigation
 import ua.wwind.table.platform.getPlatform
 import ua.wwind.table.platform.isMobile
-import ua.wwind.table.state.ProvideTableState
+import ua.wwind.table.state.LocalTableState
 import ua.wwind.table.state.TableState
 import ua.wwind.table.state.currentTableState
 import ua.wwind.table.strings.DefaultStrings
+import ua.wwind.table.strings.LocalStringProvider
 import ua.wwind.table.strings.StringProvider
 import kotlin.math.min
 
@@ -168,7 +170,10 @@ public fun <T : Any, C> Table(
         state.rowHeightsPx.clear()
     }
 
-    ProvideTableState(state) {
+    CompositionLocalProvider(
+        LocalTableState provides state,
+        LocalStringProvider provides strings,
+    ) {
         // Ensure selected cell is fully visible whenever it changes (including external API calls)
         EnsureSelectedCellVisibleEffect(
             visibleColumns = visibleColumns,
