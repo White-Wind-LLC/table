@@ -418,7 +418,7 @@ private fun <T : Any, C> EnsureSelectedCellVisibleEffect(
     val state = currentTableState() as TableState<C>
     val density = LocalDensity.current
     var previousSelectedRowIndex by remember { mutableStateOf<Int?>(null) }
-    LaunchedEffect(Unit) {
+    LaunchedEffect(state) {
         snapshotFlow { state.selectedCell }.collectLatest { cell ->
             if (cell == null) return@collectLatest
             val colIndex = visibleColumns.indexOfFirst { it.key == cell.column }
