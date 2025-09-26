@@ -251,6 +251,7 @@ public fun <T : Any, C> Table(
                                 }
                             },
                         verticalState = verticalState,
+                        horizontalState = horizontalState,
                         requestTableFocus = { tableFocusRequester.requestFocus() },
                         enableScrolling = enableScrolling,
                     )
@@ -262,6 +263,7 @@ public fun <T : Any, C> Table(
                             colors = colors,
                             width = tableWidth,
                             verticalState = verticalState,
+                            horizontalState = horizontalState,
                         )
                     }
                 }
@@ -366,6 +368,7 @@ private fun <T : Any, C> GroupStickyOverlay(
     colors: TableColors,
     width: Dp,
     verticalState: LazyListState,
+    horizontalState: ScrollState,
 ) {
     @Suppress("UNCHECKED_CAST")
     val state = currentTableState() as TableState<C>
@@ -410,20 +413,27 @@ private fun <T : Any, C> GroupStickyOverlay(
 
     currentItem?.let { item ->
         val value = spec.valueOf(item)
-        Box(modifier = Modifier.graphicsLayer { translationY = overlayOffsetPx.toFloat() }) {
+        val viewportWidthDp = with(density) { horizontalState.viewportSize.toDp() }
+        Box(
+            modifier = Modifier.graphicsLayer {
+                translationY = overlayOffsetPx.toFloat()
+                // Pin horizontally within the viewport by negating current horizontal scroll
+                translationX = horizontalState.value.toFloat()
+            },
+        ) {
             Column {
                 GroupHeaderCell(
                     value = value,
                     item = item,
                     spec = spec,
-                    width = width,
+                    width = viewportWidthDp,
                     height = state.dimensions.rowHeight,
                     colors = colors,
                     customization = customization,
                 )
                 HorizontalDivider(
                     thickness = state.dimensions.dividerThickness,
-                    modifier = Modifier.width(width),
+                    modifier = Modifier.width(viewportWidthDp),
                 )
             }
         }
