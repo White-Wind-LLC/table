@@ -23,6 +23,7 @@ Live demo: [white-wind-llc.github.io/table](https://white-wind-llc.github.io/tab
 
 - Material 3 header with sort/filter icons (customizable via `TableHeaderDefaults.icons`).
 - Per‑column sorting (3‑state: ASC → DESC → none).
+- Data grouping by column with customizable group headers and sticky positioning.
 - Drag & drop to reorder columns in the header.
 - Column resize via drag with per‑column min width.
 - Filters: text, number (int/double, ranges), boolean, date, enum (single/multi; IN/NOT IN/EQUALS) with built‑in
@@ -40,10 +41,10 @@ Add repository (usually `mavenCentral`) and include the modules you need:
 
 ```kotlin
 dependencies {
-    implementation("ua.wwind.table-kmp:table-core:1.1.3")
+    implementation("ua.wwind.table-kmp:table-core:1.2.0")
     // optional
-    implementation("ua.wwind.table-kmp:table-format:1.1.3")
-    implementation("ua.wwind.table-kmp:table-paging:1.1.3")
+    implementation("ua.wwind.table-kmp:table-format:1.2.0")
+    implementation("ua.wwind.table-kmp:table-paging:1.2.0")
 }
 ```
 
@@ -62,7 +63,7 @@ The following table lists compatibility information for released library version
 
 | Version | Kotlin | Compose Multiplatform |
 |---------|-------:|----------------------:|
-| 1.1.2   | 2.2.10 |                 1.9.0 |
+| 1.2.0   | 2.2.10 |                 1.9.0 |
 
 ### Quick start
 
@@ -78,7 +79,7 @@ enum class PersonField { Name, Age }
 
 ```kotlin
 val columns = tableColumns<Person, PersonField> {
-    column(PersonField.Name) {
+    column(PersonField.Name, valueOf = { it.name }) {
         header("Name")
         cell { Text(it.name) }
         sortable()
@@ -88,7 +89,7 @@ val columns = tableColumns<Person, PersonField> {
         autoWidth(max = 500.dp)
     }
 
-    column(PersonField.Age) {
+    column(PersonField.Age, valueOf = { it.age }) {
         header("Age")
         cell { Text(it.age.toString()) }
         sortable()
@@ -104,7 +105,7 @@ val columns = tableColumns<Person, PersonField> {
 ```
 
 Column options: `sortable`, `resizable`, `visible`, `width(min, pref)`, `autoWidth(max)`, `align(...)`,
-`rowHeight(min, max)`, `filter(...)`, `headerDecorations(...)`, `headerClickToSort(...)`.
+`rowHeight(min, max)`, `filter(...)`, `groupHeader(...)`, `headerDecorations(...)`, `headerClickToSort(...)`.
 
 #### 3) Table state
 
@@ -139,6 +140,55 @@ fun PeopleTable(items: List<Person>) {
 
 Useful parameters: `rowLeading`/`rowTrailing` (extra slots), `placeholderRow`, `contextMenu` (long‑press/right‑click),
 `colors = TableDefaults.colors()`, `icons = TableHeaderDefaults.icons()`.
+
+### Data grouping
+
+Group table data by any column to organize and visualize hierarchical relationships:
+
+```kotlin
+// Enable grouping programmatically
+state.groupBy = PersonField.Department
+
+// Or let users group via header dropdown menu
+// (automatically available for all columns)
+```
+
+Customize group header appearance and content:
+
+```kotlin
+column(PersonField.Department, valueOf = { it.department }) {
+    header("Department")
+    cell { Text(it.department) }
+    
+    // Custom group header renderer
+    groupHeader { groupValue ->
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(8.dp)
+        ) {
+            Icon(Icons.Default.Group, contentDescription = null)
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = "Department: $groupValue",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+        }
+    }
+}
+```
+
+Group headers are sticky and remain visible during scrolling. Configure group content alignment via table settings:
+
+```kotlin
+val state = rememberTableState(
+    columns = columns.map { it.key },
+    settings = TableSettings(
+        groupContentAlignment = Alignment.CenterStart,
+        // ... other settings
+    )
+)
+```
 
 ### Paging integration (`table-paging`)
 
@@ -208,7 +258,7 @@ content color, text style, alignment, etc.).
     - **UX**: `onRowClick`, `onRowLongClick`, `contextMenu(item, pos, dismiss)`.
     - **Look**: `customization`, `colors = TableDefaults.colors()`, `icons = TableHeaderDefaults.icons()`, `strings`.
     - **Scroll**: optional `verticalState`, `horizontalState`.
-- **Columns DSL**: `tableColumns { column(key) { ... } }` produces `List<ColumnSpec<T, C>>`.
+- **Columns DSL**: `tableColumns { column(key, valueOf) { ... } }` produces `List<ColumnSpec<T, C>>`.
     - Header: `header("Text")` or `header { ... }`; optional `title { "Name" }` for active filter chips.
     - Sorting: `sortable()`, `headerClickToSort(Boolean)`.
     - Filters UI: `filter(TableFilterType.*)`.
@@ -220,7 +270,7 @@ content color, text style, alignment, etc.).
     - For a fully custom header, set `headerDecorations(false)` and use helpers inside `header { ... }`:
 
 ```kotlin
-column(PersonField.Name) {
+column(PersonField.Name, valueOf = { it.name }) {
     headerDecorations(false)
     header {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -236,6 +286,7 @@ column(PersonField.Name) {
 
 - **State**: `rememberTableState(columns, initialSort?, initialOrder?, initialWidths?, settings?, dimensions?)`.
     - Sorting: `state.setSort(column, order?)`; current `state.sort`.
+    - Grouping: `state.groupBy(column)` to enable grouping; `state.groupBy(null)` to disable.
     - Column order/size: `state.setColumnOrder(order)`, `state.resizeColumn(column, Set/Reset)`,
       `state.setColumnWidths(map)`.
     - Filters: `state.setFilter(column, TableFilterState(...))`; current per‑column `state.filters`.
@@ -243,7 +294,8 @@ column(PersonField.Name) {
       `state.selectCell(row, column)`.
 - **Settings and geometry**
     - `TableSettings`: `isDragEnabled`, `autoApplyFilters`, `autoFilterDebounce`, `stripedRows`,
-      `showActiveFiltersHeader`, `selectionMode: None/Single/Multiple`, `rowHeightMode: Fixed/Dynamic`.
+      `showActiveFiltersHeader`, `selectionMode: None/Single/Multiple`, `groupContentAlignment`,
+      `rowHeightMode: Fixed/Dynamic`.
     - `TableDimensions`: `defaultColumnWidth`, `defaultRowHeight`, `checkBoxColumnWidth`, `verticalDividerThickness`,
       `verticalDividerPaddingHorizontal`.
     - `TableColors`: via `TableDefaults.colors(...)`.

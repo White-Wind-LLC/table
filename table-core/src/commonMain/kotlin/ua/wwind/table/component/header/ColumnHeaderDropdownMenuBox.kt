@@ -99,7 +99,7 @@ internal fun <T : Any, C> ColumnHeaderDropdownMenuBox(
                 DropdownMenuItem(
                     text = { Text(strings.get(UiString.Ungroup)) },
                     onClick = {
-                        state.setGrouping(null)
+                        state.groupBy(null)
                         menuExpanded = false
                     },
                 )
@@ -107,7 +107,7 @@ internal fun <T : Any, C> ColumnHeaderDropdownMenuBox(
                 DropdownMenuItem(
                     text = { Text(strings.get(UiString.GroupBy)) },
                     onClick = {
-                        state.setGrouping(spec.key)
+                        state.groupBy(spec.key)
                         if (spec.sortable && state.sort?.column != spec.key) {
                             state.setSort(spec.key)
                         }

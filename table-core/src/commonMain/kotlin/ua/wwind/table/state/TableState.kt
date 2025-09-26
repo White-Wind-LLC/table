@@ -168,7 +168,7 @@ public class TableState<C> internal constructor(
     }
 
     /** Enable or disable grouping by a [column] */
-    public fun setGrouping(column: C?) {
+    public fun groupBy(column: C?) {
         groupBy = column
     }
 

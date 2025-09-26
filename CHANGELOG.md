@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+### 1.2.0 — 2025-09-26
+
+- Added: Group by functionality with customizable group headers and sticky positioning.
+- Added: Column header dropdown menu with group by option for enhanced data organization.
+- Fixed: Viewport scrolling logic and cell visibility calculations for improved user interaction.
+- Changed: Extracted cell visibility logic and nested scroll handling for better user experience.
+- Chore: Unused filter expression class to clean up codebase.
+
+Compare: [v1.1.3...v1.2.0](https://github.com/White-Wind-LLC/table/compare/v1.1.3...v1.2.0)
+
 ### 1.1.3 — 2025-09-23
 
 - Fixed: Resolved header resizing bug that could cause column misalignment during dynamic layout updates.
