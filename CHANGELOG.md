@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+### 1.2.2 — 2025-09-26
+
+- Added: Inertial fling support with velocity tracking and decay animation for smoother scroll momentum.
+- Fixed: Added table state dependency to `LaunchedEffect` in auto width effect and measurement utilities for correct
+  recomposition and measurement updates.
+
+Compare: [v1.2.1...v1.2.2](https://github.com/White-Wind-LLC/table/compare/v1.2.1...v1.2.2)
+
 ### 1.2.1 — 2025-09-26
 
 - Fixed: Render sticky header for unordered list.
