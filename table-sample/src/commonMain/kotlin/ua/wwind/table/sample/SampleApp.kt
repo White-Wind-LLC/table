@@ -54,13 +54,15 @@ fun SampleApp(modifier: Modifier = Modifier) {
         }
     }
 
+    var useStripedRows by remember { mutableStateOf(true) }
+
     val settings =
-        remember {
+        remember(useStripedRows) {
             TableSettings(
                 isDragEnabled = false,
                 autoApplyFilters = true,
                 autoFilterDebounce = 200,
-                stripedRows = true,
+                stripedRows = useStripedRows,
                 showActiveFiltersHeader = true,
                 selectionMode = SelectionMode.None,
                 rowHeightMode = RowHeightMode.Dynamic,
@@ -139,7 +141,6 @@ fun SampleApp(modifier: Modifier = Modifier) {
                         Text("Conditional formatting")
                     }
 
-                    // Spacer is not necessary; we use Arrangement.spacedBy
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -148,6 +149,17 @@ fun SampleApp(modifier: Modifier = Modifier) {
                         Switch(
                             checked = isDarkTheme,
                             onCheckedChange = { isDarkTheme = it },
+                        )
+                    }
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        Text("Stripped rows")
+                        Switch(
+                            checked = useStripedRows,
+                            onCheckedChange = { useStripedRows = it },
                         )
                     }
                 }
