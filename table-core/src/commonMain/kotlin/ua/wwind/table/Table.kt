@@ -393,7 +393,7 @@ private fun <T : Any, C> GroupStickyOverlay(
         }
     val overlayHeightPx = headerHeightPx + dividerThicknessPx
     // Track first visible item layout to compute push-up effect precisely
-    LaunchedEffect(verticalState, state.groupBy) {
+    LaunchedEffect(verticalState, state.groupBy, itemAt) {
         snapshotFlow {
             val firstInfo = verticalState.layoutInfo.visibleItemsInfo.firstOrNull()
             // Pair of index and bottom-on-screen in px
@@ -404,7 +404,7 @@ private fun <T : Any, C> GroupStickyOverlay(
 
             val currentValue = currentItem?.let { spec.valueOf(it) }
             val nextValue = itemAt(index + 1)?.let { spec.valueOf(it) }
-            val isNextDifferent = currentValue != null && nextValue != null && currentValue != nextValue
+            val isNextDifferent = currentValue != nextValue
 
             if (isNextDifferent) {
                 // Include row divider thickness to match the actual next row top
