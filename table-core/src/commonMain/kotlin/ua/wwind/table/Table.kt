@@ -174,9 +174,8 @@ public fun <T : Any, C> Table(
     val nestedScrollDispatcher = remember { NestedScrollDispatcher() }
 
     // Reset cached row heights when dataset size changes to avoid stale measurements
-    LaunchedEffect(itemsCount) {
-        state.rowHeightsPx.clear()
-    }
+    LaunchedEffect(itemsCount) { state.rowHeightsPx.clear() }
+    LaunchedEffect(state.sort) { if (verticalState.canScrollBackward) verticalState.scrollToItem(0) }
 
     CompositionLocalProvider(
         LocalTableState provides state,
