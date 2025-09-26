@@ -41,10 +41,10 @@ Add repository (usually `mavenCentral`) and include the modules you need:
 
 ```kotlin
 dependencies {
-    implementation("ua.wwind.table-kmp:table-core:1.2.0")
+    implementation("ua.wwind.table-kmp:table-core:1.2.1")
     // optional
-    implementation("ua.wwind.table-kmp:table-format:1.2.0")
-    implementation("ua.wwind.table-kmp:table-paging:1.2.0")
+    implementation("ua.wwind.table-kmp:table-format:1.2.1")
+    implementation("ua.wwind.table-kmp:table-paging:1.2.1")
 }
 ```
 
@@ -63,7 +63,7 @@ The following table lists compatibility information for released library version
 
 | Version | Kotlin | Compose Multiplatform |
 |---------|-------:|----------------------:|
-| 1.2.0   | 2.2.10 |                 1.9.0 |
+| 1.2.1   | 2.2.10 |                 1.9.0 |
 
 ### Quick start
 

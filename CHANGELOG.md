@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+### 1.2.1 — 2025-09-26
+
+- Fixed: Render sticky header for unordered list.
+
+Compare: [v1.2.0...v1.2.1](https://github.com/White-Wind-LLC/table/compare/v1.2.0...v1.2.1)
+
 ### 1.2.0 — 2025-09-26
 
 - Added: Group by functionality with customizable group headers and sticky positioning.
