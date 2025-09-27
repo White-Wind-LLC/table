@@ -24,6 +24,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import ua.wwind.table.ColumnSpec
 import ua.wwind.table.ExperimentalTableApi
 import ua.wwind.table.Table
 import ua.wwind.table.config.RowHeightMode
@@ -37,8 +38,11 @@ import ua.wwind.table.format.FormatDialog
 import ua.wwind.table.format.FormatDialogSettings
 import ua.wwind.table.format.data.TableFormatRule
 import ua.wwind.table.format.rememberCustomization
+import ua.wwind.table.lazy.LazyTable
+import ua.wwind.table.lazy.rememberViewportState
 import ua.wwind.table.state.rememberTableState
 import ua.wwind.table.strings.DefaultStrings
+import ua.wwind.table.tableColumns
 
 @OptIn(ExperimentalTableApi::class)
 @Composable
@@ -55,6 +59,8 @@ fun SampleApp(modifier: Modifier = Modifier) {
     }
 
     var useStripedRows by remember { mutableStateOf(true) }
+    var useLazyTable by remember { mutableStateOf(false) }
+    var useBigData by remember { mutableStateOf(false) }
 
     val settings =
         remember(useStripedRows) {
@@ -69,11 +75,12 @@ fun SampleApp(modifier: Modifier = Modifier) {
             )
         }
 
+    val sampleDimensions = remember { TableDimensions(defaultColumnWidth = 100.dp) }
     val state =
         rememberTableState(
             columns = PersonColumn.entries,
             settings = settings,
-            dimensions = TableDimensions(defaultColumnWidth = 100.dp),
+            dimensions = sampleDimensions,
         )
 
     // Build customization based on rules + matching logic
@@ -162,20 +169,87 @@ fun SampleApp(modifier: Modifier = Modifier) {
                             onCheckedChange = { useStripedRows = it },
                         )
                     }
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        Text("LazyTable (experimental)")
+                        Switch(
+                            checked = useLazyTable,
+                            onCheckedChange = { useLazyTable = it },
+                        )
+                    }
+
+                    if (useLazyTable) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        ) {
+                            Text("1,000 x 1,000 data")
+                            Switch(
+                                checked = useBigData,
+                                onCheckedChange = { useBigData = it },
+                            )
+                        }
+                    }
                 }
                 HorizontalDivider()
 
                 // The table
-                Table(
-                    itemsCount = sortedPeople.size,
-                    itemAt = { index -> sortedPeople.getOrNull(index) },
-                    state = state,
-                    columns = viewModel.columns,
-                    customization = customization,
-                    strings = DefaultStrings,
-                    rowKey = { item, _ -> item?.id ?: 0 },
-                    modifier = Modifier.padding(16.dp),
-                )
+                if (!useLazyTable) {
+                    Table(
+                        itemsCount = sortedPeople.size,
+                        itemAt = { index -> sortedPeople.getOrNull(index) },
+                        state = state,
+                        columns = viewModel.columns,
+                        customization = customization,
+                        strings = DefaultStrings,
+                        rowKey = { item, _ -> item?.id ?: 0 },
+                        modifier = Modifier.padding(16.dp),
+                    )
+                } else {
+                    val viewportState = rememberViewportState(overscanPx = 300)
+                    if (!useBigData) {
+                        LazyTable(
+                            itemsCount = sortedPeople.size,
+                            itemAt = { index -> sortedPeople.getOrNull(index) },
+                            columns = viewModel.columns,
+                            rowHeight = 32.dp,
+                            defaultColumnWidth = sampleDimensions.defaultColumnWidth,
+                            state = viewportState,
+                            stickyHeader = true,
+                            stickyFirstColumn = false,
+                            modifier = Modifier.padding(16.dp),
+                        )
+                    } else {
+                        val bigCols: List<ColumnSpec<Int, Int>> = remember {
+                            tableColumns<Int, Int> {
+                                for (c in 0 until 10000) {
+                                    column(key = c, valueOf = { it }) {
+                                        header(c.toString())
+                                        cell { rowIndex ->
+                                            Text(((rowIndex * 10000) + c).toString())
+                                        }
+                                        width(80.dp, 80.dp)
+                                        resizable(false)
+                                    }
+                                }
+                            }
+                        }
+                        LazyTable(
+                            itemsCount = 1000,
+                            itemAt = { index -> index },
+                            columns = bigCols,
+                            rowHeight = 28.dp,
+                            defaultColumnWidth = 80.dp,
+                            state = viewportState,
+                            stickyHeader = true,
+                            stickyFirstColumn = false,
+                            modifier = Modifier.padding(16.dp),
+                        )
+                    }
+                }
             }
         }
 
@@ -215,3 +289,39 @@ fun SampleApp(modifier: Modifier = Modifier) {
         )
     }
 }
+
+private fun headerTitle(col: PersonColumn): String =
+    when (col) {
+        PersonColumn.NAME -> "Name"
+        PersonColumn.AGE -> "Age"
+        PersonColumn.ACTIVE -> "Active"
+        PersonColumn.ID -> "ID"
+        PersonColumn.EMAIL -> "Email"
+        PersonColumn.CITY -> "City"
+        PersonColumn.COUNTRY -> "Country"
+        PersonColumn.DEPARTMENT -> "Department"
+        PersonColumn.SALARY -> "Salary"
+        PersonColumn.RATING -> "Rating"
+        PersonColumn.NOTES -> "Notes"
+        PersonColumn.AGE_GROUP -> "Age group"
+    }
+
+private fun cellText(p: Person, col: PersonColumn): String =
+    when (col) {
+        PersonColumn.NAME -> p.name
+        PersonColumn.AGE -> p.age.toString()
+        PersonColumn.ACTIVE -> if (p.active) "Yes" else "No"
+        PersonColumn.ID -> p.id.toString()
+        PersonColumn.EMAIL -> p.email
+        PersonColumn.CITY -> p.city
+        PersonColumn.COUNTRY -> p.country
+        PersonColumn.DEPARTMENT -> p.department
+        PersonColumn.SALARY -> p.salary.toString()
+        PersonColumn.RATING -> p.rating.toString()
+        PersonColumn.NOTES -> p.notes
+        PersonColumn.AGE_GROUP -> when {
+            p.age < 25 -> "<25"
+            p.age < 35 -> "25-34"
+            else -> "35+"
+        }
+    }

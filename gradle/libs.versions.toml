@@ -7,7 +7,7 @@ android-version-code = "9"
 # --- Android SDK & AGP ---
 android-compileSdk = "36"
 android-minSdk = "24"
-android-targetSdk = "35"
+android-targetSdk = "36"
 agp = "8.11.2"
 
 # --- Kotlin Toolchain & Compose ---
@@ -18,7 +18,7 @@ compose-multiplatform = "1.9.0"
 androidx-core = "1.17.0"
 androidx-appcompat = "1.7.1"
 androidx-activityCompose = "1.11.0"
-androidx-lifecycle = "2.9.3"
+androidx-lifecycle = "2.9.4"
 
 # --- KotlinX & Utilities ---
 kotlinx-coroutines = "1.10.2"
@@ -32,7 +32,7 @@ kermit = "2.0.8"
 slf4j = "2.0.17"
 
 # --- UI & UX ---
-reorderable = "2.5.1"
+reorderable = "3.0.0"
 paging = "2.2.1"
 dnd = "0.4.0"
 colorpicker = "1.1.2"
@@ -45,7 +45,7 @@ hotReload = "1.0.0-beta07"
 buildKonfig = "0.17.1"
 detekt = "1.23.8"
 ktlint-gradle = "13.1.0"
-kover = "0.9.1"
+kover = "0.9.2"
 dokka = "2.0.0"
 mavenPublish = "0.34.0"
 
