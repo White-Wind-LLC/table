@@ -234,6 +234,7 @@ public fun <T : Any, C> Table(
                     tableWidth = tableWidth,
                     headerColor = colors.headerContainerColor,
                     headerContentColor = colors.headerContentColor,
+                    rowContainerColor = colors.rowContainerColor,
                     dimensions = dimensions,
                     strings = strings,
                     leadingColumnWidth = if (rowLeading != null) dimensions.rowHeight else null,

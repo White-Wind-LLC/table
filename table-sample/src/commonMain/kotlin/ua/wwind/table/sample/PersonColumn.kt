@@ -13,6 +13,7 @@ enum class PersonColumn {
     CITY,
     COUNTRY,
     DEPARTMENT,
+    POSITION,
     SALARY,
     RATING,
     NOTES,

@@ -99,6 +99,18 @@ fun createTableColumns(): List<ColumnSpec<Person, PersonColumn>> =
             filter(TableFilterType.TextTableFilter())
             cell { item -> Text(item.department, modifier = Modifier.padding(horizontal = 16.dp)) }
         }
+        column(PersonColumn.POSITION, { it.position }) {
+            title { "Position" }
+            autoWidth(500.dp)
+            sortable()
+            filter(
+                TableFilterType.EnumTableFilter(
+                    options = Position.entries.toList(),
+                    getTitle = { it.displayName }
+                )
+            )
+            cell { item -> Text(item.position.displayName, modifier = Modifier.padding(horizontal = 16.dp)) }
+        }
         column(PersonColumn.SALARY, { it.salary }) {
             title { "Salary" }
             autoWidth()

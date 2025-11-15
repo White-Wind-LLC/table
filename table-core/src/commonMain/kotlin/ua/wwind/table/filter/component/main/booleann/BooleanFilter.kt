@@ -1,22 +1,13 @@
-package ua.wwind.table.filter
+package ua.wwind.table.filter.component.main.booleann
 
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.drop
 import ua.wwind.table.filter.component.FilterPanelActions
 import ua.wwind.table.filter.data.BooleanType
 import ua.wwind.table.filter.data.FilterConstraint
@@ -40,18 +31,16 @@ internal fun BooleanFilter(
     check(filter.constraints.size == 1 && filter.constraints.first() == FilterConstraint.EQUALS) {
         "Boolean filter supports only EQUALS constraint"
     }
-    var valueState by remember { mutableStateOf(state.values?.firstOrNull() ?: false) }
-    if (autoApplyFilters) {
-        LaunchedEffect(Unit) {
-            snapshotFlow { valueState }
-                .drop(1)
-                .debounce(autoFilterDebounce)
-                .distinctUntilChanged()
-                .collect {
-                    onChange(TableFilterState(filter.constraints.first(), listOf(valueState)))
-                }
+
+    val booleanFilterState = rememberBooleanFilterState(
+        externalState = state,
+        autoApply = autoApplyFilters,
+        debounceMs = autoFilterDebounce,
+        onStateChange = { filterState ->
+            filterState?.let { onChange(it) }
         }
-    }
+    )
+
     Row(
         modifier = Modifier.fillMaxWidth(),
     ) {
@@ -60,8 +49,8 @@ internal fun BooleanFilter(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             RadioButton(
-                selected = valueState,
-                onClick = { valueState = true },
+                selected = booleanFilterState.value == true,
+                onClick = { booleanFilterState.onValueChange(true) },
             )
             val title = filter.getTitle?.let { it(BooleanType.TRUE) } ?: strings.get(BooleanType.TRUE.toUiString())
             Text(title)
@@ -71,8 +60,8 @@ internal fun BooleanFilter(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             RadioButton(
-                selected = !valueState,
-                onClick = { valueState = false },
+                selected = booleanFilterState.value == false,
+                onClick = { booleanFilterState.onValueChange(false) },
             )
             val title = filter.getTitle?.let { it(BooleanType.FALSE) } ?: strings.get(BooleanType.FALSE.toUiString())
             Text(title)
@@ -80,8 +69,8 @@ internal fun BooleanFilter(
     }
     FilterPanelActions(
         onClose = onClose,
-        onApply = { onChange(TableFilterState(filter.constraints.first(), listOf(valueState))) },
-        onClear = { onChange(TableFilterState(filter.constraints.first(), null)) },
+        onApply = { booleanFilterState.applyFilter() },
+        onClear = { booleanFilterState.clearFilter() },
         autoApplyFilters = autoApplyFilters,
         strings = strings,
     )

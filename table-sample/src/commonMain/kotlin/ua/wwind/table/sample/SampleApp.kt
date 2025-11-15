@@ -58,11 +58,14 @@ fun SampleApp(modifier: Modifier = Modifier) {
 
     var useStripedRows by remember { mutableStateOf(true) }
 
+    var showFastFilters by remember { mutableStateOf(true) }
+
     val settings =
-        remember(useStripedRows) {
+        remember(useStripedRows, showFastFilters) {
             TableSettings(
                 isDragEnabled = false,
                 autoApplyFilters = true,
+                showFastFilters = showFastFilters,
                 autoFilterDebounce = 200,
                 stripedRows = useStripedRows,
                 showActiveFiltersHeader = true,
@@ -109,6 +112,7 @@ fun SampleApp(modifier: Modifier = Modifier) {
                         PersonColumn.CITY -> filteredPeople.sortedBy { it.city.lowercase() }
                         PersonColumn.COUNTRY -> filteredPeople.sortedBy { it.country.lowercase() }
                         PersonColumn.DEPARTMENT -> filteredPeople.sortedBy { it.department.lowercase() }
+                        PersonColumn.POSITION -> filteredPeople.sortedBy { it.position.name }
                         PersonColumn.SALARY -> filteredPeople.sortedBy { it.salary }
                         PersonColumn.RATING -> filteredPeople.sortedBy { it.rating }
                         PersonColumn.NOTES -> filteredPeople.sortedBy { it.notes.lowercase() }
@@ -167,6 +171,17 @@ fun SampleApp(modifier: Modifier = Modifier) {
                             onCheckedChange = { useStripedRows = it },
                         )
                     }
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        Text("Fast filters")
+                        Switch(
+                            checked = showFastFilters,
+                            onCheckedChange = { showFastFilters = it },
+                        )
+                    }
                 }
                 HorizontalDivider()
 
@@ -205,6 +220,7 @@ fun SampleApp(modifier: Modifier = Modifier) {
                     PersonColumn.CITY -> "City"
                     PersonColumn.COUNTRY -> "Country"
                     PersonColumn.DEPARTMENT -> "Department"
+                    PersonColumn.POSITION -> "Position"
                     PersonColumn.SALARY -> "Salary"
                     PersonColumn.RATING -> "Rating"
                     PersonColumn.NOTES -> "Notes"

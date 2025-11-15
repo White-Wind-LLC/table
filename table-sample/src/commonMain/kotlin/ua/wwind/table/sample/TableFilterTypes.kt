@@ -10,30 +10,35 @@ fun createFilterTypes(): Map<PersonColumn, TableFilterType<*>> =
         // Real Person fields
         PersonColumn.NAME to TableFilterType.TextTableFilter(),
         PersonColumn.AGE to
-            TableFilterType.NumberTableFilter(
-                delegate = TableFilterType.NumberTableFilter.IntDelegate,
-                rangeOptions = 0 to 100,
-            ),
+                TableFilterType.NumberTableFilter(
+                    delegate = TableFilterType.NumberTableFilter.IntDelegate,
+                    rangeOptions = 0 to 100,
+                ),
         PersonColumn.ACTIVE to TableFilterType.BooleanTableFilter(),
         PersonColumn.ID to
-            TableFilterType.NumberTableFilter(
-                delegate = TableFilterType.NumberTableFilter.IntDelegate,
-                rangeOptions = 1 to 1000,
-            ),
+                TableFilterType.NumberTableFilter(
+                    delegate = TableFilterType.NumberTableFilter.IntDelegate,
+                    rangeOptions = 1 to 1000,
+                ),
         PersonColumn.EMAIL to TableFilterType.TextTableFilter(),
         PersonColumn.CITY to TableFilterType.TextTableFilter(),
         PersonColumn.COUNTRY to TableFilterType.TextTableFilter(),
         PersonColumn.DEPARTMENT to TableFilterType.TextTableFilter(),
+        PersonColumn.POSITION to
+                TableFilterType.EnumTableFilter(
+                    options = Position.entries.toList(),
+                    getTitle = { it.displayName }
+                ),
         PersonColumn.SALARY to
-            TableFilterType.NumberTableFilter(
-                delegate = TableFilterType.NumberTableFilter.IntDelegate,
-                rangeOptions = 0 to 200000,
-            ),
+                TableFilterType.NumberTableFilter(
+                    delegate = TableFilterType.NumberTableFilter.IntDelegate,
+                    rangeOptions = 0 to 200000,
+                ),
         PersonColumn.RATING to
-            TableFilterType.NumberTableFilter(
-                delegate = TableFilterType.NumberTableFilter.IntDelegate,
-                rangeOptions = 1 to 5,
-            ),
+                TableFilterType.NumberTableFilter(
+                    delegate = TableFilterType.NumberTableFilter.IntDelegate,
+                    rangeOptions = 1 to 5,
+                ),
         PersonColumn.NOTES to TableFilterType.TextTableFilter(),
         // Computed fields
         PersonColumn.AGE_GROUP to TableFilterType.TextTableFilter(),

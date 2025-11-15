@@ -70,6 +70,7 @@ class SampleViewModel {
                     PersonColumn.CITY -> TableFilterState<String>(constraint = null, values = null)
                     PersonColumn.COUNTRY -> TableFilterState<String>(constraint = null, values = null)
                     PersonColumn.DEPARTMENT -> TableFilterState<String>(constraint = null, values = null)
+                    PersonColumn.POSITION -> TableFilterState<List<Position>>(constraint = null, values = null)
                     PersonColumn.SALARY -> TableFilterState<Int>(constraint = null, values = null)
                     PersonColumn.RATING -> TableFilterState<Int>(constraint = null, values = null)
                     PersonColumn.NOTES -> TableFilterState<String>(constraint = null, values = null)
@@ -99,10 +100,10 @@ class SampleViewModel {
             // If state has no constraint or values, skip this field (not restrictive)
             if (stateAny.constraint == null ||
                 (
-                    stateAny.values == null &&
-                        stateAny.constraint != FilterConstraint.IS_NULL &&
-                        stateAny.constraint != FilterConstraint.IS_NOT_NULL
-                )
+                        stateAny.values == null &&
+                                stateAny.constraint != FilterConstraint.IS_NULL &&
+                                stateAny.constraint != FilterConstraint.IS_NOT_NULL
+                        )
             ) {
                 continue
             }
@@ -252,6 +253,24 @@ class SampleViewModel {
                     if (!ok) return false
                 }
 
+                PersonColumn.POSITION -> {
+                    val value = person.position
+                    val st = stateAny as TableFilterState<*>
+                    val constraint = st.constraint ?: continue
+
+                    @Suppress("UNCHECKED_CAST")
+                    val selectedValues = (st.values as? List<Position>) ?: emptyList()
+                    val ok =
+                        when (constraint) {
+                            FilterConstraint.IN -> selectedValues.isEmpty() || selectedValues.contains(value)
+                            FilterConstraint.NOT_IN -> selectedValues.isEmpty() || !selectedValues.contains(value)
+                            FilterConstraint.EQUALS -> selectedValues.firstOrNull() == value
+                            FilterConstraint.NOT_EQUALS -> selectedValues.firstOrNull() != value
+                            else -> true
+                        }
+                    if (!ok) return false
+                }
+
                 PersonColumn.SALARY -> {
                     val value = person.salary
                     val st = stateAny as TableFilterState<Int>
@@ -353,10 +372,10 @@ class SampleViewModel {
         val ratingFilter: Map<PersonColumn, TableFilterState<*>> =
             mapOf(
                 PersonColumn.RATING to
-                    TableFilterState(
-                        constraint = FilterConstraint.GTE,
-                        values = listOf(4),
-                    ),
+                        TableFilterState(
+                            constraint = FilterConstraint.GTE,
+                            values = listOf(4),
+                        ),
             )
         val ratingRule =
             TableFormatRule<PersonColumn, Map<PersonColumn, TableFilterState<*>>>(
@@ -374,10 +393,10 @@ class SampleViewModel {
         val activeFilter: Map<PersonColumn, TableFilterState<*>> =
             mapOf(
                 PersonColumn.ACTIVE to
-                    TableFilterState(
-                        constraint = FilterConstraint.EQUALS,
-                        values = listOf(false),
-                    ),
+                        TableFilterState(
+                            constraint = FilterConstraint.EQUALS,
+                            values = listOf(false),
+                        ),
             )
         val activeRule =
             TableFormatRule<PersonColumn, Map<PersonColumn, TableFilterState<*>>>(
