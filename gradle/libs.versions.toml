@@ -26,6 +26,7 @@ coroutines-test-ver = "1.10.2"
 #Change after the issue is fixed https://youtrack.jetbrains.com/projects/CMP/issues/CMP-8519/Migrate-to-kotlinx-datetime-0.7.1
 kotlinx-datetime = "0.7.1-0.6.x-compat"
 okio = "3.16.0"
+collections-immutable = "0.4.0"
 
 # --- Logging & Monitoring ---
 kermit = "2.0.8"
@@ -57,6 +58,7 @@ androidx-activity-compose = { module = "androidx.activity:activity-compose", ver
 # --- Kotlin & Core Utils ---
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
+collections-immutable = { module = "org.jetbrains.kotlinx:kotlinx-collections-immutable", version.ref = "collections-immutable" }
 
 # --- Coroutines ---
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }

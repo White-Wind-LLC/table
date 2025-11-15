@@ -14,6 +14,7 @@ import androidx.compose.ui.layout.SubcomposeLayout
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.flow.distinctUntilChanged
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.config.RowHeightMode
@@ -32,7 +33,7 @@ import ua.wwind.table.state.TableState
 internal fun <T : Any, C> TableViewportPrefetcher(
     itemsCount: Int,
     itemAt: (Int) -> T?,
-    visibleColumns: List<ColumnSpec<T, C>>,
+    visibleColumns: ImmutableList<ColumnSpec<T, C>>,
     state: TableState<C>,
     colors: TableColors,
     customization: TableCustomization<T, C>,

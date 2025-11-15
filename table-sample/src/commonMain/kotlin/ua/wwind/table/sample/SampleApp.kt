@@ -26,6 +26,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import kotlinx.collections.immutable.toImmutableList
 import ua.wwind.table.ExperimentalTableApi
 import ua.wwind.table.Table
 import ua.wwind.table.config.RowHeightMode
@@ -73,7 +74,7 @@ fun SampleApp(modifier: Modifier = Modifier) {
 
     val state =
         rememberTableState(
-            columns = PersonColumn.entries,
+            columns = PersonColumn.entries.toImmutableList(),
             settings = settings,
             dimensions = TableDimensions(defaultColumnWidth = 100.dp),
         )

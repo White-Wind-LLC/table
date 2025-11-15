@@ -3,10 +3,13 @@ package ua.wwind.table
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
 import ua.wwind.table.filter.data.TableFilterType
 
 /**
@@ -34,6 +37,7 @@ import ua.wwind.table.filter.data.TableFilterType
  * @param headerDecorations whether to render built-in sort/filter icons in the header cell
  * @param headerClickToSort whether clicking the entire header cell toggles sorting
  */
+@Immutable
 public data class ColumnSpec<T : Any, C>(
     val key: C,
     val header: @Composable () -> Unit,
@@ -77,7 +81,7 @@ public class TableColumnsBuilder<T : Any, C> internal constructor() {
         specs += builder.build()
     }
 
-    internal fun build(): List<ColumnSpec<T, C>> = specs.toList()
+    internal fun build(): ImmutableList<ColumnSpec<T, C>> = specs.toImmutableList()
 }
 
 @Suppress("TooManyFunctions")
@@ -228,5 +232,5 @@ public class ColumnBuilder<T : Any, C> internal constructor(
 /**
  * DSL entry to declare table columns.
  */
-public fun <T : Any, C> tableColumns(build: TableColumnsBuilder<T, C>.() -> Unit): List<ColumnSpec<T, C>> =
+public fun <T : Any, C> tableColumns(build: TableColumnsBuilder<T, C>.() -> Unit): ImmutableList<ColumnSpec<T, C>> =
     TableColumnsBuilder<T, C>().apply(build).build()

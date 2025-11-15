@@ -19,6 +19,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
+import kotlinx.collections.immutable.ImmutableList
 import sh.calvin.reorderable.rememberReorderableLazyListState
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.component.header.ColumnResizersOverlay
@@ -34,7 +35,7 @@ import ua.wwind.table.strings.StringProvider
 @Composable
 @Suppress("LongParameterList")
 internal fun <T : Any, C> TableHeader(
-    columns: List<ColumnSpec<T, C>>,
+    columns: ImmutableList<ColumnSpec<T, C>>,
     state: TableState<C>,
     tableWidth: Dp,
     headerColor: Color,

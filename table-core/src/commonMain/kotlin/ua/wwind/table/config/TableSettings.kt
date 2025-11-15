@@ -1,10 +1,12 @@
 package ua.wwind.table.config
 
+import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Alignment
 
 /**
  * Table behavior settings
  */
+@Immutable
 public data class TableSettings(
     /** Enable drag and drop for rows */
     val isDragEnabled: Boolean = false,

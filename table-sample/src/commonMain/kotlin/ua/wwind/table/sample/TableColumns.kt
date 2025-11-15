@@ -11,6 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import kotlinx.collections.immutable.ImmutableList
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.filter.data.TableFilterType
 import ua.wwind.table.tableColumns
@@ -18,7 +19,7 @@ import ua.wwind.table.tableColumns
 /**
  * Create column definitions with titles, cells and optional filters for header UI.
  */
-fun createTableColumns(): List<ColumnSpec<Person, PersonColumn>> =
+fun createTableColumns(): ImmutableList<ColumnSpec<Person, PersonColumn>> =
     tableColumns<Person, PersonColumn> {
         // Real Person fields
         column(PersonColumn.NAME, { it.name }) {

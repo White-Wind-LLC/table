@@ -24,6 +24,7 @@ kotlin {
                 implementation(composeDeps.material3)
                 implementation(composeDeps.materialIconsExtended)
                 implementation(composeDeps.components.uiToolingPreview)
+                implementation(libs.findLibrary("collections-immutable").get())
             }
         }
 
