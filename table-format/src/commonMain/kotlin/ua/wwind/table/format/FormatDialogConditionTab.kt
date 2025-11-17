@@ -39,6 +39,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.unit.dp
+import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
@@ -324,7 +325,7 @@ private fun FormatEnumFilter(
                     currentValue = if (selectedValues.size == 1) selectedValues.first() else null,
                     getTitle = { anyItem -> (filter.getTitle as @Composable (Enum<*>) -> String).invoke(anyItem as Enum<*>) },
                     placeholder = strings.get(UiString.FilterSelectOnePlaceholder),
-                    values = (filter.options as List<Enum<*>>),
+                    values = (filter.options as ImmutableList<Enum<*>>),
                     onClick = { anyItem -> selectedValues = listOf(anyItem as Enum<*>) },
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -345,7 +346,7 @@ private fun FormatEnumFilter(
                                     )
                                 }.joinToString(", ")
                         },
-                    values = (filter.options as List<Enum<*>>),
+                    values = (filter.options as ImmutableList<Enum<*>>),
                     onClick = { anyItem ->
                         val enumItem = anyItem as Enum<*>
                         selectedValues =

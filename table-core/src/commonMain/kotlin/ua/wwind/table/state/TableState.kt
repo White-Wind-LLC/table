@@ -12,6 +12,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.unit.Dp
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.ImmutableMap
+import kotlinx.collections.immutable.persistentMapOf
+import kotlinx.collections.immutable.toPersistentList
 import ua.wwind.table.config.SelectionMode
 import ua.wwind.table.config.TableDimensions
 import ua.wwind.table.config.TableSettings
@@ -267,6 +271,15 @@ public class TableState<C> internal constructor(
     }
 }
 
+public inline fun <T, R : Any> Iterable<T>.mapNotNullToImmutable(
+    transform: (T) -> R?
+): ImmutableList<R> =
+    buildList {
+        for (item in this@mapNotNullToImmutable) {
+            transform(item)?.let(::add)
+        }
+    }.toPersistentList()
+
 /**
  * Remember and create a [TableState] tied to the composition.
  * Initial parameters are used only once; runtime mutations will not recreate the state.
@@ -274,10 +287,10 @@ public class TableState<C> internal constructor(
 @Composable
 @Suppress("LongParameterList")
 public fun <C> rememberTableState(
-    columns: List<C>,
+    columns: ImmutableList<C>,
     initialSort: SortState<C>? = null,
-    initialOrder: List<C> = columns,
-    initialWidths: Map<C, Dp> = emptyMap(),
+    initialOrder: ImmutableList<C> = columns,
+    initialWidths: ImmutableMap<C, Dp> = persistentMapOf(),
     settings: TableSettings = TableSettings(),
     dimensions: TableDimensions = TableDimensions(),
 ): TableState<C> {

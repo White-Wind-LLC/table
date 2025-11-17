@@ -11,6 +11,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import kotlinx.collections.immutable.ImmutableList
 import ua.wwind.table.filter.data.FilterConstraint
 import ua.wwind.table.filter.data.TableFilterState
 import ua.wwind.table.filter.data.TableFilterType
@@ -32,7 +33,7 @@ import ua.wwind.table.strings.UiString
  * @param includeClearAllChip whether to include a leading "Clear" chip to reset all filters
  */
 public fun <T : Any, C> TableActiveFilters(
-    columns: List<ColumnSpec<T, C>>,
+    columns: ImmutableList<ColumnSpec<T, C>>,
     state: TableState<C>,
     strings: StringProvider = DefaultStrings,
     modifier: Modifier = Modifier,

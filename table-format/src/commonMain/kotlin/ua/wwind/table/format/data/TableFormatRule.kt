@@ -1,5 +1,8 @@
 package ua.wwind.table.format.data
 
+import androidx.compose.runtime.Immutable
+
+@Immutable
 public data class TableFormatRule<FIELD, FILTER>(
     val id: Long,
     val enabled: Boolean = true,

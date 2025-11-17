@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import kotlinx.collections.immutable.ImmutableList
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.ReorderableLazyListState
 import ua.wwind.table.ColumnSpec
@@ -26,7 +27,7 @@ internal fun <T : Any, C> TableHeaderRow(
     leadingColumnWidth: Dp?,
     lazyListState: LazyListState,
     reorderState: ReorderableLazyListState,
-    visibleColumns: List<ColumnSpec<T, C>>,
+    visibleColumns: ImmutableList<ColumnSpec<T, C>>,
     widthResolver: (C) -> Dp,
     style: TableHeaderStyle,
     state: TableState<C>,

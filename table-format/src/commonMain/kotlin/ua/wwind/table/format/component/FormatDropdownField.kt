@@ -26,6 +26,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import kotlinx.collections.immutable.ImmutableList
 import ua.wwind.table.filter.component.collectAsEffect
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -36,7 +37,7 @@ internal fun <E : Enum<E>> FormatDropdownField(
     getTitle: @Composable (E) -> String = { it.name },
     placeholder: String = "",
     label: @Composable (() -> Unit)? = null,
-    values: List<E>,
+    values: ImmutableList<E>,
     onClick: (E?) -> Unit,
     modifier: Modifier = Modifier,
     checked: ((E) -> Boolean)? = null,

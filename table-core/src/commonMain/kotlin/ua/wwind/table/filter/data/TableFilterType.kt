@@ -2,6 +2,8 @@ package ua.wwind.table.filter.data
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
 import kotlinx.datetime.LocalDate
 import kotlin.math.roundToInt
 
@@ -11,13 +13,13 @@ import kotlin.math.roundToInt
  * Each subtype enumerates supported [constraints] and, when needed, parsing/formatting helpers.
  */
 public sealed class TableFilterType<T>(
-    public open val constraints: List<FilterConstraint>,
+    public open val constraints: ImmutableList<FilterConstraint>,
 ) {
     @Immutable
     /** Text filter supporting contains/starts/ends/equals constraints. */
     public data class TextTableFilter(
-        override val constraints: List<FilterConstraint> =
-            listOf(
+        override val constraints: ImmutableList<FilterConstraint> =
+            persistentListOf(
                 FilterConstraint.CONTAINS,
                 FilterConstraint.STARTS_WITH,
                 FilterConstraint.ENDS_WITH,
@@ -28,8 +30,8 @@ public sealed class TableFilterType<T>(
     @Immutable
     /** Numeric filter with optional range slider support via [rangeOptions] and [delegate]. */
     public data class NumberTableFilter<T : Number>(
-        override val constraints: List<FilterConstraint> =
-            listOf(
+        override val constraints: ImmutableList<FilterConstraint> =
+            persistentListOf(
                 FilterConstraint.GT,
                 FilterConstraint.GTE,
                 FilterConstraint.LT,
@@ -102,8 +104,8 @@ public sealed class TableFilterType<T>(
     @Immutable
     /** Boolean filter with a single EQUALS constraint. */
     public data class BooleanTableFilter(
-        override val constraints: List<FilterConstraint> =
-            listOf(
+        override val constraints: ImmutableList<FilterConstraint> =
+            persistentListOf(
                 FilterConstraint.EQUALS,
             ),
         val getTitle: @Composable ((BooleanType) -> String)? = null,
@@ -112,26 +114,27 @@ public sealed class TableFilterType<T>(
     @Immutable
     /** Date filter with comparison and equals constraints. */
     public data class DateTableFilter(
-        override val constraints: List<FilterConstraint> =
-            listOf(
+        override val constraints: ImmutableList<FilterConstraint> =
+            persistentListOf(
                 FilterConstraint.GT,
                 FilterConstraint.GTE,
                 FilterConstraint.LT,
                 FilterConstraint.LTE,
                 FilterConstraint.EQUALS,
+                FilterConstraint.BETWEEN
             ),
     ) : TableFilterType<LocalDate>(constraints)
 
     @Immutable
     /** Enum filter supporting IN/NOT_IN/EQUALS with custom [getTitle] provider. */
     public data class EnumTableFilter<T : Enum<T>>(
-        val options: List<T>,
-        override val constraints: List<FilterConstraint> =
-            listOf(
+        val options: ImmutableList<T>,
+        override val constraints: ImmutableList<FilterConstraint> =
+            persistentListOf(
                 FilterConstraint.IN,
                 FilterConstraint.NOT_IN,
                 FilterConstraint.EQUALS,
             ),
         val getTitle: @Composable (T) -> String,
-    ) : TableFilterType<List<T>>(constraints)
+    ) : TableFilterType<ImmutableList<T>>(constraints)
 }

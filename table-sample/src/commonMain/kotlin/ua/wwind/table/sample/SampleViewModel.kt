@@ -5,6 +5,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
 import ua.wwind.table.ExperimentalTableApi
 import ua.wwind.table.filter.data.FilterConstraint
 import ua.wwind.table.filter.data.TableFilterState
@@ -24,7 +26,9 @@ class SampleViewModel {
     val columns = createTableColumns()
 
     // Conditional formatting rules (editable via dialog)
-    var rules by mutableStateOf<List<TableFormatRule<PersonColumn, Map<PersonColumn, TableFilterState<*>>>>>(emptyList())
+    var rules by mutableStateOf<ImmutableList<TableFormatRule<PersonColumn, Map<PersonColumn, TableFilterState<*>>>>>(
+        persistentListOf()
+    )
         private set
 
     // Dialog visibility
@@ -41,7 +45,7 @@ class SampleViewModel {
     /**
      * Update formatting rules
      */
-    fun updateRules(newRules: List<TableFormatRule<PersonColumn, Map<PersonColumn, TableFilterState<*>>>>) {
+    fun updateRules(newRules: ImmutableList<TableFormatRule<PersonColumn, Map<PersonColumn, TableFilterState<*>>>>) {
         rules = newRules
     }
 
@@ -70,8 +74,14 @@ class SampleViewModel {
                     PersonColumn.CITY -> TableFilterState<String>(constraint = null, values = null)
                     PersonColumn.COUNTRY -> TableFilterState<String>(constraint = null, values = null)
                     PersonColumn.DEPARTMENT -> TableFilterState<String>(constraint = null, values = null)
+                    PersonColumn.POSITION -> TableFilterState<List<Position>>(constraint = null, values = null)
                     PersonColumn.SALARY -> TableFilterState<Int>(constraint = null, values = null)
                     PersonColumn.RATING -> TableFilterState<Int>(constraint = null, values = null)
+                    PersonColumn.HIRE_DATE -> TableFilterState<kotlinx.datetime.LocalDate>(
+                        constraint = null,
+                        values = null
+                    )
+
                     PersonColumn.NOTES -> TableFilterState<String>(constraint = null, values = null)
                     PersonColumn.AGE_GROUP -> TableFilterState<String>(constraint = null, values = null)
                 }
@@ -99,10 +109,10 @@ class SampleViewModel {
             // If state has no constraint or values, skip this field (not restrictive)
             if (stateAny.constraint == null ||
                 (
-                    stateAny.values == null &&
-                        stateAny.constraint != FilterConstraint.IS_NULL &&
-                        stateAny.constraint != FilterConstraint.IS_NOT_NULL
-                )
+                        stateAny.values == null &&
+                                stateAny.constraint != FilterConstraint.IS_NULL &&
+                                stateAny.constraint != FilterConstraint.IS_NOT_NULL
+                        )
             ) {
                 continue
             }
@@ -252,6 +262,24 @@ class SampleViewModel {
                     if (!ok) return false
                 }
 
+                PersonColumn.POSITION -> {
+                    val value = person.position
+                    val st = stateAny as TableFilterState<*>
+                    val constraint = st.constraint ?: continue
+
+                    @Suppress("UNCHECKED_CAST")
+                    val selectedValues = (st.values as? List<Position>) ?: emptyList()
+                    val ok =
+                        when (constraint) {
+                            FilterConstraint.IN -> selectedValues.isEmpty() || selectedValues.contains(value)
+                            FilterConstraint.NOT_IN -> selectedValues.isEmpty() || !selectedValues.contains(value)
+                            FilterConstraint.EQUALS -> selectedValues.firstOrNull() == value
+                            FilterConstraint.NOT_EQUALS -> selectedValues.firstOrNull() != value
+                            else -> true
+                        }
+                    if (!ok) return false
+                }
+
                 PersonColumn.SALARY -> {
                     val value = person.salary
                     val st = stateAny as TableFilterState<Int>
@@ -278,6 +306,29 @@ class SampleViewModel {
                 PersonColumn.RATING -> {
                     val value = person.rating
                     val st = stateAny as TableFilterState<Int>
+                    val constraint = st.constraint ?: continue
+                    val ok =
+                        when (constraint) {
+                            FilterConstraint.GT -> value > (st.values?.getOrNull(0) ?: value)
+                            FilterConstraint.GTE -> value >= (st.values?.getOrNull(0) ?: value)
+                            FilterConstraint.LT -> value < (st.values?.getOrNull(0) ?: value)
+                            FilterConstraint.LTE -> value <= (st.values?.getOrNull(0) ?: value)
+                            FilterConstraint.EQUALS -> value == (st.values?.getOrNull(0) ?: value)
+                            FilterConstraint.NOT_EQUALS -> value != (st.values?.getOrNull(0) ?: value)
+                            FilterConstraint.BETWEEN -> {
+                                val from = st.values?.getOrNull(0) ?: value
+                                val to = st.values?.getOrNull(1) ?: value
+                                from <= value && value <= to
+                            }
+
+                            else -> true
+                        }
+                    if (!ok) return false
+                }
+
+                PersonColumn.HIRE_DATE -> {
+                    val value = person.hireDate
+                    val st = stateAny as TableFilterState<kotlinx.datetime.LocalDate>
                     val constraint = st.constraint ?: continue
                     val ok =
                         when (constraint) {
@@ -353,10 +404,10 @@ class SampleViewModel {
         val ratingFilter: Map<PersonColumn, TableFilterState<*>> =
             mapOf(
                 PersonColumn.RATING to
-                    TableFilterState(
-                        constraint = FilterConstraint.GTE,
-                        values = listOf(4),
-                    ),
+                        TableFilterState(
+                            constraint = FilterConstraint.GTE,
+                            values = listOf(4),
+                        ),
             )
         val ratingRule =
             TableFormatRule<PersonColumn, Map<PersonColumn, TableFilterState<*>>>(
@@ -374,10 +425,10 @@ class SampleViewModel {
         val activeFilter: Map<PersonColumn, TableFilterState<*>> =
             mapOf(
                 PersonColumn.ACTIVE to
-                    TableFilterState(
-                        constraint = FilterConstraint.EQUALS,
-                        values = listOf(false),
-                    ),
+                        TableFilterState(
+                            constraint = FilterConstraint.EQUALS,
+                            values = listOf(false),
+                        ),
             )
         val activeRule =
             TableFormatRule<PersonColumn, Map<PersonColumn, TableFilterState<*>>>(
@@ -391,6 +442,6 @@ class SampleViewModel {
                     ),
                 filter = activeFilter,
             )
-        rules = listOf(ratingRule, activeRule)
+        rules = persistentListOf(ratingRule, activeRule)
     }
 }

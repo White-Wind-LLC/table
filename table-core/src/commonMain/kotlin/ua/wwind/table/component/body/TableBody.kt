@@ -14,6 +14,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
+import kotlinx.collections.immutable.ImmutableList
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.config.TableColors
 import ua.wwind.table.config.TableCustomization
@@ -25,7 +26,7 @@ internal fun <T : Any, C> TableBody(
     itemsCount: Int,
     itemAt: (Int) -> T?,
     rowKey: (item: T?, index: Int) -> Any,
-    visibleColumns: List<ColumnSpec<T, C>>,
+    visibleColumns: ImmutableList<ColumnSpec<T, C>>,
     state: TableState<C>,
     colors: TableColors,
     customization: TableCustomization<T, C>,

@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.dp
+import kotlinx.collections.immutable.toImmutableList
 import ua.wwind.table.format.component.FormatColorField
 import ua.wwind.table.format.component.FormatDropdownField
 import ua.wwind.table.format.data.TableFormatHorizontalAlignment
@@ -31,7 +32,7 @@ public fun <E : Enum<E>, FILTER> FormatDialogDesignTab(
         FormatDropdownField(
             currentValue = item.cellStyle.textStyle,
             getTitle = { value -> strings.get(value.uiString) },
-            values = TableFormatTextStyle.entries,
+            values = TableFormatTextStyle.entries.toImmutableList(),
             label = {
                 Text(strings.get(UiString.FormatLabelTypography))
             },
@@ -65,7 +66,7 @@ public fun <E : Enum<E>, FILTER> FormatDialogDesignTab(
             label = {
                 Text(strings.get(UiString.FormatLabelVerticalAlignment))
             },
-            values = TableFormatVerticalAlignment.entries,
+            values = TableFormatVerticalAlignment.entries.toImmutableList(),
             onClick = { value ->
                 onChange(item.copy(cellStyle = item.cellStyle.copy(vertical = value)))
             },
@@ -74,7 +75,7 @@ public fun <E : Enum<E>, FILTER> FormatDialogDesignTab(
         FormatDropdownField(
             currentValue = item.cellStyle.horizontal,
             getTitle = { value -> strings.get(value.uiString) },
-            values = TableFormatHorizontalAlignment.entries,
+            values = TableFormatHorizontalAlignment.entries.toImmutableList(),
             label = {
                 Text(strings.get(UiString.FormatLabelHorizontalAlignment))
             },

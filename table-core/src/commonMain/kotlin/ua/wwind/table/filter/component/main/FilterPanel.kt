@@ -1,4 +1,4 @@
-package ua.wwind.table.filter.component
+package ua.wwind.table.filter.component.main
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -10,11 +10,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
-import ua.wwind.table.filter.BooleanFilter
-import ua.wwind.table.filter.DateFilter
-import ua.wwind.table.filter.EnumFilter
-import ua.wwind.table.filter.NumberFilter
-import ua.wwind.table.filter.TextFilter
+import kotlinx.datetime.LocalDate
+import ua.wwind.table.filter.component.main.booleann.BooleanFilter
+import ua.wwind.table.filter.component.main.date.DateFilter
+import ua.wwind.table.filter.component.main.enumm.EnumFilter
+import ua.wwind.table.filter.component.main.number.NumberFilter
+import ua.wwind.table.filter.component.main.text.TextFilter
 import ua.wwind.table.filter.data.TableFilterState
 import ua.wwind.table.filter.data.TableFilterType
 import ua.wwind.table.strings.StringProvider
@@ -55,7 +56,7 @@ internal fun <T> FilterPanel(
                         strings = strings,
                         autoApplyFilters = autoApplyFilters,
                         autoFilterDebounce = autoFilterDebounce,
-                        onChange = { onChange(it as TableFilterState<T>) },
+                        onChange = { onChange(it as? TableFilterState<T>) },
                     )
 
                 is TableFilterType.NumberTableFilter<*> ->
@@ -68,7 +69,7 @@ internal fun <T> FilterPanel(
                         strings = strings,
                         autoApplyFilters = autoApplyFilters,
                         autoFilterDebounce = autoFilterDebounce,
-                        onChange = { onChange(it as TableFilterState<T>) },
+                        onChange = { onChange(it as? TableFilterState<T>) },
                     )
 
                 is TableFilterType.BooleanTableFilter ->
@@ -81,20 +82,20 @@ internal fun <T> FilterPanel(
                         strings = strings,
                         autoApplyFilters = autoApplyFilters,
                         autoFilterDebounce = autoFilterDebounce,
-                        onChange = { onChange(it as TableFilterState<T>) },
+                        onChange = { onChange(it as? TableFilterState<T>) },
                     )
 
                 is TableFilterType.DateTableFilter ->
                     DateFilter(
                         filter = type,
                         state =
-                            state as? TableFilterState<kotlinx.datetime.LocalDate>
+                            state as? TableFilterState<LocalDate>
                                 ?: TableFilterState(constraint = null, values = null),
                         onClose = onDismissRequest,
                         strings = strings,
                         autoApplyFilters = autoApplyFilters,
                         autoFilterDebounce = autoFilterDebounce,
-                        onChange = { onChange(it as TableFilterState<T>) },
+                        onChange = { onChange(it as? TableFilterState<T>) },
                     )
 
                 is TableFilterType.EnumTableFilter<*> ->
@@ -107,7 +108,7 @@ internal fun <T> FilterPanel(
                         strings = strings,
                         autoApplyFilters = autoApplyFilters,
                         autoFilterDebounce = autoFilterDebounce,
-                        onChange = { onChange(it as TableFilterState<T>) },
+                        onChange = { onChange(it as? TableFilterState<T>) },
                     )
 
                 null -> error("Filter type cannot be null")

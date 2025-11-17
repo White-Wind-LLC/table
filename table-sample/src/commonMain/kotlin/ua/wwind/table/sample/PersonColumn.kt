@@ -13,8 +13,10 @@ enum class PersonColumn {
     CITY,
     COUNTRY,
     DEPARTMENT,
+    POSITION,
     SALARY,
     RATING,
+    HIRE_DATE,
     NOTES,
 
     // Computed fields

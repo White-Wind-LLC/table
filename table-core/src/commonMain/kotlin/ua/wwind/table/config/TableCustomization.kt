@@ -3,6 +3,7 @@ package ua.wwind.table.config
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.Stable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -15,6 +16,7 @@ import androidx.compose.ui.unit.Dp
  * Centralized customization entry-point for table row and cell appearance/behavior.
  * Implementors can compute styles based on row/cell context (item, selection, grouping, etc.).
  */
+@Stable
 public interface TableCustomization<T : Any, C> {
     @Composable
     public fun resolveRowStyle(ctx: TableRowContext<T, C>): TableRowStyle = TableRowStyle()

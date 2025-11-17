@@ -11,6 +11,10 @@ import androidx.compose.material3.Text
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.format
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.filter.data.TableFilterType
 import ua.wwind.table.tableColumns
@@ -18,7 +22,7 @@ import ua.wwind.table.tableColumns
 /**
  * Create column definitions with titles, cells and optional filters for header UI.
  */
-fun createTableColumns(): List<ColumnSpec<Person, PersonColumn>> =
+fun createTableColumns(): ImmutableList<ColumnSpec<Person, PersonColumn>> =
     tableColumns<Person, PersonColumn> {
         // Real Person fields
         column(PersonColumn.NAME, { it.name }) {
@@ -99,6 +103,18 @@ fun createTableColumns(): List<ColumnSpec<Person, PersonColumn>> =
             filter(TableFilterType.TextTableFilter())
             cell { item -> Text(item.department, modifier = Modifier.padding(horizontal = 16.dp)) }
         }
+        column(PersonColumn.POSITION, { it.position }) {
+            title { "Position" }
+            autoWidth(500.dp)
+            sortable()
+            filter(
+                TableFilterType.EnumTableFilter(
+                    options = Position.entries.toImmutableList(),
+                    getTitle = { it.displayName }
+                )
+            )
+            cell { item -> Text(item.position.displayName, modifier = Modifier.padding(horizontal = 16.dp)) }
+        }
         column(PersonColumn.SALARY, { it.salary }) {
             title { "Salary" }
             autoWidth()
@@ -142,6 +158,24 @@ fun createTableColumns(): List<ColumnSpec<Person, PersonColumn>> =
                         )
                     }
                 }
+            }
+        }
+        column(PersonColumn.HIRE_DATE, { it.hireDate }) {
+            title { "Hire Date" }
+            autoWidth()
+            sortable()
+            filter(TableFilterType.DateTableFilter())
+            cell { item ->
+                Text(
+                    item.hireDate.format(
+                        LocalDate.Format {
+                            dayOfMonth()
+                            chars(".")
+                            monthNumber()
+                            chars(".")
+                            year()
+                        }
+                    ), modifier = Modifier.padding(horizontal = 16.dp))
             }
         }
         // Multiline text field to demonstrate dynamic row height

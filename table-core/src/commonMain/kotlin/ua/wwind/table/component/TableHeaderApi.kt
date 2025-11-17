@@ -7,6 +7,7 @@ import androidx.compose.material.icons.rounded.ArrowDownward
 import androidx.compose.material.icons.rounded.ArrowUpward
 import androidx.compose.material.icons.rounded.FilterAlt
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.staticCompositionLocalOf
@@ -14,6 +15,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import ua.wwind.table.data.SortOrder
 
 /** Icons used by table header for sort and filter affordances. */
+@Immutable
 public data class TableHeaderIcons(
     val sortAsc: ImageVector,
     val sortDesc: ImageVector,
@@ -42,6 +44,7 @@ public object TableHeaderDefaults {
 }
 
 /** Per-header cell info and helpers provided to the header slot via CompositionLocal. */
+@Immutable
 public data class TableHeaderCellInfo<C>(
     val columnKey: C,
     val isSortable: Boolean,

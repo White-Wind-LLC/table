@@ -45,6 +45,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
+import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.collectLatest
@@ -69,6 +70,7 @@ import ua.wwind.table.platform.isMobile
 import ua.wwind.table.state.LocalTableState
 import ua.wwind.table.state.TableState
 import ua.wwind.table.state.currentTableState
+import ua.wwind.table.state.mapNotNullToImmutable
 import ua.wwind.table.strings.DefaultStrings
 import ua.wwind.table.strings.LocalStringProvider
 import ua.wwind.table.strings.StringProvider
@@ -112,7 +114,7 @@ public fun <T : Any, C> Table(
     itemsCount: Int,
     itemAt: (Int) -> T?,
     state: TableState<C>,
-    columns: List<ColumnSpec<T, C>>,
+    columns: ImmutableList<ColumnSpec<T, C>>,
     modifier: Modifier = Modifier,
     placeholderRow: (@Composable () -> Unit)? = null,
     rowKey: (item: T?, index: Int) -> Any = { _, i -> i },
@@ -132,7 +134,7 @@ public fun <T : Any, C> Table(
     val dimensions = state.dimensions
     val visibleColumns by remember(columns, state.columnOrder) {
         derivedStateOf {
-            state.columnOrder.mapNotNull { key -> columns.find { it.key == key && it.visible } }
+            state.columnOrder.mapNotNullToImmutable { key -> columns.find { it.key == key && it.visible } }
         }
     }
     val tableWidth by remember(visibleColumns, rowLeading, state.columnWidths, state.dimensions) {
@@ -234,6 +236,7 @@ public fun <T : Any, C> Table(
                     tableWidth = tableWidth,
                     headerColor = colors.headerContainerColor,
                     headerContentColor = colors.headerContentColor,
+                    rowContainerColor = colors.rowContainerColor,
                     dimensions = dimensions,
                     strings = strings,
                     leadingColumnWidth = if (rowLeading != null) dimensions.rowHeight else null,
@@ -409,7 +412,7 @@ private suspend fun animateFlingAxis(
 @Composable
 @Suppress("LongParameterList")
 private fun <T : Any, C> EnsureSelectedCellVisibleEffect(
-    visibleColumns: List<ColumnSpec<T, C>>,
+    visibleColumns: ImmutableList<ColumnSpec<T, C>>,
     rowLeadingPresent: Boolean,
     verticalState: LazyListState,
     horizontalState: ScrollState,
@@ -452,7 +455,7 @@ private fun <T : Any, C> EnsureSelectedCellVisibleEffect(
 @Suppress("LongParameterList")
 private fun <T : Any, C> GroupStickyOverlay(
     itemAt: (Int) -> T?,
-    visibleColumns: List<ColumnSpec<T, C>>,
+    visibleColumns: ImmutableList<ColumnSpec<T, C>>,
     customization: TableCustomization<T, C>,
     colors: TableColors,
     width: Dp,

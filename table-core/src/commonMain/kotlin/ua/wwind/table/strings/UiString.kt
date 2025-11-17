@@ -1,6 +1,7 @@
 package ua.wwind.table.strings
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Stable
 
 /**
  * Typed keys for all table UI strings.
@@ -26,6 +27,15 @@ public sealed class UiString {
     public object FilterRangeToPlaceholder : UiString()
 
     public object FilterRangeIconDescription : UiString()
+
+    // Date picker
+    public object DatePickerSelectDate : UiString()
+
+    public object DatePickerConfirm : UiString()
+
+    public object DatePickerCancel : UiString()
+
+    public object DatePickerClear : UiString()
 
     // Boolean titles
     public object BooleanTrueTitle : UiString()
@@ -117,6 +127,7 @@ public sealed class UiString {
 /**
  * Minimal string provider for table UI.
  */
+@Stable
 public interface StringProvider {
     @Composable
     public fun get(key: UiString): String
@@ -141,6 +152,12 @@ public object DefaultStrings : StringProvider {
             UiString.FilterRangeFromPlaceholder -> "From"
             UiString.FilterRangeToPlaceholder -> "To"
             UiString.FilterRangeIconDescription -> "Range"
+
+            // Date picker
+            UiString.DatePickerSelectDate -> "Select Date"
+            UiString.DatePickerConfirm -> "Confirm"
+            UiString.DatePickerCancel -> "Cancel"
+            UiString.DatePickerClear -> "Clear"
 
             // Boolean
             UiString.BooleanTrueTitle -> "Yes"

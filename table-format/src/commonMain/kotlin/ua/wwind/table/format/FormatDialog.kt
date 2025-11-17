@@ -45,6 +45,10 @@ import androidx.compose.ui.graphics.isUnspecified
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.mutate
+import kotlinx.collections.immutable.toImmutableList
+import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.debounce
@@ -74,12 +78,12 @@ public data class FormatDialogSettings(
 @Composable
 public fun <E : Enum<E>, FILTER> FormatDialog(
     showDialog: Boolean,
-    rules: List<TableFormatRule<E, FILTER>>,
-    onRulesChanged: (List<TableFormatRule<E, FILTER>>) -> Unit,
+    rules: ImmutableList<TableFormatRule<E, FILTER>>,
+    onRulesChanged: (ImmutableList<TableFormatRule<E, FILTER>>) -> Unit,
     getNewRule: (id: Long) -> TableFormatRule<E, FILTER>,
     getTitle: @Composable (E) -> String,
     filters: (TableFormatRule<E, FILTER>, onApply: (TableFormatRule<E, FILTER>) -> Unit) -> List<FormatFilterData<E>>,
-    entries: List<E>,
+    entries: ImmutableList<E>,
     key: Any,
     strings: StringProvider,
     onDismissRequest: () -> Unit,
@@ -109,11 +113,9 @@ public fun <E : Enum<E>, FILTER> FormatDialog(
                         IconButton(
                             onClick = {
                                 onRulesChanged(
-                                    rules
-                                        .toMutableList()
-                                        .apply {
-                                            removeAt(index)
-                                        }.toList(),
+                                    rules.toPersistentList().mutate { list ->
+                                        list.removeAt(index)
+                                    }
                                 )
                                 editItem = null
                             },
@@ -130,11 +132,9 @@ public fun <E : Enum<E>, FILTER> FormatDialog(
                                 val lastIndex = rules.lastIndex
                                 val itemCopy = item.copy(id = id)
                                 onRulesChanged(
-                                    rules
-                                        .toMutableList()
-                                        .apply {
-                                            add(itemCopy)
-                                        }.toList(),
+                                    rules.toPersistentList().mutate { list ->
+                                        list.add(itemCopy)
+                                    }
                                 )
                                 editItem = null
                                 itemCopyIndex = lastIndex.inc()
@@ -160,15 +160,13 @@ public fun <E : Enum<E>, FILTER> FormatDialog(
                     IconButton(
                         onClick = {
                             onRulesChanged(
-                                rules
-                                    .toMutableList()
-                                    .apply {
-                                        if (index in indices) {
-                                            this[index] = item
-                                        } else {
-                                            add(item)
-                                        }
-                                    }.toList(),
+                                rules.toPersistentList().mutate { list ->
+                                    if (index in list.indices) {
+                                        list[index] = item
+                                    } else {
+                                        list.add(item)
+                                    }
+                                }
                             )
                             editItem = null
                         },
@@ -214,10 +212,9 @@ public fun <E : Enum<E>, FILTER> FormatDialog(
         text = {
             editItem?.let { (index, item) ->
                 var currentTab by remember { mutableStateOf(RuleTab.DESIGN) }
-                val data =
-                    remember {
-                        RuleTab.entries.map { TabData(it, it.uiString) }
-                    }
+                val data = remember {
+                    RuleTab.entries.map { TabData(it, it.uiString) }.toImmutableList()
+                }
                 FormatDialogTabRow(
                     currentItem = currentTab,
                     onClick = { currentTab = it },
@@ -280,10 +277,9 @@ public fun <E : Enum<E>, FILTER> FormatDialog(
                 }
                 val state =
                     rememberReorderableLazyListState(lazyListState) { from, to ->
-                        rulesState =
-                            rulesState.toMutableList().apply {
-                                add(to.index, removeAt(from.index))
-                            }
+                        rulesState = rulesState.toPersistentList().mutate { list ->
+                            list.add(to.index, list.removeAt(from.index))
+                        }
                     }
                 Box {
                     LazyColumn(state = lazyListState, modifier = Modifier.fillMaxWidth()) {
@@ -345,15 +341,12 @@ public fun <E : Enum<E>, FILTER> FormatDialog(
                                                     val itemIndex =
                                                         rulesState.indexOfFirst { it == item }
                                                     if (itemIndex != -1) {
-                                                        rulesState =
-                                                            rulesState
-                                                                .toMutableList()
-                                                                .also { list ->
-                                                                    list[itemIndex] =
-                                                                        list[itemIndex].copy(
-                                                                            enabled = enabled,
-                                                                        )
-                                                                }
+                                                        rulesState = rulesState.toPersistentList().mutate { list ->
+                                                            list[itemIndex] =
+                                                                list[itemIndex].copy(
+                                                                    enabled = enabled,
+                                                                )
+                                                        }
                                                         onRulesChanged(rulesState)
                                                     }
                                                 },

@@ -26,6 +26,7 @@ coroutines-test-ver = "1.10.2"
 #Change after the issue is fixed https://youtrack.jetbrains.com/projects/CMP/issues/CMP-8519/Migrate-to-kotlinx-datetime-0.7.1
 kotlinx-datetime = "0.7.1-0.6.x-compat"
 okio = "3.16.0"
+collections-immutable = "0.4.0"
 
 # --- Logging & Monitoring ---
 kermit = "2.0.8"
@@ -48,6 +49,7 @@ ktlint-gradle = "13.1.0"
 kover = "0.9.1"
 dokka = "2.0.0"
 mavenPublish = "0.34.0"
+stability-analyzer = "0.5.2"
 
 [libraries]
 # --- AndroidX Core & Lifecycle ---
@@ -57,6 +59,7 @@ androidx-activity-compose = { module = "androidx.activity:activity-compose", ver
 # --- Kotlin & Core Utils ---
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
+collections-immutable = { module = "org.jetbrains.kotlinx:kotlinx-collections-immutable", version.ref = "collections-immutable" }
 
 # --- Coroutines ---
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
@@ -100,6 +103,7 @@ gradle-kotlin-cocoapods = { group = "org.jetbrains.kotlin.native.cocoapods", nam
 # Compose Multiplatform
 gradle-compose = { module = "org.jetbrains.compose:compose-gradle-plugin", version.ref = "compose-multiplatform" }
 gradle-compose-hot-reload = { module = "org.jetbrains.compose.hot-reload:hot-reload-gradle-plugin", version.ref = "hotReload" }
+gradle-stability-analyzer = { module = "com.github.skydoves.compose.stability.analyzer:com.github.skydoves.compose.stability.analyzer.gradle.plugin", version.ref = "stability-analyzer" }
 
 # KSP
 gradle-ksp = { module = "com.google.devtools.ksp:com.google.devtools.ksp.gradle.plugin", version.ref = "ksp" }
@@ -142,3 +146,4 @@ ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint-gradle" }
 kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 maven-publish = { id = "com.vanniktech.maven.publish", version.ref = "mavenPublish" }
+stability-analyzer = { id = "com.github.skydoves.compose.stability.analyzer", version.ref = "stability-analyzer" }

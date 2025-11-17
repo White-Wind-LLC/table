@@ -34,7 +34,7 @@ import ua.wwind.table.component.LocalTableHeaderIcons
 import ua.wwind.table.component.TableHeaderCellInfo
 import ua.wwind.table.config.TableDimensions
 import ua.wwind.table.data.SortOrder
-import ua.wwind.table.filter.component.FilterPanel
+import ua.wwind.table.filter.component.main.FilterPanel
 import ua.wwind.table.filter.data.TableFilterState
 import ua.wwind.table.filter.data.TableFilterType
 import ua.wwind.table.state.TableState
