@@ -1,6 +1,7 @@
 package ua.wwind.table.strings
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Stable
 
 /**
  * Typed keys for all table UI strings.
@@ -126,6 +127,7 @@ public sealed class UiString {
 /**
  * Minimal string provider for table UI.
  */
+@Stable
 public interface StringProvider {
     @Composable
     public fun get(key: UiString): String

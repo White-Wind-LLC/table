@@ -45,6 +45,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
+import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.collectLatest
@@ -69,6 +70,7 @@ import ua.wwind.table.platform.isMobile
 import ua.wwind.table.state.LocalTableState
 import ua.wwind.table.state.TableState
 import ua.wwind.table.state.currentTableState
+import ua.wwind.table.state.mapNotNullToImmutable
 import ua.wwind.table.strings.DefaultStrings
 import ua.wwind.table.strings.LocalStringProvider
 import ua.wwind.table.strings.StringProvider
@@ -112,7 +114,7 @@ public fun <T : Any, C> Table(
     itemsCount: Int,
     itemAt: (Int) -> T?,
     state: TableState<C>,
-    columns: List<ColumnSpec<T, C>>,
+    columns: ImmutableList<ColumnSpec<T, C>>,
     modifier: Modifier = Modifier,
     placeholderRow: (@Composable () -> Unit)? = null,
     rowKey: (item: T?, index: Int) -> Any = { _, i -> i },
@@ -132,7 +134,7 @@ public fun <T : Any, C> Table(
     val dimensions = state.dimensions
     val visibleColumns by remember(columns, state.columnOrder) {
         derivedStateOf {
-            state.columnOrder.mapNotNull { key -> columns.find { it.key == key && it.visible } }
+            state.columnOrder.mapNotNullToImmutable { key -> columns.find { it.key == key && it.visible } }
         }
     }
     val tableWidth by remember(visibleColumns, rowLeading, state.columnWidths, state.dimensions) {

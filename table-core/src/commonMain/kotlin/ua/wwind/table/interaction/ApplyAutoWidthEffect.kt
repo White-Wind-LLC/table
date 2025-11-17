@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.withFrameNanos
+import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.flow.collectLatest
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.computeAutoWidths
@@ -12,7 +13,7 @@ import ua.wwind.table.state.TableState
 
 @Composable
 internal fun <C, T : Any> ApplyAutoWidthEffect(
-    visibleColumns: List<ColumnSpec<T, C>>,
+    visibleColumns: ImmutableList<ColumnSpec<T, C>>,
     itemsCount: Int,
     verticalState: LazyListState,
     state: TableState<C>,

@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import kotlinx.collections.immutable.ImmutableList
 import ua.wwind.paging.core.PagingData
 import ua.wwind.paging.core.getOrNull
 import ua.wwind.table.ColumnSpec
@@ -29,7 +30,7 @@ import ua.wwind.table.strings.StringProvider
 public fun <T : Any, C> Table(
     items: PagingData<T>?,
     state: TableState<C>,
-    columns: List<ColumnSpec<T, C>>,
+    columns: ImmutableList<ColumnSpec<T, C>>,
     modifier: Modifier = Modifier,
     placeholderRow: (@Composable () -> Unit)? = null,
     rowKey: (item: T?, index: Int) -> Any = { _, i -> i },

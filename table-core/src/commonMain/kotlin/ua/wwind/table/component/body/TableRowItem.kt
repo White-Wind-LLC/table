@@ -23,6 +23,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import kotlinx.collections.immutable.ImmutableList
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.MeasureCellMinWidth
 import ua.wwind.table.config.RowHeightMode
@@ -40,7 +41,7 @@ import ua.wwind.table.state.TableState
 internal fun <T : Any, C> TableRowItem(
     item: T?,
     index: Int,
-    visibleColumns: List<ColumnSpec<T, C>>,
+    visibleColumns: ImmutableList<ColumnSpec<T, C>>,
     state: TableState<C>,
     colors: ua.wwind.table.config.TableColors,
     customization: TableCustomization<T, C>,
