@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+### 1.3.1 — 2025-11-17
+
+- Changed: Updated Kotlin to 2.2.21 and Compose Multiplatform to 1.9.2.
+
+Compare: [v1.3.0...v1.3.1](https://github.com/White-Wind-LLC/table/compare/v1.3.0...v1.3.1)
+
 ### 1.3.0 — 2025-11-17
 
 - Added: Fast filter components with animated visibility and synchronized state management for boolean, enum, number,
