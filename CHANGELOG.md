@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+### 1.3.0 — 2025-11-17
+
+- Added: Fast filter components with animated visibility and synchronized state management for boolean, enum, number,
+  text, and date filters.
+- Added: Date filter state management with synchronized external state and debounce handling for improved filtering
+  functionality.
+- Added: `enableDragToScroll` setting to `TableSettings` for customizable scroll behavior.
+- Added: Custom `TableTextField` component with configurable padding for consistent styling across filter components.
+- Changed: Converted all list types to immutable collections (`ImmutableList`) for better performance, thread safety,
+  and prevention of unintended modifications.
+- Fixed: Scroll to top on sort change for better user experience.
+- Fixed: Updated `LaunchedEffect` dependencies to track table state for correct cell selection handling.
+- Chore: Sample app updated with horizontal scrolling toolbar, new demo data, and Position enum.
+- Chore: Documentation updated with Immutable Collections section in README.
+
+Compare: [v1.2.2...v1.3.0](https://github.com/White-Wind-LLC/table/compare/v1.2.2...v1.3.0)
+
 ### 1.2.2 — 2025-09-26
 
 - Added: Inertial fling support with velocity tracking and decay animation for smoother scroll momentum.
