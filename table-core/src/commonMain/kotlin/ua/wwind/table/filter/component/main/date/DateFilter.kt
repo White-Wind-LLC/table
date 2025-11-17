@@ -27,10 +27,10 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
 import kotlinx.datetime.format
 import kotlinx.datetime.toLocalDateTime
-import ua.wwind.table.filter.component.FilterDropdownField
-import ua.wwind.table.filter.component.FilterPanelActions
 import ua.wwind.table.component.TableTextField
 import ua.wwind.table.component.TableTextFieldDefaults
+import ua.wwind.table.filter.component.FilterDropdownField
+import ua.wwind.table.filter.component.FilterPanelActions
 import ua.wwind.table.filter.component.collectAsEffect
 import ua.wwind.table.filter.data.FilterConstraint
 import ua.wwind.table.filter.data.TableFilterState
@@ -200,7 +200,7 @@ internal fun DateField(
 internal fun LocalDate.toFormatString(): String {
     return this.format(
         LocalDate.Format {
-            dayOfMonth()
+            day()
             chars(".")
             monthNumber()
             chars(".")
