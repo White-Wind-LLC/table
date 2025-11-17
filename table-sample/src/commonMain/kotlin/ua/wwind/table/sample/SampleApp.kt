@@ -115,6 +115,7 @@ fun SampleApp(modifier: Modifier = Modifier) {
                         PersonColumn.POSITION -> filteredPeople.sortedBy { it.position.name }
                         PersonColumn.SALARY -> filteredPeople.sortedBy { it.salary }
                         PersonColumn.RATING -> filteredPeople.sortedBy { it.rating }
+                        PersonColumn.HIRE_DATE -> filteredPeople.sortedBy { it.hireDate }
                         PersonColumn.NOTES -> filteredPeople.sortedBy { it.notes.lowercase() }
                         PersonColumn.AGE_GROUP ->
                             filteredPeople.sortedBy {
@@ -223,6 +224,7 @@ fun SampleApp(modifier: Modifier = Modifier) {
                     PersonColumn.POSITION -> "Position"
                     PersonColumn.SALARY -> "Salary"
                     PersonColumn.RATING -> "Rating"
+                    PersonColumn.HIRE_DATE -> "Hire Date"
                     PersonColumn.NOTES -> "Notes"
                     PersonColumn.AGE_GROUP -> "Age group"
                 }

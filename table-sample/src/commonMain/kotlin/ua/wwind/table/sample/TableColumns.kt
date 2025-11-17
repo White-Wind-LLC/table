@@ -11,6 +11,8 @@ import androidx.compose.material3.Text
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.format
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.filter.data.TableFilterType
 import ua.wwind.table.tableColumns
@@ -154,6 +156,24 @@ fun createTableColumns(): List<ColumnSpec<Person, PersonColumn>> =
                         )
                     }
                 }
+            }
+        }
+        column(PersonColumn.HIRE_DATE, { it.hireDate }) {
+            title { "Hire Date" }
+            autoWidth()
+            sortable()
+            filter(TableFilterType.DateTableFilter())
+            cell { item ->
+                Text(
+                    item.hireDate.format(
+                        LocalDate.Format {
+                            dayOfMonth()
+                            chars(".")
+                            monthNumber()
+                            chars(".")
+                            year()
+                        }
+                    ), modifier = Modifier.padding(horizontal = 16.dp))
             }
         }
         // Multiline text field to demonstrate dynamic row height

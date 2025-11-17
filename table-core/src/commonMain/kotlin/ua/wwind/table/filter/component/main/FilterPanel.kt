@@ -56,7 +56,7 @@ internal fun <T> FilterPanel(
                         strings = strings,
                         autoApplyFilters = autoApplyFilters,
                         autoFilterDebounce = autoFilterDebounce,
-                        onChange = { onChange(it as TableFilterState<T>) },
+                        onChange = { onChange(it as? TableFilterState<T>) },
                     )
 
                 is TableFilterType.NumberTableFilter<*> ->
@@ -69,7 +69,7 @@ internal fun <T> FilterPanel(
                         strings = strings,
                         autoApplyFilters = autoApplyFilters,
                         autoFilterDebounce = autoFilterDebounce,
-                        onChange = { onChange(it as TableFilterState<T>) },
+                        onChange = { onChange(it as? TableFilterState<T>) },
                     )
 
                 is TableFilterType.BooleanTableFilter ->
@@ -82,7 +82,7 @@ internal fun <T> FilterPanel(
                         strings = strings,
                         autoApplyFilters = autoApplyFilters,
                         autoFilterDebounce = autoFilterDebounce,
-                        onChange = { onChange(it as TableFilterState<T>) },
+                        onChange = { onChange(it as? TableFilterState<T>) },
                     )
 
                 is TableFilterType.DateTableFilter ->
@@ -95,7 +95,7 @@ internal fun <T> FilterPanel(
                         strings = strings,
                         autoApplyFilters = autoApplyFilters,
                         autoFilterDebounce = autoFilterDebounce,
-                        onChange = { onChange(it as TableFilterState<T>) },
+                        onChange = { onChange(it as? TableFilterState<T>) },
                     )
 
                 is TableFilterType.EnumTableFilter<*> ->
@@ -108,7 +108,7 @@ internal fun <T> FilterPanel(
                         strings = strings,
                         autoApplyFilters = autoApplyFilters,
                         autoFilterDebounce = autoFilterDebounce,
-                        onChange = { onChange(it as TableFilterState<T>) },
+                        onChange = { onChange(it as? TableFilterState<T>) },
                     )
 
                 null -> error("Filter type cannot be null")

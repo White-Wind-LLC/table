@@ -1,8 +1,15 @@
 package ua.wwind.table.filter.component.fast
 
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import kotlinx.datetime.LocalDate
 import ua.wwind.table.ColumnSpec
+import ua.wwind.table.filter.component.main.date.DateField
+import ua.wwind.table.filter.component.main.date.rememberDateFilterState
+import ua.wwind.table.filter.data.FilterConstraint
 import ua.wwind.table.filter.data.TableFilterState
 import ua.wwind.table.strings.StringProvider
 
@@ -14,5 +21,27 @@ internal fun <T : Any, C> FastDateFilter(
     strings: StringProvider,
     onChange: (ColumnSpec<T, C>, TableFilterState<T>?) -> Unit,
 ) {
-    // Date filter is not yet implemented in core. Provide no-op for now.
+    val dateFilterState = rememberDateFilterState(
+        externalState = state,
+        defaultConstraint = FilterConstraint.EQUALS,
+        autoApply = true,
+        isFastFilter = true,
+        debounceMs = autoFilterDebounce,
+        onStateChange = { filterState ->
+            @Suppress("UNCHECKED_CAST")
+            onChange(spec, filterState as? TableFilterState<T>)
+        }
+    )
+
+    DateField(
+        value = dateFilterState.firstDate,
+        onDateSelected = { selectedDate ->
+            dateFilterState.onFirstDateChange(selectedDate)
+        },
+        modifier = Modifier.fillMaxWidth().padding(8.dp),
+        onClear = {
+            dateFilterState.clearFilter()
+        },
+        strings = strings,
+    )
 }

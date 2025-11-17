@@ -93,6 +93,7 @@ kotlin {
         commonMain.dependencies {
             implementation(project(":table-core"))
             implementation(project(":table-format"))
+            implementation(libs.kotlinx.datetime)
         }
 
         commonTest.dependencies {

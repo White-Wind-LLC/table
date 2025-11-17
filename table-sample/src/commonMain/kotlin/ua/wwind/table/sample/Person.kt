@@ -1,7 +1,9 @@
 package ua.wwind.table.sample
 
+import kotlinx.datetime.LocalDate
+
 /**
- * Person data model with 10 fields for table demonstration.
+ * Person data model with fields for table demonstration.
  */
 data class Person(
     val name: String,
@@ -15,6 +17,7 @@ data class Person(
     val position: Position,
     val salary: Int,
     val rating: Int,
+    val hireDate: LocalDate,
     /** Multiline notes to demonstrate dynamic row height in table. */
     val notes: String =
         when {

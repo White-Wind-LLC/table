@@ -22,16 +22,14 @@ internal fun TextFilter(
     strings: StringProvider,
     autoApplyFilters: Boolean,
     autoFilterDebounce: Long,
-    onChange: (TableFilterState<String>) -> Unit,
+    onChange: (TableFilterState<String>?) -> Unit,
 ) {
     val textFilterState = rememberTextFilterState(
         externalState = state,
         defaultConstraint = filter.constraints.first(),
         autoApply = autoApplyFilters,
         debounceMs = autoFilterDebounce,
-        onStateChange = { filterState ->
-            filterState?.let { onChange(it) }
-        }
+        onStateChange = onChange,
     )
     FilterDropdownField(
         currentValue = textFilterState.constraint,

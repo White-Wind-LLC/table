@@ -305,7 +305,7 @@ column(PersonField.Name, valueOf = { it.name }) {
 - **TextTableFilter**: contains/starts/ends/equals.
 - **NumberTableFilter(Int/Double)**: gt/gte/lt/lte/equals/not_equals/between + optional range slider via `rangeOptions`.
 - **BooleanTableFilter**: equals; optional `getTitle(BooleanType)`.
-- **DateTableFilter**: gt/gte/lt/lte/equals (uses `kotlinx.datetime.LocalDate`).
+- **DateTableFilter**: gt/gte/lt/lte/equals/between (uses `kotlinx.datetime.LocalDate`).
 - **EnumTableFilter<T: Enum<T>>**: in/not_in/equals with `options: List<T>` and `getTitle(T)`.
 
 Applying filters to data is app‑specific. Example:
@@ -319,6 +319,25 @@ val filtered = remember(items, state.filters) {
     }
 }
 ```
+
+### Fast Filters
+
+Fast filters provide quick inline filtering directly in a dedicated row below the header. They share the same
+`TableFilterState` as main filters but with simplified UI and pre-set default constraints:
+
+- **Location**: Rendered as a horizontal row below the header when `settings.showFastFilters = true`.
+- **Synchronized state**: Fast filters and main filter panels use the same `state.filters`, changes in one immediately
+  reflect in the other.
+- **Default constraints**: Each fast filter type uses a sensible default:
+    - `TextTableFilter` → CONTAINS
+    - `NumberTableFilter` → EQUALS
+    - `BooleanTableFilter` → EQUALS (tri-state checkbox)
+    - `DateTableFilter` → EQUALS (date picker)
+    - `EnumTableFilter` → EQUALS (dropdown)
+- **Auto-apply**: Fast filters always apply changes automatically with debounce (controlled by
+  `settings.autoFilterDebounce`).
+
+Fast filters are ideal for quick data exploration and filtering without opening the full filter panel dialog.
 
 ### Selection
 

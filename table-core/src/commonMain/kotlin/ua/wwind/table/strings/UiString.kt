@@ -27,6 +27,15 @@ public sealed class UiString {
 
     public object FilterRangeIconDescription : UiString()
 
+    // Date picker
+    public object DatePickerSelectDate : UiString()
+
+    public object DatePickerConfirm : UiString()
+
+    public object DatePickerCancel : UiString()
+
+    public object DatePickerClear : UiString()
+
     // Boolean titles
     public object BooleanTrueTitle : UiString()
 
@@ -141,6 +150,12 @@ public object DefaultStrings : StringProvider {
             UiString.FilterRangeFromPlaceholder -> "From"
             UiString.FilterRangeToPlaceholder -> "To"
             UiString.FilterRangeIconDescription -> "Range"
+
+            // Date picker
+            UiString.DatePickerSelectDate -> "Select Date"
+            UiString.DatePickerConfirm -> "Confirm"
+            UiString.DatePickerCancel -> "Cancel"
+            UiString.DatePickerClear -> "Clear"
 
             // Boolean
             UiString.BooleanTrueTitle -> "Yes"

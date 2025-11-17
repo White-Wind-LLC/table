@@ -1,5 +1,7 @@
 package ua.wwind.table.sample
 
+import kotlinx.datetime.LocalDate
+
 /**
  * Demo data for Person objects used in the table sample.
  */
@@ -18,6 +20,7 @@ fun createDemoData(): List<Person> =
             position = Position.JUNIOR_DEVELOPER,
             salary = 75000,
             rating = 5,
+            hireDate = LocalDate(2022, 3, 15),
         ),
         Person(
             name = "Bob",
@@ -31,6 +34,7 @@ fun createDemoData(): List<Person> =
             position = Position.PRODUCT_MANAGER,
             salary = 68000,
             rating = 4,
+            hireDate = LocalDate(2018, 7, 20),
         ),
         Person(
             name = "Carol",
@@ -44,6 +48,7 @@ fun createDemoData(): List<Person> =
             position = Position.DESIGNER,
             salary = 82000,
             rating = 5,
+            hireDate = LocalDate(2020, 1, 10),
         ),
         Person(
             name = "Dave",
@@ -57,6 +62,7 @@ fun createDemoData(): List<Person> =
             position = Position.SENIOR_DEVELOPER,
             salary = 95000,
             rating = 4,
+            hireDate = LocalDate(2015, 9, 5),
         ),
         Person(
             name = "Eve",
@@ -70,6 +76,7 @@ fun createDemoData(): List<Person> =
             position = Position.DATA_ANALYST,
             salary = 55000,
             rating = 3,
+            hireDate = LocalDate(2023, 6, 12),
         ),
         Person(
             name = "Frank",
@@ -83,6 +90,7 @@ fun createDemoData(): List<Person> =
             position = Position.TEAM_LEAD,
             salary = 88000,
             rating = 5,
+            hireDate = LocalDate(2017, 4, 22),
         ),
         Person(
             name = "Grace",
@@ -96,6 +104,7 @@ fun createDemoData(): List<Person> =
             position = Position.HR_SPECIALIST,
             salary = 72000,
             rating = 4,
+            hireDate = LocalDate(2021, 2, 14),
         ),
         Person(
             name = "Henry",
@@ -109,6 +118,7 @@ fun createDemoData(): List<Person> =
             position = Position.PRODUCT_MANAGER,
             salary = 79000,
             rating = 3,
+            hireDate = LocalDate(2019, 11, 8),
         ),
         Person(
             name = "Ivy",
@@ -122,6 +132,7 @@ fun createDemoData(): List<Person> =
             position = Position.DESIGNER,
             salary = 71000,
             rating = 5,
+            hireDate = LocalDate(2021, 8, 17),
         ),
         Person(
             name = "Jack",
@@ -135,6 +146,7 @@ fun createDemoData(): List<Person> =
             position = Position.DATA_ANALYST,
             salary = 84000,
             rating = 4,
+            hireDate = LocalDate(2016, 5, 23),
         ),
         Person(
             name = "Kathy",
@@ -148,6 +160,7 @@ fun createDemoData(): List<Person> =
             position = Position.DESIGNER,
             salary = 67000,
             rating = 4,
+            hireDate = LocalDate(2020, 10, 5),
         ),
         Person(
             name = "Liam",
@@ -161,6 +174,7 @@ fun createDemoData(): List<Person> =
             position = Position.SENIOR_DEVELOPER,
             salary = 90000,
             rating = 5,
+            hireDate = LocalDate(2018, 3, 28),
         ),
         Person(
             name = "Mona",
@@ -174,6 +188,7 @@ fun createDemoData(): List<Person> =
             position = Position.HR_SPECIALIST,
             salary = 54000,
             rating = 3,
+            hireDate = LocalDate(2023, 1, 9),
         ),
         Person(
             name = "Nate",
@@ -187,6 +202,7 @@ fun createDemoData(): List<Person> =
             position = Position.PROJECT_MANAGER,
             salary = 120000,
             rating = 5,
+            hireDate = LocalDate(2012, 6, 18),
         ),
         Person(
             name = "Olga",
@@ -200,6 +216,7 @@ fun createDemoData(): List<Person> =
             position = Position.PRODUCT_MANAGER,
             salary = 71000,
             rating = 4,
+            hireDate = LocalDate(2019, 4, 11),
         ),
         Person(
             name = "Paul",
@@ -213,6 +230,7 @@ fun createDemoData(): List<Person> =
             position = Position.SENIOR_DEVELOPER,
             salary = 98000,
             rating = 5,
+            hireDate = LocalDate(2016, 12, 3),
         ),
         Person(
             name = "Quinn",
@@ -226,6 +244,7 @@ fun createDemoData(): List<Person> =
             position = Position.DESIGNER,
             salary = 66000,
             rating = 3,
+            hireDate = LocalDate(2020, 5, 19),
         ),
         Person(
             name = "Rita",
@@ -239,6 +258,7 @@ fun createDemoData(): List<Person> =
             position = Position.DATA_ANALYST,
             salary = 83000,
             rating = 4,
+            hireDate = LocalDate(2014, 8, 27),
         ),
         Person(
             name = "Sam",
@@ -252,6 +272,7 @@ fun createDemoData(): List<Person> =
             position = Position.DEVOPS_ENGINEER,
             salary = 87000,
             rating = 5,
+            hireDate = LocalDate(2018, 2, 16),
         ),
         Person(
             name = "Tina",
@@ -265,6 +286,7 @@ fun createDemoData(): List<Person> =
             position = Position.HR_SPECIALIST,
             salary = 59000,
             rating = 3,
+            hireDate = LocalDate(2021, 9, 7),
         ),
         Person(
             name = "Uma",
@@ -278,6 +300,7 @@ fun createDemoData(): List<Person> =
             position = Position.QA_ENGINEER,
             salary = 72000,
             rating = 4,
+            hireDate = LocalDate(2019, 7, 25),
         ),
         Person(
             name = "Victor",
@@ -291,6 +314,7 @@ fun createDemoData(): List<Person> =
             position = Position.DATA_ANALYST,
             salary = 80000,
             rating = 4,
+            hireDate = LocalDate(2016, 10, 14),
         ),
         Person(
             name = "Wendy",
@@ -304,6 +328,7 @@ fun createDemoData(): List<Person> =
             position = Position.DESIGNER,
             salary = 69000,
             rating = 5,
+            hireDate = LocalDate(2022, 4, 8),
         ),
         Person(
             name = "Xander",
@@ -317,6 +342,7 @@ fun createDemoData(): List<Person> =
             position = Position.PROJECT_MANAGER,
             salary = 115000,
             rating = 5,
+            hireDate = LocalDate(2013, 11, 21),
         ),
         Person(
             name = "Yara",
@@ -330,6 +356,7 @@ fun createDemoData(): List<Person> =
             position = Position.PRODUCT_MANAGER,
             salary = 65000,
             rating = 4,
+            hireDate = LocalDate(2023, 2, 28),
         ),
         Person(
             name = "Zane",
@@ -343,6 +370,7 @@ fun createDemoData(): List<Person> =
             position = Position.TEAM_LEAD,
             salary = 94000,
             rating = 5,
+            hireDate = LocalDate(2017, 6, 13),
         ),
         Person(
             name = "Adele",
@@ -356,6 +384,7 @@ fun createDemoData(): List<Person> =
             position = Position.HR_SPECIALIST,
             salary = 60000,
             rating = 3,
+            hireDate = LocalDate(2020, 12, 4),
         ),
         Person(
             name = "Ben",
@@ -369,6 +398,7 @@ fun createDemoData(): List<Person> =
             position = Position.SENIOR_DEVELOPER,
             salary = 105000,
             rating = 5,
+            hireDate = LocalDate(2014, 3, 17),
         ),
         Person(
             name = "Celia",
@@ -382,6 +412,7 @@ fun createDemoData(): List<Person> =
             position = Position.JUNIOR_DEVELOPER,
             salary = 68000,
             rating = 4,
+            hireDate = LocalDate(2022, 8, 9),
         ),
         Person(
             name = "Dylan",
@@ -395,6 +426,7 @@ fun createDemoData(): List<Person> =
             position = Position.PRODUCT_MANAGER,
             salary = 76000,
             rating = 3,
+            hireDate = LocalDate(2019, 5, 22),
         ),
         Person(
             name = "Elena",
@@ -408,6 +440,7 @@ fun createDemoData(): List<Person> =
             position = Position.DATA_ANALYST,
             salary = 81000,
             rating = 4,
+            hireDate = LocalDate(2017, 9, 11),
         ),
         Person(
             name = "Felix",
@@ -421,6 +454,7 @@ fun createDemoData(): List<Person> =
             position = Position.DEVOPS_ENGINEER,
             salary = 88000,
             rating = 5,
+            hireDate = LocalDate(2020, 6, 30),
         ),
         Person(
             name = "Gina",
@@ -434,6 +468,7 @@ fun createDemoData(): List<Person> =
             position = Position.HR_SPECIALIST,
             salary = 63000,
             rating = 3,
+            hireDate = LocalDate(2019, 10, 18),
         ),
         Person(
             name = "Hugo",
@@ -447,6 +482,7 @@ fun createDemoData(): List<Person> =
             position = Position.PROJECT_MANAGER,
             salary = 125000,
             rating = 5,
+            hireDate = LocalDate(2011, 4, 5),
         ),
         Person(
             name = "Iris",
@@ -460,6 +496,7 @@ fun createDemoData(): List<Person> =
             position = Position.JUNIOR_DEVELOPER,
             salary = 52000,
             rating = 4,
+            hireDate = LocalDate(2023, 7, 24),
         ),
         Person(
             name = "Jon",
@@ -473,6 +510,7 @@ fun createDemoData(): List<Person> =
             position = Position.DATA_ANALYST,
             salary = 86000,
             rating = 4,
+            hireDate = LocalDate(2017, 1, 12),
         ),
         Person(
             name = "Kira",
@@ -486,6 +524,7 @@ fun createDemoData(): List<Person> =
             position = Position.PRODUCT_MANAGER,
             salary = 70000,
             rating = 4,
+            hireDate = LocalDate(2021, 3, 6),
         ),
         Person(
             name = "Leo",
@@ -499,6 +538,7 @@ fun createDemoData(): List<Person> =
             position = Position.SENIOR_DEVELOPER,
             salary = 92000,
             rating = 5,
+            hireDate = LocalDate(2018, 11, 29),
         ),
         Person(
             name = "Maya",
@@ -512,6 +552,7 @@ fun createDemoData(): List<Person> =
             position = Position.HR_SPECIALIST,
             salary = 60000,
             rating = 3,
+            hireDate = LocalDate(2020, 8, 15),
         ),
         Person(
             name = "Noah",
@@ -525,6 +566,7 @@ fun createDemoData(): List<Person> =
             position = Position.PROJECT_MANAGER,
             salary = 99000,
             rating = 5,
+            hireDate = LocalDate(2015, 5, 7),
         ),
         Person(
             name = "Opal",
@@ -538,6 +580,7 @@ fun createDemoData(): List<Person> =
             position = Position.DESIGNER,
             salary = 58000,
             rating = 4,
+            hireDate = LocalDate(2022, 1, 20),
         ),
         Person(
             name = "Piers",
@@ -551,6 +594,7 @@ fun createDemoData(): List<Person> =
             position = Position.QA_ENGINEER,
             salary = 91000,
             rating = 4,
+            hireDate = LocalDate(2019, 2, 26),
         ),
         Person(
             name = "Raya",
@@ -564,6 +608,7 @@ fun createDemoData(): List<Person> =
             position = Position.JUNIOR_DEVELOPER,
             salary = 56000,
             rating = 3,
+            hireDate = LocalDate(2023, 4, 14),
         ),
         Person(
             name = "Sean",
@@ -577,6 +622,7 @@ fun createDemoData(): List<Person> =
             position = Position.DATA_ANALYST,
             salary = 82000,
             rating = 4,
+            hireDate = LocalDate(2017, 10, 3),
         ),
         Person(
             name = "Tara",
@@ -590,6 +636,7 @@ fun createDemoData(): List<Person> =
             position = Position.HR_SPECIALIST,
             salary = 61000,
             rating = 3,
+            hireDate = LocalDate(2021, 6, 19),
         ),
         Person(
             name = "Umar",
@@ -603,6 +650,7 @@ fun createDemoData(): List<Person> =
             position = Position.DEVOPS_ENGINEER,
             salary = 70000,
             rating = 4,
+            hireDate = LocalDate(2019, 12, 8),
         ),
         Person(
             name = "Vera",
@@ -616,6 +664,7 @@ fun createDemoData(): List<Person> =
             position = Position.DESIGNER,
             salary = 73000,
             rating = 4,
+            hireDate = LocalDate(2018, 4, 25),
         ),
         Person(
             name = "Will",
@@ -629,6 +678,7 @@ fun createDemoData(): List<Person> =
             position = Position.PROJECT_MANAGER,
             salary = 110000,
             rating = 5,
+            hireDate = LocalDate(2013, 7, 16),
         ),
         Person(
             name = "Xia",
@@ -642,6 +692,7 @@ fun createDemoData(): List<Person> =
             position = Position.PRODUCT_MANAGER,
             salary = 64000,
             rating = 4,
+            hireDate = LocalDate(2022, 11, 2),
         ),
         Person(
             name = "Yves",
@@ -655,6 +706,7 @@ fun createDemoData(): List<Person> =
             position = Position.TEAM_LEAD,
             salary = 93000,
             rating = 5,
+            hireDate = LocalDate(2016, 8, 21),
         ),
         Person(
             name = "Zara",
@@ -668,6 +720,7 @@ fun createDemoData(): List<Person> =
             position = Position.DESIGNER,
             salary = 67000,
             rating = 4,
+            hireDate = LocalDate(2020, 3, 10),
         ),
         Person(
             name = "Aaron",
@@ -681,6 +734,7 @@ fun createDemoData(): List<Person> =
             position = Position.SENIOR_DEVELOPER,
             salary = 89000,
             rating = 5,
+            hireDate = LocalDate(2017, 5, 18),
         ),
         Person(
             name = "Bianca",
@@ -694,6 +748,7 @@ fun createDemoData(): List<Person> =
             position = Position.HR_SPECIALIST,
             salary = 62000,
             rating = 3,
+            hireDate = LocalDate(2021, 10, 27),
         ),
         Person(
             name = "Cody",
@@ -707,6 +762,7 @@ fun createDemoData(): List<Person> =
             position = Position.DATA_ANALYST,
             salary = 78000,
             rating = 4,
+            hireDate = LocalDate(2019, 6, 4),
         ),
         Person(
             name = "Dora",
@@ -720,6 +776,7 @@ fun createDemoData(): List<Person> =
             position = Position.JUNIOR_DEVELOPER,
             salary = 52000,
             rating = 3,
+            hireDate = LocalDate(2023, 9, 13),
         ),
         Person(
             name = "Ethan",
@@ -733,6 +790,7 @@ fun createDemoData(): List<Person> =
             position = Position.DEVOPS_ENGINEER,
             salary = 97000,
             rating = 5,
+            hireDate = LocalDate(2016, 2, 7),
         ),
         Person(
             name = "Faye",
@@ -746,6 +804,7 @@ fun createDemoData(): List<Person> =
             position = Position.PRODUCT_MANAGER,
             salary = 66000,
             rating = 4,
+            hireDate = LocalDate(2020, 7, 23),
         ),
         Person(
             name = "Gavin",
@@ -759,6 +818,7 @@ fun createDemoData(): List<Person> =
             position = Position.PROJECT_MANAGER,
             salary = 102000,
             rating = 5,
+            hireDate = LocalDate(2014, 12, 11),
         ),
         Person(
             name = "Hana",
@@ -772,6 +832,7 @@ fun createDemoData(): List<Person> =
             position = Position.HR_SPECIALIST,
             salary = 58000,
             rating = 4,
+            hireDate = LocalDate(2022, 5, 16),
         ),
         Person(
             name = "Ivo",
@@ -785,5 +846,6 @@ fun createDemoData(): List<Person> =
             position = Position.QA_ENGINEER,
             salary = 90000,
             rating = 5,
+            hireDate = LocalDate(2018, 9, 1),
         ),
     )

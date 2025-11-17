@@ -27,16 +27,14 @@ internal fun <E : Enum<E>> EnumFilter(
     strings: StringProvider,
     autoApplyFilters: Boolean,
     autoFilterDebounce: Long,
-    onChange: (TableFilterState<*>) -> Unit,
+    onChange: (TableFilterState<*>?) -> Unit,
 ) {
     val enumFilterState = rememberEnumFilterState<E>(
         externalState = state,
         defaultConstraint = filter.constraints.first(),
         autoApply = autoApplyFilters,
         debounceMs = autoFilterDebounce,
-        onStateChange = { filterState ->
-            filterState?.let { onChange(it) }
-        }
+        onStateChange = onChange,
     )
 
     FilterDropdownField(

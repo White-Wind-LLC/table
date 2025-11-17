@@ -26,7 +26,7 @@ internal fun BooleanFilter(
     strings: StringProvider,
     autoApplyFilters: Boolean,
     autoFilterDebounce: Long,
-    onChange: (TableFilterState<Boolean>) -> Unit,
+    onChange: (TableFilterState<Boolean>?) -> Unit,
 ) {
     check(filter.constraints.size == 1 && filter.constraints.first() == FilterConstraint.EQUALS) {
         "Boolean filter supports only EQUALS constraint"
@@ -36,9 +36,7 @@ internal fun BooleanFilter(
         externalState = state,
         autoApply = autoApplyFilters,
         debounceMs = autoFilterDebounce,
-        onStateChange = { filterState ->
-            filterState?.let { onChange(it) }
-        }
+        onStateChange = onChange,
     )
 
     Row(

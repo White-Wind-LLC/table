@@ -36,7 +36,7 @@ internal fun <T : Number> NumberFilter(
     strings: StringProvider,
     autoApplyFilters: Boolean,
     autoFilterDebounce: Long,
-    onChange: (TableFilterState<T>) -> Unit,
+    onChange: (TableFilterState<T>?) -> Unit,
 ) {
     val numberFilterState = rememberNumberFilterState(
         externalState = state,
@@ -44,9 +44,7 @@ internal fun <T : Number> NumberFilter(
         defaultConstraint = filter.constraints.first(),
         autoApply = autoApplyFilters,
         debounceMs = autoFilterDebounce,
-        onStateChange = { filterState ->
-            filterState?.let { onChange(it) }
-        }
+        onStateChange = onChange,
     )
 
     val isBetween = numberFilterState.constraint == FilterConstraint.BETWEEN

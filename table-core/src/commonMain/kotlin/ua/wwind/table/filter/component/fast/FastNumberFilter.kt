@@ -58,7 +58,7 @@ internal fun <T : Any, C> FastNumberFilter(
         placeholder = {
             Text(
                 text = strings.get(UiString.FilterEnterNumberPlaceholder),
-                maxLines = 1
+                maxLines = 1,
             )
         },
         singleLine = true,

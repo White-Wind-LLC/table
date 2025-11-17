@@ -73,6 +73,11 @@ class SampleViewModel {
                     PersonColumn.POSITION -> TableFilterState<List<Position>>(constraint = null, values = null)
                     PersonColumn.SALARY -> TableFilterState<Int>(constraint = null, values = null)
                     PersonColumn.RATING -> TableFilterState<Int>(constraint = null, values = null)
+                    PersonColumn.HIRE_DATE -> TableFilterState<kotlinx.datetime.LocalDate>(
+                        constraint = null,
+                        values = null
+                    )
+
                     PersonColumn.NOTES -> TableFilterState<String>(constraint = null, values = null)
                     PersonColumn.AGE_GROUP -> TableFilterState<String>(constraint = null, values = null)
                 }
@@ -297,6 +302,29 @@ class SampleViewModel {
                 PersonColumn.RATING -> {
                     val value = person.rating
                     val st = stateAny as TableFilterState<Int>
+                    val constraint = st.constraint ?: continue
+                    val ok =
+                        when (constraint) {
+                            FilterConstraint.GT -> value > (st.values?.getOrNull(0) ?: value)
+                            FilterConstraint.GTE -> value >= (st.values?.getOrNull(0) ?: value)
+                            FilterConstraint.LT -> value < (st.values?.getOrNull(0) ?: value)
+                            FilterConstraint.LTE -> value <= (st.values?.getOrNull(0) ?: value)
+                            FilterConstraint.EQUALS -> value == (st.values?.getOrNull(0) ?: value)
+                            FilterConstraint.NOT_EQUALS -> value != (st.values?.getOrNull(0) ?: value)
+                            FilterConstraint.BETWEEN -> {
+                                val from = st.values?.getOrNull(0) ?: value
+                                val to = st.values?.getOrNull(1) ?: value
+                                from <= value && value <= to
+                            }
+
+                            else -> true
+                        }
+                    if (!ok) return false
+                }
+
+                PersonColumn.HIRE_DATE -> {
+                    val value = person.hireDate
+                    val st = stateAny as TableFilterState<kotlinx.datetime.LocalDate>
                     val constraint = st.constraint ?: continue
                     val ok =
                         when (constraint) {

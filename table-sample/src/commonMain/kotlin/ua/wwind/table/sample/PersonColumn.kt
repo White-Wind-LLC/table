@@ -16,6 +16,7 @@ enum class PersonColumn {
     POSITION,
     SALARY,
     RATING,
+    HIRE_DATE,
     NOTES,
 
     // Computed fields
