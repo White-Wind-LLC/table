@@ -169,7 +169,7 @@ fun createTableColumns(): ImmutableList<ColumnSpec<Person, PersonColumn>> =
                 Text(
                     item.hireDate.format(
                         LocalDate.Format {
-                            dayOfMonth()
+                            day()
                             chars(".")
                             monthNumber()
                             chars(".")
