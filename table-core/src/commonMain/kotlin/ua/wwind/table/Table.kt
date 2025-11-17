@@ -203,6 +203,7 @@ public fun <T : Any, C> Table(
                         blockParentScrollConnection = blockParentScrollConnection,
                         nestedScrollDispatcher = nestedScrollDispatcher,
                         enableScrolling = enableScrolling,
+                        enableDragToScroll = state.settings.enableDragToScroll,
                         coroutineScope = coroutineScope,
                     ).clip(shape)
                     .tableKeyboardNavigation(
@@ -302,11 +303,13 @@ private fun Modifier.draggableTable(
     blockParentScrollConnection: NestedScrollConnection,
     nestedScrollDispatcher: NestedScrollDispatcher,
     enableScrolling: Boolean,
+    enableDragToScroll: Boolean,
     coroutineScope: CoroutineScope,
-): Modifier =
-    this
-        .nestedScroll(blockParentScrollConnection, nestedScrollDispatcher)
-        .pointerInput(horizontalState, verticalState) {
+): Modifier {
+    val baseModifier = this.nestedScroll(blockParentScrollConnection, nestedScrollDispatcher)
+
+    val modifierWithDrag = if (enableDragToScroll) {
+        baseModifier.pointerInput(horizontalState, verticalState) {
             // Decay for inertial fling animation
             val decay = exponentialDecay<Float>()
 
@@ -392,7 +395,13 @@ private fun Modifier.draggableTable(
                     }
                 },
             )
-        }.horizontalScroll(horizontalState, enableScrolling)
+        }
+    } else {
+        baseModifier
+    }
+
+    return modifierWithDrag.horizontalScroll(horizontalState, enableScrolling)
+}
 
 // Shared helper to animate fling on a single axis with decay and apply produced deltas
 private suspend fun animateFlingAxis(

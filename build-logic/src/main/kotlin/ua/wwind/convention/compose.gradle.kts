@@ -9,7 +9,6 @@ plugins {
     kotlin("multiplatform")
     id("org.jetbrains.compose")
     id("org.jetbrains.kotlin.plugin.compose")
-    id("com.github.skydoves.compose.stability.analyzer")
 }
 
 val composeDeps = extensions.getByType<ComposeExtension>().dependencies

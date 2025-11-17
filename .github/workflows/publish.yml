@@ -30,6 +30,8 @@ jobs:
 
       - name: Upgrade Kotlin Yarn lockfiles
         run: ./gradlew --no-daemon -PexcludeSamples=true kotlinUpgradeYarnLock
+        env:
+          CI: true
 
       - name: Decode GPG private key (base64)
         run: |
@@ -45,6 +47,7 @@ jobs:
       - name: Publish and Release to Maven Central
         run: ./gradlew --no-daemon --no-parallel -PexcludeSamples=true -PLOG_LEVEL=Info publishAndReleaseToMavenCentral
         env:
+          CI: true
           ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
           ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
           ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_IN_MEMORY_KEY_PASSWORD }}

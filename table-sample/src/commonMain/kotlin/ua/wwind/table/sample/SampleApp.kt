@@ -61,8 +61,10 @@ fun SampleApp(modifier: Modifier = Modifier) {
 
     var showFastFilters by remember { mutableStateOf(true) }
 
+    var enableDragToScroll by remember { mutableStateOf(true) }
+
     val settings =
-        remember(useStripedRows, showFastFilters) {
+        remember(useStripedRows, showFastFilters, enableDragToScroll) {
             TableSettings(
                 isDragEnabled = false,
                 autoApplyFilters = true,
@@ -72,6 +74,7 @@ fun SampleApp(modifier: Modifier = Modifier) {
                 showActiveFiltersHeader = true,
                 selectionMode = SelectionMode.None,
                 rowHeightMode = RowHeightMode.Dynamic,
+                enableDragToScroll = enableDragToScroll,
             )
         }
 
@@ -182,6 +185,17 @@ fun SampleApp(modifier: Modifier = Modifier) {
                         Switch(
                             checked = showFastFilters,
                             onCheckedChange = { showFastFilters = it },
+                        )
+                    }
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        Text("Drag to scroll")
+                        Switch(
+                            checked = enableDragToScroll,
+                            onCheckedChange = { enableDragToScroll = it },
                         )
                     }
                 }

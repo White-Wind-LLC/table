@@ -307,7 +307,8 @@ column(PersonField.Name, valueOf = { it.name }) {
 - **Settings and geometry**
     - `TableSettings`: `isDragEnabled`, `autoApplyFilters`, `autoFilterDebounce`, `stripedRows`,
       `showActiveFiltersHeader`, `selectionMode: None/Single/Multiple`, `groupContentAlignment`,
-      `rowHeightMode: Fixed/Dynamic`.
+      `rowHeightMode: Fixed/Dynamic`, `enableDragToScroll` (controls whether drag-to-scroll is enabled; when disabled,
+      traditional scrollbars are used instead).
     - `TableDimensions`: `defaultColumnWidth`, `defaultRowHeight`, `checkBoxColumnWidth`, `verticalDividerThickness`,
       `verticalDividerPaddingHorizontal`.
     - `TableColors`: via `TableDefaults.colors(...)`.
@@ -372,6 +373,31 @@ Table(
 - Dynamic height: set `rowHeightMode = RowHeightMode.Dynamic`. Use per‑column `rowHeight(min, max)` to hint bounds.
 - Auto‑width: call `autoWidth(max?)` in column builder. The table measures header + first batch of rows and applies
   widths once per phase. Double‑click the header resizer to snap a column to its measured max content width.
+
+### Drag-to-scroll
+
+By default, the table enables drag-to-scroll functionality, allowing users to pan the table content by dragging with
+mouse or touch gestures. While this works well on mobile devices, it may not be ideal for desktop environments where
+traditional scrollbars and mouse wheel navigation are preferred.
+
+To disable drag-to-scroll and use standard scrollbars instead:
+
+```kotlin
+val state = rememberTableState(
+    columns = columns.map { it.key },
+    settings = TableSettings(
+        enableDragToScroll = false, // Disable drag-to-scroll
+        // ... other settings
+    )
+)
+```
+
+When `enableDragToScroll = false`:
+
+- Mouse dragging will not scroll the table
+- Horizontal and vertical scrollbars will be available
+- Mouse wheel and trackpad gestures will work normally
+- Better compatibility with cell selection and text selection workflows
 
 ### Custom header icons
 

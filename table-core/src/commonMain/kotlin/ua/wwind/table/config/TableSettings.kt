@@ -26,6 +26,8 @@ public data class TableSettings(
     val rowHeightMode: RowHeightMode = RowHeightMode.Fixed,
     /** Group content alignment */
     val groupContentAlignment: Alignment = Alignment.CenterStart,
+    /** Enable drag-to-scroll functionality. When disabled, traditional scrollbars are used instead. */
+    val enableDragToScroll: Boolean = true,
 )
 
 /** Row selection behavior. */
