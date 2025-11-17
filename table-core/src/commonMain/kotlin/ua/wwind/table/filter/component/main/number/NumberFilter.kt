@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RangeSlider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -16,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.FlowPreview
 import ua.wwind.table.filter.component.FilterDropdownField
 import ua.wwind.table.filter.component.FilterPanelActions
+import ua.wwind.table.component.TableTextField
 import ua.wwind.table.filter.data.FilterConstraint
 import ua.wwind.table.filter.data.TableFilterState
 import ua.wwind.table.filter.data.TableFilterType
@@ -73,7 +73,7 @@ internal fun <T : Number> NumberFilter(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        OutlinedTextField(
+        TableTextField(
             value = numberFilterState.text,
             onValueChange = numberFilterState.onTextChange,
             placeholder = {
@@ -96,7 +96,7 @@ internal fun <T : Number> NumberFilter(
                 imageVector = Icons.Filled.SwapHoriz,
                 contentDescription = strings.get(UiString.FilterRangeIconDescription),
             )
-            OutlinedTextField(
+            TableTextField(
                 value = numberFilterState.secondText,
                 onValueChange = numberFilterState.onSecondTextChange,
                 placeholder = {

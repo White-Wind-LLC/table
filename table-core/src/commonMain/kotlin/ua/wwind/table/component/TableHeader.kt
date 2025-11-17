@@ -25,7 +25,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import sh.calvin.reorderable.rememberReorderableLazyListState
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.component.header.ColumnResizersOverlay
@@ -125,7 +124,6 @@ internal fun <T : Any, C> TableHeader(
                 state = state,
                 strings = strings,
                 onChange = { spec, newState -> state.setFilter(spec.key, newState) },
-                modifier = Modifier.height(state.dimensions.headerHeight + 16.dp)
             )
         }
     }

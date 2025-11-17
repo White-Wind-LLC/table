@@ -1,11 +1,11 @@
 package ua.wwind.table.filter.component.main.text
 
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import kotlinx.coroutines.FlowPreview
 import ua.wwind.table.filter.component.FilterDropdownField
 import ua.wwind.table.filter.component.FilterPanelActions
+import ua.wwind.table.component.TableTextField
 import ua.wwind.table.filter.data.TableFilterState
 import ua.wwind.table.filter.data.TableFilterType
 import ua.wwind.table.strings.StringProvider
@@ -37,7 +37,7 @@ internal fun TextFilter(
         values = filter.constraints,
         onClick = { textFilterState.onConstraintChange(it) },
     )
-    OutlinedTextField(
+    TableTextField(
         value = textFilterState.text,
         onValueChange = { textFilterState.onTextChange(it) },
         placeholder = { Text(strings.get(UiString.FilterSearchPlaceholder)) },

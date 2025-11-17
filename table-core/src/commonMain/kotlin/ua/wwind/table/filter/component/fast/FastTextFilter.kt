@@ -1,13 +1,13 @@
 package ua.wwind.table.filter.component.fast
 
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import ua.wwind.table.ColumnSpec
+import ua.wwind.table.component.TableTextField
+import ua.wwind.table.component.TableTextFieldDefaults
 import ua.wwind.table.filter.component.main.text.rememberTextFilterState
 import ua.wwind.table.filter.data.FilterConstraint
 import ua.wwind.table.filter.data.TableFilterState
@@ -34,10 +34,10 @@ internal fun <T : Any, C> FastTextFilter(
         }
     )
 
-    OutlinedTextField(
+    TableTextField(
         value = textFilterState.text,
         onValueChange = { textFilterState.onTextChange(it) },
-        modifier = Modifier.fillMaxWidth().padding(8.dp),
+        modifier = Modifier.padding(horizontal = 8.dp),
         placeholder = {
             Text(
                 text = strings.get(UiString.FilterSearchPlaceholder),
@@ -45,5 +45,6 @@ internal fun <T : Any, C> FastTextFilter(
             )
         },
         singleLine = true,
+        contentPadding = TableTextFieldDefaults.reducedContentPadding(),
     )
 }

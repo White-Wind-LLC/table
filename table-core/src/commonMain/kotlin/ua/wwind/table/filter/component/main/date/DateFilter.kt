@@ -3,12 +3,12 @@ package ua.wwind.table.filter.component.main.date
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -29,6 +29,8 @@ import kotlinx.datetime.format
 import kotlinx.datetime.toLocalDateTime
 import ua.wwind.table.filter.component.FilterDropdownField
 import ua.wwind.table.filter.component.FilterPanelActions
+import ua.wwind.table.component.TableTextField
+import ua.wwind.table.component.TableTextFieldDefaults
 import ua.wwind.table.filter.component.collectAsEffect
 import ua.wwind.table.filter.data.FilterConstraint
 import ua.wwind.table.filter.data.TableFilterState
@@ -114,6 +116,7 @@ internal fun DateField(
     onClear: () -> Unit = {},
     dateValidator: (Long) -> Boolean = { true },
     strings: StringProvider,
+    contentPadding: PaddingValues = TableTextFieldDefaults.contentPadding(),
 ) {
     var showDatePickerDialog by remember {
         mutableStateOf(false)
@@ -134,7 +137,7 @@ internal fun DateField(
         },
     )
 
-    OutlinedTextField(
+    TableTextField(
         value = value?.toFormatString().orEmpty(),
         onValueChange = {},
         placeholder = label ?: {
@@ -144,6 +147,7 @@ internal fun DateField(
         interactionSource = interactionSource,
         modifier = modifier,
         singleLine = true,
+        contentPadding = contentPadding,
     )
 
     if (showDatePickerDialog) {

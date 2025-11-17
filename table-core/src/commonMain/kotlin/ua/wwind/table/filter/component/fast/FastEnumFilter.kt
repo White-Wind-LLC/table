@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.filter.component.FilterDropdownAnyField
+import ua.wwind.table.component.TableTextFieldDefaults
 import ua.wwind.table.filter.component.main.enumm.rememberEnumFilterState
 import ua.wwind.table.filter.data.FilterConstraint
 import ua.wwind.table.filter.data.TableFilterState
@@ -55,6 +56,7 @@ internal fun <T : Any, C, E : Enum<E>> FastEnumFilter(
                 enumFilterState.onSingleValueChange(item as? E)
             },
             modifier = Modifier.fillMaxWidth(),
+            contentPadding = TableTextFieldDefaults.reducedContentPadding(),
         )
     }
 }
