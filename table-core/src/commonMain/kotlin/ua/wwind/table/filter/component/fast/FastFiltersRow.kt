@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import kotlinx.collections.immutable.ImmutableList
 import kotlinx.datetime.LocalDate
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.filter.data.TableFilterState
@@ -32,7 +33,7 @@ private const val FAST_FILTER_ROW_HEIGHT = 48
 internal fun <T : Any, C> FastFiltersRow(
     tableWidth: Dp,
     leadingColumnWidth: Dp?,
-    visibleColumns: List<ColumnSpec<T, C>>,
+    visibleColumns: ImmutableList<ColumnSpec<T, C>>,
     widthResolver: (C) -> Dp,
     rowContainerColor: Color,
     state: TableState<C>,

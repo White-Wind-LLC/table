@@ -231,7 +231,7 @@ fun SampleApp(modifier: Modifier = Modifier) {
                 }
             },
             filters = viewModel::buildFormatFilterData,
-            entries = PersonColumn.entries,
+            entries = PersonColumn.entries.toImmutableList(),
             key = Unit,
             strings = DefaultStrings,
             onDismissRequest = { viewModel.toggleFormatDialog(false) },

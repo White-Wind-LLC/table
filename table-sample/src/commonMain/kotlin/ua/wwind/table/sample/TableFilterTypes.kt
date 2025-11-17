@@ -1,5 +1,6 @@
 package ua.wwind.table.sample
 
+import kotlinx.collections.immutable.toImmutableList
 import ua.wwind.table.filter.data.TableFilterType
 
 /**
@@ -26,7 +27,7 @@ fun createFilterTypes(): Map<PersonColumn, TableFilterType<*>> =
         PersonColumn.DEPARTMENT to TableFilterType.TextTableFilter(),
         PersonColumn.POSITION to
                 TableFilterType.EnumTableFilter(
-                    options = Position.entries.toList(),
+                    options = Position.entries.toImmutableList(),
                     getTitle = { it.displayName }
                 ),
         PersonColumn.SALARY to

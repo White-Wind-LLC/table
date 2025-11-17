@@ -12,6 +12,7 @@ plugins {
     alias(libs.plugins.hot.reload).apply(false)
     alias(libs.plugins.dokka) apply false
     alias(libs.plugins.maven.publish) apply false
+    alias(libs.plugins.stability.analyzer) apply false
 }
 
 allprojects {

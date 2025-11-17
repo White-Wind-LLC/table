@@ -8,8 +8,10 @@ import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.TabRow
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import kotlinx.collections.immutable.ImmutableList
 
 /**
  * Represents a tab's content and its type for a UI component.
@@ -17,6 +19,7 @@ import androidx.compose.ui.graphics.Color
  * @param E An enum type identifying the tab category.
  * @param T The content associated with the tab.
  */
+@Immutable
 public data class TabData<E, T>(
     val type: E,
     val data: T,
@@ -27,7 +30,7 @@ public data class TabData<E, T>(
 public fun <E, T> FormatDialogTabRow(
     currentItem: E,
     onClick: (E) -> Unit,
-    list: List<TabData<E, T>>,
+    list: ImmutableList<TabData<E, T>>,
     modifier: Modifier = Modifier,
     isScrollable: Boolean = false,
     createTab: @Composable (TabData<E, T>, Boolean, () -> Unit) -> Unit,

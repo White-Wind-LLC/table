@@ -9,6 +9,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
+import kotlinx.collections.immutable.ImmutableList
 import ua.wwind.table.config.TableCellContext
 import ua.wwind.table.config.TableCellStyle
 import ua.wwind.table.config.TableCustomization
@@ -22,7 +23,7 @@ import ua.wwind.table.format.data.TableFormatVerticalAlignment
 
 @Composable
 public fun <T : Any, C, FILTER> rememberCustomization(
-    rules: List<TableFormatRule<C, FILTER>>,
+    rules: ImmutableList<TableFormatRule<C, FILTER>>,
     key: Any? = null,
     matches: (item: T, filter: FILTER) -> Boolean,
     baseRowStyle: (@Composable (TableRowContext<T, C>) -> TableRowStyle)? = null,

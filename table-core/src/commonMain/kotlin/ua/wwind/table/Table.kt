@@ -412,7 +412,7 @@ private suspend fun animateFlingAxis(
 @Composable
 @Suppress("LongParameterList")
 private fun <T : Any, C> EnsureSelectedCellVisibleEffect(
-    visibleColumns: List<ColumnSpec<T, C>>,
+    visibleColumns: ImmutableList<ColumnSpec<T, C>>,
     rowLeadingPresent: Boolean,
     verticalState: LazyListState,
     horizontalState: ScrollState,
@@ -455,7 +455,7 @@ private fun <T : Any, C> EnsureSelectedCellVisibleEffect(
 @Suppress("LongParameterList")
 private fun <T : Any, C> GroupStickyOverlay(
     itemAt: (Int) -> T?,
-    visibleColumns: List<ColumnSpec<T, C>>,
+    visibleColumns: ImmutableList<ColumnSpec<T, C>>,
     customization: TableCustomization<T, C>,
     colors: TableColors,
     width: Dp,

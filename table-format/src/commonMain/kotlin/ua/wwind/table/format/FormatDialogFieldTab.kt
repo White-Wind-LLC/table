@@ -11,12 +11,13 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import kotlinx.collections.immutable.ImmutableList
 import ua.wwind.table.format.data.TableFormatRule
 
 @Composable
 public fun <E : Enum<E>, FILTER> FormatDialogFieldTab(
     item: TableFormatRule<E, FILTER>,
-    entries: List<E>,
+    entries: ImmutableList<E>,
     getTitle: @Composable (E) -> String,
     onChange: (TableFormatRule<E, FILTER>) -> Unit,
 ) {

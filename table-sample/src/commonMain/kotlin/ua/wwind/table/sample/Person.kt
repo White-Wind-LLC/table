@@ -1,10 +1,12 @@
 package ua.wwind.table.sample
 
+import androidx.compose.runtime.Immutable
 import kotlinx.datetime.LocalDate
 
 /**
  * Person data model with fields for table demonstration.
  */
+@Immutable
 data class Person(
     val name: String,
     val age: Int,

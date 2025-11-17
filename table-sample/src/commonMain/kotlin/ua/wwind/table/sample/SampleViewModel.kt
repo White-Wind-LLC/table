@@ -5,6 +5,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
 import ua.wwind.table.ExperimentalTableApi
 import ua.wwind.table.filter.data.FilterConstraint
 import ua.wwind.table.filter.data.TableFilterState
@@ -24,7 +26,9 @@ class SampleViewModel {
     val columns = createTableColumns()
 
     // Conditional formatting rules (editable via dialog)
-    var rules by mutableStateOf<List<TableFormatRule<PersonColumn, Map<PersonColumn, TableFilterState<*>>>>>(emptyList())
+    var rules by mutableStateOf<ImmutableList<TableFormatRule<PersonColumn, Map<PersonColumn, TableFilterState<*>>>>>(
+        persistentListOf()
+    )
         private set
 
     // Dialog visibility
@@ -41,7 +45,7 @@ class SampleViewModel {
     /**
      * Update formatting rules
      */
-    fun updateRules(newRules: List<TableFormatRule<PersonColumn, Map<PersonColumn, TableFilterState<*>>>>) {
+    fun updateRules(newRules: ImmutableList<TableFormatRule<PersonColumn, Map<PersonColumn, TableFilterState<*>>>>) {
         rules = newRules
     }
 
@@ -438,6 +442,6 @@ class SampleViewModel {
                     ),
                 filter = activeFilter,
             )
-        rules = listOf(ratingRule, activeRule)
+        rules = persistentListOf(ratingRule, activeRule)
     }
 }

@@ -22,6 +22,7 @@ dependencies {
     implementation(libs.gradle.android.library)
     implementation(libs.gradle.compose)
     implementation(libs.gradle.kotlin.compose.compiler)
+    implementation(libs.gradle.stability.analyzer)
     implementation(libs.gradle.kotlin.allopen)
     implementation(libs.gradle.buildkonfig)
     implementation(libs.gradle.ksp)

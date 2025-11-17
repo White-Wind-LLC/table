@@ -11,9 +11,10 @@ import androidx.compose.material3.Text
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.format
-import kotlinx.collections.immutable.ImmutableList
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.filter.data.TableFilterType
 import ua.wwind.table.tableColumns
@@ -108,7 +109,7 @@ fun createTableColumns(): ImmutableList<ColumnSpec<Person, PersonColumn>> =
             sortable()
             filter(
                 TableFilterType.EnumTableFilter(
-                    options = Position.entries.toList(),
+                    options = Position.entries.toImmutableList(),
                     getTitle = { it.displayName }
                 )
             )

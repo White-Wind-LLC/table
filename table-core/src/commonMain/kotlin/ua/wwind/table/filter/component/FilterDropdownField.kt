@@ -23,6 +23,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.flow.Flow
 import ua.wwind.table.component.TableTextField
 import ua.wwind.table.component.TableTextFieldDefaults
@@ -52,7 +53,7 @@ public fun <E : Enum<E>> FilterDropdownField(
     currentValue: E?,
     getTitle: @Composable (E) -> String = { it.name },
     placeholder: String = "",
-    values: List<E>,
+    values: ImmutableList<E>,
     onClick: (E) -> Unit,
     modifier: Modifier = Modifier,
     checked: ((E) -> Boolean)? = null,
@@ -65,9 +66,15 @@ public fun <E : Enum<E>> FilterDropdownField(
         onExpandedChange = { expanded = !expanded },
     ) {
         TableTextField(
-            value = currentValue?.let { getTitle(it) } ?: placeholder,
+            value = currentValue?.let { getTitle(it) } ?: "",
             onValueChange = {},
             readOnly = true,
+            placeholder = {
+                Text(
+                    text = placeholder,
+                    maxLines = 1
+                )
+            },
             singleLine = true,
             modifier = modifier.menuAnchor(
                 MenuAnchorType.PrimaryNotEditable,

@@ -1,7 +1,6 @@
 package ua.wwind.convention
 
 import org.jetbrains.compose.ComposeExtension
-import org.jetbrains.compose.ExperimentalComposeLibrary
 
 // Needs to exist before the first usage of 'libs'
 val libs: VersionCatalog = extensions.getByType<VersionCatalogsExtension>().named("libs")
@@ -10,6 +9,7 @@ plugins {
     kotlin("multiplatform")
     id("org.jetbrains.compose")
     id("org.jetbrains.kotlin.plugin.compose")
+    id("com.github.skydoves.compose.stability.analyzer")
 }
 
 val composeDeps = extensions.getByType<ComposeExtension>().dependencies
