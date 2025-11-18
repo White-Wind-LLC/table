@@ -7,24 +7,24 @@ android-version-code = "11"
 # --- Android SDK & AGP ---
 android-compileSdk = "36"
 android-minSdk = "24"
-android-targetSdk = "35"
+android-targetSdk = "36"
 agp = "8.11.2"
 
 # --- Kotlin Toolchain & Compose ---
 kotlin = "2.2.21"
-compose-multiplatform = "1.9.2"
+compose-multiplatform = "1.9.3"
 
 # --- Core AndroidX ---
 androidx-core = "1.17.0"
 androidx-appcompat = "1.7.1"
 androidx-activityCompose = "1.11.0"
-androidx-lifecycle = "2.9.3"
+androidx-lifecycle = "2.9.6"
 
 # --- KotlinX & Utilities ---
 kotlinx-coroutines = "1.10.2"
 coroutines-test-ver = "1.10.2"
 kotlinx-datetime = "0.7.1"
-okio = "3.16.0"
+okio = "3.16.4"
 collections-immutable = "0.4.0"
 
 # --- Logging & Monitoring ---
@@ -32,22 +32,21 @@ kermit = "2.0.8"
 slf4j = "2.0.17"
 
 # --- UI & UX ---
-reorderable = "2.5.1"
-paging = "2.2.1"
+reorderable = "3.0.0"
+paging = "2.2.3"
 dnd = "0.4.0"
 colorpicker = "1.1.2"
 
 # --- Testing & Tooling ---
 assertk = "0.28.1"
 turbine = "1.2.1"
-ksp = "2.2.10-2.0.2"
-hotReload = "1.0.0-beta07"
+hotReload = "1.0.0-rc04"
 buildKonfig = "0.17.1"
 detekt = "1.23.8"
-ktlint-gradle = "13.1.0"
-kover = "0.9.1"
-dokka = "2.0.0"
-mavenPublish = "0.34.0"
+ktlint-gradle = "14.0.1"
+kover = "0.9.3"
+dokka = "2.1.0"
+mavenPublish = "0.35.0"
 stability-analyzer = "0.5.2"
 
 [libraries]
@@ -104,9 +103,6 @@ gradle-compose = { module = "org.jetbrains.compose:compose-gradle-plugin", versi
 gradle-compose-hot-reload = { module = "org.jetbrains.compose.hot-reload:hot-reload-gradle-plugin", version.ref = "hotReload" }
 gradle-stability-analyzer = { module = "com.github.skydoves.compose.stability.analyzer:com.github.skydoves.compose.stability.analyzer.gradle.plugin", version.ref = "stability-analyzer" }
 
-# KSP
-gradle-ksp = { module = "com.google.devtools.ksp:com.google.devtools.ksp.gradle.plugin", version.ref = "ksp" }
-
 # Resources & Multiplatform tooling
 gradle-buildkonfig = { module = "com.codingfeline.buildkonfig:com.codingfeline.buildkonfig.gradle.plugin", version.ref = "buildKonfig" }
 gradle-detekt = { module = "io.gitlab.arturbosch.detekt:io.gitlab.arturbosch.detekt.gradle.plugin", version.ref = "detekt" }
@@ -132,9 +128,6 @@ hot-reload = { id = "org.jetbrains.compose.hot-reload", version.ref = "hotReload
 # --- Android (AGP) ---
 android-application = { id = "com.android.application", version.ref = "agp" }
 android-library = { id = "com.android.library", version.ref = "agp" }
-
-# --- KSP ---
-ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 
 # --- Resources & Multiplatform tooling ---
 buildKonfig = { id = "com.codingfeline.buildkonfig", version.ref = "buildKonfig" }

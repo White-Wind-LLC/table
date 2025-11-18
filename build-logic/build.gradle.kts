@@ -25,7 +25,6 @@ dependencies {
     implementation(libs.gradle.stability.analyzer)
     implementation(libs.gradle.kotlin.allopen)
     implementation(libs.gradle.buildkonfig)
-    implementation(libs.gradle.ksp)
     // Quality & Coverage plugins available to precompiled scripts
     implementation(libs.gradle.detekt)
     implementation(libs.gradle.ktlint)
