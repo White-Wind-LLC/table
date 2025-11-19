@@ -22,7 +22,6 @@ import ua.wwind.table.state.currentTableState
 @ExperimentalTableApi
 internal fun <T : Any, C> EnsureSelectedCellVisibleEffect(
     visibleColumns: ImmutableList<ColumnSpec<T, C>>,
-    rowLeadingPresent: Boolean,
     verticalState: LazyListState,
     horizontalState: ScrollState,
 ) {
@@ -48,7 +47,6 @@ internal fun <T : Any, C> EnsureSelectedCellVisibleEffect(
                     targetColKey = cell.column,
                     visibleColumns = visibleColumns,
                     state = state,
-                    hasLeading = rowLeadingPresent,
                     verticalState = verticalState,
                     horizontalState = horizontalState,
                     density = density,

@@ -81,8 +81,6 @@ import ua.wwind.table.strings.StringProvider
  * @param modifier layout modifier for the whole table
  * @param placeholderRow optional row content shown when an item is null
  * @param rowKey stable key for rows; defaults to index
- * @param rowLeading optional leading content per non-null row (e.g., avatar, checkbox)
- * @param rowTrailing optional trailing content per non-null row
  * @param onRowClick row primary action handler
  * @param onRowLongClick optional long-press handler
  * @param contextMenu optional context menu host, invoked with item and absolute position
@@ -102,8 +100,6 @@ public fun <T : Any, C> Table(
     modifier: Modifier = Modifier,
     placeholderRow: (@Composable () -> Unit)? = null,
     rowKey: (item: T?, index: Int) -> Any = { _, i -> i },
-    rowLeading: (@Composable (T) -> Unit)? = null,
-    rowTrailing: (@Composable (T) -> Unit)? = null,
     onRowClick: ((T) -> Unit)? = null,
     onRowLongClick: ((T) -> Unit)? = null,
     contextMenu: (@Composable (item: T, pos: Offset, dismiss: () -> Unit) -> Unit)? = null,
@@ -127,8 +123,8 @@ public fun <T : Any, C> Table(
             }
         }
     val tableWidth by
-        remember(visibleColumns, rowLeading, state.columnWidths, state.dimensions) {
-            derivedStateOf { computeTableWidth(visibleColumns, rowLeading != null, state) }
+        remember(visibleColumns, state.columnWidths, state.dimensions) {
+            derivedStateOf { computeTableWidth(visibleColumns, state) }
         }
 
     var contextMenuState by remember { mutableStateOf(ContextMenuState<T>()) }
@@ -179,7 +175,6 @@ public fun <T : Any, C> Table(
         // Ensure selected cell is fully visible whenever it changes (including external API calls)
         EnsureSelectedCellVisibleEffect(
             visibleColumns = visibleColumns,
-            rowLeadingPresent = rowLeading != null,
             verticalState = verticalState,
             horizontalState = horizontalState,
         )
@@ -211,7 +206,6 @@ public fun <T : Any, C> Table(
                     visibleColumns = visibleColumns,
                     verticalState = verticalState,
                     horizontalState = horizontalState,
-                    hasLeading = rowLeading != null,
                     tableWidth = tableWidth,
                     density = density,
                     coroutineScope = coroutineScope,
@@ -247,7 +241,6 @@ public fun <T : Any, C> Table(
                     rowContainerColor = colors.rowContainerColor,
                     dimensions = dimensions,
                     strings = strings,
-                    leadingColumnWidth = if (rowLeading != null) dimensions.rowHeight else null,
                     icons = icons,
                 )
                 HorizontalDivider(modifier = Modifier.width(tableWidth))
@@ -263,8 +256,6 @@ public fun <T : Any, C> Table(
                             colors = colors,
                             customization = customization,
                             tableWidth = tableWidth,
-                            rowLeading = rowLeading,
-                            rowTrailing = rowTrailing,
                             rowEmbedded = rowEmbedded,
                             placeholderRow = placeholderRow,
                             onRowClick = onRowClick,
@@ -293,8 +284,6 @@ public fun <T : Any, C> Table(
                             colors = colors,
                             customization = customization,
                             tableWidth = tableWidth,
-                            rowLeading = rowLeading,
-                            rowTrailing = rowTrailing,
                             placeholderRow = placeholderRow,
                             onRowClick = onRowClick,
                             onRowLongClick = onRowLongClick,

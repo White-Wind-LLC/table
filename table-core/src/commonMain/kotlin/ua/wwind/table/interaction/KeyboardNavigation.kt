@@ -29,7 +29,6 @@ public fun <T : Any, C> Modifier.tableKeyboardNavigation(
     visibleColumns: List<ColumnSpec<T, C>>,
     verticalState: LazyListState,
     horizontalState: ScrollState,
-    hasLeading: Boolean,
     tableWidth: Dp,
     density: Density,
     coroutineScope: CoroutineScope,

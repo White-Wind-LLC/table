@@ -48,8 +48,6 @@ internal fun <T : Any, C> TableRowItem(
     colors: ua.wwind.table.config.TableColors,
     customization: TableCustomization<T, C>,
     tableWidth: Dp,
-    rowLeading: (@Composable (T) -> Unit)?,
-    rowTrailing: (@Composable (T) -> Unit)?,
     rowEmbedded: (@Composable (rowIndex: Int, item: T) -> Unit)?,
     placeholderRow: (@Composable () -> Unit)?,
     onRowClick: ((T) -> Unit)?,
@@ -126,16 +124,6 @@ internal fun <T : Any, C> TableRowItem(
                             state.updateRowHeight(index, coordinates.size.height)
                         },
                 ) {
-                    if (rowLeading != null) {
-                        RowLeadingSection(
-                            cellWidth = dimensions.rowHeight,
-                            height = if (isDynamicRowHeight) null else dimensions.rowHeight,
-                            dividerThickness = dimensions.dividerThickness,
-                            rowLeading = rowLeading,
-                            item = itItem,
-                        )
-                    }
-
                     visibleColumns.forEach { spec ->
                         val width = state.columnWidths[spec.key] ?: spec.width ?: dimensions.defaultColumnWidth
                         var cellTopLeft by remember(spec.key, index) { mutableStateOf(Offset.Zero) }
@@ -203,8 +191,6 @@ internal fun <T : Any, C> TableRowItem(
                             spec.cell.invoke(this, itItem)
                         }
                     }
-
-                    rowTrailing?.invoke(itItem)
                 }
 
                 if (rowEmbedded != null) {

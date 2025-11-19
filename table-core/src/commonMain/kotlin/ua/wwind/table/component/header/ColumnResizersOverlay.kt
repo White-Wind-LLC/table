@@ -38,7 +38,6 @@ internal fun <T : Any, C> ColumnResizersOverlay(
     visibleColumns: ImmutableList<ColumnSpec<T, C>>,
     widthResolver: (C) -> Dp,
     dimensions: TableDimensions,
-    leadingColumnWidth: Dp?,
     onResize: (key: C, newWidth: Dp) -> Unit,
     onResizeStart: () -> Unit = {},
     onResizeEnd: () -> Unit = {},
@@ -49,10 +48,6 @@ internal fun <T : Any, C> ColumnResizersOverlay(
 
         // Compute absolute X offsets (in Dp) for each column boundary divider
         var cumulativeX: Dp = 0.dp
-        if (leadingColumnWidth != null) {
-            cumulativeX += leadingColumnWidth + dimensions.dividerThickness
-            // Note: Leading divider is non-resizable; we intentionally do not draw an overlay here.
-        }
 
         visibleColumns.forEachIndexed { index, spec ->
             val currentWidth = widthResolver(spec.key)

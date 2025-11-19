@@ -2,8 +2,6 @@ package ua.wwind.table.filter.component.fast
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
@@ -32,7 +30,6 @@ private const val FAST_FILTER_ROW_HEIGHT = 48
 @Composable
 internal fun <T : Any, C> FastFiltersRow(
     tableWidth: Dp,
-    leadingColumnWidth: Dp?,
     visibleColumns: ImmutableList<ColumnSpec<T, C>>,
     widthResolver: (C) -> Dp,
     rowContainerColor: Color,
@@ -51,23 +48,6 @@ internal fun <T : Any, C> FastFiltersRow(
             state = rememberLazyListState(),
             userScrollEnabled = false,
         ) {
-            if (leadingColumnWidth != null) {
-                item(key = "leading") {
-                    Row {
-                        Spacer(
-                            modifier =
-                                Modifier
-                                    .width(leadingColumnWidth)
-                                    .fillMaxHeight(),
-                        )
-                        VerticalDivider(
-                            modifier = Modifier.fillMaxHeight(),
-                            thickness = state.dimensions.dividerThickness,
-                        )
-                    }
-                }
-            }
-
             items(items = visibleColumns, key = { item -> item.key as Any }) { spec ->
                 val filterType = spec.filter as? TableFilterType<Any?>
                 val autoFilterDebounce = state.settings.autoFilterDebounce

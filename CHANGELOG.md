@@ -2,6 +2,62 @@
 
 All notable changes to this project will be documented in this file.
 
+### 1.4.1 — 2025-11-20
+
+**BREAKING CHANGES:**
+
+- **Removed:** `rowLeading` and `rowTrailing` parameters from all `Table` composable functions.
+    - These parameters previously allowed rendering custom content before or after table rows.
+    - **Migration:** Use regular table columns defined via `ColumnSpec` instead. For leading content (e.g., checkboxes,
+      avatars), define a dedicated column at the start of your column list. For trailing content (e.g., action buttons),
+      add a column at the end.
+    - **Example:**
+      ```kotlin
+      // Before (1.4.0)
+      Table(
+          rowLeading = { item -> Checkbox(...) },
+          rowTrailing = { item -> IconButton(...) },
+          columns = dataColumns,
+          // ...
+      )
+      
+      // After (1.4.1)
+      val columns = tableColumns<Item, Field> {
+          // Leading column for checkbox
+          column(Field.Select, valueOf = { it }) {
+              width(48.dp)
+              cell { Checkbox(...) }
+          }
+          
+          // Your data columns
+          // ...
+          
+          // Trailing column for actions
+          column(Field.Actions, valueOf = { it }) {
+              width(64.dp)
+              cell { IconButton(...) }
+          }
+      }
+      
+      Table(
+          columns = columns,
+          // ...
+      )
+      ```
+- **Removed:** All internal infrastructure related to `rowLeading`/`rowTrailing`:
+    - `hasLeading`, `leadingColumnWidth`, `rowLeadingPresent`, `leadingOffset` parameters removed from internal
+      functions.
+    - `RowLeadingSection` component removed.
+
+**Benefits of this change:**
+
+- Simplified API with fewer special-case parameters.
+- Leading/trailing content now benefits from full column capabilities: sorting, resizing, filtering, custom styling,
+  etc.
+- More consistent and flexible table architecture.
+
+Compare: [v1.4.0...v1.4.1](https://github.com/White-Wind-LLC/table/compare/v1.4.0...v1.4.1)
+
 ### 1.4.0 — 2025-11-19
 
 + Added: Support for embedded detail tables via the `embedded` flag and `rowEmbedded` slot for rendering nested tables

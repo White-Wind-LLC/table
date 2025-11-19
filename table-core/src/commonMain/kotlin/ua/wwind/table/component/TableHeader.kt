@@ -50,7 +50,6 @@ internal fun <T : Any, C> TableHeader(
     rowContainerColor: Color,
     dimensions: TableDimensions,
     strings: StringProvider,
-    leadingColumnWidth: Dp? = null,
     icons: TableHeaderIcons =
         TableHeaderIcons(
             sortAsc = Icons.Rounded.ArrowUpward,
@@ -66,10 +65,9 @@ internal fun <T : Any, C> TableHeader(
     var isResizing by remember { mutableStateOf(false) }
     val reorderState =
         rememberReorderableLazyListState(lazyListState) { from, to ->
-            val leadingOffset = if (leadingColumnWidth != null) 1 else 0
             val fullOrder = state.columnOrder.toList()
             val visibleKeys = derived.visibleColumns.map { it.key }
-            val move = computeReorderMove(from.index, to.index, leadingOffset, fullOrder, visibleKeys)
+            val move = computeReorderMove(from.index, to.index, fullOrder, visibleKeys)
             if (move != null) state.moveColumn(move.first, move.second)
         }
 
@@ -79,7 +77,6 @@ internal fun <T : Any, C> TableHeader(
                 Box(Modifier.height(state.dimensions.headerHeight)) {
                     TableHeaderRow(
                         tableWidth = tableWidth,
-                        leadingColumnWidth = leadingColumnWidth,
                         lazyListState = lazyListState,
                         reorderState = reorderState,
                         visibleColumns = derived.visibleColumns,
@@ -97,7 +94,6 @@ internal fun <T : Any, C> TableHeader(
                         visibleColumns = derived.visibleColumns,
                         widthResolver = { key -> derived.widthMap[key] ?: dimensions.defaultColumnWidth },
                         dimensions = dimensions,
-                        leadingColumnWidth = leadingColumnWidth,
                         onResize = { key, newWidth -> state.resizeColumn(key, ColumnWidthAction.Set(newWidth)) },
                         onResizeStart = { isResizing = true },
                         onResizeEnd = { isResizing = false },
@@ -119,7 +115,6 @@ internal fun <T : Any, C> TableHeader(
         ) {
             FastFiltersRow(
                 tableWidth = tableWidth,
-                leadingColumnWidth = leadingColumnWidth,
                 visibleColumns = derived.visibleColumns,
                 widthResolver = { key -> derived.widthMap[key] ?: dimensions.defaultColumnWidth },
                 rowContainerColor = rowContainerColor,

@@ -120,7 +120,6 @@ public suspend fun <T : Any, C> ensureColumnFullyVisible(
     targetColKey: C,
     visibleColumns: List<ColumnSpec<T, C>>,
     state: TableState<C>,
-    hasLeading: Boolean,
     horizontalState: ScrollState,
     density: Density,
 ) {
@@ -128,9 +127,6 @@ public suspend fun <T : Any, C> ensureColumnFullyVisible(
 
     // Compute absolute left position of the target column within the content (px)
     var x = 0.dp
-    if (hasLeading) {
-        x += dimensions.rowHeight + dimensions.dividerThickness
-    }
     visibleColumns.take(targetColIndex).forEach { spec ->
         val width = state.columnWidths[spec.key] ?: spec.width ?: dimensions.defaultColumnWidth
         x += width + dimensions.dividerThickness
@@ -172,7 +168,6 @@ public suspend fun <T : Any, C> ensureCellFullyVisible(
     targetColKey: C,
     visibleColumns: List<ColumnSpec<T, C>>,
     state: TableState<C>,
-    hasLeading: Boolean,
     verticalState: LazyListState,
     horizontalState: ScrollState,
     density: Density,
@@ -190,7 +185,6 @@ public suspend fun <T : Any, C> ensureCellFullyVisible(
         targetColKey = targetColKey,
         visibleColumns = visibleColumns,
         state = state,
-        hasLeading = hasLeading,
         horizontalState = horizontalState,
         density = density,
     )

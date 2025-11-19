@@ -153,7 +153,7 @@ fun PeopleTable(items: List<Person>) {
 }
 ```
 
-Useful parameters: `rowLeading`/`rowTrailing` (extra slots), `placeholderRow`, `contextMenu` (long‑press/right‑click),
+Useful parameters: `placeholderRow`, `contextMenu` (long‑press/right‑click),
 `colors = TableDefaults.colors()`, `icons = TableHeaderDefaults.icons()`.
 
 ### Data grouping
@@ -270,7 +270,7 @@ content color, text style, alignment, etc.).
 
 - **Composable `Table<T, C>`**: renders header and virtualized rows.
     - **Required**: `itemsCount`, `itemAt(index)`, `state: TableState<C>`, `columns: List<ColumnSpec<T, C>>`.
-    - **Slots**: `rowLeading(T)`, `rowTrailing(T)`, `placeholderRow()`.
+    - **Slots**: `placeholderRow()`.
     - **UX**: `onRowClick`, `onRowLongClick`, `contextMenu(item, pos, dismiss)`.
     - **Look**: `customization`, `colors = TableDefaults.colors()`, `icons = TableHeaderDefaults.icons()`, `strings`.
     - **Scroll**: optional `verticalState`, `horizontalState`.
@@ -363,7 +363,7 @@ Fast filters are ideal for quick data exploration and filtering without opening 
 ### Selection
 
 - `SelectionMode.None` (default), `Single`, `Multiple`.
-- In Multiple mode, you can render a leading checkbox column and wire actions:
+- In Multiple mode, you can handle selection programmatically:
 
 ```kotlin
 Table(
@@ -371,7 +371,6 @@ Table(
     itemAt = { index -> items[index] },
     state = state,
     columns = columns,
-    rowLeading = { _ -> Checkbox( /* ... */) },
     onRowClick = { _ -> state.toggleCheck(/* row index comes from key or context */) }
 )
 ```

@@ -3,16 +3,13 @@ package ua.wwind.table.component.header
 internal fun <C> computeReorderMove(
     fromIndex: Int,
     toIndex: Int,
-    leadingOffset: Int,
     fullOrder: List<C>,
     visibleKeys: List<C>,
 ): Pair<Int, Int>? {
-    val fromVisibleIndex = fromIndex - leadingOffset
-    val toVisibleIndex = toIndex - leadingOffset
 
-    if (fromVisibleIndex !in visibleKeys.indices) return null
+    if (fromIndex !in visibleKeys.indices) return null
 
-    val fromKey = visibleKeys[fromVisibleIndex]
+    val fromKey = visibleKeys[fromIndex]
     val fromIndexInFull = fullOrder.indexOf(fromKey)
     if (fromIndexInFull == -1) return null
 
@@ -20,11 +17,11 @@ internal fun <C> computeReorderMove(
     val visibleAfterRemoval = fullAfterRemoval.filter { it in visibleKeys.toSet() }
 
     val targetIndexInFull =
-        if (toVisibleIndex >= visibleAfterRemoval.size) {
+        if (toIndex >= visibleAfterRemoval.size) {
             val lastVisibleKey = visibleAfterRemoval.lastOrNull()
             if (lastVisibleKey == null) fullOrder.size else fullOrder.indexOf(lastVisibleKey) + 1
         } else {
-            val targetBeforeKey = visibleAfterRemoval[toVisibleIndex]
+            val targetBeforeKey = visibleAfterRemoval[toIndex]
             fullOrder.indexOf(targetBeforeKey)
         }
 

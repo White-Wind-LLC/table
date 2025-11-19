@@ -6,14 +6,10 @@ import ua.wwind.table.state.TableState
 
 internal fun <T : Any, C> computeTableWidth(
     visibleColumns: List<ColumnSpec<T, C>>,
-    hasLeading: Boolean,
     state: TableState<C>,
 ): Dp {
     val dimensions = state.dimensions
     var sum = 0.dp
-    if (hasLeading) {
-        sum += dimensions.rowHeight + dimensions.dividerThickness
-    }
     visibleColumns.forEach { spec ->
         val w = state.columnWidths[spec.key] ?: spec.width ?: dimensions.defaultColumnWidth
         sum += w + dimensions.dividerThickness

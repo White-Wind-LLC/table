@@ -1,15 +1,11 @@
 package ua.wwind.table.component.header
 
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Surface
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
@@ -24,7 +20,6 @@ import ua.wwind.table.strings.StringProvider
 @Composable
 internal fun <T : Any, C> TableHeaderRow(
     tableWidth: Dp,
-    leadingColumnWidth: Dp?,
     lazyListState: LazyListState,
     reorderState: ReorderableLazyListState,
     visibleColumns: ImmutableList<ColumnSpec<T, C>>,
@@ -41,23 +36,6 @@ internal fun <T : Any, C> TableHeaderRow(
         state = lazyListState,
         userScrollEnabled = false,
     ) {
-        if (leadingColumnWidth != null) {
-            item(key = "leading") {
-                Row {
-                    Spacer(
-                        modifier =
-                            Modifier
-                                .width(leadingColumnWidth)
-                                .fillMaxHeight(),
-                    )
-                    VerticalDivider(
-                        modifier = Modifier.fillMaxHeight(),
-                        thickness = style.dimensions.dividerThickness,
-                    )
-                }
-            }
-        }
-
         items(items = visibleColumns, key = { item -> item.key as Any }) { spec ->
             ReorderableItem(
                 state = reorderState,
