@@ -4,6 +4,7 @@ package ua.wwind.table.sample
  * Columns enum is used as a stable column key and to wire conditional formatting to fields.
  */
 enum class PersonColumn {
+    EXPAND,
     // Real Person fields
     NAME,
     AGE,

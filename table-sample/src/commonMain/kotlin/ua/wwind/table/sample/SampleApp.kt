@@ -1,5 +1,10 @@
 package ua.wwind.table.sample
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -12,6 +17,8 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -25,7 +32,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import kotlinx.collections.immutable.toImmutableList
 import ua.wwind.table.ExperimentalTableApi
 import ua.wwind.table.Table
@@ -85,6 +94,10 @@ fun SampleApp(modifier: Modifier = Modifier) {
             dimensions = TableDimensions(defaultColumnWidth = 100.dp),
         )
 
+    val columns = remember {
+        createTableColumns(onToggleMovementExpanded = viewModel::toggleMovementExpanded)
+    }
+
     // Build customization based on rules + matching logic
     val customization: TableCustomization<Person, PersonColumn> =
         rememberCustomization(
@@ -129,6 +142,8 @@ fun SampleApp(modifier: Modifier = Modifier) {
                                     else -> 2
                                 }
                             }
+
+                        else -> filteredPeople
                     }
                 if (sortState.order == SortOrder.DESCENDING) base.asReversed() else base
             }
@@ -206,10 +221,20 @@ fun SampleApp(modifier: Modifier = Modifier) {
                     itemsCount = sortedPeople.size,
                     itemAt = { index -> sortedPeople.getOrNull(index) },
                     state = state,
-                    columns = viewModel.columns,
+                    columns = columns,
                     customization = customization,
                     strings = DefaultStrings,
                     rowKey = { item, _ -> item?.id ?: 0 },
+                    rowEmbedded = { _, person ->
+                        val visible = person.expandedMovement
+                        AnimatedVisibility(
+                            visible = visible,
+                            enter = expandVertically() + fadeIn(),
+                            exit = shrinkVertically() + fadeOut(),
+                        ) {
+                            PersonMovementsSection(person = person)
+                        }
+                    },
                     modifier = Modifier.padding(16.dp),
                 )
             }
@@ -242,6 +267,7 @@ fun SampleApp(modifier: Modifier = Modifier) {
                     PersonColumn.HIRE_DATE -> "Hire Date"
                     PersonColumn.NOTES -> "Notes"
                     PersonColumn.AGE_GROUP -> "Age group"
+                    PersonColumn.EXPAND -> ""
                 }
             },
             filters = viewModel::buildFormatFilterData,
@@ -251,5 +277,55 @@ fun SampleApp(modifier: Modifier = Modifier) {
             onDismissRequest = { viewModel.toggleFormatDialog(false) },
             settings = FormatDialogSettings(),
         )
+    }
+}
+
+@Composable
+private fun PersonMovementsSection(person: Person) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 8.dp, bottom = 8.dp)
+            .padding(horizontal = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Text(
+            text = "HR movements",
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold,
+        )
+
+        person.movements.forEach { movement ->
+            Card(
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                ),
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column {
+                        Text(
+                            text = movement.date.toString(),
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                        Text(
+                            text = buildString {
+                                if (movement.fromPosition != null) {
+                                    append(movement.fromPosition.displayName)
+                                    append(" → ")
+                                }
+                                append(movement.toPosition.displayName)
+                            },
+                            fontSize = 12.sp,
+                        )
+                    }
+                }
+            }
+        }
     }
 }

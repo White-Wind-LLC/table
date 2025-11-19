@@ -2,10 +2,6 @@ package ua.wwind.table.sample
 
 import kotlinx.datetime.LocalDate
 
-/**
- * Demo data for Person objects used in the table sample.
- */
-@Suppress("LongMethod")
 fun createDemoData(): List<Person> =
     listOf(
         Person(

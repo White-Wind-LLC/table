@@ -1,12 +1,14 @@
 package ua.wwind.table.sample
 
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.datetime.LocalDate
 import ua.wwind.table.ExperimentalTableApi
 import ua.wwind.table.filter.data.FilterConstraint
 import ua.wwind.table.filter.data.TableFilterState
@@ -17,13 +19,12 @@ import ua.wwind.table.format.data.TableFormatRule
 @OptIn(ExperimentalTableApi::class)
 class SampleViewModel {
     // Demo dataset
-    val people = createDemoData()
+    val people = mutableStateListOf<Person>().apply {
+        addAll(createDemoData())
+    }
 
     // Define filter types per field (to drive the format dialog conditions)
     val filterTypes = createFilterTypes()
-
-    // Column definitions with titles, cells and optional filters (for header UI)
-    val columns = createTableColumns()
 
     // Conditional formatting rules (editable via dialog)
     var rules by mutableStateOf<ImmutableList<TableFormatRule<PersonColumn, Map<PersonColumn, TableFilterState<*>>>>>(
@@ -56,10 +57,10 @@ class SampleViewModel {
         rule: TableFormatRule<PersonColumn, Map<PersonColumn, TableFilterState<*>>>,
         onApply: (TableFormatRule<PersonColumn, Map<PersonColumn, TableFilterState<*>>>) -> Unit,
     ): List<FormatFilterData<PersonColumn>> =
-        PersonColumn.entries.map { column ->
+        PersonColumn.entries.mapNotNull { column ->
             val type = filterTypes.getValue(column)
             val current: TableFilterState<*>? = rule.filter[column]
-            val defaultState: TableFilterState<*> =
+            val defaultState: TableFilterState<*>? =
                 when (column) {
                     PersonColumn.NAME -> TableFilterState<String>(constraint = null, values = null)
                     PersonColumn.AGE -> TableFilterState<Int>(constraint = null, values = null)
@@ -84,16 +85,20 @@ class SampleViewModel {
 
                     PersonColumn.NOTES -> TableFilterState<String>(constraint = null, values = null)
                     PersonColumn.AGE_GROUP -> TableFilterState<String>(constraint = null, values = null)
+                    else -> null
                 }
-            FormatFilterData(
-                field = column,
-                filterType = type,
-                filterState = current ?: defaultState,
-                onChange = { newState ->
-                    val newMap = rule.filter.toMutableMap().apply { put(column, newState) }
-                    onApply(rule.copy(filter = newMap))
-                },
-            )
+            val state = current ?: defaultState
+            state?.let { state ->
+                FormatFilterData(
+                    field = column,
+                    filterType = type,
+                    filterState = state,
+                    onChange = { newState ->
+                        val newMap = rule.filter.toMutableMap().apply { put(column, newState) }
+                        onApply(rule.copy(filter = newMap))
+                    },
+                )
+            }
         }
 
     /**
@@ -328,7 +333,7 @@ class SampleViewModel {
 
                 PersonColumn.HIRE_DATE -> {
                     val value = person.hireDate
-                    val st = stateAny as TableFilterState<kotlinx.datetime.LocalDate>
+                    val st = stateAny as TableFilterState<LocalDate>
                     val constraint = st.constraint ?: continue
                     val ok =
                         when (constraint) {
@@ -387,6 +392,8 @@ class SampleViewModel {
                         }
                     if (!ok) return false
                 }
+
+                PersonColumn.EXPAND -> return true
             }
         }
         return true
@@ -397,6 +404,14 @@ class SampleViewModel {
      */
     fun clear() {
         // Add cleanup logic here if needed
+    }
+
+    fun toggleMovementExpanded(personId: Int) {
+        val index = people.indexOfFirst { person -> person.id == personId }
+        if (index < 0) return
+
+        val currentPerson = people[index]
+        people[index] = currentPerson.copy(expandedMovement = !currentPerson.expandedMovement)
     }
 
     init {

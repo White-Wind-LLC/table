@@ -5,8 +5,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -22,8 +25,31 @@ import ua.wwind.table.tableColumns
 /**
  * Create column definitions with titles, cells and optional filters for header UI.
  */
-fun createTableColumns(): ImmutableList<ColumnSpec<Person, PersonColumn>> =
+fun createTableColumns(
+    onToggleMovementExpanded: (personId: Int) -> Unit,
+): ImmutableList<ColumnSpec<Person, PersonColumn>> =
     tableColumns<Person, PersonColumn> {
+        column(PersonColumn.EXPAND, valueOf = { it.expandedMovement }) {
+            title { "" }
+            autoWidth(40.dp)
+            resizable(false)
+            cell { item ->
+                IconButton(onClick = { onToggleMovementExpanded(item.id) }) {
+                    if (item.expandedMovement) {
+                        Icon(
+                            imageVector = Icons.Filled.ExpandLess,
+                            contentDescription = "Collapse movements",
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Filled.ExpandMore,
+                            contentDescription = "Expand movements",
+                        )
+                    }
+                }
+            }
+        }
+
         // Real Person fields
         column(PersonColumn.NAME, { it.name }) {
             title { "Name" }
