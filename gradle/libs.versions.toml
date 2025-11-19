@@ -1,8 +1,8 @@
 [versions]
 # --- Project metadata ---
-version-name = "1.3.1"
-version-date = "17.11.2025"
-android-version-code = "11"
+version-name = "1.4.0"
+version-date = "19.11.2025"
+android-version-code = "12"
 
 # --- Android SDK & AGP ---
 android-compileSdk = "36"
@@ -35,7 +35,7 @@ slf4j = "2.0.17"
 reorderable = "3.0.0"
 paging = "2.2.3"
 dnd = "0.4.0"
-colorpicker = "1.1.2"
+colorpicker = "1.1.3"
 
 # --- Testing & Tooling ---
 assertk = "0.28.1"
@@ -47,7 +47,7 @@ ktlint-gradle = "14.0.1"
 kover = "0.9.3"
 dokka = "2.1.0"
 mavenPublish = "0.35.0"
-stability-analyzer = "0.5.2"
+stability-analyzer = "0.5.3"
 
 [libraries]
 # --- AndroidX Core & Lifecycle ---

@@ -30,6 +30,8 @@ Live demo: [white-wind-llc.github.io/table](https://white-wind-llc.github.io/tab
   `FilterPanel`.
 - Active filters header above the table (chips + “Clear all”).
 - Row selection modes: None / Single / Multiple; optional striped rows.
+- Embedded (nested) tables via the `embedded` flag and `rowEmbedded` slot for building master–detail layouts inside
+  a single table.
 - Extensive customization via `TableCustomization` (background/content color, elevation, borders, typography,
   alignment).
 - i18n via `StringProvider` (default `DefaultStrings`).
@@ -41,10 +43,10 @@ Add repository (usually `mavenCentral`) and include the modules you need:
 
 ```kotlin
 dependencies {
-    implementation("ua.wwind.table-kmp:table-core:1.3.1")
+    implementation("ua.wwind.table-kmp:table-core:1.4.0")
     // optional
-    implementation("ua.wwind.table-kmp:table-format:1.3.1")
-    implementation("ua.wwind.table-kmp:table-paging:1.3.1")
+    implementation("ua.wwind.table-kmp:table-format:1.4.0")
+    implementation("ua.wwind.table-kmp:table-paging:1.4.0")
 }
 ```
 
@@ -74,6 +76,7 @@ The following table lists compatibility information for released library version
 
 | Version | Kotlin | Compose Multiplatform |
 |---------|-------:|----------------------:|
+| 1.4.0   | 2.2.21 |                 1.9.3 |
 | 1.3.1   | 2.2.21 |                 1.9.2 |
 | 1.2.1   | 2.2.10 |                 1.9.0 |
 
@@ -271,6 +274,8 @@ content color, text style, alignment, etc.).
     - **UX**: `onRowClick`, `onRowLongClick`, `contextMenu(item, pos, dismiss)`.
     - **Look**: `customization`, `colors = TableDefaults.colors()`, `icons = TableHeaderDefaults.icons()`, `strings`.
     - **Scroll**: optional `verticalState`, `horizontalState`.
+    - **Embedded content**: `embedded` flag and `rowEmbedded` slot let you render nested detail content or even a
+      secondary table inside each row, while still reusing the same table state, filters and formatting rules.
 - **Columns DSL**: `tableColumns { column(key, valueOf) { ... } }` produces `List<ColumnSpec<T, C>>`.
     - Header: `header("Text")` or `header { ... }`; optional `title { "Name" }` for active filter chips.
     - Sorting: `sortable()`, `headerClickToSort(Boolean)`.
@@ -321,6 +326,8 @@ column(PersonField.Name, valueOf = { it.name }) {
 - **BooleanTableFilter**: equals; optional `getTitle(BooleanType)`.
 - **DateTableFilter**: gt/gte/lt/lte/equals/between (uses `kotlinx.datetime.LocalDate`).
 - **EnumTableFilter<T: Enum<T>>**: in/not_in/equals with `options: List<T>` and `getTitle(T)`.
+- **DisabledTableFilter**: special marker filter type that completely disables filtering for a column while keeping
+  the API contract (no filter UI is rendered for such columns in filter panels and conditional formatting dialogs).
 
 Applying filters to data is app‑specific. Example:
 
@@ -526,4 +533,3 @@ Public API highlights:
 ### License
 
 Licensed under the Apache License, Version 2.0. See [LICENSE](LICENSE) for details.
-

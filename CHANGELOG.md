@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+### 1.4.0 — 2025-11-19
+
++ Added: Support for embedded detail tables via the `embedded` flag and `rowEmbedded` slot for rendering nested tables
+  inside parent rows.
++ Added: `DisabledTableFilter` type to explicitly disable filtering and conditional formatting conditions for
+  specific columns while still satisfying per-column filter type requirements.
+
+Compare: [v1.3.1...v1.4.0](https://github.com/White-Wind-LLC/table/compare/v1.3.1...v1.4.0)
+
 ### 1.3.1 — 2025-11-17
 
 - Changed: Updated Kotlin to 2.2.21 and Compose Multiplatform to 1.9.2.
