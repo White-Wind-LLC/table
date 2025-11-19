@@ -17,8 +17,6 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -34,7 +32,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import kotlinx.collections.immutable.toImmutableList
 import ua.wwind.table.ExperimentalTableApi
 import ua.wwind.table.Table
@@ -280,8 +277,27 @@ fun SampleApp(modifier: Modifier = Modifier) {
     }
 }
 
+@OptIn(ExperimentalTableApi::class)
 @Composable
 private fun PersonMovementsSection(person: Person) {
+    val columns = remember { createMovementColumns() }
+    val movementSettings =
+        remember {
+            TableSettings(
+                isDragEnabled = false,
+                autoApplyFilters = false,
+                showFastFilters = false,
+                autoFilterDebounce = 0,
+                stripedRows = false,
+                showActiveFiltersHeader = false,
+                selectionMode = SelectionMode.None,
+                rowHeightMode = RowHeightMode.Dynamic,
+                enableDragToScroll = false,
+            )
+        }
+    val movementState =
+        rememberTableState(columns = PersonMovementColumn.entries.toImmutableList(), settings = movementSettings)
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -295,37 +311,17 @@ private fun PersonMovementsSection(person: Person) {
             fontWeight = FontWeight.Bold,
         )
 
-        person.movements.forEach { movement ->
-            Card(
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                ),
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(8.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Column {
-                        Text(
-                            text = movement.date.toString(),
-                            style = MaterialTheme.typography.bodySmall,
-                        )
-                        Text(
-                            text = buildString {
-                                if (movement.fromPosition != null) {
-                                    append(movement.fromPosition.displayName)
-                                    append(" → ")
-                                }
-                                append(movement.toPosition.displayName)
-                            },
-                            fontSize = 12.sp,
-                        )
-                    }
-                }
-            }
-        }
+        Table(
+            itemsCount = person.movements.size,
+            itemAt = { index -> person.movements.getOrNull(index) },
+            state = movementState,
+            columns = columns,
+            strings = DefaultStrings,
+            rowKey = { item, index -> item?.date ?: index },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp),
+            embedded = true,
+        )
     }
 }

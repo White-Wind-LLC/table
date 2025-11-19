@@ -3,11 +3,19 @@ package ua.wwind.table.sample
 import kotlinx.datetime.LocalDate
 
 /**
- * Demo data for Person objects used in the table sample.
+ * Demo data for career movements for a single person.
  */
-@Suppress("LongMethod")
 data class PersonMovement(
     val date: LocalDate,
     val fromPosition: Position?,
     val toPosition: Position,
 )
+
+/**
+ * Columns for the embedded movements table.
+ */
+enum class PersonMovementColumn {
+    DATE,
+    FROM_POSITION,
+    TO_POSITION,
+}

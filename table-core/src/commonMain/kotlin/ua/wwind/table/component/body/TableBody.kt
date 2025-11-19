@@ -43,47 +43,15 @@ internal fun <T : Any, C> TableBody(
     requestTableFocus: () -> Unit,
     enableScrolling: Boolean,
 ) {
-    val density = LocalDensity.current
-    val viewportWidthDp = with(density) { horizontalState.viewportSize.toDp() }
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         state = verticalState,
         userScrollEnabled = enableScrolling,
     ) {
         items(count = itemsCount, key = { index -> rowKey(itemAt(index), index) }) { index ->
-            val item = itemAt(index)
-            val groupKey = state.groupBy
-            val groupSpec = if (groupKey != null) visibleColumns.firstOrNull { it.key == groupKey } else null
-            if (item != null && groupSpec != null) {
-                val currentValue = groupSpec.valueOf(item)
-                val previousValue = if (index > 0) itemAt(index - 1)?.let { groupSpec.valueOf(it) } else null
-                if (index == 0 || currentValue != previousValue) {
-                    Box(
-                        modifier = Modifier.graphicsLayer {
-                            translationX = horizontalState.value.toFloat()
-                        },
-                    ) {
-                        Column {
-                            GroupHeaderCell(
-                                value = currentValue,
-                                item = item,
-                                spec = groupSpec,
-                                width = viewportWidthDp,
-                                height = state.dimensions.rowHeight,
-                                colors = colors,
-                                customization = customization,
-                            )
-                            HorizontalDivider(
-                                modifier = Modifier.width(viewportWidthDp),
-                                thickness = state.dimensions.dividerThickness,
-                            )
-                        }
-                    }
-                }
-            }
-            TableRowItem(
-                item = item,
+            TableBodyRow(
                 index = index,
+                itemAt = itemAt,
                 visibleColumns = visibleColumns,
                 state = state,
                 colors = colors,
@@ -96,11 +64,8 @@ internal fun <T : Any, C> TableBody(
                 onRowClick = onRowClick,
                 onRowLongClick = onRowLongClick,
                 onContextMenu = onContextMenu,
+                horizontalState = horizontalState,
                 requestTableFocus = requestTableFocus,
-            )
-            HorizontalDivider(
-                modifier = Modifier.width(tableWidth),
-                thickness = state.dimensions.dividerThickness,
             )
         }
     }
@@ -118,5 +83,130 @@ internal fun <T : Any, C> TableBody(
         placeholderRow = placeholderRow,
         verticalState = verticalState,
         requestTableFocus = requestTableFocus,
+    )
+}
+
+@Composable
+@Suppress("LongParameterList")
+internal fun <T : Any, C> TableBodyEmbedded(
+    itemsCount: Int,
+    itemAt: (Int) -> T?,
+    rowKey: (item: T?, index: Int) -> Any,
+    visibleColumns: ImmutableList<ColumnSpec<T, C>>,
+    state: TableState<C>,
+    colors: TableColors,
+    customization: TableCustomization<T, C>,
+    tableWidth: Dp,
+    rowLeading: (@Composable (T) -> Unit)?,
+    rowTrailing: (@Composable (T) -> Unit)?,
+    rowEmbedded: (@Composable (rowIndex: Int, item: T) -> Unit)?,
+    placeholderRow: (@Composable () -> Unit)?,
+    onRowClick: ((T) -> Unit)?,
+    onRowLongClick: ((T) -> Unit)?,
+    onContextMenu: ((T, Offset) -> Unit)?,
+    horizontalState: ScrollState,
+    requestTableFocus: () -> Unit,
+) {
+    if (itemsCount <= 0) return
+
+    Column(modifier = Modifier.fillMaxSize()) {
+        for (index in 0 until itemsCount) {
+            TableBodyRow(
+                index = index,
+                itemAt = itemAt,
+                visibleColumns = visibleColumns,
+                state = state,
+                colors = colors,
+                customization = customization,
+                tableWidth = tableWidth,
+                rowLeading = rowLeading,
+                rowTrailing = rowTrailing,
+                rowEmbedded = rowEmbedded,
+                placeholderRow = placeholderRow,
+                onRowClick = onRowClick,
+                onRowLongClick = onRowLongClick,
+                onContextMenu = onContextMenu,
+                horizontalState = horizontalState,
+                requestTableFocus = requestTableFocus,
+            )
+        }
+    }
+}
+
+@Composable
+@Suppress("LongParameterList")
+private fun <T : Any, C> TableBodyRow(
+    index: Int,
+    itemAt: (Int) -> T?,
+    visibleColumns: ImmutableList<ColumnSpec<T, C>>,
+    state: TableState<C>,
+    colors: TableColors,
+    customization: TableCustomization<T, C>,
+    tableWidth: Dp,
+    rowLeading: (@Composable (T) -> Unit)?,
+    rowTrailing: (@Composable (T) -> Unit)?,
+    rowEmbedded: (@Composable (rowIndex: Int, item: T) -> Unit)?,
+    placeholderRow: (@Composable () -> Unit)?,
+    onRowClick: ((T) -> Unit)?,
+    onRowLongClick: ((T) -> Unit)?,
+    onContextMenu: ((T, Offset) -> Unit)?,
+    horizontalState: ScrollState,
+    requestTableFocus: () -> Unit,
+) {
+    val density = LocalDensity.current
+    val viewportWidthDp = with(density) { horizontalState.viewportSize.toDp() }
+
+    val item = itemAt(index)
+    val groupKey = state.groupBy
+    val groupSpec = if (groupKey != null) visibleColumns.firstOrNull { it.key == groupKey } else null
+    if (item != null && groupSpec != null) {
+        val currentValue = groupSpec.valueOf(item)
+        val previousValue = if (index > 0) itemAt(index - 1)?.let { groupSpec.valueOf(it) } else null
+        if (index == 0 || currentValue != previousValue) {
+            Box(
+                modifier = Modifier.graphicsLayer {
+                    translationX = horizontalState.value.toFloat()
+                },
+            ) {
+                Column {
+                    GroupHeaderCell(
+                        value = currentValue,
+                        item = item,
+                        spec = groupSpec,
+                        width = viewportWidthDp,
+                        height = state.dimensions.rowHeight,
+                        colors = colors,
+                        customization = customization,
+                    )
+                    HorizontalDivider(
+                        modifier = Modifier.width(viewportWidthDp),
+                        thickness = state.dimensions.dividerThickness,
+                    )
+                }
+            }
+        }
+    }
+
+    TableRowItem(
+        item = item,
+        index = index,
+        visibleColumns = visibleColumns,
+        state = state,
+        colors = colors,
+        customization = customization,
+        tableWidth = tableWidth,
+        rowLeading = rowLeading,
+        rowTrailing = rowTrailing,
+        rowEmbedded = rowEmbedded,
+        placeholderRow = placeholderRow,
+        onRowClick = onRowClick,
+        onRowLongClick = onRowLongClick,
+        onContextMenu = onContextMenu,
+        requestTableFocus = requestTableFocus,
+    )
+
+    HorizontalDivider(
+        modifier = Modifier.width(tableWidth),
+        thickness = state.dimensions.dividerThickness,
     )
 }

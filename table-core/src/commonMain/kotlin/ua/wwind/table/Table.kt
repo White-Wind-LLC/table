@@ -57,6 +57,7 @@ import ua.wwind.table.component.TableHeaderDefaults
 import ua.wwind.table.component.TableHeaderIcons
 import ua.wwind.table.component.body.GroupHeaderCell
 import ua.wwind.table.component.body.TableBody
+import ua.wwind.table.component.body.TableBodyEmbedded
 import ua.wwind.table.config.DefaultTableCustomization
 import ua.wwind.table.config.TableColors
 import ua.wwind.table.config.TableCustomization
@@ -131,6 +132,7 @@ public fun <T : Any, C> Table(
     icons: TableHeaderIcons = TableHeaderDefaults.icons(),
     shape: Shape = RoundedCornerShape(4.dp),
     rowEmbedded: (@Composable (rowIndex: Int, item: T) -> Unit)? = null,
+    embedded: Boolean = false,
 ) {
     val dimensions = state.dimensions
     val visibleColumns by remember(columns, state.columnOrder) {
@@ -191,14 +193,14 @@ public fun <T : Any, C> Table(
             verticalState = verticalState,
             horizontalState = horizontalState,
         )
-        val enableScrolling = remember { !getPlatform().isMobile() }
+        val enableScrolling = remember { !getPlatform().isMobile() && !embedded }
 
-        Surface(
-            shape = shape,
-            border = BorderStroke(state.dimensions.dividerThickness, MaterialTheme.colorScheme.outlineVariant),
-            modifier =
-                modifier
-                    .draggableTable(
+        val surfaceModifier = modifier
+            .then(
+                if (embedded)
+                    Modifier
+                else
+                    Modifier.draggableTable(
                         horizontalState = horizontalState,
                         verticalState = verticalState,
                         blockParentScrollConnection = blockParentScrollConnection,
@@ -206,19 +208,26 @@ public fun <T : Any, C> Table(
                         enableScrolling = enableScrolling,
                         enableDragToScroll = state.settings.enableDragToScroll,
                         coroutineScope = coroutineScope,
-                    ).clip(shape)
-                    .tableKeyboardNavigation(
-                        focusRequester = tableFocusRequester,
-                        itemsCount = itemsCount,
-                        state = state,
-                        visibleColumns = visibleColumns,
-                        verticalState = verticalState,
-                        horizontalState = horizontalState,
-                        hasLeading = rowLeading != null,
-                        tableWidth = tableWidth,
-                        density = density,
-                        coroutineScope = coroutineScope,
-                    ),
+                    )
+            )
+            .clip(shape)
+            .tableKeyboardNavigation(
+                focusRequester = tableFocusRequester,
+                itemsCount = itemsCount,
+                state = state,
+                visibleColumns = visibleColumns,
+                verticalState = verticalState,
+                horizontalState = horizontalState,
+                hasLeading = rowLeading != null,
+                tableWidth = tableWidth,
+                density = density,
+                coroutineScope = coroutineScope,
+            )
+
+        Surface(
+            shape = shape,
+            border = BorderStroke(state.dimensions.dividerThickness, MaterialTheme.colorScheme.outlineVariant),
+            modifier = surfaceModifier,
         ) {
             Column(
                 modifier = Modifier,
@@ -247,33 +256,61 @@ public fun <T : Any, C> Table(
                 HorizontalDivider(modifier = Modifier.width(tableWidth))
 
                 Box(modifier = Modifier.clipToBounds()) {
-                    TableBody(
-                        itemsCount = itemsCount,
-                        itemAt = itemAt,
-                        rowKey = rowKey,
-                        visibleColumns = visibleColumns,
-                        state = state,
-                        colors = colors,
-                        customization = customization,
-                        tableWidth = tableWidth,
-                        rowLeading = rowLeading,
-                        rowTrailing = rowTrailing,
-                        placeholderRow = placeholderRow,
-                        onRowClick = onRowClick,
-                        onRowLongClick = onRowLongClick,
-                        onContextMenu =
-                            contextMenu?.let {
-                                { item: T, pos: Offset ->
-                                    contextMenuState =
-                                        contextMenuState.copy(visible = true, position = pos, item = item)
-                                }
-                            },
-                        rowEmbedded = rowEmbedded,
-                        verticalState = verticalState,
-                        horizontalState = horizontalState,
-                        requestTableFocus = { tableFocusRequester.requestFocus() },
-                        enableScrolling = enableScrolling,
-                    )
+                    if (embedded) {
+                        TableBodyEmbedded(
+                            itemsCount = itemsCount,
+                            itemAt = itemAt,
+                            rowKey = rowKey,
+                            visibleColumns = visibleColumns,
+                            state = state,
+                            colors = colors,
+                            customization = customization,
+                            tableWidth = tableWidth,
+                            rowLeading = rowLeading,
+                            rowTrailing = rowTrailing,
+                            rowEmbedded = rowEmbedded,
+                            placeholderRow = placeholderRow,
+                            onRowClick = onRowClick,
+                            onRowLongClick = onRowLongClick,
+                            onContextMenu =
+                                contextMenu?.let {
+                                    { item: T, pos: Offset ->
+                                        contextMenuState =
+                                            contextMenuState.copy(visible = true, position = pos, item = item)
+                                    }
+                                },
+                            horizontalState = horizontalState,
+                            requestTableFocus = { tableFocusRequester.requestFocus() },
+                        )
+                    } else {
+                        TableBody(
+                            itemsCount = itemsCount,
+                            itemAt = itemAt,
+                            rowKey = rowKey,
+                            visibleColumns = visibleColumns,
+                            state = state,
+                            colors = colors,
+                            customization = customization,
+                            tableWidth = tableWidth,
+                            rowLeading = rowLeading,
+                            rowTrailing = rowTrailing,
+                            placeholderRow = placeholderRow,
+                            onRowClick = onRowClick,
+                            onRowLongClick = onRowLongClick,
+                            onContextMenu =
+                                contextMenu?.let {
+                                    { item: T, pos: Offset ->
+                                        contextMenuState =
+                                            contextMenuState.copy(visible = true, position = pos, item = item)
+                                    }
+                                },
+                            rowEmbedded = rowEmbedded,
+                            verticalState = verticalState,
+                            horizontalState = horizontalState,
+                            requestTableFocus = { tableFocusRequester.requestFocus() },
+                            enableScrolling = enableScrolling,
+                        )
+                    }
                     if (state.groupBy != null) {
                         GroupStickyOverlay(
                             itemAt = itemAt,

@@ -13,6 +13,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
@@ -230,6 +231,51 @@ fun createTableColumns(
             sortable()
             cell { item ->
                 Text(ageGroup(item), modifier = Modifier.padding(horizontal = 16.dp))
+            }
+        }
+    }
+
+fun createMovementColumns(): ImmutableList<ColumnSpec<PersonMovement, PersonMovementColumn>> =
+    tableColumns<PersonMovement, PersonMovementColumn> {
+        column(PersonMovementColumn.DATE, valueOf = { it.date }) {
+            title { "Date" }
+            autoWidth()
+            cell { movement ->
+                Text(
+                    movement.date.format(
+                        LocalDate.Format {
+                            day()
+                            chars(".")
+                            monthNumber()
+                            chars(".")
+                            year()
+                        },
+                    ),
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    fontFamily = FontFamily.Monospace,
+                )
+            }
+        }
+
+        column(PersonMovementColumn.FROM_POSITION, valueOf = { it.fromPosition }) {
+            title { "From" }
+            autoWidth()
+            cell { movement ->
+                Text(
+                    movement.fromPosition?.displayName ?: "-",
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                )
+            }
+        }
+
+        column(PersonMovementColumn.TO_POSITION, valueOf = { it.toPosition }) {
+            title { "To" }
+            autoWidth()
+            cell { movement ->
+                Text(
+                    movement.toPosition.displayName,
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                )
             }
         }
     }
