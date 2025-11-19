@@ -1,12 +1,14 @@
 package ua.wwind.table.component.body
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
@@ -48,6 +50,7 @@ internal fun <T : Any, C> TableRowItem(
     tableWidth: Dp,
     rowLeading: (@Composable (T) -> Unit)?,
     rowTrailing: (@Composable (T) -> Unit)?,
+    rowEmbedded: (@Composable (rowIndex: Int, item: T) -> Unit)?,
     placeholderRow: (@Composable () -> Unit)?,
     onRowClick: ((T) -> Unit)?,
     onRowLongClick: ((T) -> Unit)?,
@@ -115,92 +118,102 @@ internal fun <T : Any, C> TableRowItem(
             }
         }
 
-        Row(
-            modifier =
-                rowModifier.onGloballyPositioned { coordinates ->
-                    state.updateRowHeight(index, coordinates.size.height)
-                },
-        ) {
+        Column {
             item?.let { itItem ->
-                if (rowLeading != null) {
-                    RowLeadingSection(
-                        cellWidth = dimensions.rowHeight,
-                        height = if (isDynamicRowHeight) null else dimensions.rowHeight,
-                        dividerThickness = dimensions.dividerThickness,
-                        rowLeading = rowLeading,
-                        item = itItem,
-                    )
-                }
-
-                visibleColumns.forEach { spec ->
-                    val width = state.columnWidths[spec.key] ?: spec.width ?: dimensions.defaultColumnWidth
-                    var cellTopLeft by remember(spec.key, index) { mutableStateOf(Offset.Zero) }
-                    val cellStyle: TableCellStyle =
-                        customization.resolveCellStyle(
-                            TableCellContext(
-                                row =
-                                    TableRowContext(
-                                        item = itItem,
-                                        index = index,
-                                        isSelected = isSelected,
-                                        isStriped = state.settings.stripedRows && (index % 2 != 0),
-                                        isGroup = false,
-                                        isDeleted = false,
-                                    ),
-                                column = spec.key,
-                            ),
+                Row(
+                    modifier =
+                        rowModifier.onGloballyPositioned { coordinates ->
+                            state.updateRowHeight(index, coordinates.size.height)
+                        },
+                ) {
+                    if (rowLeading != null) {
+                        RowLeadingSection(
+                            cellWidth = dimensions.rowHeight,
+                            height = if (isDynamicRowHeight) null else dimensions.rowHeight,
+                            dividerThickness = dimensions.dividerThickness,
+                            rowLeading = rowLeading,
+                            item = itItem,
                         )
+                    }
 
-                    val isCellSelected =
-                        state.selectedCell?.let { it.rowIndex == index && it.column == spec.key } == true
-
-                    TableCell(
-                        width = width,
-                        height = if (isDynamicRowHeight) null else dimensions.rowHeight,
-                        dividerThickness = dimensions.dividerThickness,
-                        cellStyle = cellStyle,
-                        alignment = spec.alignment,
-                        isSelected = isCellSelected,
-                        modifier =
-                            Modifier
-                                .onGloballyPositioned { coordinates ->
-                                    cellTopLeft = coordinates.positionInRoot()
-                                }.then(
-                                    Modifier.tableRowInteractions(
-                                        item = itItem,
-                                        onFocus = {
-                                            requestTableFocus()
-                                            state.selectCell(index, spec.key)
-                                            state.focusRow(index)
-                                        },
-                                        useSelectAsPrimary = state.settings.selectionMode != SelectionMode.None,
-                                        onSelect = { state.toggleSelect(index) },
-                                        onClick = onRowClick,
-                                        onLongClick = onRowLongClick,
-                                        onContextMenu =
-                                            onContextMenu?.let { handler ->
-                                                { itemCtx, localPos -> handler(itemCtx, cellTopLeft + localPos) }
-                                            },
-                                    ),
+                    visibleColumns.forEach { spec ->
+                        val width = state.columnWidths[spec.key] ?: spec.width ?: dimensions.defaultColumnWidth
+                        var cellTopLeft by remember(spec.key, index) { mutableStateOf(Offset.Zero) }
+                        val cellStyle: TableCellStyle =
+                            customization.resolveCellStyle(
+                                TableCellContext(
+                                    row =
+                                        TableRowContext(
+                                            item = itItem,
+                                            index = index,
+                                            isSelected = isSelected,
+                                            isStriped = state.settings.stripedRows && (index % 2 != 0),
+                                            isGroup = false,
+                                            isDeleted = false,
+                                        ),
+                                    column = spec.key,
                                 ),
-                    ) {
-                        if (spec.resizable || spec.autoWidth) {
-                            Box(Modifier.size(0.dp)) {
-                                MeasureCellMinWidth(
-                                    item = itItem,
-                                    measureKey = Pair(spec.key, index),
-                                    content = spec.cell,
-                                ) { measuredMinWidth ->
-                                    val adjusted = maxOf(measuredMinWidth, spec.minWidth)
-                                    state.updateMaxContentWidth(spec.key, adjusted)
+                            )
+
+                        val isCellSelected =
+                            state.selectedCell?.let { it.rowIndex == index && it.column == spec.key } == true
+
+                        TableCell(
+                            width = width,
+                            height = if (isDynamicRowHeight) null else dimensions.rowHeight,
+                            dividerThickness = dimensions.dividerThickness,
+                            cellStyle = cellStyle,
+                            alignment = spec.alignment,
+                            isSelected = isCellSelected,
+                            modifier =
+                                Modifier
+                                    .onGloballyPositioned { coordinates ->
+                                        cellTopLeft = coordinates.positionInRoot()
+                                    }.then(
+                                        Modifier.tableRowInteractions(
+                                            item = itItem,
+                                            onFocus = {
+                                                requestTableFocus()
+                                                state.selectCell(index, spec.key)
+                                                state.focusRow(index)
+                                            },
+                                            useSelectAsPrimary = state.settings.selectionMode != SelectionMode.None,
+                                            onSelect = { state.toggleSelect(index) },
+                                            onClick = onRowClick,
+                                            onLongClick = onRowLongClick,
+                                            onContextMenu =
+                                                onContextMenu?.let { handler ->
+                                                    { itemCtx, localPos -> handler(itemCtx, cellTopLeft + localPos) }
+                                                },
+                                        ),
+                                    ),
+                        ) {
+                            if (spec.resizable || spec.autoWidth) {
+                                Box(Modifier.size(0.dp)) {
+                                    MeasureCellMinWidth(
+                                        item = itItem,
+                                        measureKey = Pair(spec.key, index),
+                                        content = spec.cell,
+                                    ) { measuredMinWidth ->
+                                        val adjusted = maxOf(measuredMinWidth, spec.minWidth)
+                                        state.updateMaxContentWidth(spec.key, adjusted)
+                                    }
                                 }
                             }
+                            spec.cell.invoke(this, itItem)
                         }
-                        spec.cell.invoke(this, itItem)
                     }
+
+                    rowTrailing?.invoke(itItem)
                 }
 
-                rowTrailing?.invoke(itItem)
+                if (rowEmbedded != null) {
+                    HorizontalDivider(
+                        thickness = state.dimensions.dividerThickness,
+                        modifier = Modifier.width(tableWidth),
+                    )
+                    rowEmbedded.invoke(index, itItem)
+                }
             } ?: run {
                 Row(
                     modifier = (if (isDynamicRowHeight) Modifier else Modifier.height(dimensions.rowHeight)),

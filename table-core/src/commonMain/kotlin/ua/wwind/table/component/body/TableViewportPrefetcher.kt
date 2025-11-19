@@ -104,6 +104,7 @@ internal fun <T : Any, C> TableViewportPrefetcher(
                                 tableWidth = tableWidth,
                                 rowLeading = rowLeading,
                                 rowTrailing = rowTrailing,
+                                rowEmbedded = null,
                                 placeholderRow = placeholderRow,
                                 onRowClick = null,
                                 onRowLongClick = null,

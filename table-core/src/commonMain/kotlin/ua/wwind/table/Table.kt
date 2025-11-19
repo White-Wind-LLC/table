@@ -130,6 +130,7 @@ public fun <T : Any, C> Table(
     horizontalState: ScrollState = rememberScrollState(),
     icons: TableHeaderIcons = TableHeaderDefaults.icons(),
     shape: Shape = RoundedCornerShape(4.dp),
+    rowEmbedded: (@Composable (rowIndex: Int, item: T) -> Unit)? = null,
 ) {
     val dimensions = state.dimensions
     val visibleColumns by remember(columns, state.columnOrder) {
@@ -267,6 +268,7 @@ public fun <T : Any, C> Table(
                                         contextMenuState.copy(visible = true, position = pos, item = item)
                                 }
                             },
+                        rowEmbedded = rowEmbedded,
                         verticalState = verticalState,
                         horizontalState = horizontalState,
                         requestTableFocus = { tableFocusRequester.requestFocus() },
