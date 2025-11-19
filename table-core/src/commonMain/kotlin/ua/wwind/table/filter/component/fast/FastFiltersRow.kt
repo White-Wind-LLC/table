@@ -130,7 +130,7 @@ internal fun <T : Any, C> FastFiltersRow(
                                     onChange = onChange,
                                 )
 
-                            null -> {
+                            TableFilterType.DisabledTableFilter, null -> {
                                 // No filter for this column
                             }
                         }

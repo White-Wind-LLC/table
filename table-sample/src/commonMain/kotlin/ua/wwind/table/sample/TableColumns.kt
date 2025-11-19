@@ -31,7 +31,7 @@ fun createTableColumns(
 ): ImmutableList<ColumnSpec<Person, PersonColumn>> =
     tableColumns<Person, PersonColumn> {
         column(PersonColumn.EXPAND, valueOf = { it.expandedMovement }) {
-            title { "" }
+            title { "Movements" }
             autoWidth(40.dp)
             resizable(false)
             cell { item ->

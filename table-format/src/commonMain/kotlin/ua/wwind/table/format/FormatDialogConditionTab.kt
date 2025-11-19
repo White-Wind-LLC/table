@@ -75,8 +75,14 @@ public fun <E : Enum<E>, FILTER> FormatDialogConditionTab(
                     filters(item) { rule: TableFormatRule<E, FILTER> ->
                         onChange(rule)
                     }
-                items(count = filterItems.size, key = { index: Int -> filterItems[index].field }) { index: Int ->
-                    val filterData: FormatFilterData<E> = filterItems[index]
+                val visibleFilterItems =
+                    filterItems.filter { formatFilter: FormatFilterData<E> ->
+                        formatFilter.filterType !is TableFilterType.DisabledTableFilter
+                    }
+                items(
+                    count = visibleFilterItems.size,
+                    key = { index: Int -> visibleFilterItems[index].field }) { index: Int ->
+                    val filterData: FormatFilterData<E> = visibleFilterItems[index]
                     var expanded by remember { mutableStateOf(false) }
                     Column {
                         val builtTitle = buildFilterHeaderTitle(filterData = filterData, strings = strings)
@@ -176,6 +182,7 @@ public fun <E : Enum<E>, FILTER> FormatDialogConditionTab(
                                             onChange = { newState -> filterData.onChange(newState as TableFilterState<*>) },
                                             strings = strings,
                                         )
+                                    is TableFilterType.DisabledTableFilter -> Unit
                                 }
                             }
                         }
@@ -508,7 +515,7 @@ internal fun <E : Enum<E>> buildFilterHeaderTitle(
         }
 
         is TableFilterType.DateTableFilter -> {
-            val fv = filterData.filterState as? TableFilterState<kotlinx.datetime.LocalDate> ?: return null
+            val fv = filterData.filterState as? TableFilterState<LocalDate> ?: return null
             val constraint = fv.constraint ?: return null
             val value: LocalDate = fv.values?.firstOrNull() ?: return null
             "${strings.get(constraint.toUiString())} $value"
@@ -533,5 +540,7 @@ internal fun <E : Enum<E>> buildFilterHeaderTitle(
                 else -> null
             }
         }
+
+        TableFilterType.DisabledTableFilter -> null
     }
 }

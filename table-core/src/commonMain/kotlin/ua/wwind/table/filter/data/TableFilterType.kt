@@ -126,6 +126,12 @@ public sealed class TableFilterType<T>(
     ) : TableFilterType<LocalDate>(constraints)
 
     @Immutable
+    /** Disabled filter type used when filtering must be explicitly turned off for a column. */
+    public data object DisabledTableFilter : TableFilterType<Nothing>(
+        constraints = persistentListOf(),
+    )
+
+    @Immutable
     /** Enum filter supporting IN/NOT_IN/EQUALS with custom [getTitle] provider. */
     public data class EnumTableFilter<T : Enum<T>>(
         val options: ImmutableList<T>,

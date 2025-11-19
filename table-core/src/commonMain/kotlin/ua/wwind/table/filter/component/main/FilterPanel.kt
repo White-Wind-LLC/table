@@ -111,6 +111,10 @@ internal fun <T> FilterPanel(
                         onChange = { onChange(it as? TableFilterState<T>) },
                     )
 
+                TableFilterType.DisabledTableFilter -> {
+                    // No-op
+                }
+
                 null -> error("Filter type cannot be null")
             }
         }

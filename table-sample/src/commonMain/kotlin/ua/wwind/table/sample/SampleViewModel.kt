@@ -57,10 +57,10 @@ class SampleViewModel {
         rule: TableFormatRule<PersonColumn, Map<PersonColumn, TableFilterState<*>>>,
         onApply: (TableFormatRule<PersonColumn, Map<PersonColumn, TableFilterState<*>>>) -> Unit,
     ): List<FormatFilterData<PersonColumn>> =
-        PersonColumn.entries.mapNotNull { column ->
+        PersonColumn.entries.map { column ->
             val type = filterTypes.getValue(column)
             val current: TableFilterState<*>? = rule.filter[column]
-            val defaultState: TableFilterState<*>? =
+            val defaultState: TableFilterState<*> =
                 when (column) {
                     PersonColumn.NAME -> TableFilterState<String>(constraint = null, values = null)
                     PersonColumn.AGE -> TableFilterState<Int>(constraint = null, values = null)
@@ -85,20 +85,20 @@ class SampleViewModel {
 
                     PersonColumn.NOTES -> TableFilterState<String>(constraint = null, values = null)
                     PersonColumn.AGE_GROUP -> TableFilterState<String>(constraint = null, values = null)
-                    else -> null
+                    PersonColumn.EXPAND -> TableFilterState<Boolean>(
+                        constraint = FilterConstraint.EQUALS,
+                        values = null,
+                    )
                 }
-            val state = current ?: defaultState
-            state?.let { state ->
-                FormatFilterData(
-                    field = column,
-                    filterType = type,
-                    filterState = state,
-                    onChange = { newState ->
-                        val newMap = rule.filter.toMutableMap().apply { put(column, newState) }
-                        onApply(rule.copy(filter = newMap))
-                    },
-                )
-            }
+            FormatFilterData(
+                field = column,
+                filterType = type,
+                filterState = current ?: defaultState,
+                onChange = { newState ->
+                    val newMap = rule.filter.toMutableMap().apply { put(column, newState) }
+                    onApply(rule.copy(filter = newMap))
+                },
+            )
         }
 
     /**

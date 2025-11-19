@@ -44,4 +44,5 @@ fun createFilterTypes(): Map<PersonColumn, TableFilterType<*>> =
         PersonColumn.NOTES to TableFilterType.TextTableFilter(),
         // Computed fields
         PersonColumn.AGE_GROUP to TableFilterType.TextTableFilter(),
+        PersonColumn.EXPAND to TableFilterType.DisabledTableFilter,
     )

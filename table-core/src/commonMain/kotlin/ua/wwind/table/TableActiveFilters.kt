@@ -12,6 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.datetime.LocalDate
 import ua.wwind.table.filter.data.FilterConstraint
 import ua.wwind.table.filter.data.TableFilterState
 import ua.wwind.table.filter.data.TableFilterType
@@ -131,7 +132,7 @@ private fun buildFilterChipTextUnsafe(
         }
 
         is TableFilterType.DateTableFilter -> {
-            val s = state as? TableFilterState<kotlinx.datetime.LocalDate> ?: return null
+            val s = state as? TableFilterState<LocalDate> ?: return null
             val constraint = s.constraint ?: return null
             val value = s.values?.firstOrNull() ?: return null
             "${strings.get(constraint.toUiString())} $value"
@@ -161,5 +162,7 @@ private fun buildFilterChipTextUnsafe(
                 else -> null
             }
         }
+
+        TableFilterType.DisabledTableFilter -> null
     }
 }

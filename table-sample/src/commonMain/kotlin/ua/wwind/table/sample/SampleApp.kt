@@ -264,7 +264,7 @@ fun SampleApp(modifier: Modifier = Modifier) {
                     PersonColumn.HIRE_DATE -> "Hire Date"
                     PersonColumn.NOTES -> "Notes"
                     PersonColumn.AGE_GROUP -> "Age group"
-                    PersonColumn.EXPAND -> ""
+                    PersonColumn.EXPAND -> "Movements"
                 }
             },
             filters = viewModel::buildFormatFilterData,
