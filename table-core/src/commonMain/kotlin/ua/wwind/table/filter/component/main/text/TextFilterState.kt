@@ -24,7 +24,7 @@ internal data class TextFilterState(
     val onTextChange: (String) -> Unit,
     val onConstraintChange: (FilterConstraint) -> Unit,
     val applyFilter: () -> Unit,
-    val clearFilter: () -> Unit
+    val clearFilter: () -> Unit,
 )
 
 /**
@@ -52,7 +52,7 @@ internal fun rememberTextFilterState(
     autoApply: Boolean = true,
     debounceMs: Long = 300L,
     isFastFilter: Boolean = false,
-    onStateChange: (TableFilterState<String>?) -> Unit
+    onStateChange: (TableFilterState<String>?) -> Unit,
 ): TextFilterState {
     val sourceText by remember(externalState) {
         derivedStateOf {
@@ -117,7 +117,7 @@ internal fun rememberTextFilterState(
                 editingText = ""
                 onStateChange(null)
                 isEditing = false
-            }
+            },
         )
     }
 }

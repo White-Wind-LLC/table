@@ -13,9 +13,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.FlowPreview
+import ua.wwind.table.component.TableTextField
 import ua.wwind.table.filter.component.FilterDropdownField
 import ua.wwind.table.filter.component.FilterPanelActions
-import ua.wwind.table.component.TableTextField
 import ua.wwind.table.filter.data.FilterConstraint
 import ua.wwind.table.filter.data.TableFilterState
 import ua.wwind.table.filter.data.TableFilterType
@@ -38,25 +38,27 @@ internal fun <T : Number> NumberFilter(
     autoFilterDebounce: Long,
     onChange: (TableFilterState<T>?) -> Unit,
 ) {
-    val numberFilterState = rememberNumberFilterState(
-        externalState = state,
-        filter = filter,
-        defaultConstraint = filter.constraints.first(),
-        autoApply = autoApplyFilters,
-        debounceMs = autoFilterDebounce,
-        onStateChange = onChange,
-    )
+    val numberFilterState =
+        rememberNumberFilterState(
+            externalState = state,
+            filter = filter,
+            defaultConstraint = filter.constraints.first(),
+            autoApply = autoApplyFilters,
+            debounceMs = autoFilterDebounce,
+            onStateChange = onChange,
+        )
 
     val isBetween = numberFilterState.constraint == FilterConstraint.BETWEEN
     val min = filter.rangeOptions?.first ?: filter.delegate.default
     val max = filter.rangeOptions?.second ?: filter.delegate.default
 
     val fromValue = filter.delegate.parse(numberFilterState.text) ?: min
-    val toValue = if (isBetween) {
-        filter.delegate.parse(numberFilterState.secondText) ?: max
-    } else {
-        max
-    }
+    val toValue =
+        if (isBetween) {
+            filter.delegate.parse(numberFilterState.secondText) ?: max
+        } else {
+            max
+        }
     val isRangeValid = !isBetween || filter.delegate.compare(fromValue, toValue)
 
     FilterDropdownField(
@@ -83,7 +85,7 @@ internal fun <T : Number> NumberFilter(
                             UiString.FilterRangeFromPlaceholder
                         } else {
                             UiString.FilterEnterNumberPlaceholder
-                        }
+                        },
                     ),
                 )
             },

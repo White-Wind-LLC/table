@@ -73,7 +73,6 @@ internal fun <T : Any, C> TableHeader(
             if (move != null) state.moveColumn(move.first, move.second)
         }
 
-
     Column {
         Surface(color = headerColor, contentColor = headerContentColor) {
             CompositionLocalProvider(LocalTableHeaderIcons provides icons) {
@@ -109,12 +108,14 @@ internal fun <T : Any, C> TableHeader(
         }
         AnimatedVisibility(
             visible = state.settings.showFastFilters,
-            enter = slideInVertically(
-                initialOffsetY = { fullHeight -> -fullHeight }
-            ) + fadeIn(),
-            exit = slideOutVertically(
-                targetOffsetY = { fullHeight -> -fullHeight }
-            ) + fadeOut()
+            enter =
+                slideInVertically(
+                    initialOffsetY = { fullHeight -> -fullHeight },
+                ) + fadeIn(),
+            exit =
+                slideOutVertically(
+                    targetOffsetY = { fullHeight -> -fullHeight },
+                ) + fadeOut(),
         ) {
             FastFiltersRow(
                 tableWidth = tableWidth,

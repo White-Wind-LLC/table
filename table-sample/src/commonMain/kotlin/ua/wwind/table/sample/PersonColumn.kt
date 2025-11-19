@@ -5,6 +5,7 @@ package ua.wwind.table.sample
  */
 enum class PersonColumn {
     EXPAND,
+
     // Real Person fields
     NAME,
     AGE,

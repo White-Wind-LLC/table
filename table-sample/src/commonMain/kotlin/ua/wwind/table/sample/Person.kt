@@ -64,11 +64,12 @@ data class Person(
         val initialPosition = allPositions.random(random)
         val movements = mutableListOf<PersonMovement>()
 
-        movements += PersonMovement(
-            date = hireDate,
-            fromPosition = null,
-            toPosition = initialPosition,
-        )
+        movements +=
+            PersonMovement(
+                date = hireDate,
+                fromPosition = null,
+                toPosition = initialPosition,
+            )
 
         // Decide total number of movements: from 2 to 6
         val totalMovements = random.nextInt(from = 2, until = 7)
@@ -97,11 +98,12 @@ data class Person(
             val daysToAdd = random.nextInt(from = 90, until = 541)
             currentDate = currentDate.plus(daysToAdd, DateTimeUnit.DAY)
 
-            movements += PersonMovement(
-                date = currentDate,
-                fromPosition = currentPosition,
-                toPosition = nextPosition,
-            )
+            movements +=
+                PersonMovement(
+                    date = currentDate,
+                    fromPosition = currentPosition,
+                    toPosition = nextPosition,
+                )
 
             currentPosition = nextPosition
         }

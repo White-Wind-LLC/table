@@ -9,8 +9,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import ua.wwind.table.ColumnSpec
-import ua.wwind.table.filter.component.FilterDropdownAnyField
 import ua.wwind.table.component.TableTextFieldDefaults
+import ua.wwind.table.filter.component.FilterDropdownAnyField
 import ua.wwind.table.filter.component.main.enumm.rememberEnumFilterState
 import ua.wwind.table.filter.data.FilterConstraint
 import ua.wwind.table.filter.data.TableFilterState
@@ -29,20 +29,21 @@ internal fun <T : Any, C, E : Enum<E>> FastEnumFilter(
 ) {
     val filter = spec.filter as TableFilterType.EnumTableFilter<E>
 
-    val enumFilterState = rememberEnumFilterState<E>(
-        externalState = state,
-        defaultConstraint = FilterConstraint.EQUALS,
-        autoApply = true,
-        isFastFilter = true,
-        debounceMs = autoFilterDebounce,
-        onStateChange = { filterState ->
-            onChange(spec, filterState as? TableFilterState<T>)
-        }
-    )
+    val enumFilterState =
+        rememberEnumFilterState<E>(
+            externalState = state,
+            defaultConstraint = FilterConstraint.EQUALS,
+            autoApply = true,
+            isFastFilter = true,
+            debounceMs = autoFilterDebounce,
+            onStateChange = { filterState ->
+                onChange(spec, filterState as? TableFilterState<T>)
+            },
+        )
 
     Box(
         modifier = Modifier.fillMaxSize().padding(horizontal = 8.dp),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         FilterDropdownAnyField(
             currentValue = enumFilterState.selectedValues.firstOrNull(),

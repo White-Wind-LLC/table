@@ -1,13 +1,7 @@
 package ua.wwind.table
 
-import androidx.compose.animation.core.AnimationState
-import androidx.compose.animation.core.DecayAnimationSpec
-import androidx.compose.animation.core.animateDecay
-import androidx.compose.animation.core.exponentialDecay
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ScrollState
-import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.width
@@ -27,35 +21,25 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollDispatcher
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
-import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.input.pointer.util.VelocityTracker
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.ImmutableList
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.launch
 import ua.wwind.table.component.ActiveFiltersHeader
 import ua.wwind.table.component.ContextMenuHost
 import ua.wwind.table.component.TableHeader
 import ua.wwind.table.component.TableHeaderDefaults
 import ua.wwind.table.component.TableHeaderIcons
-import ua.wwind.table.component.body.GroupHeaderCell
+import ua.wwind.table.component.body.GroupStickyOverlay
 import ua.wwind.table.component.body.TableBody
 import ua.wwind.table.component.body.TableBodyEmbedded
 import ua.wwind.table.config.DefaultTableCustomization
@@ -64,18 +48,17 @@ import ua.wwind.table.config.TableCustomization
 import ua.wwind.table.config.TableDefaults
 import ua.wwind.table.interaction.ApplyAutoWidthEffect
 import ua.wwind.table.interaction.ContextMenuState
-import ua.wwind.table.interaction.ensureCellFullyVisible
+import ua.wwind.table.interaction.EnsureSelectedCellVisibleEffect
+import ua.wwind.table.interaction.draggableTable
 import ua.wwind.table.interaction.tableKeyboardNavigation
 import ua.wwind.table.platform.getPlatform
 import ua.wwind.table.platform.isMobile
 import ua.wwind.table.state.LocalTableState
 import ua.wwind.table.state.TableState
-import ua.wwind.table.state.currentTableState
 import ua.wwind.table.state.mapNotNullToImmutable
 import ua.wwind.table.strings.DefaultStrings
 import ua.wwind.table.strings.LocalStringProvider
 import ua.wwind.table.strings.StringProvider
-import kotlin.math.min
 
 @Suppress("LongParameterList")
 @ExperimentalTableApi
@@ -135,14 +118,18 @@ public fun <T : Any, C> Table(
     embedded: Boolean = false,
 ) {
     val dimensions = state.dimensions
-    val visibleColumns by remember(columns, state.columnOrder) {
-        derivedStateOf {
-            state.columnOrder.mapNotNullToImmutable { key -> columns.find { it.key == key && it.visible } }
+    val visibleColumns by
+        remember(columns, state.columnOrder) {
+            derivedStateOf {
+                state.columnOrder.mapNotNullToImmutable { key ->
+                    columns.find { it.key == key && it.visible }
+                }
+            }
         }
-    }
-    val tableWidth by remember(visibleColumns, rowLeading, state.columnWidths, state.dimensions) {
-        derivedStateOf { computeTableWidth(visibleColumns, rowLeading != null, state) }
-    }
+    val tableWidth by
+        remember(visibleColumns, rowLeading, state.columnWidths, state.dimensions) {
+            derivedStateOf { computeTableWidth(visibleColumns, rowLeading != null, state) }
+        }
 
     var contextMenuState by remember { mutableStateOf(ContextMenuState<T>()) }
 
@@ -150,7 +137,8 @@ public fun <T : Any, C> Table(
     val density = LocalDensity.current
     val coroutineScope = rememberCoroutineScope()
 
-    // Consume drag and fling deltas so parent containers don't scroll while dragging inside the table
+    // Consume drag and fling deltas so parent containers don't scroll while dragging inside the
+    // table
     val blockParentScrollConnection =
         remember {
             object : NestedScrollConnection {
@@ -180,7 +168,9 @@ public fun <T : Any, C> Table(
 
     // Reset cached row heights when dataset size changes to avoid stale measurements
     LaunchedEffect(itemsCount) { state.rowHeightsPx.clear() }
-    LaunchedEffect(state.sort) { if (verticalState.canScrollBackward) verticalState.scrollToItem(0) }
+    LaunchedEffect(state.sort) {
+        if (verticalState.canScrollBackward) verticalState.scrollToItem(0)
+    }
 
     CompositionLocalProvider(
         LocalTableState provides state,
@@ -195,38 +185,45 @@ public fun <T : Any, C> Table(
         )
         val enableScrolling = remember { !getPlatform().isMobile() && !embedded }
 
-        val surfaceModifier = modifier
-            .then(
-                if (embedded)
-                    Modifier
-                else
-                    Modifier.draggableTable(
-                        horizontalState = horizontalState,
-                        verticalState = verticalState,
-                        blockParentScrollConnection = blockParentScrollConnection,
-                        nestedScrollDispatcher = nestedScrollDispatcher,
-                        enableScrolling = enableScrolling,
-                        enableDragToScroll = state.settings.enableDragToScroll,
-                        coroutineScope = coroutineScope,
-                    )
-            )
-            .clip(shape)
-            .tableKeyboardNavigation(
-                focusRequester = tableFocusRequester,
-                itemsCount = itemsCount,
-                state = state,
-                visibleColumns = visibleColumns,
-                verticalState = verticalState,
-                horizontalState = horizontalState,
-                hasLeading = rowLeading != null,
-                tableWidth = tableWidth,
-                density = density,
-                coroutineScope = coroutineScope,
-            )
+        val surfaceModifier =
+            modifier
+                .then(
+                    if (embedded) {
+                        Modifier
+                    } else {
+                        Modifier.draggableTable(
+                            horizontalState = horizontalState,
+                            verticalState = verticalState,
+                            blockParentScrollConnection =
+                            blockParentScrollConnection,
+                            nestedScrollDispatcher = nestedScrollDispatcher,
+                            enableScrolling = enableScrolling,
+                            enableDragToScroll =
+                                state.settings.enableDragToScroll,
+                            coroutineScope = coroutineScope,
+                        )
+                    },
+                ).clip(shape)
+                .tableKeyboardNavigation(
+                    focusRequester = tableFocusRequester,
+                    itemsCount = itemsCount,
+                    state = state,
+                    visibleColumns = visibleColumns,
+                    verticalState = verticalState,
+                    horizontalState = horizontalState,
+                    hasLeading = rowLeading != null,
+                    tableWidth = tableWidth,
+                    density = density,
+                    coroutineScope = coroutineScope,
+                )
 
         Surface(
             shape = shape,
-            border = BorderStroke(state.dimensions.dividerThickness, MaterialTheme.colorScheme.outlineVariant),
+            border =
+                BorderStroke(
+                    state.dimensions.dividerThickness,
+                    MaterialTheme.colorScheme.outlineVariant,
+                ),
             modifier = surfaceModifier,
         ) {
             Column(
@@ -276,7 +273,11 @@ public fun <T : Any, C> Table(
                                 contextMenu?.let {
                                     { item: T, pos: Offset ->
                                         contextMenuState =
-                                            contextMenuState.copy(visible = true, position = pos, item = item)
+                                            contextMenuState.copy(
+                                                visible = true,
+                                                position = pos,
+                                                item = item,
+                                            )
                                     }
                                 },
                             horizontalState = horizontalState,
@@ -301,7 +302,11 @@ public fun <T : Any, C> Table(
                                 contextMenu?.let {
                                     { item: T, pos: Offset ->
                                         contextMenuState =
-                                            contextMenuState.copy(visible = true, position = pos, item = item)
+                                            contextMenuState.copy(
+                                                visible = true,
+                                                position = pos,
+                                                item = item,
+                                            )
                                     }
                                 },
                             rowEmbedded = rowEmbedded,
@@ -317,7 +322,6 @@ public fun <T : Any, C> Table(
                             visibleColumns = visibleColumns,
                             customization = customization,
                             colors = colors,
-                            width = tableWidth,
                             verticalState = verticalState,
                             horizontalState = horizontalState,
                         )
@@ -334,248 +338,4 @@ public fun <T : Any, C> Table(
     )
 
     ApplyAutoWidthEffect(visibleColumns, itemsCount, verticalState, state)
-}
-
-private fun Modifier.draggableTable(
-    horizontalState: ScrollState,
-    verticalState: LazyListState,
-    blockParentScrollConnection: NestedScrollConnection,
-    nestedScrollDispatcher: NestedScrollDispatcher,
-    enableScrolling: Boolean,
-    enableDragToScroll: Boolean,
-    coroutineScope: CoroutineScope,
-): Modifier {
-    val baseModifier = this.nestedScroll(blockParentScrollConnection, nestedScrollDispatcher)
-
-    val modifierWithDrag = if (enableDragToScroll) {
-        baseModifier.pointerInput(horizontalState, verticalState) {
-            // Decay for inertial fling animation
-            val decay = exponentialDecay<Float>()
-
-            var velocityTracker: VelocityTracker? = null
-
-            detectDragGestures(
-                onDragStart = {
-                    velocityTracker = VelocityTracker()
-                },
-                onDrag = { change, dragAmount ->
-                    // Track positions for velocity computation
-                    velocityTracker?.addPosition(change.uptimeMillis, change.position)
-
-                    change.consume()
-                    // Integrate with nested scroll: consume locally then report post-scroll
-                    val consumedX =
-                        if (dragAmount.x != 0f) {
-                            horizontalState.dispatchRawDelta(-dragAmount.x)
-                            dragAmount.x
-                        } else {
-                            0f
-                        }
-                    val consumedY =
-                        if (dragAmount.y != 0f) {
-                            verticalState.dispatchRawDelta(-dragAmount.y)
-                            dragAmount.y
-                        } else {
-                            0f
-                        }
-                    nestedScrollDispatcher.dispatchPostScroll(
-                        consumed = Offset(consumedX, consumedY),
-                        available = Offset.Zero,
-                        source = NestedScrollSource.UserInput,
-                    )
-                },
-                onDragCancel = {
-                    velocityTracker = null
-                },
-                onDragEnd = {
-                    val tracker = velocityTracker
-                    velocityTracker = null
-
-                    if (tracker == null) return@detectDragGestures
-
-                    val v = tracker.calculateVelocity()
-                    val initialVelocity = Velocity(v.x, v.y)
-
-                    // Run fling inside the provided scope to call suspend nested-scroll APIs
-                    coroutineScope.launch {
-                        // Participate in nested scroll for fling phase
-                        val preConsumed = nestedScrollDispatcher.dispatchPreFling(initialVelocity)
-                        val available = Velocity(
-                            initialVelocity.x - preConsumed.x,
-                            initialVelocity.y - preConsumed.y,
-                        )
-
-                        // Animate decayed fling for both axes in parallel
-                        coroutineScope {
-                            val jobX = launch {
-                                animateFlingAxis(
-                                    initialVelocity = available.x,
-                                    decay = decay,
-                                ) { delta: Float ->
-                                    horizontalState.dispatchRawDelta(-delta)
-                                }
-                            }
-
-                            val jobY = launch {
-                                animateFlingAxis(
-                                    initialVelocity = available.y,
-                                    decay = decay,
-                                ) { delta: Float ->
-                                    verticalState.dispatchRawDelta(-delta)
-                                }
-                            }
-
-                            jobX.join()
-                            jobY.join()
-                        }
-
-                        // Notify parents about fling completion
-                        nestedScrollDispatcher.dispatchPostFling(consumed = available, available = Velocity.Zero)
-                    }
-                },
-            )
-        }
-    } else {
-        baseModifier
-    }
-
-    return modifierWithDrag.horizontalScroll(horizontalState, enableScrolling)
-}
-
-// Shared helper to animate fling on a single axis with decay and apply produced deltas
-private suspend fun animateFlingAxis(
-    initialVelocity: Float,
-    decay: DecayAnimationSpec<Float>,
-    applyDelta: (Float) -> Unit,
-) {
-    var lastValue = 0f
-    val anim = AnimationState(initialValue = 0f, initialVelocity = initialVelocity)
-    anim.animateDecay(decay) {
-        val delta = value - lastValue
-        lastValue = value
-        if (delta != 0f) applyDelta(delta)
-    }
-}
-
-@Composable
-@Suppress("LongParameterList")
-private fun <T : Any, C> EnsureSelectedCellVisibleEffect(
-    visibleColumns: ImmutableList<ColumnSpec<T, C>>,
-    rowLeadingPresent: Boolean,
-    verticalState: LazyListState,
-    horizontalState: ScrollState,
-) {
-    @Suppress("UNCHECKED_CAST")
-    val state = currentTableState() as TableState<C>
-    val density = LocalDensity.current
-    var previousSelectedRowIndex by remember { mutableStateOf<Int?>(null) }
-    LaunchedEffect(state) {
-        snapshotFlow { state.selectedCell }.collectLatest { cell ->
-            if (cell == null) return@collectLatest
-            val colIndex = visibleColumns.indexOfFirst { it.key == cell.column }
-            if (colIndex >= 0) {
-                val prevRow = previousSelectedRowIndex
-                val movement =
-                    if (prevRow != null && cell.rowIndex != prevRow) {
-                        if (cell.rowIndex > prevRow) 1 else -1
-                    } else {
-                        0
-                    }
-                ensureCellFullyVisible(
-                    rowIndex = cell.rowIndex,
-                    targetColIndex = colIndex,
-                    targetColKey = cell.column,
-                    visibleColumns = visibleColumns,
-                    state = state,
-                    hasLeading = rowLeadingPresent,
-                    verticalState = verticalState,
-                    horizontalState = horizontalState,
-                    density = density,
-                    movement = movement,
-                )
-                previousSelectedRowIndex = cell.rowIndex
-            }
-        }
-    }
-}
-
-@Composable
-@Suppress("LongParameterList")
-private fun <T : Any, C> GroupStickyOverlay(
-    itemAt: (Int) -> T?,
-    visibleColumns: ImmutableList<ColumnSpec<T, C>>,
-    customization: TableCustomization<T, C>,
-    colors: TableColors,
-    width: Dp,
-    verticalState: LazyListState,
-    horizontalState: ScrollState,
-) {
-    @Suppress("UNCHECKED_CAST")
-    val state = currentTableState() as TableState<C>
-    val groupKey = state.groupBy ?: return
-    val spec = visibleColumns.firstOrNull { it.key == groupKey } ?: return
-
-    var currentItem by remember { mutableStateOf<T?>(null) }
-    var overlayOffsetPx by remember { mutableStateOf(0) }
-    val density = LocalDensity.current
-    val headerHeightPx =
-        remember(state.dimensions.rowHeight, density) {
-            with(density) { state.dimensions.rowHeight.roundToPx() }
-        }
-    val dividerThicknessPx =
-        remember(state.dimensions.dividerThickness, density) {
-            with(density) { state.dimensions.dividerThickness.roundToPx() }
-        }
-    val overlayHeightPx = headerHeightPx + dividerThicknessPx
-    // Track first visible item layout to compute push-up effect precisely
-    LaunchedEffect(verticalState, state.groupBy, itemAt) {
-        snapshotFlow {
-            val firstInfo = verticalState.layoutInfo.visibleItemsInfo.firstOrNull()
-            // Pair of index and bottom-on-screen in px
-            Pair(firstInfo?.index ?: -1, (firstInfo?.offset ?: 0) + (firstInfo?.size ?: 0))
-        }.collectLatest { (index, bottomOnScreenPx) ->
-            if (index < 0) return@collectLatest
-            currentItem = itemAt(index)
-
-            val currentValue = currentItem?.let { spec.valueOf(it) }
-            val nextValue = itemAt(index + 1)?.let { spec.valueOf(it) }
-            val isNextDifferent = currentValue != nextValue
-
-            if (isNextDifferent) {
-                // Include row divider thickness to match the actual next row top
-                val bottomWithDivider = bottomOnScreenPx + dividerThicknessPx
-                overlayOffsetPx = min(0, bottomWithDivider - overlayHeightPx)
-            } else {
-                overlayOffsetPx = 0
-            }
-        }
-    }
-
-    currentItem?.let { item ->
-        val value = spec.valueOf(item)
-        val viewportWidthDp = with(density) { horizontalState.viewportSize.toDp() }
-        Box(
-            modifier = Modifier.graphicsLayer {
-                translationY = overlayOffsetPx.toFloat()
-                // Pin horizontally within the viewport by negating current horizontal scroll
-                translationX = horizontalState.value.toFloat()
-            },
-        ) {
-            Column {
-                GroupHeaderCell(
-                    value = value,
-                    item = item,
-                    spec = spec,
-                    width = viewportWidthDp,
-                    height = state.dimensions.rowHeight,
-                    colors = colors,
-                    customization = customization,
-                )
-                HorizontalDivider(
-                    thickness = state.dimensions.dividerThickness,
-                    modifier = Modifier.width(viewportWidthDp),
-                )
-            }
-        }
-    }
 }

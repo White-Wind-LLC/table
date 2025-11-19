@@ -271,9 +271,7 @@ public class TableState<C> internal constructor(
     }
 }
 
-public inline fun <T, R : Any> Iterable<T>.mapNotNullToImmutable(
-    transform: (T) -> R?
-): ImmutableList<R> =
+public inline fun <T, R : Any> Iterable<T>.mapNotNullToImmutable(transform: (T) -> R?): ImmutableList<R> =
     buildList {
         for (item in this@mapNotNullToImmutable) {
             transform(item)?.let(::add)

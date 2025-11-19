@@ -164,9 +164,10 @@ private fun <T : Any, C> TableBodyRow(
         val previousValue = if (index > 0) itemAt(index - 1)?.let { groupSpec.valueOf(it) } else null
         if (index == 0 || currentValue != previousValue) {
             Box(
-                modifier = Modifier.graphicsLayer {
-                    translationX = horizontalState.value.toFloat()
-                },
+                modifier =
+                    Modifier.graphicsLayer {
+                        translationX = horizontalState.value.toFloat()
+                    },
             ) {
                 Column {
                     GroupHeaderCell(

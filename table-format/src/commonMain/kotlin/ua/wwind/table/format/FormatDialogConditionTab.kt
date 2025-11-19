@@ -81,7 +81,8 @@ public fun <E : Enum<E>, FILTER> FormatDialogConditionTab(
                     }
                 items(
                     count = visibleFilterItems.size,
-                    key = { index: Int -> visibleFilterItems[index].field }) { index: Int ->
+                    key = { index: Int -> visibleFilterItems[index].field },
+                ) { index: Int ->
                     val filterData: FormatFilterData<E> = visibleFilterItems[index]
                     var expanded by remember { mutableStateOf(false) }
                     Column {

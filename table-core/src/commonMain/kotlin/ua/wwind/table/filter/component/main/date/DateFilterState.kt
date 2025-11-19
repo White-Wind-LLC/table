@@ -57,7 +57,7 @@ internal fun rememberDateFilterState(
     autoApply: Boolean = true,
     debounceMs: Long = 300L,
     isFastFilter: Boolean = false,
-    onStateChange: (TableFilterState<LocalDate>?) -> Unit
+    onStateChange: (TableFilterState<LocalDate>?) -> Unit,
 ): DateFilterState {
     // Derived state from external source
     val sourceFirstDate by remember(externalState) {
@@ -103,22 +103,28 @@ internal fun rememberDateFilterState(
                 delay(debounceMs)
                 isEditing = false
 
-                val values = when (editingConstraint) {
-                    FilterConstraint.BETWEEN ->
-                        if (editingFirstDate != null && editingSecondDate != null) {
-                            listOf(editingFirstDate!!, editingSecondDate!!)
-                        } else {
-                            null
-                        }
+                val values =
+                    when (editingConstraint) {
+                        FilterConstraint.BETWEEN ->
+                            if (editingFirstDate != null && editingSecondDate != null) {
+                                listOf(editingFirstDate!!, editingSecondDate!!)
+                            } else {
+                                null
+                            }
 
-                    FilterConstraint.IS_NULL, FilterConstraint.IS_NOT_NULL -> emptyList()
-                    else -> editingFirstDate?.let { listOf(it) }
-                }
+                        FilterConstraint.IS_NULL, FilterConstraint.IS_NOT_NULL -> emptyList()
+                        else -> editingFirstDate?.let { listOf(it) }
+                    }
 
-                if (values == null || (values.isEmpty() && editingConstraint !in listOf(
-                        FilterConstraint.IS_NULL,
-                        FilterConstraint.IS_NOT_NULL
-                    ))
+                if (values == null ||
+                    (
+                        values.isEmpty() &&
+                            editingConstraint !in
+                            listOf(
+                                FilterConstraint.IS_NULL,
+                                FilterConstraint.IS_NOT_NULL,
+                            )
+                    )
                 ) {
                     onStateChange(null)
                 } else {
@@ -150,17 +156,18 @@ internal fun rememberDateFilterState(
                 isEditing = true
             },
             applyFilter = {
-                val values = when (editingConstraint) {
-                    FilterConstraint.BETWEEN ->
-                        if (editingFirstDate != null && editingSecondDate != null) {
-                            listOf(editingFirstDate!!, editingSecondDate!!)
-                        } else {
-                            null
-                        }
+                val values =
+                    when (editingConstraint) {
+                        FilterConstraint.BETWEEN ->
+                            if (editingFirstDate != null && editingSecondDate != null) {
+                                listOf(editingFirstDate!!, editingSecondDate!!)
+                            } else {
+                                null
+                            }
 
-                    FilterConstraint.IS_NULL, FilterConstraint.IS_NOT_NULL -> emptyList()
-                    else -> editingFirstDate?.let { listOf(it) }
-                }
+                        FilterConstraint.IS_NULL, FilterConstraint.IS_NOT_NULL -> emptyList()
+                        else -> editingFirstDate?.let { listOf(it) }
+                    }
 
                 if (values == null) {
                     onStateChange(null)
@@ -174,7 +181,7 @@ internal fun rememberDateFilterState(
                 editingSecondDate = null
                 onStateChange(null)
                 isEditing = false
-            }
+            },
         )
     }
 }

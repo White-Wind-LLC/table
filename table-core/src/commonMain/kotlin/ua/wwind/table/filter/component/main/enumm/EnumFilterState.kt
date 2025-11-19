@@ -26,7 +26,7 @@ internal data class EnumFilterState<T : Enum<T>>(
     val onMultiValueToggle: (T) -> Unit,
     val onConstraintChange: (FilterConstraint) -> Unit,
     val applyFilter: () -> Unit,
-    val clearFilter: () -> Unit
+    val clearFilter: () -> Unit,
 )
 
 /**
@@ -54,7 +54,7 @@ internal fun <T : Enum<T>> rememberEnumFilterState(
     autoApply: Boolean = true,
     debounceMs: Long = 300L,
     isFastFilter: Boolean = false,
-    onStateChange: (TableFilterState<*>?) -> Unit
+    onStateChange: (TableFilterState<*>?) -> Unit,
 ): EnumFilterState<T> {
     val sourceValues by remember(externalState) {
         derivedStateOf {
@@ -105,11 +105,12 @@ internal fun <T : Enum<T>> rememberEnumFilterState(
                 isEditing = true
             },
             onMultiValueToggle = { item ->
-                editingValues = if (editingValues.contains(item)) {
-                    editingValues - item
-                } else {
-                    editingValues + item
-                }
+                editingValues =
+                    if (editingValues.contains(item)) {
+                        editingValues - item
+                    } else {
+                        editingValues + item
+                    }
                 isEditing = true
             },
             onConstraintChange = { newConstraint ->
@@ -129,10 +130,11 @@ internal fun <T : Enum<T>> rememberEnumFilterState(
                 ) {
                     onStateChange(null)
                 } else {
-                    val valuesToSend = when (editingConstraint) {
-                        FilterConstraint.IS_NULL, FilterConstraint.IS_NOT_NULL -> null
-                        else -> editingValues.takeIf { it.isNotEmpty() }
-                    }
+                    val valuesToSend =
+                        when (editingConstraint) {
+                            FilterConstraint.IS_NULL, FilterConstraint.IS_NOT_NULL -> null
+                            else -> editingValues.takeIf { it.isNotEmpty() }
+                        }
                     onStateChange(TableFilterState(editingConstraint, valuesToSend))
                 }
                 isEditing = false
@@ -141,7 +143,7 @@ internal fun <T : Enum<T>> rememberEnumFilterState(
                 editingValues = emptyList()
                 onStateChange(null)
                 isEditing = false
-            }
+            },
         )
     }
 }

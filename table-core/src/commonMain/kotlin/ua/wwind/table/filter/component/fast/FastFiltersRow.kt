@@ -87,8 +87,9 @@ internal fun <T : Any, C> FastFiltersRow(
                             is TableFilterType.TextTableFilter ->
                                 FastTextFilter(
                                     spec = spec,
-                                    state = state.filters[spec.key] as? TableFilterState<String>
-                                        ?: TableFilterState(constraint = null, values = null),
+                                    state =
+                                        state.filters[spec.key] as? TableFilterState<String>
+                                            ?: TableFilterState(constraint = null, values = null),
                                     autoFilterDebounce = autoFilterDebounce,
                                     strings = strings,
                                     onChange = onChange,
@@ -144,4 +145,3 @@ internal fun <T : Any, C> FastFiltersRow(
         }
     }
 }
-

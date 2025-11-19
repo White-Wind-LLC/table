@@ -25,7 +25,7 @@ internal data class BooleanFilterState(
     val isEditing: Boolean,
     val onValueChange: (Boolean?) -> Unit,
     val applyFilter: () -> Unit,
-    val clearFilter: () -> Unit
+    val clearFilter: () -> Unit,
 )
 
 /**
@@ -50,7 +50,7 @@ internal fun rememberBooleanFilterState(
     externalState: TableFilterState<Boolean>?,
     autoApply: Boolean = true,
     debounceMs: Long = 300L,
-    onStateChange: (TableFilterState<Boolean>?) -> Unit
+    onStateChange: (TableFilterState<Boolean>?) -> Unit,
 ): BooleanFilterState {
     val sourceValue by remember(externalState) {
         derivedStateOf {
@@ -102,7 +102,7 @@ internal fun rememberBooleanFilterState(
                 editingValue = null
                 onStateChange(null)
                 isEditing = false
-            }
+            },
         )
     }
 }

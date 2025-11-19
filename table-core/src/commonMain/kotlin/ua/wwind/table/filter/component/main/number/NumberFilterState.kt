@@ -29,7 +29,7 @@ internal data class NumberFilterState<T : Number>(
     val onConstraintChange: (FilterConstraint) -> Unit,
     val applyFilter: () -> Unit,
     val clearFilter: () -> Unit,
-    val delegate: TableFilterType.NumberTableFilter.NumberFilterDelegate<T>
+    val delegate: TableFilterType.NumberTableFilter.NumberFilterDelegate<T>,
 )
 
 /**
@@ -60,7 +60,7 @@ internal fun <T : Number> rememberNumberFilterState(
     autoApply: Boolean = true,
     debounceMs: Long = 300L,
     isFastFilter: Boolean = false,
-    onStateChange: (TableFilterState<T>?) -> Unit
+    onStateChange: (TableFilterState<T>?) -> Unit,
 ): NumberFilterState<T> {
     // Derived state from external source
     val sourceText by remember(externalState) {
@@ -109,7 +109,8 @@ internal fun <T : Number> rememberNumberFilterState(
                 when (editingConstraint) {
                     FilterConstraint.BETWEEN -> {
                         val secondValue = filter.delegate.parse(editingSecondText)
-                        if (firstValue != null && secondValue != null &&
+                        if (firstValue != null &&
+                            secondValue != null &&
                             filter.delegate.compare(firstValue, secondValue)
                         ) {
                             onStateChange(TableFilterState(editingConstraint, listOf(firstValue, secondValue)))
@@ -182,7 +183,7 @@ internal fun <T : Number> rememberNumberFilterState(
                 onStateChange(null)
                 isEditing = false
             },
-            delegate = filter.delegate
+            delegate = filter.delegate,
         )
     }
 }

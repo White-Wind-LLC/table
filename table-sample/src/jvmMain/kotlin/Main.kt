@@ -5,12 +5,13 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import ua.wwind.table.sample.SampleApp
 
-fun main() = application {
-    Window(onCloseRequest = ::exitApplication, title = "Table Sample") {
-        MaterialTheme {
-            Surface(tonalElevation = 0.dp) {
-                SampleApp()
+fun main() =
+    application {
+        Window(onCloseRequest = ::exitApplication, title = "Table Sample") {
+            MaterialTheme {
+                Surface(tonalElevation = 0.dp) {
+                    SampleApp()
+                }
             }
         }
     }
-}

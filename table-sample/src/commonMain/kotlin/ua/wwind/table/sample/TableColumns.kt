@@ -26,9 +26,7 @@ import ua.wwind.table.tableColumns
 /**
  * Create column definitions with titles, cells and optional filters for header UI.
  */
-fun createTableColumns(
-    onToggleMovementExpanded: (personId: Int) -> Unit,
-): ImmutableList<ColumnSpec<Person, PersonColumn>> =
+fun createTableColumns(onToggleMovementExpanded: (personId: Int) -> Unit): ImmutableList<ColumnSpec<Person, PersonColumn>> =
     tableColumns<Person, PersonColumn> {
         column(PersonColumn.EXPAND, valueOf = { it.expandedMovement }) {
             title { "Movements" }
@@ -137,8 +135,8 @@ fun createTableColumns(
             filter(
                 TableFilterType.EnumTableFilter(
                     options = Position.entries.toImmutableList(),
-                    getTitle = { it.displayName }
-                )
+                    getTitle = { it.displayName },
+                ),
             )
             cell { item -> Text(item.position.displayName, modifier = Modifier.padding(horizontal = 16.dp)) }
         }
@@ -201,8 +199,10 @@ fun createTableColumns(
                             monthNumber()
                             chars(".")
                             year()
-                        }
-                    ), modifier = Modifier.padding(horizontal = 16.dp))
+                        },
+                    ),
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                )
             }
         }
         // Multiline text field to demonstrate dynamic row height

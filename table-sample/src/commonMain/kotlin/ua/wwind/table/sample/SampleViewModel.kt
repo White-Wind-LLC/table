@@ -19,16 +19,17 @@ import ua.wwind.table.format.data.TableFormatRule
 @OptIn(ExperimentalTableApi::class)
 class SampleViewModel {
     // Demo dataset
-    val people = mutableStateListOf<Person>().apply {
-        addAll(createDemoData())
-    }
+    val people =
+        mutableStateListOf<Person>().apply {
+            addAll(createDemoData())
+        }
 
     // Define filter types per field (to drive the format dialog conditions)
     val filterTypes = createFilterTypes()
 
     // Conditional formatting rules (editable via dialog)
     var rules by mutableStateOf<ImmutableList<TableFormatRule<PersonColumn, Map<PersonColumn, TableFilterState<*>>>>>(
-        persistentListOf()
+        persistentListOf(),
     )
         private set
 
@@ -78,17 +79,19 @@ class SampleViewModel {
                     PersonColumn.POSITION -> TableFilterState<List<Position>>(constraint = null, values = null)
                     PersonColumn.SALARY -> TableFilterState<Int>(constraint = null, values = null)
                     PersonColumn.RATING -> TableFilterState<Int>(constraint = null, values = null)
-                    PersonColumn.HIRE_DATE -> TableFilterState<kotlinx.datetime.LocalDate>(
-                        constraint = null,
-                        values = null
-                    )
+                    PersonColumn.HIRE_DATE ->
+                        TableFilterState<kotlinx.datetime.LocalDate>(
+                            constraint = null,
+                            values = null,
+                        )
 
                     PersonColumn.NOTES -> TableFilterState<String>(constraint = null, values = null)
                     PersonColumn.AGE_GROUP -> TableFilterState<String>(constraint = null, values = null)
-                    PersonColumn.EXPAND -> TableFilterState<Boolean>(
-                        constraint = FilterConstraint.EQUALS,
-                        values = null,
-                    )
+                    PersonColumn.EXPAND ->
+                        TableFilterState<Boolean>(
+                            constraint = FilterConstraint.EQUALS,
+                            values = null,
+                        )
                 }
             FormatFilterData(
                 field = column,
@@ -114,10 +117,10 @@ class SampleViewModel {
             // If state has no constraint or values, skip this field (not restrictive)
             if (stateAny.constraint == null ||
                 (
-                        stateAny.values == null &&
-                                stateAny.constraint != FilterConstraint.IS_NULL &&
-                                stateAny.constraint != FilterConstraint.IS_NOT_NULL
-                        )
+                    stateAny.values == null &&
+                        stateAny.constraint != FilterConstraint.IS_NULL &&
+                        stateAny.constraint != FilterConstraint.IS_NOT_NULL
+                )
             ) {
                 continue
             }
@@ -419,10 +422,10 @@ class SampleViewModel {
         val ratingFilter: Map<PersonColumn, TableFilterState<*>> =
             mapOf(
                 PersonColumn.RATING to
-                        TableFilterState(
-                            constraint = FilterConstraint.GTE,
-                            values = listOf(4),
-                        ),
+                    TableFilterState(
+                        constraint = FilterConstraint.GTE,
+                        values = listOf(4),
+                    ),
             )
         val ratingRule =
             TableFormatRule<PersonColumn, Map<PersonColumn, TableFilterState<*>>>(
@@ -440,10 +443,10 @@ class SampleViewModel {
         val activeFilter: Map<PersonColumn, TableFilterState<*>> =
             mapOf(
                 PersonColumn.ACTIVE to
-                        TableFilterState(
-                            constraint = FilterConstraint.EQUALS,
-                            values = listOf(false),
-                        ),
+                    TableFilterState(
+                        constraint = FilterConstraint.EQUALS,
+                        values = listOf(false),
+                    ),
             )
         val activeRule =
             TableFormatRule<PersonColumn, Map<PersonColumn, TableFilterState<*>>>(

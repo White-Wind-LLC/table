@@ -20,35 +20,38 @@ internal fun <T : Any, C> FastBooleanFilter(
     strings: StringProvider,
     onChange: (ColumnSpec<T, C>, TableFilterState<T>?) -> Unit,
 ) {
-    val booleanFilterState = rememberBooleanFilterState(
-        externalState = state,
-        autoApply = true,
-        debounceMs = autoFilterDebounce,
-        onStateChange = { filterState ->
-            @Suppress("UNCHECKED_CAST")
-            onChange(spec, filterState as? TableFilterState<T>)
-        }
-    )
+    val booleanFilterState =
+        rememberBooleanFilterState(
+            externalState = state,
+            autoApply = true,
+            debounceMs = autoFilterDebounce,
+            onStateChange = { filterState ->
+                @Suppress("UNCHECKED_CAST")
+                onChange(spec, filterState as? TableFilterState<T>)
+            },
+        )
 
     Box(
         modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         TriStateCheckbox(
-            state = when (booleanFilterState.value) {
-                null -> ToggleableState.Indeterminate
-                true -> ToggleableState.On
-                false -> ToggleableState.Off
-            },
+            state =
+                when (booleanFilterState.value) {
+                    null -> ToggleableState.Indeterminate
+                    true -> ToggleableState.On
+                    false -> ToggleableState.Off
+                },
             onClick = {
                 // Cycle through states: null -> true -> false -> null
-                val nextValue = when (booleanFilterState.value) {
-                    null -> true
-                    true -> false
-                    false -> null
-                }
+                val nextValue =
+                    when (booleanFilterState.value) {
+                        null -> true
+                        true -> false
+                        false -> null
+                    }
                 booleanFilterState.onValueChange(nextValue)
-            }
+            },
         )
     }
 }

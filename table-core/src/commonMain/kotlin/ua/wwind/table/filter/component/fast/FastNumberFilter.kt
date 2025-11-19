@@ -36,18 +36,19 @@ internal fun <T : Any, C> FastNumberFilter(
     val filter = spec.filter as TableFilterType.NumberTableFilter<Number>
 
     @Suppress("UNCHECKED_CAST")
-    val numberFilterState = rememberNumberFilterState(
-        externalState = state as? TableFilterState<Number>,
-        filter = filter,
-        defaultConstraint = FilterConstraint.EQUALS,
-        autoApply = true,
-        isFastFilter = true,
-        debounceMs = autoFilterDebounce,
-        onStateChange = { filterState ->
-            @Suppress("UNCHECKED_CAST")
-            onChange(spec, filterState as? TableFilterState<T>)
-        }
-    )
+    val numberFilterState =
+        rememberNumberFilterState(
+            externalState = state as? TableFilterState<Number>,
+            filter = filter,
+            defaultConstraint = FilterConstraint.EQUALS,
+            autoApply = true,
+            isFastFilter = true,
+            debounceMs = autoFilterDebounce,
+            onStateChange = { filterState ->
+                @Suppress("UNCHECKED_CAST")
+                onChange(spec, filterState as? TableFilterState<T>)
+            },
+        )
 
     TableTextField(
         value = numberFilterState.text,

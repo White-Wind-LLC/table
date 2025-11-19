@@ -29,13 +29,14 @@ internal fun <E : Enum<E>> EnumFilter(
     autoFilterDebounce: Long,
     onChange: (TableFilterState<*>?) -> Unit,
 ) {
-    val enumFilterState = rememberEnumFilterState<E>(
-        externalState = state,
-        defaultConstraint = filter.constraints.first(),
-        autoApply = autoApplyFilters,
-        debounceMs = autoFilterDebounce,
-        onStateChange = onChange,
-    )
+    val enumFilterState =
+        rememberEnumFilterState<E>(
+            externalState = state,
+            defaultConstraint = filter.constraints.first(),
+            autoApply = autoApplyFilters,
+            debounceMs = autoFilterDebounce,
+            onStateChange = onChange,
+        )
 
     FilterDropdownField(
         currentValue = enumFilterState.constraint,
@@ -68,14 +69,16 @@ internal fun <E : Enum<E>> EnumFilter(
                 getTitle = { anyItem ->
                     (filter.getTitle as @Composable (Enum<*>) -> String).invoke(anyItem as Enum<*>)
                 },
-                placeholder = if (enumFilterState.selectedValues.isEmpty()) {
-                    strings.get(UiString.FilterSelectManyPlaceholder)
-                } else {
-                    val titles = enumFilterState.selectedValues.map { item ->
-                        (filter.getTitle as @Composable (Enum<*>) -> String).invoke(item)
-                    }
-                    titles.joinToString(", ")
-                },
+                placeholder =
+                    if (enumFilterState.selectedValues.isEmpty()) {
+                        strings.get(UiString.FilterSelectManyPlaceholder)
+                    } else {
+                        val titles =
+                            enumFilterState.selectedValues.map { item ->
+                                (filter.getTitle as @Composable (Enum<*>) -> String).invoke(item)
+                            }
+                        titles.joinToString(", ")
+                    },
                 values = filter.options,
                 onClick = { anyItem ->
                     enumFilterState.onMultiValueToggle(anyItem as E)

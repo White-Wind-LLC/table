@@ -21,17 +21,18 @@ internal fun <T : Any, C> FastDateFilter(
     strings: StringProvider,
     onChange: (ColumnSpec<T, C>, TableFilterState<T>?) -> Unit,
 ) {
-    val dateFilterState = rememberDateFilterState(
-        externalState = state,
-        defaultConstraint = FilterConstraint.EQUALS,
-        autoApply = true,
-        isFastFilter = true,
-        debounceMs = autoFilterDebounce,
-        onStateChange = { filterState ->
-            @Suppress("UNCHECKED_CAST")
-            onChange(spec, filterState as? TableFilterState<T>)
-        }
-    )
+    val dateFilterState =
+        rememberDateFilterState(
+            externalState = state,
+            defaultConstraint = FilterConstraint.EQUALS,
+            autoApply = true,
+            isFastFilter = true,
+            debounceMs = autoFilterDebounce,
+            onStateChange = { filterState ->
+                @Suppress("UNCHECKED_CAST")
+                onChange(spec, filterState as? TableFilterState<T>)
+            },
+        )
 
     DateField(
         value = dateFilterState.firstDate,

@@ -121,7 +121,7 @@ public sealed class TableFilterType<T>(
                 FilterConstraint.LT,
                 FilterConstraint.LTE,
                 FilterConstraint.EQUALS,
-                FilterConstraint.BETWEEN
+                FilterConstraint.BETWEEN,
             ),
     ) : TableFilterType<LocalDate>(constraints)
 

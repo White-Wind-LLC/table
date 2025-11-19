@@ -91,9 +91,10 @@ fun SampleApp(modifier: Modifier = Modifier) {
             dimensions = TableDimensions(defaultColumnWidth = 100.dp),
         )
 
-    val columns = remember {
-        createTableColumns(onToggleMovementExpanded = viewModel::toggleMovementExpanded)
-    }
+    val columns =
+        remember {
+            createTableColumns(onToggleMovementExpanded = viewModel::toggleMovementExpanded)
+        }
 
     // Build customization based on rules + matching logic
     val customization: TableCustomization<Person, PersonColumn> =
@@ -156,10 +157,11 @@ fun SampleApp(modifier: Modifier = Modifier) {
             ) {
                 // Toolbar with theme toggle and conditional formatting button
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(12.dp)
-                        .horizontalScroll(rememberScrollState()),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp)
+                            .horizontalScroll(rememberScrollState()),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
@@ -299,10 +301,11 @@ private fun PersonMovementsSection(person: Person) {
         rememberTableState(columns = PersonMovementColumn.entries.toImmutableList(), settings = movementSettings)
 
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 8.dp, bottom = 8.dp)
-            .padding(horizontal = 16.dp),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp, bottom = 8.dp)
+                .padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         Text(
@@ -318,9 +321,10 @@ private fun PersonMovementsSection(person: Person) {
             columns = columns,
             strings = DefaultStrings,
             rowKey = { item, index -> item?.date ?: index },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
             embedded = true,
         )
     }

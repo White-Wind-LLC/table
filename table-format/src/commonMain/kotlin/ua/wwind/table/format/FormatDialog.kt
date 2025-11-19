@@ -115,7 +115,7 @@ public fun <E : Enum<E>, FILTER> FormatDialog(
                                 onRulesChanged(
                                     rules.toPersistentList().mutate { list ->
                                         list.removeAt(index)
-                                    }
+                                    },
                                 )
                                 editItem = null
                             },
@@ -134,7 +134,7 @@ public fun <E : Enum<E>, FILTER> FormatDialog(
                                 onRulesChanged(
                                     rules.toPersistentList().mutate { list ->
                                         list.add(itemCopy)
-                                    }
+                                    },
                                 )
                                 editItem = null
                                 itemCopyIndex = lastIndex.inc()
@@ -166,7 +166,7 @@ public fun <E : Enum<E>, FILTER> FormatDialog(
                                     } else {
                                         list.add(item)
                                     }
-                                }
+                                },
                             )
                             editItem = null
                         },
@@ -212,9 +212,10 @@ public fun <E : Enum<E>, FILTER> FormatDialog(
         text = {
             editItem?.let { (index, item) ->
                 var currentTab by remember { mutableStateOf(RuleTab.DESIGN) }
-                val data = remember {
-                    RuleTab.entries.map { TabData(it, it.uiString) }.toImmutableList()
-                }
+                val data =
+                    remember {
+                        RuleTab.entries.map { TabData(it, it.uiString) }.toImmutableList()
+                    }
                 FormatDialogTabRow(
                     currentItem = currentTab,
                     onClick = { currentTab = it },
@@ -277,9 +278,10 @@ public fun <E : Enum<E>, FILTER> FormatDialog(
                 }
                 val state =
                     rememberReorderableLazyListState(lazyListState) { from, to ->
-                        rulesState = rulesState.toPersistentList().mutate { list ->
-                            list.add(to.index, list.removeAt(from.index))
-                        }
+                        rulesState =
+                            rulesState.toPersistentList().mutate { list ->
+                                list.add(to.index, list.removeAt(from.index))
+                            }
                     }
                 Box {
                     LazyColumn(state = lazyListState, modifier = Modifier.fillMaxWidth()) {
@@ -341,12 +343,13 @@ public fun <E : Enum<E>, FILTER> FormatDialog(
                                                     val itemIndex =
                                                         rulesState.indexOfFirst { it == item }
                                                     if (itemIndex != -1) {
-                                                        rulesState = rulesState.toPersistentList().mutate { list ->
-                                                            list[itemIndex] =
-                                                                list[itemIndex].copy(
-                                                                    enabled = enabled,
-                                                                )
-                                                        }
+                                                        rulesState =
+                                                            rulesState.toPersistentList().mutate { list ->
+                                                                list[itemIndex] =
+                                                                    list[itemIndex].copy(
+                                                                        enabled = enabled,
+                                                                    )
+                                                            }
                                                         onRulesChanged(rulesState)
                                                     }
                                                 },

@@ -3,14 +3,13 @@ package ua.wwind.table.filter.component.main.text
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import kotlinx.coroutines.FlowPreview
+import ua.wwind.table.component.TableTextField
 import ua.wwind.table.filter.component.FilterDropdownField
 import ua.wwind.table.filter.component.FilterPanelActions
-import ua.wwind.table.component.TableTextField
 import ua.wwind.table.filter.data.TableFilterState
 import ua.wwind.table.filter.data.TableFilterType
 import ua.wwind.table.strings.StringProvider
 import ua.wwind.table.strings.UiString
-
 
 @OptIn(FlowPreview::class)
 @Suppress("LongParameterList")
@@ -24,13 +23,14 @@ internal fun TextFilter(
     autoFilterDebounce: Long,
     onChange: (TableFilterState<String>?) -> Unit,
 ) {
-    val textFilterState = rememberTextFilterState(
-        externalState = state,
-        defaultConstraint = filter.constraints.first(),
-        autoApply = autoApplyFilters,
-        debounceMs = autoFilterDebounce,
-        onStateChange = onChange,
-    )
+    val textFilterState =
+        rememberTextFilterState(
+            externalState = state,
+            defaultConstraint = filter.constraints.first(),
+            autoApply = autoApplyFilters,
+            debounceMs = autoFilterDebounce,
+            onStateChange = onChange,
+        )
     FilterDropdownField(
         currentValue = textFilterState.constraint,
         getTitle = { c -> strings.get(c.toUiString()) },

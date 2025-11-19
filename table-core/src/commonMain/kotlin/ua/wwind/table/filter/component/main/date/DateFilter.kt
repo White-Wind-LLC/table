@@ -38,6 +38,7 @@ import ua.wwind.table.filter.data.TableFilterType
 import ua.wwind.table.strings.StringProvider
 import ua.wwind.table.strings.UiString
 import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 
 @OptIn(FlowPreview::class, ExperimentalTime::class)
 @Suppress("LongParameterList")
@@ -51,13 +52,14 @@ internal fun DateFilter(
     autoFilterDebounce: Long,
     onChange: (TableFilterState<LocalDate>?) -> Unit,
 ) {
-    val dateFilterState = rememberDateFilterState(
-        externalState = state,
-        defaultConstraint = filter.constraints.first(),
-        autoApply = autoApplyFilters,
-        debounceMs = autoFilterDebounce,
-        onStateChange = onChange,
-    )
+    val dateFilterState =
+        rememberDateFilterState(
+            externalState = state,
+            defaultConstraint = filter.constraints.first(),
+            autoApply = autoApplyFilters,
+            debounceMs = autoFilterDebounce,
+            onStateChange = onChange,
+        )
 
     val isBetween = dateFilterState.constraint == FilterConstraint.BETWEEN
 
@@ -127,22 +129,23 @@ internal fun DateField(
         if (it is PressInteraction.Release) showDatePickerDialog = true
     }
 
-    val datePickerState = rememberDatePickerState(
-        initialSelectedDateMillis = value?.atStartOfDayIn(TimeZone.UTC)?.epochSeconds?.times(1000),
-        yearRange = IntRange(1, 2100),
-        selectableDates = object : SelectableDates {
-            override fun isSelectableDate(utcTimeMillis: Long): Boolean {
-                return dateValidator(utcTimeMillis)
-            }
-        },
-    )
+    val datePickerState =
+        rememberDatePickerState(
+            initialSelectedDateMillis = value?.atStartOfDayIn(TimeZone.UTC)?.epochSeconds?.times(1000),
+            yearRange = IntRange(1, 2100),
+            selectableDates =
+                object : SelectableDates {
+                    override fun isSelectableDate(utcTimeMillis: Long): Boolean = dateValidator(utcTimeMillis)
+                },
+        )
 
     TableTextField(
         value = value?.toFormatString().orEmpty(),
         onValueChange = {},
-        placeholder = label ?: {
-            Text(text = strings.get(UiString.DatePickerSelectDate), maxLines = 1)
-        },
+        placeholder =
+            label ?: {
+                Text(text = strings.get(UiString.DatePickerSelectDate), maxLines = 1)
+            },
         readOnly = true,
         interactionSource = interactionSource,
         modifier = modifier,
@@ -162,8 +165,10 @@ internal fun DateField(
                         showDatePickerDialog = false
                         datePickerState.selectedDateMillis?.let {
                             onDateSelected(
-                                kotlin.time.Instant.fromEpochMilliseconds(it)
-                                    .toLocalDateTime(TimeZone.currentSystemDefault()).date,
+                                Instant
+                                    .fromEpochMilliseconds(it)
+                                    .toLocalDateTime(TimeZone.currentSystemDefault())
+                                    .date,
                             )
                         }
                     },
@@ -197,14 +202,13 @@ internal fun DateField(
     }
 }
 
-internal fun LocalDate.toFormatString(): String {
-    return this.format(
+internal fun LocalDate.toFormatString(): String =
+    this.format(
         LocalDate.Format {
             day()
             chars(".")
             monthNumber()
             chars(".")
             year()
-        }
+        },
     )
-}

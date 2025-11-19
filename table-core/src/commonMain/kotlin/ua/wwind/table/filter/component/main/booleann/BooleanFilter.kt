@@ -32,12 +32,13 @@ internal fun BooleanFilter(
         "Boolean filter supports only EQUALS constraint"
     }
 
-    val booleanFilterState = rememberBooleanFilterState(
-        externalState = state,
-        autoApply = autoApplyFilters,
-        debounceMs = autoFilterDebounce,
-        onStateChange = onChange,
-    )
+    val booleanFilterState =
+        rememberBooleanFilterState(
+            externalState = state,
+            autoApply = autoApplyFilters,
+            debounceMs = autoFilterDebounce,
+            onStateChange = onChange,
+        )
 
     Row(
         modifier = Modifier.fillMaxWidth(),

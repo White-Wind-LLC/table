@@ -22,17 +22,18 @@ internal fun <T : Any, C> FastTextFilter(
     strings: StringProvider,
     onChange: (ColumnSpec<T, C>, TableFilterState<T>?) -> Unit,
 ) {
-    val textFilterState = rememberTextFilterState(
-        externalState = state,
-        defaultConstraint = FilterConstraint.CONTAINS,
-        autoApply = true,
-        isFastFilter = true,
-        debounceMs = autoFilterDebounce,
-        onStateChange = { filterState ->
-            @Suppress("UNCHECKED_CAST")
-            onChange(spec, filterState as? TableFilterState<T>)
-        }
-    )
+    val textFilterState =
+        rememberTextFilterState(
+            externalState = state,
+            defaultConstraint = FilterConstraint.CONTAINS,
+            autoApply = true,
+            isFastFilter = true,
+            debounceMs = autoFilterDebounce,
+            onStateChange = { filterState ->
+                @Suppress("UNCHECKED_CAST")
+                onChange(spec, filterState as? TableFilterState<T>)
+            },
+        )
 
     TableTextField(
         value = textFilterState.text,
@@ -41,7 +42,7 @@ internal fun <T : Any, C> FastTextFilter(
         placeholder = {
             Text(
                 text = strings.get(UiString.FilterSearchPlaceholder),
-                maxLines = 1
+                maxLines = 1,
             )
         },
         singleLine = true,

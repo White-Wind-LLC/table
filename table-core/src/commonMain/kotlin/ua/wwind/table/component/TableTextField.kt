@@ -116,7 +116,7 @@ internal fun TableTextField(
                     colors = colors,
                     shape = shape,
                 )
-            }
+            },
         )
     }
 }
@@ -135,12 +135,13 @@ internal object TableTextFieldDefaults {
         top: Dp = 16.dp,
         end: Dp = 16.dp,
         bottom: Dp = 16.dp,
-    ): PaddingValues = OutlinedTextFieldDefaults.contentPadding(
-        start = start,
-        top = top,
-        end = end,
-        bottom = bottom,
-    )
+    ): PaddingValues =
+        OutlinedTextFieldDefaults.contentPadding(
+            start = start,
+            top = top,
+            end = end,
+            bottom = bottom,
+        )
 
     /**
      * Reduced content padding for [TableTextField] to achieve a more compact appearance.
@@ -152,10 +153,11 @@ internal object TableTextFieldDefaults {
         top: Dp = 4.dp,
         end: Dp = 12.dp,
         bottom: Dp = 4.dp,
-    ): PaddingValues = OutlinedTextFieldDefaults.contentPadding(
-        start = start,
-        top = top,
-        end = end,
-        bottom = bottom,
-    )
+    ): PaddingValues =
+        OutlinedTextFieldDefaults.contentPadding(
+            start = start,
+            top = top,
+            end = end,
+            bottom = bottom,
+        )
 }
