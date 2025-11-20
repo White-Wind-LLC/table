@@ -530,6 +530,20 @@ Public API highlights:
 
 - Android, JVM (Desktop), JS (Web), iOS (KMP source sets present; targets enabled via project conventions).
 
+### Third-Party Libraries
+
+This project uses the following open source libraries:
+
+| Library                                                                                  | License            | Description                                                    |
+|------------------------------------------------------------------------------------------|--------------------|----------------------------------------------------------------|
+| [Reorderable](https://github.com/Calvin-LL/Reorderable)                                  | Apache License 2.0 | Drag and drop functionality for reordering items in Compose    |
+| [Paging for KMP](https://github.com/White-Wind-LLC/paging-kmp)                           | Apache License 2.0 | Kotlin Multiplatform paging library                            |
+| [ColorPicker Compose](https://github.com/skydoves/colorpicker-compose)                   | Apache License 2.0 | Color picker component for Jetpack Compose                     |
+| [Kermit](https://github.com/touchlab/Kermit)                                             | Apache License 2.0 | Kotlin Multiplatform logging library                           |
+
+All third-party libraries are used in compliance with their respective licenses. For detailed license information, see
+the individual library repositories linked above.
+
 ### License
 
 Licensed under the Apache License, Version 2.0. See [LICENSE](LICENSE) for details.

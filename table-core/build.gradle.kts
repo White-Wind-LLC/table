@@ -9,7 +9,6 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            api(libs.dnd)
             implementation(libs.reorderable)
             implementation(libs.kotlinx.datetime)
         }

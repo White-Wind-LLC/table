@@ -112,19 +112,15 @@ kotlin {
         }
 
         jvmMain.dependencies {
-            // implementation(libs.firebase.analytics)
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutines.swing)
-            implementation(libs.okio)
         }
 
         jsMain.dependencies {
-            // implementation(libs.firebase.analytics)
             implementation(compose.html.core)
         }
 
         iosMain.dependencies {
-            // implementation(libs.firebase.analytics)
         }
     }
 }

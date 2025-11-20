@@ -24,7 +24,6 @@ androidx-lifecycle = "2.9.6"
 kotlinx-coroutines = "1.10.2"
 coroutines-test-ver = "1.10.2"
 kotlinx-datetime = "0.7.1"
-okio = "3.16.4"
 collections-immutable = "0.4.0"
 
 # --- Logging & Monitoring ---
@@ -34,7 +33,6 @@ slf4j = "2.0.17"
 # --- UI & UX ---
 reorderable = "3.0.0"
 paging = "2.2.3"
-dnd = "0.4.0"
 colorpicker = "1.1.3"
 
 # --- Testing & Tooling ---
@@ -56,7 +54,6 @@ androidx-activity-compose = { module = "androidx.activity:activity-compose", ver
 
 # --- Kotlin & Core Utils ---
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
-okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 collections-immutable = { module = "org.jetbrains.kotlinx:kotlinx-collections-immutable", version.ref = "collections-immutable" }
 
 # --- Coroutines ---
@@ -66,7 +63,6 @@ kotlinx-coroutines-swing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-
 # --- UI: Compose & Navigation ---
 reorderable = { module = "sh.calvin.reorderable:reorderable", version.ref = "reorderable" }
 paging-core = { module = "ua.wwind.paging:paging-core", version.ref = "paging" }
-dnd = { module = "com.mohamedrejeb.dnd:compose-dnd", version.ref = "dnd" }
 colorpicker = { module = "com.github.skydoves:colorpicker-compose", version.ref = "colorpicker" }
 
 # --- Logging & Monitoring ---
