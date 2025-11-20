@@ -7,6 +7,8 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.runtime.Composable
@@ -56,7 +58,7 @@ internal fun TableTextField(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     readOnly: Boolean = false,
-    textStyle: TextStyle = TextStyle.Default,
+    textStyle: TextStyle = LocalTextStyle.current,
     label: @Composable (() -> Unit)? = null,
     placeholder: @Composable (() -> Unit)? = null,
     leadingIcon: @Composable (() -> Unit)? = null,
@@ -76,13 +78,18 @@ internal fun TableTextField(
     colors: TextFieldColors = OutlinedTextFieldDefaults.colors(),
     contentPadding: PaddingValues = TableTextFieldDefaults.contentPadding(),
 ) {
+    // Merge text style with color from theme to ensure proper text visibility in dark mode
+    val mergedTextStyle = textStyle.merge(
+        TextStyle(color = MaterialTheme.colorScheme.onSurface)
+    )
+
     BasicTextField(
         value = value,
         onValueChange = onValueChange,
         modifier = modifier.fillMaxWidth(),
         enabled = enabled,
         readOnly = readOnly,
-        textStyle = textStyle,
+        textStyle = mergedTextStyle,
         keyboardOptions = keyboardOptions,
         keyboardActions = keyboardActions,
         singleLine = singleLine,
