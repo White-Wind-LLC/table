@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+### 1.5.1 — 2025-11-20
+
+- Fixed: Ensure `TableTextField` (table text field) uses the current theme's default text style to improve text
+  visibility and consistency with app theming.
+- Removed: Unused `okio` and `dnd` references from build scripts; updated documentation to reflect removed third-party
+  libraries.
+
+Compare: [v1.5.0...v1.5.1](https://github.com/White-Wind-LLC/table/compare/v1.5.0...v1.5.1)
+
 ### 1.5.0 — 2025-11-20
 
 - Added: Fixed (pinned) columns support with configurable side and count via `TableSettings`.
