@@ -19,6 +19,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.Unspecified
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.graphicsLayer
@@ -35,8 +36,10 @@ import ua.wwind.table.config.SelectionMode
 import ua.wwind.table.config.TableCellContext
 import ua.wwind.table.config.TableCellStyle
 import ua.wwind.table.config.TableCustomization
+import ua.wwind.table.config.TableDimensions
 import ua.wwind.table.config.TableRowContext
 import ua.wwind.table.config.TableRowStyle
+import ua.wwind.table.config.TableSettings
 import ua.wwind.table.interaction.tableRowInteractions
 import ua.wwind.table.state.TableState
 import ua.wwind.table.state.calculateFixedColumnState
@@ -121,126 +124,171 @@ internal fun <T : Any, C> TableRowItem(
             }
         }
 
-        Column(modifier = Modifier.width(tableWidth)) {
-            item?.let { itItem ->
-                Row(
-                    modifier =
-                        rowModifier.onGloballyPositioned { coordinates ->
-                            state.updateRowHeight(index, coordinates.size.height)
-                        },
-                ) {
-                    visibleColumns.forEachIndexed { colIndex, spec ->
-                        val width = state.columnWidths[spec.key] ?: spec.width ?: dimensions.defaultColumnWidth
-                        var cellTopLeft by remember(spec.key, index) { mutableStateOf(Offset.Zero) }
-                        val cellStyle: TableCellStyle =
-                            customization.resolveCellStyle(
-                                TableCellContext(
-                                    row =
-                                        TableRowContext(
-                                            item = itItem,
-                                            index = index,
-                                            isSelected = isSelected,
-                                            isStriped = state.settings.stripedRows && (index % 2 != 0),
-                                            isGroup = false,
-                                            isDeleted = false,
-                                        ),
-                                    column = spec.key,
-                                ),
-                            )
+        if (item != null) {
+            Column(modifier = Modifier.width(tableWidth)) {
+                RenderTableRowItem(
+                    rowModifier = rowModifier,
+                    state = state,
+                    index = index,
+                    visibleColumns = visibleColumns,
+                    dimensions = dimensions,
+                    customization = customization,
+                    item = item,
+                    isSelected = isSelected,
+                    settings = settings,
+                    horizontalState = horizontalState,
+                    finalRowColor = finalRowColor,
+                    isDynamicRowHeight = isDynamicRowHeight,
+                    requestTableFocus = requestTableFocus,
+                    onRowClick = onRowClick,
+                    onRowLongClick = onRowLongClick,
+                    onContextMenu = onContextMenu
+                )
 
-                        val isCellSelected =
-                            state.selectedCell?.let { it.rowIndex == index && it.column == spec.key } == true
+                rowEmbedded?.invoke(index, item)
+            }
+        } else {
+            Row(
+                modifier =
+                    if (isDynamicRowHeight)
+                        Modifier
+                    else
+                        Modifier
+                            .height(dimensions.rowHeight)
+                            .width(tableWidth),
+                verticalAlignment = Alignment.CenterVertically,
+            ) { placeholderRow?.invoke() }
+        }
+    }
+}
 
-                        val fixedState =
-                            calculateFixedColumnState(
-                                columnIndex = colIndex,
-                                totalVisibleColumns = visibleColumns.size,
-                                fixedColumnsCount = settings.fixedColumnsCount,
-                                fixedColumnsSide = settings.fixedColumnsSide,
-                                horizontalState = horizontalState,
-                            )
+@Composable
+private fun <C, T : Any> RenderTableRowItem(
+    rowModifier: Modifier,
+    state: TableState<C>,
+    index: Int,
+    visibleColumns: ImmutableList<ColumnSpec<T, C>>,
+    dimensions: TableDimensions,
+    customization: TableCustomization<T, C>,
+    item: T,
+    isSelected: Boolean,
+    settings: TableSettings,
+    horizontalState: ScrollState,
+    finalRowColor: Color,
+    isDynamicRowHeight: Boolean,
+    requestTableFocus: () -> Unit,
+    onRowClick: ((T) -> Unit)?,
+    onRowLongClick: ((T) -> Unit)?,
+    onContextMenu: ((T, Offset) -> Unit)?
+) {
+    Row(
+        modifier =
+            rowModifier.onGloballyPositioned { coordinates ->
+                state.updateRowHeight(index, coordinates.size.height)
+            },
+    ) {
+        visibleColumns.forEachIndexed { colIndex, spec ->
+            val width = state.columnWidths[spec.key] ?: spec.width ?: dimensions.defaultColumnWidth
+            var cellTopLeft by remember(spec.key, index) { mutableStateOf(Offset.Zero) }
+            val cellStyle: TableCellStyle =
+                customization.resolveCellStyle(
+                    TableCellContext(
+                        row =
+                            TableRowContext(
+                                item = item,
+                                index = index,
+                                isSelected = isSelected,
+                                isStriped = state.settings.stripedRows && (index % 2 != 0),
+                                isGroup = false,
+                                isDeleted = false,
+                            ),
+                        column = spec.key,
+                    ),
+                )
 
-                        // For fixed columns, always ensure there's a solid background
-                        // Use the row background color for fixed cells to prevent transparency
-                        val finalCellStyle =
-                            if (fixedState.isFixed) {
-                                // Always use row background for fixed columns to ensure opacity
-                                val backgroundToUse = if (cellStyle.background != Unspecified) {
-                                    cellStyle.background
-                                } else {
-                                    finalRowColor
-                                }
-                                cellStyle.copy(background = backgroundToUse)
-                            } else {
-                                cellStyle
-                            }
-                        val dividerThickness =
-                            if (fixedState.isLastLeftFixed) {
-                                dimensions.fixedColumnDividerThickness
-                            } else {
-                                dimensions.dividerThickness
-                            }
+            val isCellSelected =
+                state.selectedCell?.let { it.rowIndex == index && it.column == spec.key } == true
 
-                        TableCell(
-                            width = width,
-                            height = if (isDynamicRowHeight) null else dimensions.rowHeight,
-                            dividerThickness = dividerThickness,
-                            cellStyle = finalCellStyle,
-                            alignment = spec.alignment,
-                            isSelected = isCellSelected,
-                            showLeftDivider = fixedState.isFirstRightFixed,
-                            leftDividerThickness = dimensions.fixedColumnDividerThickness,
-                            showRightDivider = !fixedState.isLastBeforeRightFixed,
-                            isFixed = fixedState.isFixed,
-                            modifier =
-                                Modifier
-                                    .zIndex(fixedState.zIndex)
-                                    .graphicsLayer {
-                                        this.translationX = fixedState.translationX
-                                    }.onGloballyPositioned { coordinates ->
-                                        cellTopLeft = coordinates.positionInRoot()
-                                    }.then(
-                                        Modifier.tableRowInteractions(
-                                            item = itItem,
-                                            onFocus = {
-                                                requestTableFocus()
-                                                state.selectCell(index, spec.key)
-                                                state.focusRow(index)
-                                            },
-                                            useSelectAsPrimary = state.settings.selectionMode != SelectionMode.None,
-                                            onSelect = { state.toggleSelect(index) },
-                                            onClick = onRowClick,
-                                            onLongClick = onRowLongClick,
-                                            onContextMenu =
-                                                onContextMenu?.let { handler ->
-                                                    { itemCtx, localPos -> handler(itemCtx, cellTopLeft + localPos) }
-                                                },
-                                        ),
-                                    ),
-                        ) {
-                            if (spec.resizable || spec.autoWidth) {
-                                Box(Modifier.size(0.dp)) {
-                                    MeasureCellMinWidth(
-                                        item = itItem,
-                                        measureKey = Pair(spec.key, index),
-                                        content = spec.cell,
-                                    ) { measuredMinWidth ->
-                                        val adjusted = maxOf(measuredMinWidth, spec.minWidth)
-                                        state.updateMaxContentWidth(spec.key, adjusted)
-                                    }
-                                }
-                            }
-                            spec.cell.invoke(this, itItem)
+            val fixedState =
+                calculateFixedColumnState(
+                    columnIndex = colIndex,
+                    totalVisibleColumns = visibleColumns.size,
+                    fixedColumnsCount = settings.fixedColumnsCount,
+                    fixedColumnsSide = settings.fixedColumnsSide,
+                    horizontalState = horizontalState,
+                )
+
+            // For fixed columns, always ensure there's a solid background
+            // Use the row background color for fixed cells to prevent transparency
+            val finalCellStyle =
+                if (fixedState.isFixed) {
+                    // Always use row background for fixed columns to ensure opacity
+                    val backgroundToUse = if (cellStyle.background != Unspecified) {
+                        cellStyle.background
+                    } else {
+                        finalRowColor
+                    }
+                    cellStyle.copy(background = backgroundToUse)
+                } else {
+                    cellStyle
+                }
+            val dividerThickness =
+                if (fixedState.isLastLeftFixed) {
+                    dimensions.fixedColumnDividerThickness
+                } else {
+                    dimensions.dividerThickness
+                }
+
+            TableCell(
+                width = width,
+                height = if (isDynamicRowHeight) null else dimensions.rowHeight,
+                dividerThickness = dividerThickness,
+                cellStyle = finalCellStyle,
+                alignment = spec.alignment,
+                isSelected = isCellSelected,
+                showLeftDivider = fixedState.isFirstRightFixed,
+                leftDividerThickness = dimensions.fixedColumnDividerThickness,
+                showRightDivider = !fixedState.isLastBeforeRightFixed,
+                isFixed = fixedState.isFixed,
+                modifier =
+                    Modifier
+                        .zIndex(fixedState.zIndex)
+                        .graphicsLayer {
+                            this.translationX = fixedState.translationX
+                        }.onGloballyPositioned { coordinates ->
+                            cellTopLeft = coordinates.positionInRoot()
+                        }.then(
+                            Modifier.tableRowInteractions(
+                                item = item,
+                                onFocus = {
+                                    requestTableFocus()
+                                    state.selectCell(index, spec.key)
+                                    state.focusRow(index)
+                                },
+                                useSelectAsPrimary = state.settings.selectionMode != SelectionMode.None,
+                                onSelect = { state.toggleSelect(index) },
+                                onClick = onRowClick,
+                                onLongClick = onRowLongClick,
+                                onContextMenu =
+                                    onContextMenu?.let { handler ->
+                                        { itemCtx, localPos -> handler(itemCtx, cellTopLeft + localPos) }
+                                    },
+                            ),
+                        ),
+            ) {
+                if (spec.resizable || spec.autoWidth) {
+                    Box(Modifier.size(0.dp)) {
+                        MeasureCellMinWidth(
+                            item = item,
+                            measureKey = Pair(spec.key, index),
+                            content = spec.cell,
+                        ) { measuredMinWidth ->
+                            val adjusted = maxOf(measuredMinWidth, spec.minWidth)
+                            state.updateMaxContentWidth(spec.key, adjusted)
                         }
                     }
                 }
-
-                rowEmbedded?.invoke(index, itItem)
-            } ?: run {
-                Row(
-                    modifier = (if (isDynamicRowHeight) Modifier else Modifier.height(dimensions.rowHeight)),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) { placeholderRow?.invoke() }
+                spec.cell.invoke(this, item)
             }
         }
     }
