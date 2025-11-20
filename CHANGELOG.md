@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+### 1.5.0 — 2025-11-21
+
+- Added: Fixed (pinned) columns support with configurable side and count via `TableSettings`.
+    - New `fixedColumnsCount` and `fixedColumnsSide` properties allow pinning one or more columns on the left or right
+      side of the table header and body.
+    - Fixed columns remain visible while horizontally scrolling the rest of the table.
+    - Visual separators and z-index handling ensure clear separation between fixed and scrollable columns.
+- Added: Public access to `TableState.settings` and `TableState.dimensions` to simplify integration with custom UI
+  controls and preview tooling.
+
+Compare: [v1.4.1...v1.5.0](https://github.com/White-Wind-LLC/table/compare/v1.4.1...v1.5.0)
+
 ### 1.4.1 — 2025-11-20
 
 **BREAKING CHANGES:**

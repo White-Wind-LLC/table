@@ -36,6 +36,7 @@ Live demo: [white-wind-llc.github.io/table](https://white-wind-llc.github.io/tab
   alignment).
 - i18n via `StringProvider` (default `DefaultStrings`).
 - Targets: Android / JVM (Desktop) / JS (Web) / iOS (KMP source sets present; targets enabled via project conventions).
+- Fixed (pinned) columns with configurable side (left/right) and count.
 
 ### Installation
 
@@ -43,10 +44,10 @@ Add repository (usually `mavenCentral`) and include the modules you need:
 
 ```kotlin
 dependencies {
-    implementation("ua.wwind.table-kmp:table-core:1.4.0")
+    implementation("ua.wwind.table-kmp:table-core:1.5.0")
     // optional
-    implementation("ua.wwind.table-kmp:table-format:1.4.0")
-    implementation("ua.wwind.table-kmp:table-paging:1.4.0")
+    implementation("ua.wwind.table-kmp:table-format:1.5.0")
+    implementation("ua.wwind.table-kmp:table-paging:1.5.0")
 }
 ```
 
