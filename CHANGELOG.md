@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-### 1.5.0 — 2025-11-21
+### 1.5.0 — 2025-11-20
 
 - Added: Fixed (pinned) columns support with configurable side and count via `TableSettings`.
     - New `fixedColumnsCount` and `fixedColumnsSide` properties allow pinning one or more columns on the left or right
