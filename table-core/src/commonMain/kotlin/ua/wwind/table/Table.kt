@@ -22,7 +22,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.geometry.Offset
@@ -180,37 +179,7 @@ public fun <T : Any, C> Table(
         )
         val enableScrolling = remember { !getPlatform().isMobile() && !embedded }
 
-        val surfaceModifier =
-            modifier
-                .then(
-                    if (embedded) {
-                        Modifier
-                    } else {
-                        Modifier.draggableTable(
-                            horizontalState = horizontalState,
-                            verticalState = verticalState,
-                            blockParentScrollConnection =
-                            blockParentScrollConnection,
-                            nestedScrollDispatcher = nestedScrollDispatcher,
-                            enableScrolling = enableScrolling,
-                            enableDragToScroll =
-                                state.settings.enableDragToScroll,
-                            coroutineScope = coroutineScope,
-                        )
-                    },
-                ).clip(shape)
-                .tableKeyboardNavigation(
-                    focusRequester = tableFocusRequester,
-                    itemsCount = itemsCount,
-                    state = state,
-                    visibleColumns = visibleColumns,
-                    verticalState = verticalState,
-                    horizontalState = horizontalState,
-                    tableWidth = tableWidth,
-                    density = density,
-                    coroutineScope = coroutineScope,
-                )
-
+        // Outer container with border and shape - always maintains visual form
         Surface(
             shape = shape,
             border =
@@ -218,10 +187,40 @@ public fun <T : Any, C> Table(
                     state.dimensions.dividerThickness,
                     MaterialTheme.colorScheme.outlineVariant,
                 ),
-            modifier = surfaceModifier,
+            modifier = modifier,
         ) {
+            // Inner content with clipping and interactions
+            val innerModifier =
+                Modifier
+                    .then(
+                        if (embedded) {
+                            Modifier
+                        } else {
+                            Modifier.draggableTable(
+                                horizontalState = horizontalState,
+                                verticalState = verticalState,
+                                blockParentScrollConnection = blockParentScrollConnection,
+                                nestedScrollDispatcher = nestedScrollDispatcher,
+                                enableScrolling = enableScrolling,
+                                enableDragToScroll = state.settings.enableDragToScroll,
+                                coroutineScope = coroutineScope,
+                            )
+                        },
+                    ).clipToBounds()
+                    .tableKeyboardNavigation(
+                        focusRequester = tableFocusRequester,
+                        itemsCount = itemsCount,
+                        state = state,
+                        visibleColumns = visibleColumns,
+                        verticalState = verticalState,
+                        horizontalState = horizontalState,
+                        tableWidth = tableWidth,
+                        density = density,
+                        coroutineScope = coroutineScope,
+                    )
+
             Column(
-                modifier = Modifier,
+                modifier = innerModifier,
             ) {
                 if (state.settings.showActiveFiltersHeader) {
                     ActiveFiltersHeader(
@@ -242,10 +241,11 @@ public fun <T : Any, C> Table(
                     dimensions = dimensions,
                     strings = strings,
                     icons = icons,
+                    horizontalState = horizontalState,
                 )
                 HorizontalDivider(modifier = Modifier.width(tableWidth))
 
-                Box(modifier = Modifier.clipToBounds()) {
+                Box {
                     if (embedded) {
                         TableBodyEmbedded(
                             itemsCount = itemsCount,
@@ -318,13 +318,13 @@ public fun <T : Any, C> Table(
                 }
             }
         }
+
+        ContextMenuHost(
+            contextMenuState = contextMenuState,
+            contextMenu = contextMenu,
+            onDismiss = { contextMenuState = contextMenuState.copy(visible = false) },
+        )
+
+        ApplyAutoWidthEffect(visibleColumns, itemsCount, verticalState, state)
     }
-
-    ContextMenuHost(
-        contextMenuState = contextMenuState,
-        contextMenu = contextMenu,
-        onDismiss = { contextMenuState = contextMenuState.copy(visible = false) },
-    )
-
-    ApplyAutoWidthEffect(visibleColumns, itemsCount, verticalState, state)
 }

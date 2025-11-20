@@ -77,6 +77,7 @@ internal fun <T : Any, C> TableBody(
         placeholderRow = placeholderRow,
         verticalState = verticalState,
         requestTableFocus = requestTableFocus,
+        horizontalState = horizontalState,
     )
 }
 
@@ -101,7 +102,7 @@ internal fun <T : Any, C> TableBodyEmbedded(
 ) {
     if (itemsCount <= 0) return
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column {
         for (index in 0 until itemsCount) {
             TableBodyRow(
                 index = index,
@@ -190,6 +191,7 @@ private fun <T : Any, C> TableBodyRow(
         onRowLongClick = onRowLongClick,
         onContextMenu = onContextMenu,
         requestTableFocus = requestTableFocus,
+        horizontalState = horizontalState,
     )
 
     HorizontalDivider(

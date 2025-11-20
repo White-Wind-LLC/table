@@ -1,0 +1,12 @@
+{
+    "rules": [
+        "The project based on Compose Multiplatform and use Android, JVM Desktop, iOS, JS, WASM targets",
+        "For project gradle building use only JVM target if I do not provide you with another instruction about building",
+        {
+            "filePathMatches": "**/*.md",
+            "rules": [
+                "Use only English language"
+            ]
+        }
+    ]
+}

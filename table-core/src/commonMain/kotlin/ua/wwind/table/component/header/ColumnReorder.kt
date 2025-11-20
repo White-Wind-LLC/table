@@ -6,7 +6,6 @@ internal fun <C> computeReorderMove(
     fullOrder: List<C>,
     visibleKeys: List<C>,
 ): Pair<Int, Int>? {
-
     if (fromIndex !in visibleKeys.indices) return null
 
     val fromKey = visibleKeys[fromIndex]

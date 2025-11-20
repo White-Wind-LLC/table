@@ -19,6 +19,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -35,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.toImmutableList
 import ua.wwind.table.ExperimentalTableApi
 import ua.wwind.table.Table
+import ua.wwind.table.config.FixedSide
 import ua.wwind.table.config.RowHeightMode
 import ua.wwind.table.config.SelectionMode
 import ua.wwind.table.config.TableCustomization
@@ -69,8 +71,11 @@ fun SampleApp(modifier: Modifier = Modifier) {
 
     var enableDragToScroll by remember { mutableStateOf(true) }
 
+    var fixedColumnsCount by remember { mutableStateOf(0) }
+    var fixedColumnsSide by remember { mutableStateOf(FixedSide.Left) }
+
     val settings =
-        remember(useStripedRows, showFastFilters, enableDragToScroll) {
+        remember(useStripedRows, showFastFilters, enableDragToScroll, fixedColumnsCount, fixedColumnsSide) {
             TableSettings(
                 isDragEnabled = false,
                 autoApplyFilters = true,
@@ -81,6 +86,8 @@ fun SampleApp(modifier: Modifier = Modifier) {
                 selectionMode = SelectionMode.None,
                 rowHeightMode = RowHeightMode.Dynamic,
                 enableDragToScroll = enableDragToScroll,
+                fixedColumnsCount = fixedColumnsCount,
+                fixedColumnsSide = fixedColumnsSide,
             )
         }
 
@@ -212,6 +219,31 @@ fun SampleApp(modifier: Modifier = Modifier) {
                             onCheckedChange = { enableDragToScroll = it },
                         )
                     }
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        Text("Fixed cols:")
+                        OutlinedButton(onClick = { if (fixedColumnsCount > 0) fixedColumnsCount-- }) {
+                            Text("-")
+                        }
+                        Text("$fixedColumnsCount")
+                        OutlinedButton(onClick = { fixedColumnsCount++ }) {
+                            Text("+")
+                        }
+                    }
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        Text("Fixed Side: $fixedColumnsSide")
+                        Switch(
+                            checked = fixedColumnsSide == FixedSide.Right,
+                            onCheckedChange = { fixedColumnsSide = if (it) FixedSide.Right else FixedSide.Left },
+                        )
+                    }
                 }
                 HorizontalDivider()
 
@@ -231,7 +263,13 @@ fun SampleApp(modifier: Modifier = Modifier) {
                             enter = expandVertically() + fadeIn(),
                             exit = shrinkVertically() + fadeOut(),
                         ) {
-                            PersonMovementsSection(person = person)
+                            Column {
+                                HorizontalDivider(
+                                    thickness = state.dimensions.dividerThickness,
+                                    modifier = Modifier.fillMaxWidth(),
+                                )
+                                PersonMovementsSection(person = person)
+                            }
                         }
                     },
                     modifier = Modifier.padding(16.dp),
@@ -303,7 +341,6 @@ private fun PersonMovementsSection(person: Person) {
     Column(
         modifier =
             Modifier
-                .fillMaxWidth()
                 .padding(top = 8.dp, bottom = 8.dp)
                 .padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp),
@@ -321,10 +358,7 @@ private fun PersonMovementsSection(person: Person) {
             columns = columns,
             strings = DefaultStrings,
             rowKey = { item, index -> item?.date ?: index },
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp),
+            modifier = Modifier.padding(top = 8.dp),
             embedded = true,
         )
     }

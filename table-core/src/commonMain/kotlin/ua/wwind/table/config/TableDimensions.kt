@@ -13,4 +13,5 @@ public data class TableDimensions(
     val rowHeight: Dp = 52.dp,
     val headerHeight: Dp = 56.dp,
     val dividerThickness: Dp = 1.dp,
+    val fixedColumnDividerThickness: Dp = dividerThickness * 2,
 )

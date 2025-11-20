@@ -1,5 +1,6 @@
 package ua.wwind.table.component.body
 
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.Composable
@@ -41,6 +42,7 @@ internal fun <T : Any, C> TableViewportPrefetcher(
     placeholderRow: (@Composable () -> Unit)?,
     verticalState: LazyListState,
     requestTableFocus: () -> Unit,
+    horizontalState: ScrollState,
 ) {
     // Only meaningful for dynamic row heights
     if (state.settings.rowHeightMode != RowHeightMode.Dynamic) return
@@ -106,6 +108,7 @@ internal fun <T : Any, C> TableViewportPrefetcher(
                                 onRowLongClick = null,
                                 onContextMenu = null,
                                 requestTableFocus = requestTableFocus,
+                                horizontalState = horizontalState,
                             )
                         }
                     val placeables = measurables.map { it.measure(constraints) }

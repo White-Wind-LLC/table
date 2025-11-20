@@ -5,6 +5,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.height
@@ -50,6 +51,7 @@ internal fun <T : Any, C> TableHeader(
     rowContainerColor: Color,
     dimensions: TableDimensions,
     strings: StringProvider,
+    horizontalState: ScrollState,
     icons: TableHeaderIcons =
         TableHeaderIcons(
             sortAsc = Icons.Rounded.ArrowUpward,
@@ -87,6 +89,7 @@ internal fun <T : Any, C> TableHeader(
                         filterColumn = filterColumn,
                         onFilterColumnChange = { filterColumn = it },
                         isResizing = isResizing,
+                        horizontalState = horizontalState,
                     )
 
                     ColumnResizersOverlay(
@@ -121,6 +124,7 @@ internal fun <T : Any, C> TableHeader(
                 state = state,
                 strings = strings,
                 onChange = { spec, newState -> state.setFilter(spec.key, newState) },
+                horizontalState = horizontalState,
             )
         }
     }

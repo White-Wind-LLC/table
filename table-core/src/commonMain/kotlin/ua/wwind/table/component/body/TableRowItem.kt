@@ -1,5 +1,6 @@
 package ua.wwind.table.component.body
 
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -8,7 +9,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
@@ -21,10 +21,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color.Companion.Unspecified
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import kotlinx.collections.immutable.ImmutableList
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.MeasureCellMinWidth
@@ -37,6 +39,7 @@ import ua.wwind.table.config.TableRowContext
 import ua.wwind.table.config.TableRowStyle
 import ua.wwind.table.interaction.tableRowInteractions
 import ua.wwind.table.state.TableState
+import ua.wwind.table.state.calculateFixedColumnState
 
 @Composable
 @Suppress("LongParameterList", "LongMethod", "CyclomaticComplexMethod")
@@ -54,10 +57,12 @@ internal fun <T : Any, C> TableRowItem(
     onRowLongClick: ((T) -> Unit)?,
     onContextMenu: ((T, Offset) -> Unit)?,
     requestTableFocus: () -> Unit,
+    horizontalState: ScrollState,
 ) {
     val dimensions = state.dimensions
     val isSelected = state.selectedIndex == index
     val isDynamicRowHeight = state.settings.rowHeightMode == RowHeightMode.Dynamic
+    val settings = state.settings
 
     val defaultRowBackgroundColor =
         when {
@@ -116,7 +121,7 @@ internal fun <T : Any, C> TableRowItem(
             }
         }
 
-        Column {
+        Column(modifier = Modifier.width(tableWidth)) {
             item?.let { itItem ->
                 Row(
                     modifier =
@@ -124,7 +129,7 @@ internal fun <T : Any, C> TableRowItem(
                             state.updateRowHeight(index, coordinates.size.height)
                         },
                 ) {
-                    visibleColumns.forEach { spec ->
+                    visibleColumns.forEachIndexed { colIndex, spec ->
                         val width = state.columnWidths[spec.key] ?: spec.width ?: dimensions.defaultColumnWidth
                         var cellTopLeft by remember(spec.key, index) { mutableStateOf(Offset.Zero) }
                         val cellStyle: TableCellStyle =
@@ -146,16 +151,53 @@ internal fun <T : Any, C> TableRowItem(
                         val isCellSelected =
                             state.selectedCell?.let { it.rowIndex == index && it.column == spec.key } == true
 
+                        val fixedState =
+                            calculateFixedColumnState(
+                                columnIndex = colIndex,
+                                totalVisibleColumns = visibleColumns.size,
+                                fixedColumnsCount = settings.fixedColumnsCount,
+                                fixedColumnsSide = settings.fixedColumnsSide,
+                                horizontalState = horizontalState,
+                            )
+
+                        // For fixed columns, always ensure there's a solid background
+                        // Use the row background color for fixed cells to prevent transparency
+                        val finalCellStyle =
+                            if (fixedState.isFixed) {
+                                // Always use row background for fixed columns to ensure opacity
+                                val backgroundToUse = if (cellStyle.background != Unspecified) {
+                                    cellStyle.background
+                                } else {
+                                    finalRowColor
+                                }
+                                cellStyle.copy(background = backgroundToUse)
+                            } else {
+                                cellStyle
+                            }
+                        val dividerThickness =
+                            if (fixedState.isLastLeftFixed) {
+                                dimensions.fixedColumnDividerThickness
+                            } else {
+                                dimensions.dividerThickness
+                            }
+
                         TableCell(
                             width = width,
                             height = if (isDynamicRowHeight) null else dimensions.rowHeight,
-                            dividerThickness = dimensions.dividerThickness,
-                            cellStyle = cellStyle,
+                            dividerThickness = dividerThickness,
+                            cellStyle = finalCellStyle,
                             alignment = spec.alignment,
                             isSelected = isCellSelected,
+                            showLeftDivider = fixedState.isFirstRightFixed,
+                            leftDividerThickness = dimensions.fixedColumnDividerThickness,
+                            showRightDivider = !fixedState.isLastBeforeRightFixed,
+                            isFixed = fixedState.isFixed,
                             modifier =
                                 Modifier
-                                    .onGloballyPositioned { coordinates ->
+                                    .zIndex(fixedState.zIndex)
+                                    .graphicsLayer {
+                                        this.translationX = fixedState.translationX
+                                    }.onGloballyPositioned { coordinates ->
                                         cellTopLeft = coordinates.positionInRoot()
                                     }.then(
                                         Modifier.tableRowInteractions(
@@ -193,13 +235,7 @@ internal fun <T : Any, C> TableRowItem(
                     }
                 }
 
-                if (rowEmbedded != null) {
-                    HorizontalDivider(
-                        thickness = state.dimensions.dividerThickness,
-                        modifier = Modifier.width(tableWidth),
-                    )
-                    rowEmbedded.invoke(index, itItem)
-                }
+                rowEmbedded?.invoke(index, itItem)
             } ?: run {
                 Row(
                     modifier = (if (isDynamicRowHeight) Modifier else Modifier.height(dimensions.rowHeight)),

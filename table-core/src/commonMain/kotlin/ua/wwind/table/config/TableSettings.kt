@@ -28,10 +28,17 @@ public data class TableSettings(
     val groupContentAlignment: Alignment = Alignment.CenterStart,
     /** Enable drag-to-scroll functionality. When disabled, traditional scrollbars are used instead. */
     val enableDragToScroll: Boolean = true,
+    /** Number of fixed columns */
+    val fixedColumnsCount: Int = 0,
+    /** Side to fix columns to */
+    val fixedColumnsSide: FixedSide = FixedSide.Left,
 )
 
 /** Row selection behavior. */
 public enum class SelectionMode { None, Single, Multiple }
+
+/** Side to fix columns to. */
+public enum class FixedSide { Left, Right }
 
 /** Row height behavior. */
 public enum class RowHeightMode { Fixed, Dynamic }

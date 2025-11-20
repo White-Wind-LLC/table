@@ -11,12 +11,14 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color.Companion.Unspecified
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import ua.wwind.table.config.TableCellStyle
@@ -30,10 +32,12 @@ internal fun TableCell(
     alignment: Alignment,
     isSelected: Boolean = false,
     modifier: Modifier = Modifier,
+    showLeftDivider: Boolean = false,
+    leftDividerThickness: Dp = dividerThickness,
+    showRightDivider: Boolean = true,
+    isFixed: Boolean = false,
     content: @Composable BoxScope.() -> Unit,
 ) {
-    val backgroundModifier =
-        if (cellStyle.background != Unspecified) Modifier.background(cellStyle.background) else Modifier
     val selectionBorderModifier =
         if (isSelected) {
             Modifier.border(
@@ -46,26 +50,79 @@ internal fun TableCell(
         }
 
     Row(modifier = modifier) {
-        Box(
-            modifier =
-                Modifier
-                    .width(width)
-                    .then(if (height != null) Modifier.height(height) else Modifier.fillMaxHeight())
-                    .then(backgroundModifier)
-                    .then(selectionBorderModifier),
-            contentAlignment = alignment,
-        ) {
-            if (cellStyle.contentColor != Unspecified) {
-                CompositionLocalProvider(LocalContentColor provides cellStyle.contentColor) {
+        if (showLeftDivider) {
+            VerticalDivider(
+                modifier = (if (height != null) Modifier.height(height) else Modifier.fillMaxHeight()),
+                thickness = leftDividerThickness,
+            )
+        }
+
+        // Use Surface for fixed cells to ensure solid background
+        if (isFixed) {
+            // For fixed cells, always use Surface even if background is Unspecified
+            // This ensures proper opacity and prevents see-through effect
+            val backgroundColor = if (cellStyle.background != Unspecified) {
+                // Ensure full opacity for fixed cells
+                cellStyle.background.copy(alpha = 1f)
+            } else {
+                MaterialTheme.colorScheme.surface
+            }
+
+            Surface(
+                color = backgroundColor,
+                shape = RectangleShape,
+                shadowElevation = 0.dp,
+                modifier =
+                    Modifier
+                        .width(width)
+                        .then(if (height != null) Modifier.height(height) else Modifier.fillMaxHeight())
+                        .then(selectionBorderModifier),
+            ) {
+                Box(
+                    modifier = Modifier.fillMaxHeight(),
+                    contentAlignment = alignment,
+                ) {
+                    if (cellStyle.contentColor != Unspecified) {
+                        CompositionLocalProvider(LocalContentColor provides cellStyle.contentColor) {
+                            content()
+                        }
+                    } else {
+                        content()
+                    }
+                }
+            }
+        } else {
+            val backgroundModifier =
+                if (cellStyle.background != Unspecified) {
+                    Modifier.background(cellStyle.background)
+                } else {
+                    Modifier
+                }
+
+            Box(
+                modifier =
+                    Modifier
+                        .width(width)
+                        .then(if (height != null) Modifier.height(height) else Modifier.fillMaxHeight())
+                        .then(backgroundModifier)
+                        .then(selectionBorderModifier),
+                contentAlignment = alignment,
+            ) {
+                if (cellStyle.contentColor != Unspecified) {
+                    CompositionLocalProvider(LocalContentColor provides cellStyle.contentColor) {
+                        content()
+                    }
+                } else {
                     content()
                 }
-            } else {
-                content()
             }
         }
-        VerticalDivider(
-            modifier = (if (height != null) Modifier.height(height) else Modifier.fillMaxHeight()),
-            thickness = dividerThickness,
-        )
+
+        if (showRightDivider) {
+            VerticalDivider(
+                modifier = (if (height != null) Modifier.height(height) else Modifier.fillMaxHeight()),
+                thickness = dividerThickness,
+            )
+        }
     }
 }

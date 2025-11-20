@@ -25,7 +25,7 @@ public object TableDefaults {
     public fun colors(
         headerContainerColor: Color = MaterialTheme.colorScheme.surfaceContainer,
         headerContentColor: Color = MaterialTheme.colorScheme.contentColorFor(headerContainerColor),
-        rowContainerColor: Color = Color.Unspecified,
+        rowContainerColor: Color = MaterialTheme.colorScheme.surface,
         rowSelectedContainerColor: Color = MaterialTheme.colorScheme.tertiary,
         stripedRowContainerColor: Color = MaterialTheme.colorScheme.surfaceContainerLowest,
         groupContainerColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh,

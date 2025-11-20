@@ -52,8 +52,8 @@ public class TableState<C> internal constructor(
     initialSort: SortState<C>?,
     initialOrder: List<C>,
     initialWidths: Map<C, Dp>,
-    internal val settings: TableSettings,
-    internal val dimensions: TableDimensions,
+    public val settings: TableSettings,
+    public val dimensions: TableDimensions,
 ) {
     // Columns order and widths
     public val columnOrder: SnapshotStateList<C> =

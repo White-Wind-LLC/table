@@ -32,7 +32,6 @@ import ua.wwind.table.MeasureCellMinWidth
 import ua.wwind.table.component.LocalTableHeaderCellInfo
 import ua.wwind.table.component.LocalTableHeaderIcons
 import ua.wwind.table.component.TableHeaderCellInfo
-import ua.wwind.table.config.TableDimensions
 import ua.wwind.table.data.SortOrder
 import ua.wwind.table.filter.component.main.FilterPanel
 import ua.wwind.table.filter.data.TableFilterState
@@ -46,11 +45,14 @@ internal fun <T : Any, C> HeaderCell(
     state: TableState<C>,
     strings: StringProvider,
     width: Dp,
-    dimensions: TableDimensions,
+    dividerThickness: Dp,
     isFilterOpen: Boolean,
     onOpenFilter: () -> Unit,
     onDismissFilter: () -> Unit,
     onToggleSort: () -> Unit,
+    showLeftDivider: Boolean = false,
+    leftDividerThickness: Dp = dividerThickness,
+    showRightDivider: Boolean = true,
 ) {
     val sortOrder: SortOrder? = state.sort?.takeIf { it.column == spec.key }?.order
     val isFilterActive: Boolean = state.filters[spec.key]?.values?.isEmpty() == false
@@ -98,25 +100,35 @@ internal fun <T : Any, C> HeaderCell(
         }
     }
 
-    Box(
-        modifier =
-            Modifier
-                .width(width)
-                .fillMaxHeight(),
-        contentAlignment = Alignment.Center,
-    ) {
-        HeaderContent(
-            spec = spec,
-            info = info,
-            isFilterOpen = isFilterOpen,
-            state = state,
-            onDismissFilter = onDismissFilter,
-            strings = strings,
-        )
-        VerticalDivider(
-            modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
-            thickness = dimensions.dividerThickness,
-        )
+    Row {
+        if (showLeftDivider) {
+            VerticalDivider(
+                modifier = Modifier.fillMaxHeight(),
+                thickness = leftDividerThickness,
+            )
+        }
+        Box(
+            modifier =
+                Modifier
+                    .width(width)
+                    .fillMaxHeight(),
+            contentAlignment = Alignment.Center,
+        ) {
+            HeaderContent(
+                spec = spec,
+                info = info,
+                isFilterOpen = isFilterOpen,
+                state = state,
+                onDismissFilter = onDismissFilter,
+                strings = strings,
+            )
+        }
+        if (showRightDivider) {
+            VerticalDivider(
+                modifier = Modifier.fillMaxHeight(),
+                thickness = dividerThickness,
+            )
+        }
     }
 }
 
