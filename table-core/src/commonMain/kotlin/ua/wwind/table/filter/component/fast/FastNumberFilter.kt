@@ -1,10 +1,9 @@
 package ua.wwind.table.filter.component.fast
 
-import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.style.TextAlign
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.component.TableTextField
 import ua.wwind.table.component.TableTextFieldDefaults
@@ -53,14 +52,15 @@ internal fun <T : Any, C> FastNumberFilter(
     TableTextField(
         value = numberFilterState.text,
         onValueChange = numberFilterState.onTextChange,
-        modifier = Modifier.padding(horizontal = 8.dp),
         placeholder = {
             Text(
                 text = strings.get(UiString.FilterEnterNumberPlaceholder),
                 maxLines = 1,
             )
         },
+        textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.End),
         singleLine = true,
         contentPadding = TableTextFieldDefaults.reducedContentPadding(),
+        showBorder = false,
     )
 }

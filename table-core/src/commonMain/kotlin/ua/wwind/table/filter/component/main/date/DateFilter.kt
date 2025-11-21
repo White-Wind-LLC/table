@@ -119,6 +119,7 @@ internal fun DateField(
     dateValidator: (Long) -> Boolean = { true },
     strings: StringProvider,
     contentPadding: PaddingValues = TableTextFieldDefaults.contentPadding(),
+    showBorder: Boolean = true,
 ) {
     var showDatePickerDialog by remember {
         mutableStateOf(false)
@@ -151,6 +152,7 @@ internal fun DateField(
         modifier = modifier,
         singleLine = true,
         contentPadding = contentPadding,
+        showBorder = showBorder,
     )
 
     if (showDatePickerDialog) {

@@ -41,6 +41,7 @@ public fun FilterDropdownAnyField(
     modifier: Modifier = Modifier,
     checked: ((Any) -> Boolean)? = null,
     contentPadding: PaddingValues = TableTextFieldDefaults.contentPadding(),
+    showBorder: Boolean = true,
 ) {
     val scrollState = rememberScrollState()
     var expanded by remember { mutableStateOf(false) }
@@ -65,6 +66,7 @@ public fun FilterDropdownAnyField(
                     enabled = true,
                 ),
             contentPadding = contentPadding,
+            showBorder = showBorder,
         )
         ExposedDropdownMenu(
             expanded = expanded,

@@ -1,10 +1,7 @@
 package ua.wwind.table.filter.component.fast
 
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.component.TableTextField
 import ua.wwind.table.component.TableTextFieldDefaults
@@ -38,7 +35,6 @@ internal fun <T : Any, C> FastTextFilter(
     TableTextField(
         value = textFilterState.text,
         onValueChange = { textFilterState.onTextChange(it) },
-        modifier = Modifier.padding(horizontal = 8.dp),
         placeholder = {
             Text(
                 text = strings.get(UiString.FilterSearchPlaceholder),
@@ -47,5 +43,6 @@ internal fun <T : Any, C> FastTextFilter(
         },
         singleLine = true,
         contentPadding = TableTextFieldDefaults.reducedContentPadding(),
+        showBorder = false,
     )
 }
