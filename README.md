@@ -5,6 +5,29 @@
 Compose Multiplatform data table with Material 3 look & feel. Includes a core table (`table-core`), a conditional
 formatting add‑on (`table-format`), and paging integration (`table-paging`).
 
+### Table of Contents
+
+- [Example](#example)
+- [Modules](#modules)
+- [Key features](#key-features)
+- [Installation](#installation)
+- [Compatibility](#compatibility)
+- [Quick start](#quick-start)
+- [Cell editing mode](#cell-editing-mode)
+- [Data grouping](#data-grouping)
+- [Paging integration (table-paging)](#paging-integration-table-paging)
+- [Conditional formatting (table-format)](#conditional-formatting-table-format)
+- [Core API reference (table-core)](#core-api-reference-table-core)
+- [Filters (built‑in types)](#filters-builtin-types)
+- [Fast Filters](#fast-filters)
+- [Selection](#selection)
+- [Dynamic row height and auto‑width](#dynamic-row-height-and-autowidth)
+- [Drag-to-scroll](#drag-to-scroll)
+- [Custom header icons](#custom-header-icons)
+- [Supported targets](#supported-targets)
+- [Third-Party Libraries](#third-party-libraries)
+- [License](#license)
+
 ### Example
 
 Here's what the data table looks like in action:
@@ -21,7 +44,7 @@ Live demo: [white-wind-llc.github.io/table](https://white-wind-llc.github.io/tab
 
 ### Key features
 
-- Material 3 header with sort/filter icons (customizable via `TableHeaderDefaults.icons`).
+- Header with sort/filter icons (customizable via `TableHeaderDefaults.icons`).
 - Per‑column sorting (3‑state: ASC → DESC → none).
 - Data grouping by column with customizable group headers and sticky positioning.
 - Drag & drop to reorder columns in the header.
@@ -51,23 +74,21 @@ dependencies {
 }
 ```
 
+The project uses `kotlinx-collections-immutable` for all table/state collections to ensure predictable, thread-safe
+state management and efficient Compose recomposition:
+
+```kotlin
+dependencies {
+    implementation("org.jetbrains.kotlinx:kotlinx-collections-immutable:<latest-version>")
+}
+```
+
 Opt‑in to experimental API on call sites that use the table:
 
 ```kotlin
 @OptIn(ExperimentalTableApi::class)
 @Composable
 fun MyScreen() { /* ... */
-}
-```
-
-### Immutable Collections
-
-The project uses `kotlinx-collections-immutable` for all table/state collections to ensure predictable, thread-safe
-state management and efficient Compose recomposition.
-
-```kotlin
-dependencies {
-    implementation("org.jetbrains.kotlinx:kotlinx-collections-immutable:<latest-version>")
 }
 ```
 
