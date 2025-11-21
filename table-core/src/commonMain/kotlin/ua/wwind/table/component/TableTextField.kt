@@ -58,7 +58,7 @@ import androidx.compose.ui.unit.dp
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun TableTextField(
+public fun TableTextField(
     value: String,
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier,
@@ -160,7 +160,7 @@ internal fun TableTextField(
 /**
  * Contains default values used by [TableTextField].
  */
-internal object TableTextFieldDefaults {
+public object TableTextFieldDefaults {
     /**
      * Standard content padding for [TableTextField].
      * Uses default Material3 padding values.
