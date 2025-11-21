@@ -122,6 +122,9 @@ public sealed class UiString {
     public object GroupBy : UiString()
 
     public object Ungroup : UiString()
+
+    // Tooltip actions
+    public object TooltipDismiss : UiString()
 }
 
 /**
@@ -206,5 +209,7 @@ public object DefaultStrings : StringProvider {
             // Grouping menu
             UiString.GroupBy -> "Group by"
             UiString.Ungroup -> "Ungroup"
+            // Tooltip actions
+            UiString.TooltipDismiss -> "Dismiss"
         }
 }

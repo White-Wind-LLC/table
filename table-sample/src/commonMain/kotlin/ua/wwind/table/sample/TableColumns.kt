@@ -35,6 +35,7 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.format
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.component.TableCellTextField
+import ua.wwind.table.component.TableCellTextFieldWithTooltipError
 import ua.wwind.table.editableTableColumns
 import ua.wwind.table.filter.data.TableFilterType
 import ua.wwind.table.tableColumns
@@ -81,20 +82,14 @@ fun createTableColumns(
             editCell { person, editState, onComplete ->
                 var text by remember(person) { mutableStateOf(person.name) }
 
-                TableCellTextField(
+                TableCellTextFieldWithTooltipError(
                     value = text,
                     onValueChange = {
                         text = it
                         onEvent(SampleUiEvent.UpdateName(it))
                     },
+                    errorMessage = editState.nameError,
                     singleLine = true,
-                    isError = editState.nameError.isNotEmpty(),
-                    supportingText =
-                        if (editState.nameError.isNotEmpty()) {
-                            { Text(editState.nameError) }
-                        } else {
-                            null
-                        },
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                     keyboardActions =
                         KeyboardActions(
@@ -127,20 +122,14 @@ fun createTableColumns(
             editCell { person, editState, onComplete ->
                 var text by remember(person) { mutableStateOf(person.age.toString()) }
 
-                TableCellTextField(
+                TableCellTextFieldWithTooltipError(
                     value = text,
                     onValueChange = {
                         text = it.filter { char -> char.isDigit() }
                         it.toIntOrNull()?.let { age -> onEvent(SampleUiEvent.UpdateAge(age)) }
                     },
+                    errorMessage = editState.ageError,
                     singleLine = true,
-                    isError = editState.ageError.isNotEmpty(),
-                    supportingText =
-                        if (editState.ageError.isNotEmpty()) {
-                            { Text(editState.ageError) }
-                        } else {
-                            null
-                        },
                     keyboardOptions =
                         KeyboardOptions(
                             keyboardType = KeyboardType.Number,
@@ -275,20 +264,14 @@ fun createTableColumns(
             editCell { person, editState, onComplete ->
                 var text by remember(person) { mutableStateOf(person.salary.toString()) }
 
-                TableCellTextField(
+                TableCellTextFieldWithTooltipError(
                     value = text,
                     onValueChange = {
                         text = it.filter { char -> char.isDigit() }
                         it.toIntOrNull()?.let { salary -> onEvent(SampleUiEvent.UpdateSalary(salary)) }
                     },
+                    errorMessage = editState.salaryError,
                     singleLine = true,
-                    isError = editState.salaryError.isNotEmpty(),
-                    supportingText =
-                        if (editState.salaryError.isNotEmpty()) {
-                            { Text(editState.salaryError) }
-                        } else {
-                            null
-                        },
                     prefix = { Text("$") },
                     keyboardOptions =
                         KeyboardOptions(

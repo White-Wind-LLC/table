@@ -65,11 +65,18 @@ public fun <T : Any, C> Modifier.tableKeyboardNavigation(
 
             // Disable navigation when editing - let the edit field handle cursor movement
             if (isEditing) {
-                if (event.key == Key.Escape) {
-                    state.cancelEditing()
-                    true
-                } else {
-                    false
+                when (event.key) {
+                    Key.Escape -> {
+                        state.cancelEditing()
+                        true
+                    }
+
+                    Key.Tab -> {
+                        state.completeCurrentCellEdit(visibleColumns)
+                        true
+                    }
+
+                    else -> false
                 }
             } else {
                 when (event.key) {
