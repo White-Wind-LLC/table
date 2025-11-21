@@ -21,12 +21,16 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.format
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.filter.data.TableFilterType
+import ua.wwind.table.sample.filter.createSalaryRangeFilter
 import ua.wwind.table.tableColumns
 
 /**
  * Create column definitions with titles, cells and optional filters for header UI.
  */
-fun createTableColumns(onToggleMovementExpanded: (personId: Int) -> Unit): ImmutableList<ColumnSpec<Person, PersonColumn>> =
+fun createTableColumns(
+    onToggleMovementExpanded: (personId: Int) -> Unit,
+    allPeople: List<Person>,
+): ImmutableList<ColumnSpec<Person, PersonColumn>> =
     tableColumns<Person, PersonColumn> {
         column(PersonColumn.EXPAND, valueOf = { it.expandedMovement }) {
             title { "Movements" }
@@ -144,12 +148,8 @@ fun createTableColumns(onToggleMovementExpanded: (personId: Int) -> Unit): Immut
             title { "Salary" }
             autoWidth()
             sortable()
-            filter(
-                TableFilterType.NumberTableFilter(
-                    delegate = TableFilterType.NumberTableFilter.IntDelegate,
-                    rangeOptions = 0 to 200000,
-                ),
-            )
+            // Custom visual range filter with histogram
+            filter(createSalaryRangeFilter(allPeople))
             align(Alignment.CenterEnd)
             cell { item ->
                 Text(

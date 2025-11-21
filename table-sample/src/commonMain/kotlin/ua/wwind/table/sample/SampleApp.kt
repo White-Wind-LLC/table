@@ -99,8 +99,11 @@ fun SampleApp(modifier: Modifier = Modifier) {
         )
 
     val columns =
-        remember {
-            createTableColumns(onToggleMovementExpanded = viewModel::toggleMovementExpanded)
+        remember(viewModel.people) {
+            createTableColumns(
+                onToggleMovementExpanded = viewModel::toggleMovementExpanded,
+                allPeople = viewModel.people,
+            )
         }
 
     // Build customization based on rules + matching logic

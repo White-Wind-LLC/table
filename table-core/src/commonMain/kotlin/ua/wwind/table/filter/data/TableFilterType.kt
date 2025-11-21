@@ -143,4 +143,88 @@ public sealed class TableFilterType<T>(
             ),
         val getTitle: @Composable (T) -> String,
     ) : TableFilterType<ImmutableList<T>>(constraints)
+
+    @Immutable
+    /**
+     * Custom filter type that delegates UI rendering and state logic to user-provided implementations.
+     * Allows full control over filter UI while maintaining visual consistency with built-in filters.
+     *
+     * @param T the type of filter state managed by the custom filter
+     * @param renderFilter provides UI rendering callbacks for main panel and fast filter
+     * @param stateProvider provides state introspection callbacks for active state detection and chip text
+     */
+    public data class CustomTableFilter<T>(
+        val renderFilter: CustomFilterRenderer<T>,
+        val stateProvider: CustomFilterStateProvider<T>,
+    ) : TableFilterType<T>(constraints = persistentListOf())
+
+    /**
+     * Actions interface for custom filters to control apply/clear behavior.
+     * Custom filters return this from RenderPanel to enable FilterPanelActions integration.
+     */
+    public interface CustomFilterActions {
+        /**
+         * Apply the current filter state. Called when user clicks Apply button (manual mode).
+         */
+        public fun applyFilter()
+
+        /**
+         * Clear the filter state. Called when user clicks Clear button.
+         */
+        public fun clearFilter()
+    }
+}
+
+/**
+ * Interface for rendering custom filter UI in different contexts.
+ * Implementations control the complete visual appearance and interaction logic.
+ *
+ * @param T the type of filter state
+ */
+public interface CustomFilterRenderer<T> {
+    /**
+     * Render the main filter panel shown in a dropdown when the filter button is clicked.
+     *
+     * @param currentState the current filter state from the table
+     * @param onDismiss callback to close the filter panel
+     * @param onChange callback to update the filter state; pass null to clear the filter
+     * @return CustomFilterActions to control apply/clear behavior
+     */
+    @Composable
+    public fun RenderPanel(
+        currentState: TableFilterState<T>?,
+        onDismiss: () -> Unit,
+        onChange: (TableFilterState<T>?) -> Unit,
+    ): TableFilterType.CustomFilterActions
+
+    /**
+     * Render the fast filter shown inline in the fast filters row.
+     * Return null or empty composable if fast filter is not supported.
+     *
+     * @param currentState the current filter state from the table
+     * @param onChange callback to update the filter state; pass null to clear the filter
+     */
+    @Composable
+    public fun RenderFastFilter(
+        currentState: TableFilterState<T>?,
+        onChange: (TableFilterState<T>?) -> Unit,
+    )
+}
+
+/**
+ * Interface for providing custom filter state introspection.
+ * Used by the table to determine visual states and generate user-facing text.
+ *
+ * @param T the type of filter state
+ */
+public interface CustomFilterStateProvider<T> {
+    /**
+     * Build user-facing text to display in the active filters chip.
+     * Return null to prevent the chip from being shown.
+     *
+     * @param state the current filter state from the table
+     * @return chip text or null
+     */
+    @Composable
+    public fun buildChipText(state: TableFilterState<T>?): String?
 }

@@ -117,10 +117,10 @@ class SampleViewModel {
             // If state has no constraint or values, skip this field (not restrictive)
             if (stateAny.constraint == null ||
                 (
-                    stateAny.values == null &&
-                        stateAny.constraint != FilterConstraint.IS_NULL &&
-                        stateAny.constraint != FilterConstraint.IS_NOT_NULL
-                )
+                        stateAny.values == null &&
+                                stateAny.constraint != FilterConstraint.IS_NULL &&
+                                stateAny.constraint != FilterConstraint.IS_NOT_NULL
+                        )
             ) {
                 continue
             }
@@ -290,25 +290,34 @@ class SampleViewModel {
 
                 PersonColumn.SALARY -> {
                     val value = person.salary
-                    val st = stateAny as TableFilterState<Int>
-                    val constraint = st.constraint ?: continue
-                    val ok =
-                        when (constraint) {
-                            FilterConstraint.GT -> value > (st.values?.getOrNull(0) ?: value)
-                            FilterConstraint.GTE -> value >= (st.values?.getOrNull(0) ?: value)
-                            FilterConstraint.LT -> value < (st.values?.getOrNull(0) ?: value)
-                            FilterConstraint.LTE -> value <= (st.values?.getOrNull(0) ?: value)
-                            FilterConstraint.EQUALS -> value == (st.values?.getOrNull(0) ?: value)
-                            FilterConstraint.NOT_EQUALS -> value != (st.values?.getOrNull(0) ?: value)
-                            FilterConstraint.BETWEEN -> {
-                                val from = st.values?.getOrNull(0) ?: value
-                                val to = st.values?.getOrNull(1) ?: value
-                                from <= value && value <= to
-                            }
+                    // Check if using custom NumericRangeFilter
+                    if (stateAny.values?.firstOrNull() is ua.wwind.table.sample.filter.NumericRangeFilterState) {
+                        val customState =
+                            stateAny.values?.firstOrNull() as? ua.wwind.table.sample.filter.NumericRangeFilterState
+                        val ok = customState?.let { value in it.min..it.max } ?: true
+                        if (!ok) return false
+                    } else {
+                        // Standard number filter
+                        val st = stateAny as TableFilterState<Int>
+                        val constraint = st.constraint ?: continue
+                        val ok =
+                            when (constraint) {
+                                FilterConstraint.GT -> value > (st.values?.getOrNull(0) ?: value)
+                                FilterConstraint.GTE -> value >= (st.values?.getOrNull(0) ?: value)
+                                FilterConstraint.LT -> value < (st.values?.getOrNull(0) ?: value)
+                                FilterConstraint.LTE -> value <= (st.values?.getOrNull(0) ?: value)
+                                FilterConstraint.EQUALS -> value == (st.values?.getOrNull(0) ?: value)
+                                FilterConstraint.NOT_EQUALS -> value != (st.values?.getOrNull(0) ?: value)
+                                FilterConstraint.BETWEEN -> {
+                                    val from = st.values?.getOrNull(0) ?: value
+                                    val to = st.values?.getOrNull(1) ?: value
+                                    from <= value && value <= to
+                                }
 
-                            else -> true
-                        }
-                    if (!ok) return false
+                                else -> true
+                            }
+                        if (!ok) return false
+                    }
                 }
 
                 PersonColumn.RATING -> {
@@ -422,10 +431,10 @@ class SampleViewModel {
         val ratingFilter: Map<PersonColumn, TableFilterState<*>> =
             mapOf(
                 PersonColumn.RATING to
-                    TableFilterState(
-                        constraint = FilterConstraint.GTE,
-                        values = listOf(4),
-                    ),
+                        TableFilterState(
+                            constraint = FilterConstraint.GTE,
+                            values = listOf(4),
+                        ),
             )
         val ratingRule =
             TableFormatRule<PersonColumn, Map<PersonColumn, TableFilterState<*>>>(
@@ -443,10 +452,10 @@ class SampleViewModel {
         val activeFilter: Map<PersonColumn, TableFilterState<*>> =
             mapOf(
                 PersonColumn.ACTIVE to
-                    TableFilterState(
-                        constraint = FilterConstraint.EQUALS,
-                        values = listOf(false),
-                    ),
+                        TableFilterState(
+                            constraint = FilterConstraint.EQUALS,
+                            values = listOf(false),
+                        ),
             )
         val activeRule =
             TableFormatRule<PersonColumn, Map<PersonColumn, TableFilterState<*>>>(

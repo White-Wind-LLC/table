@@ -163,6 +163,13 @@ private fun buildFilterChipTextUnsafe(
             }
         }
 
+        is TableFilterType.CustomTableFilter<*> -> {
+            @Suppress("UNCHECKED_CAST")
+            val customFilter = filterType as TableFilterType.CustomTableFilter<Any?>
+            val s = state as? TableFilterState<Any?>
+            customFilter.stateProvider.buildChipText(s)
+        }
+
         TableFilterType.DisabledTableFilter -> null
     }
 }
