@@ -1,9 +1,6 @@
 package ua.wwind.table.filter.component.fast
 
-import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import kotlinx.datetime.LocalDate
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.component.TableTextFieldDefaults
@@ -39,11 +36,11 @@ internal fun <T : Any, C> FastDateFilter(
         onDateSelected = { selectedDate ->
             dateFilterState.onFirstDateChange(selectedDate)
         },
-        modifier = Modifier.padding(8.dp),
         onClear = {
             dateFilterState.clearFilter()
         },
         strings = strings,
         contentPadding = TableTextFieldDefaults.reducedContentPadding(),
+        showBorder = false,
     )
 }

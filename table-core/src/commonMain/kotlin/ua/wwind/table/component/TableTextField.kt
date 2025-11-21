@@ -6,15 +6,20 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.selection.LocalTextSelectionColors
+import androidx.compose.foundation.text.selection.TextSelectionColors
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.Dp
@@ -49,6 +54,7 @@ import androidx.compose.ui.unit.dp
  * @param colors [TextFieldColors] that will be used to resolve the colors used for this text field in different states
  * @param contentPadding the padding applied to the inner text field. Use [TableTextFieldDefaults.contentPadding] for standard padding
  * or [TableTextFieldDefaults.reducedContentPadding] for compact appearance
+ * @param showBorder when false, the border/outline of the text field will be hidden
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -77,54 +83,77 @@ internal fun TableTextField(
     shape: Shape = OutlinedTextFieldDefaults.shape,
     colors: TextFieldColors = OutlinedTextFieldDefaults.colors(),
     contentPadding: PaddingValues = TableTextFieldDefaults.contentPadding(),
+    showBorder: Boolean = true,
 ) {
     // Merge text style with color from theme to ensure proper text visibility in dark mode
     val mergedTextStyle = textStyle.merge(
         TextStyle(color = MaterialTheme.colorScheme.onSurface)
     )
 
-    BasicTextField(
-        value = value,
-        onValueChange = onValueChange,
-        modifier = modifier.fillMaxWidth(),
-        enabled = enabled,
-        readOnly = readOnly,
-        textStyle = mergedTextStyle,
-        keyboardOptions = keyboardOptions,
-        keyboardActions = keyboardActions,
-        singleLine = singleLine,
-        maxLines = maxLines,
-        minLines = minLines,
-        visualTransformation = visualTransformation,
-        interactionSource = interactionSource,
-    ) { innerTextField ->
-        OutlinedTextFieldDefaults.DecorationBox(
+    // Configure cursor and text selection colors based on the current theme
+    val cursorColor = MaterialTheme.colorScheme.primary
+    val textSelectionColors = TextSelectionColors(
+        handleColor = MaterialTheme.colorScheme.primary,
+        backgroundColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)
+    )
+
+    // Apply transparent border colors when showBorder is false
+    val effectiveColors = if (!showBorder) {
+        colors.copy(
+            unfocusedIndicatorColor = Color.Transparent,
+            focusedIndicatorColor = Color.Transparent,
+            disabledIndicatorColor = Color.Transparent,
+            errorIndicatorColor = Color.Transparent,
+        )
+    } else {
+        colors
+    }
+
+    CompositionLocalProvider(LocalTextSelectionColors provides textSelectionColors) {
+        BasicTextField(
             value = value,
-            innerTextField = innerTextField,
+            onValueChange = onValueChange,
+            modifier = modifier.fillMaxWidth(),
             enabled = enabled,
+            readOnly = readOnly,
+            textStyle = mergedTextStyle,
+            cursorBrush = SolidColor(cursorColor),
+            keyboardOptions = keyboardOptions,
+            keyboardActions = keyboardActions,
             singleLine = singleLine,
+            maxLines = maxLines,
+            minLines = minLines,
             visualTransformation = visualTransformation,
             interactionSource = interactionSource,
-            isError = isError,
-            label = label,
-            placeholder = placeholder,
-            leadingIcon = leadingIcon,
-            trailingIcon = trailingIcon,
-            prefix = prefix,
-            suffix = suffix,
-            supportingText = supportingText,
-            colors = colors,
-            contentPadding = contentPadding,
-            container = {
-                OutlinedTextFieldDefaults.ContainerBox(
-                    enabled = enabled,
-                    isError = isError,
-                    interactionSource = interactionSource,
-                    colors = colors,
-                    shape = shape,
-                )
-            },
-        )
+        ) { innerTextField ->
+            OutlinedTextFieldDefaults.DecorationBox(
+                value = value,
+                innerTextField = innerTextField,
+                enabled = enabled,
+                singleLine = singleLine,
+                visualTransformation = visualTransformation,
+                interactionSource = interactionSource,
+                isError = isError,
+                label = label,
+                placeholder = placeholder,
+                leadingIcon = leadingIcon,
+                trailingIcon = trailingIcon,
+                prefix = prefix,
+                suffix = suffix,
+                supportingText = supportingText,
+                colors = effectiveColors,
+                contentPadding = contentPadding,
+                container = {
+                    OutlinedTextFieldDefaults.ContainerBox(
+                        enabled = enabled,
+                        isError = isError,
+                        interactionSource = interactionSource,
+                        colors = effectiveColors,
+                        shape = shape,
+                    )
+                },
+            )
+        }
     }
 }
 
@@ -156,10 +185,10 @@ internal object TableTextFieldDefaults {
      */
     @Composable
     public fun reducedContentPadding(
-        start: Dp = 12.dp,
-        top: Dp = 4.dp,
-        end: Dp = 12.dp,
-        bottom: Dp = 4.dp,
+        start: Dp = 8.dp,
+        top: Dp = 8.dp,
+        end: Dp = 8.dp,
+        bottom: Dp = 8.dp,
     ): PaddingValues =
         OutlinedTextFieldDefaults.contentPadding(
             start = start,

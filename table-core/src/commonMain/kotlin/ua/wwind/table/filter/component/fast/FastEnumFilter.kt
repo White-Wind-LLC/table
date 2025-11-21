@@ -1,13 +1,8 @@
 package ua.wwind.table.filter.component.fast
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.component.TableTextFieldDefaults
 import ua.wwind.table.filter.component.FilterDropdownAnyField
@@ -41,23 +36,20 @@ internal fun <T : Any, C, E : Enum<E>> FastEnumFilter(
             },
         )
 
-    Box(
-        modifier = Modifier.fillMaxSize().padding(horizontal = 8.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        FilterDropdownAnyField(
-            currentValue = enumFilterState.selectedValues.firstOrNull(),
-            getTitle = { item ->
-                @Suppress("UNCHECKED_CAST")
-                (filter.getTitle as @Composable (Enum<*>) -> String).invoke(item as Enum<*>)
-            },
-            placeholder = strings.get(UiString.FilterSelectOnePlaceholder),
-            values = filter.options,
-            onClick = { item ->
-                enumFilterState.onSingleValueChange(item as? E)
-            },
-            modifier = Modifier.fillMaxWidth(),
-            contentPadding = TableTextFieldDefaults.reducedContentPadding(),
-        )
-    }
+    FilterDropdownAnyField(
+        currentValue = enumFilterState.selectedValues.firstOrNull(),
+        getTitle = { item ->
+            @Suppress("UNCHECKED_CAST")
+            (filter.getTitle as @Composable (Enum<*>) -> String).invoke(item as Enum<*>)
+        },
+        placeholder = strings.get(UiString.FilterSelectOnePlaceholder),
+        values = filter.options,
+        onClick = { item ->
+            enumFilterState.onSingleValueChange(item as? E)
+        },
+        modifier = Modifier.fillMaxWidth(),
+        contentPadding = TableTextFieldDefaults.reducedContentPadding(),
+        showBorder = false,
+    )
+
 }

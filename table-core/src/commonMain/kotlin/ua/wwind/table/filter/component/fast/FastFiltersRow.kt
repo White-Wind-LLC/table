@@ -32,7 +32,7 @@ import ua.wwind.table.state.TableState
 import ua.wwind.table.state.calculateFixedColumnState
 import ua.wwind.table.strings.StringProvider
 
-private const val FAST_FILTER_ROW_HEIGHT = 48
+private const val FAST_FILTER_ROW_HEIGHT = 40
 
 @Composable
 internal fun <T : Any, C> FastFiltersRow(
