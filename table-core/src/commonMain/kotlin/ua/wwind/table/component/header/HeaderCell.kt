@@ -40,8 +40,8 @@ import ua.wwind.table.state.TableState
 import ua.wwind.table.strings.StringProvider
 
 @Composable
-internal fun <T : Any, C> HeaderCell(
-    spec: ColumnSpec<T, C>,
+internal fun <T : Any, C, E> HeaderCell(
+    spec: ColumnSpec<T, C, E>,
     state: TableState<C>,
     strings: StringProvider,
     width: Dp,
@@ -181,8 +181,8 @@ private fun TruncationTooltipBox(
 }
 
 @Composable
-private fun <C> HeaderContent(
-    spec: ColumnSpec<*, C>,
+private fun <C, E> HeaderContent(
+    spec: ColumnSpec<*, C, E>,
     info: TableHeaderCellInfo<Any?>,
     isFilterOpen: Boolean,
     state: TableState<C>,
@@ -238,7 +238,7 @@ private fun <C> HeaderContent(
 
 @Composable
 private fun HeaderMeasureContent(
-    spec: ColumnSpec<*, *>,
+    spec: ColumnSpec<*, *, *>,
     info: TableHeaderCellInfo<Any?>,
 ) {
     // Do not render any popups inside measured content!

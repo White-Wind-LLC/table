@@ -35,14 +35,14 @@ import ua.wwind.table.strings.StringProvider
 private const val FAST_FILTER_ROW_HEIGHT = 40
 
 @Composable
-internal fun <T : Any, C> FastFiltersRow(
+internal fun <T : Any, C, E> FastFiltersRow(
     tableWidth: Dp,
-    visibleColumns: ImmutableList<ColumnSpec<T, C>>,
+    visibleColumns: ImmutableList<ColumnSpec<T, C, E>>,
     widthResolver: (C) -> Dp,
     rowContainerColor: Color,
     state: TableState<C>,
     strings: StringProvider,
-    onChange: (ColumnSpec<T, C>, TableFilterState<T>?) -> Unit,
+    onChange: (ColumnSpec<T, C, E>, TableFilterState<T>?) -> Unit,
     modifier: Modifier = Modifier,
     horizontalState: ScrollState,
 ) {
@@ -72,15 +72,16 @@ internal fun <T : Any, C> FastFiltersRow(
                         horizontalState = horizontalState,
                     )
 
-                val surfaceColor = if (fixedState.isFixed) {
-                    if (rowContainerColor != Unspecified) {
-                        rowContainerColor.copy(alpha = 1f)
+                val surfaceColor =
+                    if (fixedState.isFixed) {
+                        if (rowContainerColor != Unspecified) {
+                            rowContainerColor.copy(alpha = 1f)
+                        } else {
+                            MaterialTheme.colorScheme.surface
+                        }
                     } else {
-                        MaterialTheme.colorScheme.surface
+                        rowContainerColor
                     }
-                } else {
-                    rowContainerColor
-                }
 
                 Surface(
                     color = surfaceColor,

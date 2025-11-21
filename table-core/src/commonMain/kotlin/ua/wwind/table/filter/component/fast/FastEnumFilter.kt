@@ -15,17 +15,17 @@ import ua.wwind.table.strings.UiString
 
 @Suppress("UNCHECKED_CAST")
 @Composable
-internal fun <T : Any, C, E : Enum<E>> FastEnumFilter(
-    spec: ColumnSpec<T, C>,
+internal fun <T : Any, C, E, ENUM : Enum<ENUM>> FastEnumFilter(
+    spec: ColumnSpec<T, C, E>,
     state: TableFilterState<*>?,
     autoFilterDebounce: Long,
     strings: StringProvider,
-    onChange: (ColumnSpec<T, C>, TableFilterState<T>?) -> Unit,
+    onChange: (ColumnSpec<T, C, E>, TableFilterState<T>?) -> Unit,
 ) {
-    val filter = spec.filter as TableFilterType.EnumTableFilter<E>
+    val filter = spec.filter as TableFilterType.EnumTableFilter<ENUM>
 
     val enumFilterState =
-        rememberEnumFilterState<E>(
+        rememberEnumFilterState<ENUM>(
             externalState = state,
             defaultConstraint = FilterConstraint.EQUALS,
             autoApply = true,
@@ -45,11 +45,10 @@ internal fun <T : Any, C, E : Enum<E>> FastEnumFilter(
         placeholder = strings.get(UiString.FilterSelectOnePlaceholder),
         values = filter.options,
         onClick = { item ->
-            enumFilterState.onSingleValueChange(item as? E)
+            enumFilterState.onSingleValueChange(item as? ENUM)
         },
         modifier = Modifier.fillMaxWidth(),
         contentPadding = TableTextFieldDefaults.reducedContentPadding(),
         showBorder = false,
     )
-
 }

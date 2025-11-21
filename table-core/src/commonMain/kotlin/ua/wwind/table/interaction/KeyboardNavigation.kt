@@ -26,7 +26,7 @@ public fun <T : Any, C> Modifier.tableKeyboardNavigation(
     focusRequester: FocusRequester,
     itemsCount: Int,
     state: TableState<C>,
-    visibleColumns: List<ColumnSpec<T, C>>,
+    visibleColumns: List<ColumnSpec<T, C, *>>,
     verticalState: LazyListState,
     horizontalState: ScrollState,
     tableWidth: Dp,
@@ -61,87 +61,98 @@ public fun <T : Any, C> Modifier.tableKeyboardNavigation(
             }
 
             val jumpToEdge = event.isCtrlPressed || event.isMetaPressed
+            val isEditing = state.editingRow != null
 
-            when (event.key) {
-                Key.DirectionRight -> {
-                    ensureFocus(currentRow, currentColIndex + 1)
+            // Disable navigation when editing - let the edit field handle cursor movement
+            if (isEditing) {
+                if (event.key == Key.Escape) {
+                    state.cancelEditing()
                     true
+                } else {
+                    false
                 }
-
-                Key.DirectionLeft -> {
-                    ensureFocus(currentRow, currentColIndex - 1)
-                    true
-                }
-
-                Key.DirectionDown -> {
-                    if (jumpToEdge) {
-                        ensureFocus(itemsCount - 1, currentColIndex)
-                    } else {
-                        ensureFocus(currentRow + 1, currentColIndex)
+            } else {
+                when (event.key) {
+                    Key.DirectionRight -> {
+                        ensureFocus(currentRow, currentColIndex + 1)
+                        true
                     }
-                    true
-                }
 
-                Key.DirectionUp -> {
-                    if (jumpToEdge) {
-                        ensureFocus(0, currentColIndex)
-                    } else {
-                        ensureFocus(currentRow - 1, currentColIndex)
+                    Key.DirectionLeft -> {
+                        ensureFocus(currentRow, currentColIndex - 1)
+                        true
                     }
-                    true
-                }
 
-                Key.PageDown -> {
-                    val layoutInfo = verticalState.layoutInfo
-                    val viewportHeight =
-                        (layoutInfo.viewportEndOffset - layoutInfo.viewportStartOffset).coerceAtLeast(0)
-                    val fullyVisible =
-                        layoutInfo.visibleItemsInfo
-                            .count { item ->
-                                val top = item.offset
-                                val bottom = item.offset + item.size
-                                top >= 0 && bottom <= viewportHeight
-                            }.coerceAtLeast(1)
-                    val target = currentRow + fullyVisible
-                    ensureFocus(target, currentColIndex)
-                    true
-                }
-
-                Key.PageUp -> {
-                    val layoutInfo = verticalState.layoutInfo
-                    val viewportHeight =
-                        (layoutInfo.viewportEndOffset - layoutInfo.viewportStartOffset).coerceAtLeast(0)
-                    val fullyVisible =
-                        layoutInfo.visibleItemsInfo
-                            .count { item ->
-                                val top = item.offset
-                                val bottom = item.offset + item.size
-                                top >= 0 && bottom <= viewportHeight
-                            }.coerceAtLeast(1)
-                    val target = currentRow - fullyVisible
-                    ensureFocus(target, currentColIndex)
-                    true
-                }
-
-                Key.MoveHome -> {
-                    if (jumpToEdge) {
-                        ensureFocus(0, currentColIndex)
-                    } else {
-                        ensureFocus(currentRow, 0)
+                    Key.DirectionDown -> {
+                        if (jumpToEdge) {
+                            ensureFocus(itemsCount - 1, currentColIndex)
+                        } else {
+                            ensureFocus(currentRow + 1, currentColIndex)
+                        }
+                        true
                     }
-                    true
-                }
 
-                Key.MoveEnd -> {
-                    if (jumpToEdge) {
-                        ensureFocus(itemsCount - 1, currentColIndex)
-                    } else {
-                        ensureFocus(currentRow, colKeys.lastIndex)
+                    Key.DirectionUp -> {
+                        if (jumpToEdge) {
+                            ensureFocus(0, currentColIndex)
+                        } else {
+                            ensureFocus(currentRow - 1, currentColIndex)
+                        }
+                        true
                     }
-                    true
-                }
 
-                else -> false
+                    Key.PageDown -> {
+                        val layoutInfo = verticalState.layoutInfo
+                        val viewportHeight =
+                            (layoutInfo.viewportEndOffset - layoutInfo.viewportStartOffset).coerceAtLeast(0)
+                        val fullyVisible =
+                            layoutInfo.visibleItemsInfo
+                                .count { item ->
+                                    val top = item.offset
+                                    val bottom = item.offset + item.size
+                                    top >= 0 && bottom <= viewportHeight
+                                }.coerceAtLeast(1)
+                        val target = currentRow + fullyVisible
+                        ensureFocus(target, currentColIndex)
+                        true
+                    }
+
+                    Key.PageUp -> {
+                        val layoutInfo = verticalState.layoutInfo
+                        val viewportHeight =
+                            (layoutInfo.viewportEndOffset - layoutInfo.viewportStartOffset).coerceAtLeast(0)
+                        val fullyVisible =
+                            layoutInfo.visibleItemsInfo
+                                .count { item ->
+                                    val top = item.offset
+                                    val bottom = item.offset + item.size
+                                    top >= 0 && bottom <= viewportHeight
+                                }.coerceAtLeast(1)
+                        val target = currentRow - fullyVisible
+                        ensureFocus(target, currentColIndex)
+                        true
+                    }
+
+                    Key.MoveHome -> {
+                        if (jumpToEdge) {
+                            ensureFocus(0, currentColIndex)
+                        } else {
+                            ensureFocus(currentRow, 0)
+                        }
+                        true
+                    }
+
+                    Key.MoveEnd -> {
+                        if (jumpToEdge) {
+                            ensureFocus(itemsCount - 1, currentColIndex)
+                        } else {
+                            ensureFocus(currentRow, colKeys.lastIndex)
+                        }
+                        true
+                    }
+
+                    else -> false
+                }
             }
         }
 }

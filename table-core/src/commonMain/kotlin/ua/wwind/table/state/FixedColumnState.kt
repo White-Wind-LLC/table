@@ -59,8 +59,8 @@ internal fun calculateFixedColumnState(
 
     val isFirstRightFixed =
         fixedColumnsSide == FixedSide.Right &&
-                isFixed &&
-                columnIndex == totalVisibleColumns - effectiveFixedCount
+            isFixed &&
+            columnIndex == totalVisibleColumns - effectiveFixedCount
 
     val zIndex = if (isFixed) 1f else 0f
 

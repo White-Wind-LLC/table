@@ -844,4 +844,4 @@ fun createDemoData(): List<Person> =
             rating = 5,
             hireDate = LocalDate(2018, 9, 1),
         ),
-    )
+    ).mapIndexed { index, person -> person.copy(id = index + 1) }

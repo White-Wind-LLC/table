@@ -24,8 +24,8 @@ import ua.wwind.table.strings.UiString
 import ua.wwind.table.strings.currentStrings
 
 @Composable
-internal fun <T : Any, C> ColumnHeaderDropdownMenuBox(
-    spec: ColumnSpec<T, C>,
+internal fun <T : Any, C, E> ColumnHeaderDropdownMenuBox(
+    spec: ColumnSpec<T, C, E>,
     state: TableState<C>,
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit,

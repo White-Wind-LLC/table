@@ -12,12 +12,12 @@ import ua.wwind.table.strings.StringProvider
 import ua.wwind.table.strings.UiString
 
 @Composable
-internal fun <T : Any, C> FastTextFilter(
-    spec: ColumnSpec<T, C>,
+internal fun <T : Any, C, E> FastTextFilter(
+    spec: ColumnSpec<T, C, E>,
     state: TableFilterState<String>,
     autoFilterDebounce: Long,
     strings: StringProvider,
-    onChange: (ColumnSpec<T, C>, TableFilterState<T>?) -> Unit,
+    onChange: (ColumnSpec<T, C, E>, TableFilterState<T>?) -> Unit,
 ) {
     val textFilterState =
         rememberTextFilterState(

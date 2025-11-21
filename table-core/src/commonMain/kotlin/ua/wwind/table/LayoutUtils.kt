@@ -5,7 +5,7 @@ import androidx.compose.ui.unit.dp
 import ua.wwind.table.state.TableState
 
 internal fun <T : Any, C> computeTableWidth(
-    visibleColumns: List<ColumnSpec<T, C>>,
+    visibleColumns: List<ColumnSpec<T, C, *>>,
     state: TableState<C>,
 ): Dp {
     val dimensions = state.dimensions
@@ -34,7 +34,7 @@ internal fun <T : Any, C> computeTableWidth(
 }
 
 internal fun <C> computeAutoWidths(
-    visibleColumns: List<ColumnSpec<*, C>>,
+    visibleColumns: List<ColumnSpec<*, C, *>>,
     state: TableState<C>,
 ): Map<C, Dp> =
     buildMap {

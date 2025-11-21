@@ -22,11 +22,11 @@ import ua.wwind.table.state.calculateFixedColumnState
 import ua.wwind.table.strings.StringProvider
 
 @Composable
-internal fun <T : Any, C> TableHeaderRow(
+internal fun <T : Any, C, E> TableHeaderRow(
     tableWidth: Dp,
     lazyListState: LazyListState,
     reorderState: ReorderableLazyListState,
-    visibleColumns: ImmutableList<ColumnSpec<T, C>>,
+    visibleColumns: ImmutableList<ColumnSpec<T, C, E>>,
     widthResolver: (C) -> Dp,
     style: TableHeaderStyle,
     state: TableState<C>,

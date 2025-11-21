@@ -42,8 +42,8 @@ import ua.wwind.table.strings.StringProvider
 
 @Composable
 @Suppress("LongParameterList")
-internal fun <T : Any, C> TableHeader(
-    columns: ImmutableList<ColumnSpec<T, C>>,
+internal fun <T : Any, C, E> TableHeader(
+    columns: ImmutableList<ColumnSpec<T, C, E>>,
     state: TableState<C>,
     tableWidth: Dp,
     headerColor: Color,

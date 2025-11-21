@@ -31,14 +31,15 @@ import ua.wwind.table.state.TableState
  */
 @Composable
 @Suppress("LongParameterList")
-internal fun <T : Any, C> TableViewportPrefetcher(
+internal fun <T : Any, C, E> TableViewportPrefetcher(
     itemsCount: Int,
     itemAt: (Int) -> T?,
-    visibleColumns: ImmutableList<ColumnSpec<T, C>>,
+    visibleColumns: ImmutableList<ColumnSpec<T, C, E>>,
     state: TableState<C>,
     colors: TableColors,
     customization: TableCustomization<T, C>,
     tableWidth: Dp,
+    editState: E,
     placeholderRow: (@Composable () -> Unit)?,
     verticalState: LazyListState,
     requestTableFocus: () -> Unit,
@@ -60,11 +61,12 @@ internal fun <T : Any, C> TableViewportPrefetcher(
             val viewport = (li.viewportEndOffset - li.viewportStartOffset).coerceAtLeast(0)
             val lastVisible = li.visibleItemsInfo.maxByOrNull { it.index }?.index ?: -1
             Pair(viewport, (lastVisible + 1).coerceAtMost(itemsCount))
-        }.distinctUntilChanged().collect { pair ->
-            val (vp, start) = pair
-            viewportHeightPx = vp
-            startIndex = start
-        }
+        }.distinctUntilChanged()
+            .collect { pair ->
+                val (vp, start) = pair
+                viewportHeightPx = vp
+                startIndex = start
+            }
     }
 
     // We perform subcomposition inside a size(0) layout; we then apply updates via a LaunchedEffect
@@ -102,6 +104,7 @@ internal fun <T : Any, C> TableViewportPrefetcher(
                                 colors = colors,
                                 customization = customization,
                                 tableWidth = tableWidth,
+                                editState = editState,
                                 rowEmbedded = null,
                                 placeholderRow = placeholderRow,
                                 onRowClick = null,
@@ -127,8 +130,6 @@ internal fun <T : Any, C> TableViewportPrefetcher(
 
     LaunchedEffect(pendingUpdates) {
         if (pendingUpdates.isEmpty()) return@LaunchedEffect
-        pendingUpdates.forEach { (index, heightPx) ->
-            state.updateRowHeight(index, heightPx)
-        }
+        pendingUpdates.forEach { (index, heightPx) -> state.updateRowHeight(index, heightPx) }
     }
 }

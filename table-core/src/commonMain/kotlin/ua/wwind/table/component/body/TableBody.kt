@@ -22,15 +22,16 @@ import ua.wwind.table.state.TableState
 
 @Composable
 @Suppress("LongParameterList")
-internal fun <T : Any, C> TableBody(
+internal fun <T : Any, C, E> TableBody(
     itemsCount: Int,
     itemAt: (Int) -> T?,
     rowKey: (item: T?, index: Int) -> Any,
-    visibleColumns: ImmutableList<ColumnSpec<T, C>>,
+    visibleColumns: ImmutableList<ColumnSpec<T, C, E>>,
     state: TableState<C>,
     colors: TableColors,
     customization: TableCustomization<T, C>,
     tableWidth: Dp,
+    editState: E,
     rowEmbedded: (@Composable (rowIndex: Int, item: T) -> Unit)?,
     placeholderRow: (@Composable () -> Unit)?,
     onRowClick: ((T) -> Unit)?,
@@ -55,6 +56,7 @@ internal fun <T : Any, C> TableBody(
                 colors = colors,
                 customization = customization,
                 tableWidth = tableWidth,
+                editState = editState,
                 rowEmbedded = rowEmbedded,
                 placeholderRow = placeholderRow,
                 onRowClick = onRowClick,
@@ -74,6 +76,7 @@ internal fun <T : Any, C> TableBody(
         colors = colors,
         customization = customization,
         tableWidth = tableWidth,
+        editState = editState,
         placeholderRow = placeholderRow,
         verticalState = verticalState,
         requestTableFocus = requestTableFocus,
@@ -83,15 +86,16 @@ internal fun <T : Any, C> TableBody(
 
 @Composable
 @Suppress("LongParameterList")
-internal fun <T : Any, C> TableBodyEmbedded(
+internal fun <T : Any, C, E> TableBodyEmbedded(
     itemsCount: Int,
     itemAt: (Int) -> T?,
     rowKey: (item: T?, index: Int) -> Any,
-    visibleColumns: ImmutableList<ColumnSpec<T, C>>,
+    visibleColumns: ImmutableList<ColumnSpec<T, C, E>>,
     state: TableState<C>,
     colors: TableColors,
     customization: TableCustomization<T, C>,
     tableWidth: Dp,
+    editState: E,
     rowEmbedded: (@Composable (rowIndex: Int, item: T) -> Unit)?,
     placeholderRow: (@Composable () -> Unit)?,
     onRowClick: ((T) -> Unit)?,
@@ -112,6 +116,7 @@ internal fun <T : Any, C> TableBodyEmbedded(
                 colors = colors,
                 customization = customization,
                 tableWidth = tableWidth,
+                editState = editState,
                 rowEmbedded = rowEmbedded,
                 placeholderRow = placeholderRow,
                 onRowClick = onRowClick,
@@ -126,14 +131,15 @@ internal fun <T : Any, C> TableBodyEmbedded(
 
 @Composable
 @Suppress("LongParameterList")
-private fun <T : Any, C> TableBodyRow(
+private fun <T : Any, C, E> TableBodyRow(
     index: Int,
     itemAt: (Int) -> T?,
-    visibleColumns: ImmutableList<ColumnSpec<T, C>>,
+    visibleColumns: ImmutableList<ColumnSpec<T, C, E>>,
     state: TableState<C>,
     colors: TableColors,
     customization: TableCustomization<T, C>,
     tableWidth: Dp,
+    editState: E,
     rowEmbedded: (@Composable (rowIndex: Int, item: T) -> Unit)?,
     placeholderRow: (@Composable () -> Unit)?,
     onRowClick: ((T) -> Unit)?,
@@ -147,10 +153,12 @@ private fun <T : Any, C> TableBodyRow(
 
     val item = itemAt(index)
     val groupKey = state.groupBy
-    val groupSpec = if (groupKey != null) visibleColumns.firstOrNull { it.key == groupKey } else null
+    val groupSpec =
+        if (groupKey != null) visibleColumns.firstOrNull { it.key == groupKey } else null
     if (item != null && groupSpec != null) {
         val currentValue = groupSpec.valueOf(item)
-        val previousValue = if (index > 0) itemAt(index - 1)?.let { groupSpec.valueOf(it) } else null
+        val previousValue =
+            if (index > 0) itemAt(index - 1)?.let { groupSpec.valueOf(it) } else null
         if (index == 0 || currentValue != previousValue) {
             Box(
                 modifier =
@@ -185,6 +193,7 @@ private fun <T : Any, C> TableBodyRow(
         colors = colors,
         customization = customization,
         tableWidth = tableWidth,
+        editState = editState,
         rowEmbedded = rowEmbedded,
         placeholderRow = placeholderRow,
         onRowClick = onRowClick,

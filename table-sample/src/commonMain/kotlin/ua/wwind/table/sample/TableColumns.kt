@@ -2,32 +2,52 @@ package ua.wwind.table.sample
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.format
 import ua.wwind.table.ColumnSpec
+import ua.wwind.table.component.TableCellTextField
+import ua.wwind.table.editableTableColumns
 import ua.wwind.table.filter.data.TableFilterType
 import ua.wwind.table.tableColumns
 
 /**
  * Create column definitions with titles, cells and optional filters for header UI.
  */
-fun createTableColumns(onToggleMovementExpanded: (personId: Int) -> Unit): ImmutableList<ColumnSpec<Person, PersonColumn>> =
-    tableColumns<Person, PersonColumn> {
+@OptIn(ExperimentalMaterial3Api::class)
+fun createTableColumns(
+    onToggleMovementExpanded: (personId: Int) -> Unit,
+    onEvent: (SampleUiEvent) -> Unit,
+): ImmutableList<ColumnSpec<Person, PersonColumn, PersonEditState>> =
+    editableTableColumns<Person, PersonColumn, PersonEditState> {
         column(PersonColumn.EXPAND, valueOf = { it.expandedMovement }) {
             title { "Movements" }
             autoWidth(40.dp)
@@ -56,6 +76,34 @@ fun createTableColumns(onToggleMovementExpanded: (personId: Int) -> Unit): Immut
             sortable()
             filter(TableFilterType.TextTableFilter())
             cell { item -> Text(item.name, modifier = Modifier.padding(horizontal = 16.dp)) }
+
+            // Editing configuration - table will manage when to show this
+            editCell { person, editState, onComplete ->
+                var text by remember(person) { mutableStateOf(person.name) }
+
+                TableCellTextField(
+                    value = text,
+                    onValueChange = {
+                        text = it
+                        onEvent(SampleUiEvent.UpdateName(it))
+                    },
+                    singleLine = true,
+                    isError = editState.nameError.isNotEmpty(),
+                    supportingText =
+                        if (editState.nameError.isNotEmpty()) {
+                            { Text(editState.nameError) }
+                        } else {
+                            null
+                        },
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                    keyboardActions =
+                        KeyboardActions(
+                            onDone = {
+                                onComplete()
+                            },
+                        ),
+                )
+            }
         }
         column(PersonColumn.AGE, { it.age }) {
             title { "Age" }
@@ -74,6 +122,38 @@ fun createTableColumns(onToggleMovementExpanded: (personId: Int) -> Unit): Immut
                     modifier = Modifier.padding(horizontal = 16.dp),
                 )
             }
+
+            // Editing configuration
+            editCell { person, editState, onComplete ->
+                var text by remember(person) { mutableStateOf(person.age.toString()) }
+
+                TableCellTextField(
+                    value = text,
+                    onValueChange = {
+                        text = it.filter { char -> char.isDigit() }
+                        it.toIntOrNull()?.let { age -> onEvent(SampleUiEvent.UpdateAge(age)) }
+                    },
+                    singleLine = true,
+                    isError = editState.ageError.isNotEmpty(),
+                    supportingText =
+                        if (editState.ageError.isNotEmpty()) {
+                            { Text(editState.ageError) }
+                        } else {
+                            null
+                        },
+                    keyboardOptions =
+                        KeyboardOptions(
+                            keyboardType = KeyboardType.Number,
+                            imeAction = ImeAction.Done,
+                        ),
+                    keyboardActions =
+                        KeyboardActions(
+                            onDone = {
+                                onComplete()
+                            },
+                        ),
+                )
+            }
         }
         column(PersonColumn.ACTIVE, { it.active }) {
             title { "Active" }
@@ -86,12 +166,6 @@ fun createTableColumns(onToggleMovementExpanded: (personId: Int) -> Unit): Immut
             title { "ID" }
             autoWidth()
             sortable()
-//            filter(
-//                TableFilterType.NumberTableFilter(
-//                    delegate = TableFilterType.NumberTableFilter.IntDelegate,
-//                    rangeOptions = 1 to 1000,
-//                ),
-//            )
             align(Alignment.CenterEnd)
             cell { item ->
                 Text(
@@ -139,6 +213,45 @@ fun createTableColumns(onToggleMovementExpanded: (personId: Int) -> Unit): Immut
                 ),
             )
             cell { item -> Text(item.position.displayName, modifier = Modifier.padding(horizontal = 16.dp)) }
+
+            // Editing configuration with dropdown
+            editCell { person, editState, onComplete ->
+                var expanded by remember { mutableStateOf(false) }
+                var selectedPosition by remember(person) { mutableStateOf(person.position) }
+
+                ExposedDropdownMenuBox(
+                    expanded = expanded,
+                    onExpandedChange = { expanded = it },
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    TableCellTextField(
+                        value = selectedPosition.displayName,
+                        onValueChange = {},
+                        readOnly = true,
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                        modifier =
+                            Modifier
+                                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
+                        singleLine = true,
+                    )
+                    ExposedDropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false },
+                    ) {
+                        Position.entries.forEach { position ->
+                            DropdownMenuItem(
+                                text = { Text(position.displayName) },
+                                onClick = {
+                                    selectedPosition = position
+                                    onEvent(SampleUiEvent.UpdatePosition(position))
+                                    expanded = false
+                                    onComplete()
+                                },
+                            )
+                        }
+                    }
+                }
+            }
         }
         column(PersonColumn.SALARY, { it.salary }) {
             title { "Salary" }
@@ -155,6 +268,39 @@ fun createTableColumns(onToggleMovementExpanded: (personId: Int) -> Unit): Immut
                 Text(
                     "$${item.salary}",
                     modifier = Modifier.padding(horizontal = 16.dp),
+                )
+            }
+
+            // Editing configuration
+            editCell { person, editState, onComplete ->
+                var text by remember(person) { mutableStateOf(person.salary.toString()) }
+
+                TableCellTextField(
+                    value = text,
+                    onValueChange = {
+                        text = it.filter { char -> char.isDigit() }
+                        it.toIntOrNull()?.let { salary -> onEvent(SampleUiEvent.UpdateSalary(salary)) }
+                    },
+                    singleLine = true,
+                    isError = editState.salaryError.isNotEmpty(),
+                    supportingText =
+                        if (editState.salaryError.isNotEmpty()) {
+                            { Text(editState.salaryError) }
+                        } else {
+                            null
+                        },
+                    prefix = { Text("$") },
+                    keyboardOptions =
+                        KeyboardOptions(
+                            keyboardType = KeyboardType.Number,
+                            imeAction = ImeAction.Done,
+                        ),
+                    keyboardActions =
+                        KeyboardActions(
+                            onDone = {
+                                onComplete()
+                            },
+                        ),
                 )
             }
         }
@@ -235,7 +381,7 @@ fun createTableColumns(onToggleMovementExpanded: (personId: Int) -> Unit): Immut
         }
     }
 
-fun createMovementColumns(): ImmutableList<ColumnSpec<PersonMovement, PersonMovementColumn>> =
+fun createMovementColumns(): ImmutableList<ColumnSpec<PersonMovement, PersonMovementColumn, Unit>> =
     tableColumns<PersonMovement, PersonMovementColumn> {
         column(PersonMovementColumn.DATE, valueOf = { it.date }) {
             title { "Date" }

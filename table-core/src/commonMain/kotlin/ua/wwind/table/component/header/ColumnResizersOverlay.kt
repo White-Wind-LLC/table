@@ -33,9 +33,9 @@ import ua.wwind.table.config.TableDimensions
 private const val OVERLAY_THICKNESS_DP = 6
 
 @Composable
-internal fun <T : Any, C> ColumnResizersOverlay(
+internal fun <T : Any, C, E> ColumnResizersOverlay(
     tableWidth: Dp,
-    visibleColumns: ImmutableList<ColumnSpec<T, C>>,
+    visibleColumns: ImmutableList<ColumnSpec<T, C, E>>,
     widthResolver: (C) -> Dp,
     dimensions: TableDimensions,
     onResize: (key: C, newWidth: Dp) -> Unit,

@@ -21,10 +21,10 @@ import ua.wwind.table.state.TableState
 import ua.wwind.table.state.currentTableState
 
 @Composable
-internal fun <T : Any, C> GroupHeaderCell(
+internal fun <T : Any, C, E> GroupHeaderCell(
     value: Any?,
     item: T,
-    spec: ColumnSpec<T, C>,
+    spec: ColumnSpec<T, C, E>,
     width: Dp,
     height: Dp,
     colors: TableColors,

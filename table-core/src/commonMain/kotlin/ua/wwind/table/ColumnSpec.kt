@@ -20,7 +20,8 @@ import ua.wwind.table.filter.data.TableFilterType
  * @param key unique column key
  * @param header composable content for the header cell
  * @param cell composable content for each row cell
- * @param valueOf function that extracts the comparable value of this column from [T]; used for grouping and other logic
+ * @param valueOf function that extracts the comparable value of this column from [T]; used for
+ * grouping and other logic
  * @param title optional plain-text title for use in places like active filter chips
  * @param sortable whether the column participates in sorting
  * @param resizable whether user can resize the column
@@ -38,7 +39,7 @@ import ua.wwind.table.filter.data.TableFilterType
  * @param headerClickToSort whether clicking the entire header cell toggles sorting
  */
 @Immutable
-public data class ColumnSpec<T : Any, C>(
+public data class ColumnSpec<T : Any, C, E>(
     val key: C,
     val header: @Composable () -> Unit,
     val cell: @Composable BoxScope.(T) -> Unit,
@@ -56,181 +57,248 @@ public data class ColumnSpec<T : Any, C>(
     val maxRowHeight: Dp? = null,
     val filter: TableFilterType<*>? = null,
     val groupHeader: (@Composable BoxScope.(Any?) -> Unit)? = null,
-    /** Whether to render default header decorations (sort/filter icons) provided by the table. */
+    /**
+     * Whether to render default header decorations (sort/filter icons) provided by the table.
+     */
     val headerDecorations: Boolean = true,
     /** Whether a click on the whole header cell should toggle sort when sortable. */
     val headerClickToSort: Boolean = true,
+    /** Whether this column supports editing. Only applies if table's editingEnabled is true. */
+    val editable: Boolean = false,
+    /**
+     * Optional callback to check if editing can start for a specific item. Returns true to
+     * allow, false to deny.
+     */
+    val canStartEdit: ((T, Int) -> Boolean)? = null,
+    /**
+     * Composable slot for editing UI. Receives the item, edit state, and an onComplete callback to signal
+     * edit completion.
+     */
+    val editCell: (@Composable BoxScope.(T, E, onComplete: () -> Unit) -> Unit)? = null,
 )
 
-/**
- * DSL builder for a list of [ColumnSpec].
- */
-public class TableColumnsBuilder<T : Any, C> internal constructor() {
-    private val specs = mutableListOf<ColumnSpec<T, C>>()
+/** DSL builder for a list of readonly [ColumnSpec]. */
+public class ReadonlyTableColumnsBuilder<T : Any, C> internal constructor() {
+    private val specs = mutableListOf<ColumnSpec<T, C, Unit>>()
 
-    /**
-     * Declare a column with the given [key] and configure it via [block].
-     */
+    /** Declare a column with the given [key] and configure it via [block]. */
     public fun column(
         key: C,
         valueOf: (T) -> Any?,
-        block: ColumnBuilder<T, C>.() -> Unit,
+        block: ReadonlyColumnBuilder<T, C, Unit>.() -> Unit,
     ) {
-        val builder = ColumnBuilder<T, C>(key, valueOf)
+        val builder = ReadonlyColumnBuilder<T, C, Unit>(key, valueOf)
         builder.block()
         specs += builder.build()
     }
 
-    internal fun build(): ImmutableList<ColumnSpec<T, C>> = specs.toImmutableList()
+    internal fun build(): ImmutableList<ColumnSpec<T, C, Unit>> = specs.toImmutableList()
+}
+
+/** DSL builder for a list of editable [ColumnSpec]. */
+public class EditableTableColumnsBuilder<T : Any, C, E> internal constructor() {
+    private val specs = mutableListOf<ColumnSpec<T, C, E>>()
+
+    /** Declare a column with the given [key] and configure it via [block]. */
+    public fun column(
+        key: C,
+        valueOf: (T) -> Any?,
+        block: EditableColumnBuilder<T, C, E>.() -> Unit,
+    ) {
+        val builder = EditableColumnBuilder<T, C, E>(key, valueOf)
+        builder.block()
+        specs += builder.build()
+    }
+
+    internal fun build(): ImmutableList<ColumnSpec<T, C, E>> = specs.toImmutableList()
 }
 
 @Suppress("TooManyFunctions")
-/**
- * Builder for a single [ColumnSpec].
- */
-public class ColumnBuilder<T : Any, C> internal constructor(
-    private val key: C,
-    private val valueOf: ((T) -> Any?),
-) {
-    private var header: (@Composable () -> Unit)? = null
-    private var title: (@Composable () -> String)? = null
-    private var cell: (@Composable BoxScope.(T) -> Unit)? = null
-    private var sortable: Boolean = false
-    private var resizable: Boolean = true
-    private var visible: Boolean = true
-    private var width: Dp? = null
-    private var minWidth: Dp = 10.dp
-    private var autoWidth: Boolean = false
-    private var autoMaxWidth: Dp? = null
-    private var alignment: Alignment = Alignment.CenterStart
-    private var minRowHeight: Dp? = null
-    private var maxRowHeight: Dp? = null
-    private var filter: TableFilterType<*>? = null
-    private var headerDecorations: Boolean = true
-    private var headerClickToSort: Boolean = true
-    private var groupHeader: (@Composable BoxScope.(Any?) -> Unit)? = null
+/** Builder for a single readonly [ColumnSpec]. */
+public open class ReadonlyColumnBuilder<T : Any, C, E>
+    internal constructor(
+        protected val key: C,
+        protected val valueOf: ((T) -> Any?),
+    ) {
+        protected var header: (@Composable () -> Unit)? = null
+        protected var title: (@Composable () -> String)? = null
+        protected var cell: (@Composable BoxScope.(T) -> Unit)? = null
+        protected var sortable: Boolean = false
+        protected var resizable: Boolean = true
+        protected var visible: Boolean = true
+        protected var width: Dp? = null
+        protected var minWidth: Dp = 10.dp
+        protected var autoWidth: Boolean = false
+        protected var autoMaxWidth: Dp? = null
+        protected var alignment: Alignment = Alignment.CenterStart
+        protected var minRowHeight: Dp? = null
+        protected var maxRowHeight: Dp? = null
+        protected var filter: TableFilterType<*>? = null
+        protected var headerDecorations: Boolean = true
+        protected var headerClickToSort: Boolean = true
+        protected var groupHeader: (@Composable BoxScope.(Any?) -> Unit)? = null
+        protected var editable: Boolean = false
+        protected var canStartEdit: ((T, Int) -> Boolean)? = null
+        protected var editCell: (@Composable BoxScope.(T, E, onComplete: () -> Unit) -> Unit)? = null
 
-    /** Set simple text header. */
-    public fun header(text: String) {
-        // Ensure single-line headers truncate gracefully and can signal overflow for tooltips
-        header = { Text(text = text, maxLines = 1, overflow = TextOverflow.Ellipsis, softWrap = false) }
-        // Default the title to the same text so it can be used for tooltips unless overridden
-        if (title == null) {
-            title = { text }
+        /** Set simple text header. */
+        public fun header(text: String) {
+            // Ensure single-line headers truncate gracefully and can signal overflow for tooltips
+            header = {
+                Text(text = text, maxLines = 1, overflow = TextOverflow.Ellipsis, softWrap = false)
+            }
+            // Default the title to the same text so it can be used for tooltips unless overridden
+            if (title == null) {
+                title = { text }
+            }
+        }
+
+        /** Set custom composable header content. */
+        public fun header(content: @Composable () -> Unit) {
+            header = content
+        }
+
+        /** Set optional plain-text title (used for chips/tooltips). */
+        public fun title(content: @Composable () -> String) {
+            title = content
+            if (header == null) {
+                header = {
+                    Text(
+                        text = content(),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        softWrap = false,
+                    )
+                }
+            }
+        }
+
+        /** Define body cell content. */
+        public fun cell(content: @Composable BoxScope.(T) -> Unit) {
+            cell = content
+        }
+
+        /** Mark column as sortable. */
+        public fun sortable() {
+            sortable = true
+        }
+
+        /** Enable/disable user resizing. */
+        public fun resizable(value: Boolean) {
+            resizable = value
+        }
+
+        /** Set visibility for this column. */
+        public fun visible(value: Boolean) {
+            visible = value
+        }
+
+        /** Set minimum and preferred width. */
+        public fun width(
+            min: Dp,
+            pref: Dp? = null,
+        ) {
+            minWidth = min
+            width = pref ?: width
+        }
+
+        /**
+         * Enable automatic width based on measured content on first render; optionally cap with [max].
+         */
+        public fun autoWidth(max: Dp? = null) {
+            autoWidth = true
+            autoMaxWidth = max
+        }
+
+        /** Set alignment for cell content. */
+        public fun align(alignment: Alignment) {
+            this.alignment = alignment
+        }
+
+        /**
+         * Configure row height bounds that will be considered when the table uses dynamic row height.
+         * If the table is in fixed height mode, these values are ignored.
+         */
+        public fun rowHeight(
+            min: Dp? = null,
+            max: Dp? = null,
+        ) {
+            minRowHeight = min
+            maxRowHeight = max
+        }
+
+        /** Attach a filter type supported by this column. */
+        public fun filter(type: TableFilterType<*>) {
+            filter = type
+        }
+
+        /** Optional custom renderer for the group header. */
+        public fun groupHeader(renderer: @Composable BoxScope.(Any?) -> Unit) {
+            groupHeader = renderer
+        }
+
+        /** Enable or disable default header decorations for this column. */
+        public fun headerDecorations(value: Boolean) {
+            headerDecorations = value
+        }
+
+        /** Enable or disable click-to-sort for the whole header cell. */
+        public fun headerClickToSort(value: Boolean) {
+            headerClickToSort = value
+        }
+
+        internal fun build(): ColumnSpec<T, C, E> =
+            ColumnSpec(
+                key = key,
+                header = checkNotNull(header) { "Column header must be provided" },
+                title = title,
+                cell = checkNotNull(cell) { "Column cell must be provided" },
+                valueOf = checkNotNull(valueOf) { "Column valueOf must be provided" },
+                sortable = sortable,
+                resizable = resizable,
+                visible = visible,
+                width = width,
+                minWidth = minWidth,
+                autoWidth = autoWidth,
+                autoMaxWidth = autoMaxWidth,
+                alignment = alignment,
+                minRowHeight = minRowHeight,
+                maxRowHeight = maxRowHeight,
+                filter = filter,
+                groupHeader = groupHeader,
+                headerDecorations = headerDecorations,
+                headerClickToSort = headerClickToSort,
+                editable = editable,
+                canStartEdit = canStartEdit,
+                editCell = editCell,
+            )
+    }
+
+/** Builder for a single editable [ColumnSpec]. Extends [ReadonlyColumnBuilder] with editing capabilities. */
+public class EditableColumnBuilder<T : Any, C, E>
+    internal constructor(
+        key: C,
+        valueOf: ((T) -> Any?),
+    ) : ReadonlyColumnBuilder<T, C, E>(key, valueOf) {
+        /** Define editing UI content. Receives the item, edit state, and an onComplete callback. */
+        public fun editCell(
+            canEdit: ((T, Int) -> Boolean)? = null,
+            content: @Composable BoxScope.(T, E, onComplete: () -> Unit) -> Unit,
+        ) {
+            this.editable = true
+            this.canStartEdit = canEdit
+            this.editCell = content
         }
     }
 
-    /** Set custom composable header content. */
-    public fun header(content: @Composable () -> Unit) {
-        header = content
-    }
+/** DSL entry to declare readonly table columns. */
+public fun <T : Any, C> tableColumns(build: ReadonlyTableColumnsBuilder<T, C>.() -> Unit): ImmutableList<ColumnSpec<T, C, Unit>> =
+    ReadonlyTableColumnsBuilder<T, C>().apply(build).build()
 
-    /** Set optional plain-text title (used for chips/tooltips). */
-    public fun title(content: @Composable () -> String) {
-        title = content
-        if (header == null) {
-            header = { Text(text = content(), maxLines = 1, overflow = TextOverflow.Ellipsis, softWrap = false) }
-        }
-    }
+/** DSL entry to declare editable table columns. */
+public fun <T : Any, C, E> editableTableColumns(
+    build: EditableTableColumnsBuilder<T, C, E>.() -> Unit,
+): ImmutableList<ColumnSpec<T, C, E>> = EditableTableColumnsBuilder<T, C, E>().apply(build).build()
 
-    /** Define body cell content. */
-    public fun cell(content: @Composable BoxScope.(T) -> Unit) {
-        cell = content
-    }
-
-    /** Mark column as sortable. */
-    public fun sortable() {
-        sortable = true
-    }
-
-    /** Enable/disable user resizing. */
-    public fun resizable(value: Boolean) {
-        resizable = value
-    }
-
-    /** Set visibility for this column. */
-    public fun visible(value: Boolean) {
-        visible = value
-    }
-
-    /** Set minimum and preferred width. */
-    public fun width(
-        min: Dp,
-        pref: Dp? = null,
-    ) {
-        minWidth = min
-        width = pref ?: width
-    }
-
-    /** Enable automatic width based on measured content on first render; optionally cap with [max]. */
-    public fun autoWidth(max: Dp? = null) {
-        autoWidth = true
-        autoMaxWidth = max
-    }
-
-    /** Set alignment for cell content. */
-    public fun align(alignment: Alignment) {
-        this.alignment = alignment
-    }
-
-    /**
-     * Configure row height bounds that will be considered when the table uses dynamic row height.
-     * If the table is in fixed height mode, these values are ignored.
-     */
-    public fun rowHeight(
-        min: Dp? = null,
-        max: Dp? = null,
-    ) {
-        minRowHeight = min
-        maxRowHeight = max
-    }
-
-    /** Attach a filter type supported by this column. */
-    public fun filter(type: TableFilterType<*>) {
-        filter = type
-    }
-
-    /** Optional custom renderer for the group header. */
-    public fun groupHeader(renderer: @Composable BoxScope.(Any?) -> Unit) {
-        groupHeader = renderer
-    }
-
-    /** Enable or disable default header decorations for this column. */
-    public fun headerDecorations(value: Boolean) {
-        headerDecorations = value
-    }
-
-    /** Enable or disable click-to-sort for the whole header cell. */
-    public fun headerClickToSort(value: Boolean) {
-        headerClickToSort = value
-    }
-
-    internal fun build(): ColumnSpec<T, C> =
-        ColumnSpec(
-            key = key,
-            header = checkNotNull(header) { "Column header must be provided" },
-            title = title,
-            cell = checkNotNull(cell) { "Column cell must be provided" },
-            valueOf = checkNotNull(valueOf) { "Column valueOf must be provided" },
-            sortable = sortable,
-            resizable = resizable,
-            visible = visible,
-            width = width,
-            minWidth = minWidth,
-            autoWidth = autoWidth,
-            autoMaxWidth = autoMaxWidth,
-            alignment = alignment,
-            minRowHeight = minRowHeight,
-            maxRowHeight = maxRowHeight,
-            filter = filter,
-            groupHeader = groupHeader,
-            headerDecorations = headerDecorations,
-            headerClickToSort = headerClickToSort,
-        )
-}
-
-/**
- * DSL entry to declare table columns.
- */
-public fun <T : Any, C> tableColumns(build: TableColumnsBuilder<T, C>.() -> Unit): ImmutableList<ColumnSpec<T, C>> =
-    TableColumnsBuilder<T, C>().apply(build).build()
+/** Type alias for readonly table columns (without edit state) */
+public typealias ReadonlyColumnSpec<T, C> = ColumnSpec<T, C, Unit>

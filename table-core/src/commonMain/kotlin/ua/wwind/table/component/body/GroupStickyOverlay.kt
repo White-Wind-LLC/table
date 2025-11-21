@@ -29,9 +29,9 @@ import kotlin.math.min
 @Composable
 @Suppress("LongParameterList")
 @ExperimentalTableApi
-internal fun <T : Any, C> GroupStickyOverlay(
+internal fun <T : Any, C, E> GroupStickyOverlay(
     itemAt: (Int) -> T?,
-    visibleColumns: ImmutableList<ColumnSpec<T, C>>,
+    visibleColumns: ImmutableList<ColumnSpec<T, C, E>>,
     customization: TableCustomization<T, C>,
     colors: TableColors,
     verticalState: LazyListState,
