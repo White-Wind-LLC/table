@@ -59,7 +59,7 @@ import ua.wwind.table.strings.DefaultStrings
 fun SampleApp(modifier: Modifier = Modifier) {
     var isDarkTheme by remember { mutableStateOf(false) }
     // Create or remember ViewModel
-    val viewModel: SampleViewModel = viewModel()
+    val viewModel: SampleViewModel = viewModel { SampleViewModel() }
 
     var useStripedRows by remember { mutableStateOf(true) }
 
