@@ -12,6 +12,7 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -28,7 +29,8 @@ import ua.wwind.table.state.SortState
 @OptIn(ExperimentalTableApi::class)
 class SampleViewModel : ViewModel() {
     // StateFlow for people list to enable reactive transformations
-    private val people = MutableStateFlow<List<Person>>(createDemoData())
+    val _people = MutableStateFlow<List<Person>>(createDemoData())
+    val people: StateFlow<List<Person>> = _people.asStateFlow()
 
     // Current filters state
     private val currentFilters = MutableStateFlow<Map<PersonColumn, TableFilterState<*>>>(emptyMap())
@@ -38,7 +40,7 @@ class SampleViewModel : ViewModel() {
 
     // Filtered and sorted people - derived from combining three StateFlows
     val displayedPeople: StateFlow<List<Person>> =
-        combine(people, currentFilters, currentSort) { peopleList, filters, sort ->
+        combine(_people, currentFilters, currentSort) { peopleList, filters, sort ->
             // Apply filtering
             val filtered =
                 peopleList.filter { person ->
@@ -489,7 +491,7 @@ class SampleViewModel : ViewModel() {
     }
 
     fun toggleMovementExpanded(personId: Int) {
-        people.update { currentPeople ->
+        _people.update { currentPeople ->
             val index = currentPeople.indexOfFirst { person -> person.id == personId }
             if (index < 0) return@update currentPeople
 
@@ -590,7 +592,7 @@ class SampleViewModel : ViewModel() {
             is SampleUiEvent.CompleteEditing -> {
                 val edited = editingRowState.person
                 if (edited != null) {
-                    people.update { currentPeople ->
+                    _people.update { currentPeople ->
                         val index = currentPeople.indexOfFirst { it.id == edited.id }
                         if (index >= 0) {
                             // Return updated list with modified person

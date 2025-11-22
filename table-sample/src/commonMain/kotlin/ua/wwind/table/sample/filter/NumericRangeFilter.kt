@@ -59,8 +59,20 @@ private class NumericRangeFilterRenderer(
         var rangeMin by remember { mutableStateOf(current.min.toFloat()) }
         var rangeMax by remember { mutableStateOf(current.max.toFloat()) }
 
-        val minInput by remember { derivedStateOf { rangeMin.roundToInt().toString() } }
-        val maxInput by remember { derivedStateOf { rangeMax.roundToInt().toString() } }
+        var minInput by remember { mutableStateOf(current.min.toString()) }
+        var maxInput by remember { mutableStateOf(current.max.toString()) }
+
+        // Flag to prevent circular updates
+        var isUpdatingFromSlider by remember { mutableStateOf(false) }
+
+        // Sync text fields with slider changes only
+        LaunchedEffect(rangeMin, rangeMax) {
+            if (isUpdatingFromSlider) {
+                minInput = rangeMin.roundToInt().toString()
+                maxInput = rangeMax.roundToInt().toString()
+                isUpdatingFromSlider = false
+            }
+        }
 
         // Auto-apply on change
         val applyFilter = {
@@ -137,6 +149,7 @@ private class NumericRangeFilterRenderer(
                 RangeSlider(
                     value = rangeMin..rangeMax,
                     onValueChange = { range ->
+                        isUpdatingFromSlider = true
                         rangeMin = range.start
                         rangeMax = range.endInclusive
                     },
@@ -155,6 +168,7 @@ private class NumericRangeFilterRenderer(
                     OutlinedTextField(
                         value = minInput,
                         onValueChange = { newValue ->
+                            minInput = newValue
                             newValue.toIntOrNull()?.let {
                                 rangeMin = it.toFloat().coerceIn(dataMin.toFloat(), rangeMax)
                                 applyFilter()
@@ -169,6 +183,7 @@ private class NumericRangeFilterRenderer(
                     OutlinedTextField(
                         value = maxInput,
                         onValueChange = { newValue ->
+                            maxInput = newValue
                             newValue.toIntOrNull()?.let {
                                 rangeMax = it.toFloat().coerceIn(rangeMin, dataMax.toFloat())
                                 applyFilter()

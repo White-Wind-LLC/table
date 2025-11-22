@@ -246,7 +246,7 @@ fun createTableColumns(
         }
         column(PersonColumn.SALARY, { it.salary }) {
             title { "Salary" }
-            autoWidth()
+            width(350.dp, 350.dp)
             sortable()
             // Custom visual range filter with histogram
             filter(createSalaryRangeFilter(allPeople))
