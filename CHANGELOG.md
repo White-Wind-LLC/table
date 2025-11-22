@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+### 1.6.1 — 2025-11-22
+
+- Added: Support for fully custom filters with renderer and state provider, enabling flexible and consistent custom
+  filter UI and behavior.
+    - New `TableFilterType.Custom` interface allows defining custom filter types with dedicated composable UI.
+    - `CustomFilterStateProvider` interface for building chip text and managing custom filter state.
+    - `CustomFastFilter` component for rendering custom fast filters with animated visibility.
+    - `CustomFilter` component for rendering custom filters in filter panels with action buttons.
+    - Sample implementation includes `NumericRangeFilter` with range slider, histogram visualization, and predefined
+      range buttons.
+
+Compare: [v1.6.0...v1.6.1](https://github.com/White-Wind-LLC/table/compare/v1.6.0...v1.6.1)
+
 ### 1.6.0 — 2025-11-21
 
 - Added: Row-scoped cell editing mode with custom edit UI, validation, and keyboard navigation.
