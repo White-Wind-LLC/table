@@ -2,6 +2,33 @@
 
 All notable changes to this project will be documented in this file.
 
+### 1.6.0 — 2025-11-21
+
+- Added: Row-scoped cell editing mode with custom edit UI, validation, and keyboard navigation.
+    - Enable editing via `TableSettings(editingEnabled = true)`.
+    - Use `EditableTable<T, C, E>` composable for tables with editing support.
+    - Declare editable columns with `editableTableColumns<T, C, E> { ... }` DSL and per-cell `editCell` content.
+    - Lifecycle callbacks: `onRowEditStart`, `onRowEditComplete`, `onEditCancelled` for validation and state management.
+    - Keyboard navigation: Enter/Done moves to next editable cell, Escape cancels editing (desktop targets).
+    - Double-click any editable cell to enter row edit mode; all editable cells in the row become active simultaneously.
+- Added: `TableCellTextField` component for text editing inside table cells.
+    - Focus integration via `syncEditCellFocus()` modifier ensures correct keyboard navigation and focus handling.
+    - Compact layout with reduced paddings and optional border visibility for dense table rows.
+    - Visual consistency with Material 3 inputs used throughout table UI.
+    - Supports error states, keyboard actions, and customizable styling.
+- Added: `EditCellFocusSync.kt` module for coordinating focus between table state and editable cell composables.
+- Changed: `TableTextField` visibility changed from internal to public for reuse in custom filter implementations.
+- Changed: Filter components enhanced with configurable border visibility and improved layout:
+    - Added `showBorder` parameter to `TableTextField`, date filters, and number filters.
+    - Adjusted filter row height for better visual consistency.
+    - Number range slider text aligned to end for improved readability.
+- Changed: Major refactoring of `TableState` to support editing mode, edit cell tracking, and edit lifecycle.
+- Changed: `ColumnSpec` API extended with `editCell` DSL for defining per-cell edit content.
+- Changed: Sample app updated with comprehensive editing demo including validation, error handling, and state
+  management.
+
+Compare: [v1.5.1...v1.6.0](https://github.com/White-Wind-LLC/table/compare/v1.5.1...v1.6.0)
+
 ### 1.5.1 — 2025-11-20
 
 - Fixed: Ensure `TableTextField` (table text field) uses the current theme's default text style to improve text

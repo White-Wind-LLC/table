@@ -12,8 +12,8 @@ import ua.wwind.table.state.TableState
 import ua.wwind.table.strings.StringProvider
 
 @Composable
-internal fun <T : Any, C> ActiveFiltersHeader(
-    columns: ImmutableList<ColumnSpec<T, C>>,
+internal fun <T : Any, C, E> ActiveFiltersHeader(
+    columns: ImmutableList<ColumnSpec<T, C, E>>,
     state: TableState<C>,
     strings: StringProvider,
     width: Dp,

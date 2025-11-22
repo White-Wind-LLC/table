@@ -115,10 +115,10 @@ public suspend fun <C> ensureRowFullyVisible(
 }
 
 /** Ensure that the given column becomes fully visible horizontally. */
-public suspend fun <T : Any, C> ensureColumnFullyVisible(
+public suspend fun <T : Any, C, E> ensureColumnFullyVisible(
     targetColIndex: Int,
     targetColKey: C,
-    visibleColumns: List<ColumnSpec<T, C>>,
+    visibleColumns: List<ColumnSpec<T, C, E>>,
     state: TableState<C>,
     horizontalState: ScrollState,
     density: Density,
@@ -162,11 +162,11 @@ public suspend fun <T : Any, C> ensureColumnFullyVisible(
 }
 
 /** Ensure that the specified cell (row + column) becomes fully visible. */
-public suspend fun <T : Any, C> ensureCellFullyVisible(
+public suspend fun <T : Any, C, E> ensureCellFullyVisible(
     rowIndex: Int,
     targetColIndex: Int,
     targetColKey: C,
-    visibleColumns: List<ColumnSpec<T, C>>,
+    visibleColumns: List<ColumnSpec<T, C, E>>,
     state: TableState<C>,
     verticalState: LazyListState,
     horizontalState: ScrollState,

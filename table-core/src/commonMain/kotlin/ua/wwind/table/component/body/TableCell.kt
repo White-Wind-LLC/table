@@ -61,12 +61,13 @@ internal fun TableCell(
         if (isFixed) {
             // For fixed cells, always use Surface even if background is Unspecified
             // This ensures proper opacity and prevents see-through effect
-            val backgroundColor = if (cellStyle.background != Unspecified) {
-                // Ensure full opacity for fixed cells
-                cellStyle.background.copy(alpha = 1f)
-            } else {
-                MaterialTheme.colorScheme.surface
-            }
+            val backgroundColor =
+                if (cellStyle.background != Unspecified) {
+                    // Ensure full opacity for fixed cells
+                    cellStyle.background.copy(alpha = 1f)
+                } else {
+                    MaterialTheme.colorScheme.surface
+                }
 
             Surface(
                 color = backgroundColor,

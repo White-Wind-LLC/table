@@ -12,12 +12,17 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Surface
 import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.ProvidableCompositionLocal
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.Unspecified
@@ -44,16 +49,39 @@ import ua.wwind.table.interaction.tableRowInteractions
 import ua.wwind.table.state.TableState
 import ua.wwind.table.state.calculateFixedColumnState
 
+/**
+ * Context for the currently editing cell, providing row index and column key.
+ * Column is stored as Any to avoid star projection issues when updating selectedCell.
+ */
+public data class EditCellContext(
+    val rowIndex: Int,
+    val columnAsAny: Any,
+)
+
+/**
+ * Composition local providing the current edit cell context (row index and column key).
+ */
+public val LocalEditCellContext: ProvidableCompositionLocal<EditCellContext?> =
+    compositionLocalOf { null }
+
+/**
+ * Composition local providing a FocusRequester that should be used by edit cells
+ * to automatically request focus when transitioning between editable cells.
+ */
+public val LocalEditCellFocusRequester: ProvidableCompositionLocal<FocusRequester?> =
+    compositionLocalOf { null }
+
 @Composable
 @Suppress("LongParameterList", "LongMethod", "CyclomaticComplexMethod")
-internal fun <T : Any, C> TableRowItem(
+internal fun <T : Any, C, E> TableRowItem(
     item: T?,
     index: Int,
-    visibleColumns: ImmutableList<ColumnSpec<T, C>>,
+    visibleColumns: ImmutableList<ColumnSpec<T, C, E>>,
     state: TableState<C>,
     colors: ua.wwind.table.config.TableColors,
     customization: TableCustomization<T, C>,
     tableWidth: Dp,
+    editState: E,
     rowEmbedded: (@Composable (rowIndex: Int, item: T) -> Unit)?,
     placeholderRow: (@Composable () -> Unit)?,
     onRowClick: ((T) -> Unit)?,
@@ -91,7 +119,8 @@ internal fun <T : Any, C> TableRowItem(
     val finalRowColor =
         rowStyle?.containerColor?.takeUnless { it == Unspecified } ?: defaultRowBackgroundColor
     val finalRowContentColor =
-        rowStyle?.contentColor?.takeUnless { it == Unspecified } ?: contentColorFor(finalRowColor)
+        rowStyle?.contentColor?.takeUnless { it == Unspecified }
+            ?: contentColorFor(finalRowColor)
 
     val tonalElevation = rowStyle?.elevation?.takeUnless { it == Dp.Unspecified } ?: 0.dp
 
@@ -120,7 +149,10 @@ internal fun <T : Any, C> TableRowItem(
             rowModifier = rowModifier.height(IntrinsicSize.Min)
             if (minRowHeight != null || maxRowHeight != null) {
                 rowModifier =
-                    rowModifier.heightIn(min = minRowHeight ?: Dp.Unspecified, max = maxRowHeight ?: Dp.Unspecified)
+                    rowModifier.heightIn(
+                        min = minRowHeight ?: Dp.Unspecified,
+                        max = maxRowHeight ?: Dp.Unspecified,
+                    )
             }
         }
 
@@ -134,6 +166,7 @@ internal fun <T : Any, C> TableRowItem(
                     dimensions = dimensions,
                     customization = customization,
                     item = item,
+                    editState = editState,
                     isSelected = isSelected,
                     settings = settings,
                     horizontalState = horizontalState,
@@ -142,7 +175,7 @@ internal fun <T : Any, C> TableRowItem(
                     requestTableFocus = requestTableFocus,
                     onRowClick = onRowClick,
                     onRowLongClick = onRowLongClick,
-                    onContextMenu = onContextMenu
+                    onContextMenu = onContextMenu,
                 )
 
                 rowEmbedded?.invoke(index, item)
@@ -150,12 +183,11 @@ internal fun <T : Any, C> TableRowItem(
         } else {
             Row(
                 modifier =
-                    if (isDynamicRowHeight)
+                    if (isDynamicRowHeight) {
                         Modifier
-                    else
-                        Modifier
-                            .height(dimensions.rowHeight)
-                            .width(tableWidth),
+                    } else {
+                        Modifier.height(dimensions.rowHeight).width(tableWidth)
+                    },
                 verticalAlignment = Alignment.CenterVertically,
             ) { placeholderRow?.invoke() }
         }
@@ -163,14 +195,15 @@ internal fun <T : Any, C> TableRowItem(
 }
 
 @Composable
-private fun <C, T : Any> RenderTableRowItem(
+private fun <C, T : Any, E> RenderTableRowItem(
     rowModifier: Modifier,
     state: TableState<C>,
     index: Int,
-    visibleColumns: ImmutableList<ColumnSpec<T, C>>,
+    visibleColumns: ImmutableList<ColumnSpec<T, C, E>>,
     dimensions: TableDimensions,
     customization: TableCustomization<T, C>,
     item: T,
+    editState: E,
     isSelected: Boolean,
     settings: TableSettings,
     horizontalState: ScrollState,
@@ -179,7 +212,7 @@ private fun <C, T : Any> RenderTableRowItem(
     requestTableFocus: () -> Unit,
     onRowClick: ((T) -> Unit)?,
     onRowLongClick: ((T) -> Unit)?,
-    onContextMenu: ((T, Offset) -> Unit)?
+    onContextMenu: ((T, Offset) -> Unit)?,
 ) {
     Row(
         modifier =
@@ -198,7 +231,9 @@ private fun <C, T : Any> RenderTableRowItem(
                                 item = item,
                                 index = index,
                                 isSelected = isSelected,
-                                isStriped = state.settings.stripedRows && (index % 2 != 0),
+                                isStriped =
+                                    state.settings.stripedRows &&
+                                        (index % 2 != 0),
                                 isGroup = false,
                                 isDeleted = false,
                             ),
@@ -207,7 +242,8 @@ private fun <C, T : Any> RenderTableRowItem(
                 )
 
             val isCellSelected =
-                state.selectedCell?.let { it.rowIndex == index && it.column == spec.key } == true
+                state.selectedCell?.let { it.rowIndex == index && it.column == spec.key } ==
+                    true
 
             val fixedState =
                 calculateFixedColumnState(
@@ -223,11 +259,12 @@ private fun <C, T : Any> RenderTableRowItem(
             val finalCellStyle =
                 if (fixedState.isFixed) {
                     // Always use row background for fixed columns to ensure opacity
-                    val backgroundToUse = if (cellStyle.background != Unspecified) {
-                        cellStyle.background
-                    } else {
-                        finalRowColor
-                    }
+                    val backgroundToUse =
+                        if (cellStyle.background != Unspecified) {
+                            cellStyle.background
+                        } else {
+                            finalRowColor
+                        }
                     cellStyle.copy(background = backgroundToUse)
                 } else {
                     cellStyle
@@ -253,29 +290,71 @@ private fun <C, T : Any> RenderTableRowItem(
                 modifier =
                     Modifier
                         .zIndex(fixedState.zIndex)
-                        .graphicsLayer {
-                            this.translationX = fixedState.translationX
-                        }.onGloballyPositioned { coordinates ->
+                        .graphicsLayer { this.translationX = fixedState.translationX }
+                        .onGloballyPositioned { coordinates ->
                             cellTopLeft = coordinates.positionInRoot()
                         }.then(
-                            Modifier.tableRowInteractions(
-                                item = item,
-                                onFocus = {
-                                    requestTableFocus()
-                                    state.selectCell(index, spec.key)
-                                    state.focusRow(index)
-                                },
-                                useSelectAsPrimary = state.settings.selectionMode != SelectionMode.None,
-                                onSelect = { state.toggleSelect(index) },
-                                onClick = onRowClick,
-                                onLongClick = onRowLongClick,
-                                onContextMenu =
-                                    onContextMenu?.let { handler ->
-                                        { itemCtx, localPos -> handler(itemCtx, cellTopLeft + localPos) }
+                            Modifier
+                                .tableRowInteractions(
+                                    item = item,
+                                    onFocus = {
+                                        // Try to complete editing on other row if needed; proceed only when allowed
+                                        val allowFocus =
+                                            !settings.editingEnabled ||
+                                                state.editingRow == null ||
+                                                state.editingRow == index ||
+                                                state.tryCompleteEditing()
+                                        if (allowFocus) {
+                                            requestTableFocus()
+                                            state.selectCell(index, spec.key)
+                                            state.focusRow(index)
+                                        }
                                     },
-                            ),
+                                    useSelectAsPrimary =
+                                        state.settings.selectionMode !=
+                                            SelectionMode.None,
+                                    onSelect = { state.toggleSelect(index) },
+                                    onClick = {
+                                        // Determine whether we can change focus/editing first
+                                        val canProceed =
+                                            run {
+                                                if (!settings.editingEnabled) return@run true
+                                                val editingRow = state.editingRow
+                                                if (editingRow == null || editingRow == index) return@run true
+                                                // Try to finish editing of other row; result controls continuation
+                                                state.tryCompleteEditing()
+                                            }
+
+                                        if (!canProceed) return@tableRowInteractions
+
+                                        if (settings.editingEnabled && spec.editable) {
+                                            val allowed = spec.canStartEdit?.invoke(item, index) ?: true
+                                            if (allowed) {
+                                                state.startEditing(item, index, spec.key)
+                                            } else {
+                                                onRowClick?.invoke(it)
+                                            }
+                                        } else {
+                                            onRowClick?.invoke(it)
+                                        }
+                                    },
+                                    onLongClick = onRowLongClick,
+                                    onContextMenu =
+                                        onContextMenu?.let { handler ->
+                                            { itemCtx, localPos ->
+                                                handler(
+                                                    itemCtx,
+                                                    cellTopLeft + localPos,
+                                                )
+                                            }
+                                        },
+                                ),
                         ),
             ) {
+                // Determine if we should show edit UI for this cell
+                val isRowEditing = state.editingRow == index
+                val shouldShowEditUI = isRowEditing && spec.editable && spec.editCell != null
+
                 if (spec.resizable || spec.autoWidth) {
                     Box(Modifier.size(0.dp)) {
                         MeasureCellMinWidth(
@@ -288,7 +367,30 @@ private fun <C, T : Any> RenderTableRowItem(
                         }
                     }
                 }
-                spec.cell.invoke(this, item)
+
+                // Render edit UI or normal cell
+                if (shouldShowEditUI) {
+                    val focusRequester = remember { FocusRequester() }
+
+                    LaunchedEffect(state.editingColumn, state.editingRow) {
+                        val isCurrentEditingCell = state.editingColumn == spec.key && state.editingRow == index
+                        if (isCurrentEditingCell) {
+                            focusRequester.requestFocus()
+                        }
+                    }
+
+                    CompositionLocalProvider(
+                        LocalEditCellContext provides EditCellContext(index, spec.key as Any),
+                        LocalEditCellFocusRequester provides focusRequester,
+                    ) {
+                        spec.editCell.invoke(this, item, editState) {
+                            // onComplete callback - move to next editable cell
+                            state.completeCurrentCellEdit(visibleColumns)
+                        }
+                    }
+                } else {
+                    spec.cell.invoke(this, item)
+                }
             }
         }
     }

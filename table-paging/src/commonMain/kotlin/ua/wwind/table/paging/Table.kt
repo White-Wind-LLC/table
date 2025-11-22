@@ -30,7 +30,7 @@ import ua.wwind.table.strings.StringProvider
 public fun <T : Any, C> Table(
     items: PagingData<T>?,
     state: TableState<C>,
-    columns: ImmutableList<ColumnSpec<T, C>>,
+    columns: ImmutableList<ColumnSpec<T, C, Unit>>,
     modifier: Modifier = Modifier,
     placeholderRow: (@Composable () -> Unit)? = null,
     rowKey: (item: T?, index: Int) -> Any = { _, i -> i },

@@ -77,10 +77,7 @@ internal fun <T : Any> Modifier.tableRowInteractions(
                         awaitPointerEventScope {
                             while (true) {
                                 val event = awaitPointerEvent()
-                                if (
-                                    event.type == PointerEventType.Press &&
-                                    event.buttons.isSecondaryPressed
-                                ) {
+                                if (event.type == PointerEventType.Press && event.buttons.isSecondaryPressed) {
                                     val pos = event.changes.firstOrNull()?.position ?: Offset.Zero
                                     onContextMenu.invoke(item, pos)
                                 }

@@ -20,8 +20,8 @@ import ua.wwind.table.state.currentTableState
 @Composable
 @Suppress("LongParameterList")
 @ExperimentalTableApi
-internal fun <T : Any, C> EnsureSelectedCellVisibleEffect(
-    visibleColumns: ImmutableList<ColumnSpec<T, C>>,
+internal fun <T : Any, C, E> EnsureSelectedCellVisibleEffect(
+    visibleColumns: ImmutableList<ColumnSpec<T, C, E>>,
     verticalState: LazyListState,
     horizontalState: ScrollState,
 ) {

@@ -24,16 +24,20 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.collections.immutable.toImmutableList
+import ua.wwind.table.EditableTable
 import ua.wwind.table.ExperimentalTableApi
 import ua.wwind.table.Table
 import ua.wwind.table.config.FixedSide
@@ -42,7 +46,6 @@ import ua.wwind.table.config.SelectionMode
 import ua.wwind.table.config.TableCustomization
 import ua.wwind.table.config.TableDimensions
 import ua.wwind.table.config.TableSettings
-import ua.wwind.table.data.SortOrder
 import ua.wwind.table.filter.data.TableFilterState
 import ua.wwind.table.format.FormatDialog
 import ua.wwind.table.format.FormatDialogSettings
@@ -56,14 +59,7 @@ import ua.wwind.table.strings.DefaultStrings
 fun SampleApp(modifier: Modifier = Modifier) {
     var isDarkTheme by remember { mutableStateOf(false) }
     // Create or remember ViewModel
-    val viewModel = remember { SampleViewModel() }
-
-    // Handle cleanup when the composable is disposed
-    DisposableEffect(Unit) {
-        onDispose {
-            viewModel.clear()
-        }
-    }
+    val viewModel: SampleViewModel = viewModel { SampleViewModel() }
 
     var useStripedRows by remember { mutableStateOf(true) }
 
@@ -74,8 +70,17 @@ fun SampleApp(modifier: Modifier = Modifier) {
     var fixedColumnsCount by remember { mutableStateOf(0) }
     var fixedColumnsSide by remember { mutableStateOf(FixedSide.Left) }
 
+    var enableEditing by remember { mutableStateOf(false) }
+
     val settings =
-        remember(useStripedRows, showFastFilters, enableDragToScroll, fixedColumnsCount, fixedColumnsSide) {
+        remember(
+            useStripedRows,
+            showFastFilters,
+            enableDragToScroll,
+            fixedColumnsCount,
+            fixedColumnsSide,
+            enableEditing,
+        ) {
             TableSettings(
                 isDragEnabled = false,
                 autoApplyFilters = true,
@@ -88,6 +93,7 @@ fun SampleApp(modifier: Modifier = Modifier) {
                 enableDragToScroll = enableDragToScroll,
                 fixedColumnsCount = fixedColumnsCount,
                 fixedColumnsSide = fixedColumnsSide,
+                editingEnabled = enableEditing,
             )
         }
 
@@ -103,8 +109,24 @@ fun SampleApp(modifier: Modifier = Modifier) {
             createTableColumns(
                 onToggleMovementExpanded = viewModel::toggleMovementExpanded,
                 allPeople = viewModel.people,
+                onEvent = viewModel::onEvent
             )
         }
+
+    // Observe filters and sort state changes and update ViewModel
+    LaunchedEffect(state) {
+        snapshotFlow { state.filters.toMap() }
+            .collect { filters ->
+                viewModel.updateFilters(filters)
+            }
+    }
+
+    LaunchedEffect(state) {
+        snapshotFlow { state.sort }
+            .collect { sort ->
+                viewModel.updateSort(sort)
+            }
+    }
 
     // Build customization based on rules + matching logic
     val customization: TableCustomization<Person, PersonColumn> =
@@ -114,48 +136,8 @@ fun SampleApp(modifier: Modifier = Modifier) {
             matches = { person, ruleFilters -> viewModel.matchesPerson(person, ruleFilters) },
         )
 
-    // Apply active header filters to the dataset shown in the table
-    val filteredPeople: List<Person> =
-        viewModel.people.filter { person ->
-            viewModel.matchesPerson(person, state.filters)
-        }
-
-    // Apply sorting based on current table state
-    val sortedPeople: List<Person> =
-        remember(filteredPeople, state.sort) {
-            val sortState = state.sort
-            if (sortState == null) {
-                filteredPeople
-            } else {
-                val base =
-                    when (sortState.column) {
-                        PersonColumn.NAME -> filteredPeople.sortedBy { it.name.lowercase() }
-                        PersonColumn.AGE -> filteredPeople.sortedBy { it.age }
-                        PersonColumn.ACTIVE -> filteredPeople.sortedBy { it.active }
-                        PersonColumn.ID -> filteredPeople.sortedBy { it.id }
-                        PersonColumn.EMAIL -> filteredPeople.sortedBy { it.email.lowercase() }
-                        PersonColumn.CITY -> filteredPeople.sortedBy { it.city.lowercase() }
-                        PersonColumn.COUNTRY -> filteredPeople.sortedBy { it.country.lowercase() }
-                        PersonColumn.DEPARTMENT -> filteredPeople.sortedBy { it.department.lowercase() }
-                        PersonColumn.POSITION -> filteredPeople.sortedBy { it.position.name }
-                        PersonColumn.SALARY -> filteredPeople.sortedBy { it.salary }
-                        PersonColumn.RATING -> filteredPeople.sortedBy { it.rating }
-                        PersonColumn.HIRE_DATE -> filteredPeople.sortedBy { it.hireDate }
-                        PersonColumn.NOTES -> filteredPeople.sortedBy { it.notes.lowercase() }
-                        PersonColumn.AGE_GROUP ->
-                            filteredPeople.sortedBy {
-                                when {
-                                    it.age < 25 -> 0
-                                    it.age < 35 -> 1
-                                    else -> 2
-                                }
-                            }
-
-                        else -> filteredPeople
-                    }
-                if (sortState.order == SortOrder.DESCENDING) base.asReversed() else base
-            }
-        }
+    // Get filtered and sorted people from ViewModel StateFlow
+    val displayedPeople by viewModel.displayedPeople.collectAsState()
 
     SampleTheme(darkTheme = isDarkTheme) {
         Surface(modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
@@ -247,18 +229,30 @@ fun SampleApp(modifier: Modifier = Modifier) {
                             onCheckedChange = { fixedColumnsSide = if (it) FixedSide.Right else FixedSide.Left },
                         )
                     }
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        Text("Cell editing")
+                        Switch(
+                            checked = enableEditing,
+                            onCheckedChange = { enableEditing = it },
+                        )
+                    }
                 }
                 HorizontalDivider()
 
                 // The table
-                Table(
-                    itemsCount = sortedPeople.size,
-                    itemAt = { index -> sortedPeople.getOrNull(index) },
+                EditableTable(
+                    itemsCount = displayedPeople.size,
+                    itemAt = { index -> displayedPeople.getOrNull(index) },
                     state = state,
+                    editState = viewModel.editingRowState,
                     columns = columns,
                     customization = customization,
                     strings = DefaultStrings,
-                    rowKey = { item, _ -> item?.id ?: 0 },
+                    rowKey = { item, index -> index },
                     rowEmbedded = { _, person ->
                         val visible = person.expandedMovement
                         AnimatedVisibility(
@@ -274,6 +268,25 @@ fun SampleApp(modifier: Modifier = Modifier) {
                                 PersonMovementsSection(person = person)
                             }
                         }
+                    },
+                    onRowEditStart = { person, rowIndex ->
+                        // Start editing - initializes editing state in ViewModel
+                        viewModel.onEvent(SampleUiEvent.StartEditing(rowIndex, person))
+                    },
+                    onRowEditComplete = { rowIndex ->
+                        // Validate using ViewModel method
+                        if (viewModel.validateEditedPerson()) {
+                            // Validation passed - complete editing
+                            viewModel.onEvent(SampleUiEvent.CompleteEditing)
+                            true // Allow exit from edit mode
+                        } else {
+                            // Validation failed - stay in edit mode with errors shown
+                            false // Block exit from edit mode
+                        }
+                    },
+                    onEditCancelled = { rowIndex ->
+                        // Cancel editing - discards changes
+                        viewModel.onEvent(SampleUiEvent.CancelEditing)
                     },
                     modifier = Modifier.padding(16.dp),
                 )

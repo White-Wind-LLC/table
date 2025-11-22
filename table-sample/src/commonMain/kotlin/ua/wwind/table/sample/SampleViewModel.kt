@@ -1,28 +1,87 @@
 package ua.wwind.table.sample
 
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.datetime.LocalDate
 import ua.wwind.table.ExperimentalTableApi
+import ua.wwind.table.data.SortOrder
 import ua.wwind.table.filter.data.FilterConstraint
 import ua.wwind.table.filter.data.TableFilterState
 import ua.wwind.table.format.FormatFilterData
 import ua.wwind.table.format.data.TableCellStyleConfig
 import ua.wwind.table.format.data.TableFormatRule
+import ua.wwind.table.state.SortState
 
 @OptIn(ExperimentalTableApi::class)
-class SampleViewModel {
-    // Demo dataset
-    val people =
-        mutableStateListOf<Person>().apply {
-            addAll(createDemoData())
-        }
+class SampleViewModel : ViewModel() {
+    // StateFlow for people list to enable reactive transformations
+    private val people = MutableStateFlow<List<Person>>(createDemoData())
+
+    // Current filters state
+    private val currentFilters = MutableStateFlow<Map<PersonColumn, TableFilterState<*>>>(emptyMap())
+
+    // Current sort state
+    private val currentSort = MutableStateFlow<SortState<PersonColumn>?>(null)
+
+    // Filtered and sorted people - derived from combining three StateFlows
+    val displayedPeople: StateFlow<List<Person>> =
+        combine(people, currentFilters, currentSort) { peopleList, filters, sort ->
+            // Apply filtering
+            val filtered =
+                peopleList.filter { person ->
+                    matchesPerson(person, filters)
+                }
+
+            // Apply sorting
+            if (sort == null) {
+                filtered
+            } else {
+                val base =
+                    when (sort.column) {
+                        PersonColumn.NAME -> filtered.sortedBy { it.name.lowercase() }
+                        PersonColumn.AGE -> filtered.sortedBy { it.age }
+                        PersonColumn.ACTIVE -> filtered.sortedBy { it.active }
+                        PersonColumn.ID -> filtered.sortedBy { it.id }
+                        PersonColumn.EMAIL -> filtered.sortedBy { it.email.lowercase() }
+                        PersonColumn.CITY -> filtered.sortedBy { it.city.lowercase() }
+                        PersonColumn.COUNTRY -> filtered.sortedBy { it.country.lowercase() }
+                        PersonColumn.DEPARTMENT -> filtered.sortedBy { it.department.lowercase() }
+                        PersonColumn.POSITION -> filtered.sortedBy { it.position.name }
+                        PersonColumn.SALARY -> filtered.sortedBy { it.salary }
+                        PersonColumn.RATING -> filtered.sortedBy { it.rating }
+                        PersonColumn.HIRE_DATE -> filtered.sortedBy { it.hireDate }
+                        PersonColumn.NOTES -> filtered.sortedBy { it.notes.lowercase() }
+                        PersonColumn.AGE_GROUP ->
+                            filtered.sortedBy {
+                                when {
+                                    it.age < 25 -> 0
+                                    it.age < 35 -> 1
+                                    else -> 2
+                                }
+                            }
+
+                        else -> filtered
+                    }
+                if (sort.order == SortOrder.DESCENDING) base.asReversed() else base
+            }
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList(),
+        )
 
     // Define filter types per field (to drive the format dialog conditions)
     val filterTypes = createFilterTypes()
@@ -35,6 +94,10 @@ class SampleViewModel {
 
     // Dialog visibility
     var showFormatDialog by mutableStateOf(false)
+        private set
+
+    // Editing state
+    var editingRowState by mutableStateOf<PersonEditState>(PersonEditState())
         private set
 
     /**
@@ -412,18 +475,142 @@ class SampleViewModel {
     }
 
     /**
-     * Clear resources when the ViewModel is no longer needed
+     * Update filters - triggers automatic recalculation via StateFlow combination
      */
-    fun clear() {
-        // Add cleanup logic here if needed
+    fun updateFilters(filters: Map<PersonColumn, TableFilterState<*>>) {
+        currentFilters.value = filters
+    }
+
+    /**
+     * Update sort state - triggers automatic recalculation via StateFlow combination
+     */
+    fun updateSort(sort: SortState<PersonColumn>?) {
+        currentSort.value = sort
     }
 
     fun toggleMovementExpanded(personId: Int) {
-        val index = people.indexOfFirst { person -> person.id == personId }
-        if (index < 0) return
+        people.update { currentPeople ->
+            val index = currentPeople.indexOfFirst { person -> person.id == personId }
+            if (index < 0) return@update currentPeople
 
-        val currentPerson = people[index]
-        people[index] = currentPerson.copy(expandedMovement = !currentPerson.expandedMovement)
+            val currentPerson = currentPeople[index]
+            val updatedPerson = currentPerson.copy(expandedMovement = !currentPerson.expandedMovement)
+
+            // Return updated list with modified person
+            currentPeople.toMutableList().apply {
+                set(index, updatedPerson)
+            }
+        }
+    }
+
+    /**
+     * Validate the edited person and update PersonEditState with errors.
+     * Returns true if validation passed, false otherwise.
+     */
+    fun validateEditedPerson(): Boolean {
+        val edited = editingRowState.person ?: return true
+
+        var nameError = ""
+        var ageError = ""
+        var salaryError = ""
+
+        // Validate name
+        if (edited.name.isBlank()) {
+            nameError = "Name cannot be empty"
+        }
+
+        // Validate age
+        if (edited.age < 18) {
+            ageError = "Age must be at least 18"
+        } else if (edited.age > 100) {
+            ageError = "Age must not exceed 100"
+        }
+
+        // Validate salary
+        if (edited.salary < 0) {
+            salaryError = "Salary cannot be negative"
+        }
+
+        // Update edit state with errors
+        editingRowState =
+            editingRowState.copy(
+                nameError = nameError,
+                ageError = ageError,
+                salaryError = salaryError,
+            )
+
+        // Return true if no errors
+        return nameError.isEmpty() && ageError.isEmpty() && salaryError.isEmpty()
+    }
+
+    /**
+     * Handle UI events, including editing events from table columns
+     */
+    fun onEvent(event: SampleUiEvent) {
+        when (event) {
+            is SampleUiEvent.StartEditing -> {
+                if (editingRowState.rowIndex != event.rowIndex) {
+                    // Create a copy of the person for editing
+                    editingRowState = PersonEditState(event.person, rowIndex = event.rowIndex)
+                }
+            }
+
+            is SampleUiEvent.UpdateName -> {
+                editingRowState =
+                    editingRowState.copy(
+                        person = editingRowState.person?.copy(name = event.name),
+                        nameError = "", // Clear error on update
+                    )
+            }
+
+            is SampleUiEvent.UpdateAge -> {
+                editingRowState =
+                    editingRowState.copy(
+                        person = editingRowState.person?.copy(age = event.age),
+                        ageError = "", // Clear error on update
+                    )
+            }
+
+            is SampleUiEvent.UpdateEmail -> {
+                editingRowState = editingRowState.copy(person = editingRowState.person?.copy(email = event.email))
+            }
+
+            is SampleUiEvent.UpdatePosition -> {
+                editingRowState = editingRowState.copy(person = editingRowState.person?.copy(position = event.position))
+            }
+
+            is SampleUiEvent.UpdateSalary -> {
+                editingRowState =
+                    editingRowState.copy(
+                        person = editingRowState.person?.copy(salary = event.salary),
+                        salaryError = "", // Clear error on update
+                    )
+            }
+
+            is SampleUiEvent.CompleteEditing -> {
+                val edited = editingRowState.person
+                if (edited != null) {
+                    people.update { currentPeople ->
+                        val index = currentPeople.indexOfFirst { it.id == edited.id }
+                        if (index >= 0) {
+                            // Return updated list with modified person
+                            currentPeople.toMutableList().apply {
+                                set(index, edited)
+                            }
+                        } else {
+                            currentPeople
+                        }
+                    }
+                }
+                // Clear editing state
+                editingRowState = PersonEditState()
+            }
+
+            is SampleUiEvent.CancelEditing -> {
+                // Discard changes
+                editingRowState = PersonEditState()
+            }
+        }
     }
 
     init {

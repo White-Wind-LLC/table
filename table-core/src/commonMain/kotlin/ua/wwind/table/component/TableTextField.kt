@@ -86,28 +86,39 @@ public fun TableTextField(
     showBorder: Boolean = true,
 ) {
     // Merge text style with color from theme to ensure proper text visibility in dark mode
-    val mergedTextStyle = textStyle.merge(
-        TextStyle(color = MaterialTheme.colorScheme.onSurface)
-    )
+    // Use error color when isError is true
+    val textColor =
+        if (isError) {
+            MaterialTheme.colorScheme.error
+        } else {
+            MaterialTheme.colorScheme.onSurface
+        }
+
+    val mergedTextStyle =
+        textStyle.merge(
+            TextStyle(color = textColor),
+        )
 
     // Configure cursor and text selection colors based on the current theme
     val cursorColor = MaterialTheme.colorScheme.primary
-    val textSelectionColors = TextSelectionColors(
-        handleColor = MaterialTheme.colorScheme.primary,
-        backgroundColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)
-    )
+    val textSelectionColors =
+        TextSelectionColors(
+            handleColor = MaterialTheme.colorScheme.primary,
+            backgroundColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f),
+        )
 
     // Apply transparent border colors when showBorder is false
-    val effectiveColors = if (!showBorder) {
-        colors.copy(
-            unfocusedIndicatorColor = Color.Transparent,
-            focusedIndicatorColor = Color.Transparent,
-            disabledIndicatorColor = Color.Transparent,
-            errorIndicatorColor = Color.Transparent,
-        )
-    } else {
-        colors
-    }
+    val effectiveColors =
+        if (!showBorder) {
+            colors.copy(
+                unfocusedIndicatorColor = Color.Transparent,
+                focusedIndicatorColor = Color.Transparent,
+                disabledIndicatorColor = Color.Transparent,
+                errorIndicatorColor = Color.Transparent,
+            )
+        } else {
+            colors
+        }
 
     CompositionLocalProvider(LocalTextSelectionColors provides textSelectionColors) {
         BasicTextField(

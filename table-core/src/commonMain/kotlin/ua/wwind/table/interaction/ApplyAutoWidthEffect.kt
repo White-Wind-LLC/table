@@ -12,8 +12,8 @@ import ua.wwind.table.computeAutoWidths
 import ua.wwind.table.state.TableState
 
 @Composable
-internal fun <C, T : Any> ApplyAutoWidthEffect(
-    visibleColumns: ImmutableList<ColumnSpec<T, C>>,
+internal fun <C, T : Any, E> ApplyAutoWidthEffect(
+    visibleColumns: ImmutableList<ColumnSpec<T, C, E>>,
     itemsCount: Int,
     verticalState: LazyListState,
     state: TableState<C>,

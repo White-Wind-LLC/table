@@ -63,7 +63,7 @@ import ua.wwind.table.strings.StringProvider
 @ExperimentalTableApi
 @Composable
 /**
- * Composable data table that renders a header and a virtualized list of rows.
+ * Composable editable data table that renders a header and a virtualized list of rows.
  *
  * - Columns are described by [columns] (`ColumnSpec`).
  * - Data is provided via [itemsCount] and [itemAt] loader.
@@ -72,11 +72,13 @@ import ua.wwind.table.strings.StringProvider
  * Generic parameters:
  * - [T] actual row item type.
  * - [C] column key type.
+ * - [E] edit state type for row editing.
  *
  * @param itemsCount total number of rows to display
  * @param itemAt loader that returns an item for the given index; may return null while loading
  * @param state mutable table state (sorting, filters, order, selection)
  * @param columns list of visible/available column specifications
+ * @param editState current edit state instance
  * @param modifier layout modifier for the whole table
  * @param placeholderRow optional row content shown when an item is null
  * @param rowKey stable key for rows; defaults to index
@@ -91,11 +93,12 @@ import ua.wwind.table.strings.StringProvider
  * @param icons header icons used for sort and filter affordances
  * @param shape surface shape of the table
  */
-public fun <T : Any, C> Table(
+public fun <T : Any, C, E> EditableTable(
     itemsCount: Int,
     itemAt: (Int) -> T?,
     state: TableState<C>,
-    columns: ImmutableList<ColumnSpec<T, C>>,
+    columns: ImmutableList<ColumnSpec<T, C, E>>,
+    editState: E,
     modifier: Modifier = Modifier,
     placeholderRow: (@Composable () -> Unit)? = null,
     rowKey: (item: T?, index: Int) -> Any = { _, i -> i },
@@ -111,6 +114,15 @@ public fun <T : Any, C> Table(
     shape: Shape = RoundedCornerShape(4.dp),
     rowEmbedded: (@Composable (rowIndex: Int, item: T) -> Unit)? = null,
     embedded: Boolean = false,
+    /** Callback when row editing starts. Receives non-null item and row index. */
+    onRowEditStart: ((item: T, rowIndex: Int) -> Unit)? = null,
+    /**
+     * Callback to validate row edit completion. Returns true to allow exit, false to stay in
+     * edit mode.
+     */
+    onRowEditComplete: ((rowIndex: Int) -> Boolean)? = null,
+    /** Callback when editing is cancelled */
+    onEditCancelled: ((rowIndex: Int) -> Unit)? = null,
 ) {
     val dimensions = state.dimensions
     val visibleColumns by
@@ -165,6 +177,24 @@ public fun <T : Any, C> Table(
     LaunchedEffect(itemsCount) { state.rowHeightsPx.clear() }
     LaunchedEffect(state.sort) {
         if (verticalState.canScrollBackward) verticalState.scrollToItem(0)
+    }
+
+    // Set edit mode callbacks
+    LaunchedEffect(state, onRowEditStart, onRowEditComplete, onEditCancelled) {
+        state.setEditCallbacks(
+            onStart =
+                onRowEditStart?.let { callback ->
+                    { rowIndex: Int ->
+                        // Item is guaranteed to be non-null at this point (verified in startEditing)
+                        val item = itemAt(rowIndex)
+                        if (item != null) {
+                            callback(item, rowIndex)
+                        }
+                    }
+                },
+            onComplete = onRowEditComplete,
+            onCancel = onEditCancelled,
+        )
     }
 
     CompositionLocalProvider(
@@ -256,6 +286,7 @@ public fun <T : Any, C> Table(
                             colors = colors,
                             customization = customization,
                             tableWidth = tableWidth,
+                            editState = editState,
                             rowEmbedded = rowEmbedded,
                             placeholderRow = placeholderRow,
                             onRowClick = onRowClick,
@@ -284,6 +315,7 @@ public fun <T : Any, C> Table(
                             colors = colors,
                             customization = customization,
                             tableWidth = tableWidth,
+                            editState = editState,
                             placeholderRow = placeholderRow,
                             onRowClick = onRowClick,
                             onRowLongClick = onRowLongClick,
@@ -327,4 +359,86 @@ public fun <T : Any, C> Table(
 
         ApplyAutoWidthEffect(visibleColumns, itemsCount, verticalState, state)
     }
+}
+
+@Suppress("LongParameterList")
+@ExperimentalTableApi
+@Composable
+/**
+ * Composable read-only data table that renders a header and a virtualized list of rows.
+ *
+ * This is a convenience wrapper around [EditableTable] for tables without editing support.
+ *
+ * - Columns are described by [columns] (`ColumnSpec`).
+ * - Data is provided via [itemsCount] and [itemAt] loader.
+ * - Sorting, filters, ordering and selection are controlled by [state].
+ *
+ * Generic parameters:
+ * - [T] actual row item type.
+ * - [C] column key type.
+ *
+ * @param itemsCount total number of rows to display
+ * @param itemAt loader that returns an item for the given index; may return null while loading
+ * @param state mutable table state (sorting, filters, order, selection)
+ * @param columns list of visible/available column specifications
+ * @param modifier layout modifier for the whole table
+ * @param placeholderRow optional row content shown when an item is null
+ * @param rowKey stable key for rows; defaults to index
+ * @param onRowClick row primary action handler
+ * @param onRowLongClick optional long-press handler
+ * @param contextMenu optional context menu host, invoked with item and absolute position
+ * @param customization styling hooks for rows and cells
+ * @param colors container/content colors
+ * @param strings string provider for UI text
+ * @param verticalState list scroll state
+ * @param horizontalState horizontal scroll state of the whole table
+ * @param icons header icons used for sort and filter affordances
+ * @param shape surface shape of the table
+ */
+public fun <T : Any, C> Table(
+    itemsCount: Int,
+    itemAt: (Int) -> T?,
+    state: TableState<C>,
+    columns: ImmutableList<ColumnSpec<T, C, Unit>>,
+    modifier: Modifier = Modifier,
+    placeholderRow: (@Composable () -> Unit)? = null,
+    rowKey: (item: T?, index: Int) -> Any = { _, i -> i },
+    onRowClick: ((T) -> Unit)? = null,
+    onRowLongClick: ((T) -> Unit)? = null,
+    contextMenu: (@Composable (item: T, pos: Offset, dismiss: () -> Unit) -> Unit)? = null,
+    customization: TableCustomization<T, C> = DefaultTableCustomization(),
+    colors: TableColors = TableDefaults.colors(),
+    strings: StringProvider = DefaultStrings,
+    verticalState: LazyListState = rememberLazyListState(),
+    horizontalState: ScrollState = rememberScrollState(),
+    icons: TableHeaderIcons = TableHeaderDefaults.icons(),
+    shape: Shape = RoundedCornerShape(4.dp),
+    rowEmbedded: (@Composable (rowIndex: Int, item: T) -> Unit)? = null,
+    embedded: Boolean = false,
+) {
+    EditableTable(
+        itemsCount = itemsCount,
+        itemAt = itemAt,
+        state = state,
+        columns = columns,
+        editState = Unit,
+        modifier = modifier,
+        placeholderRow = placeholderRow,
+        rowKey = rowKey,
+        onRowClick = onRowClick,
+        onRowLongClick = onRowLongClick,
+        contextMenu = contextMenu,
+        customization = customization,
+        colors = colors,
+        strings = strings,
+        verticalState = verticalState,
+        horizontalState = horizontalState,
+        icons = icons,
+        shape = shape,
+        rowEmbedded = rowEmbedded,
+        embedded = embedded,
+        onRowEditStart = null,
+        onRowEditComplete = null,
+        onEditCancelled = null,
+    )
 }

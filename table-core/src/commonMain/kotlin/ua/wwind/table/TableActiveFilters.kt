@@ -33,14 +33,14 @@ import ua.wwind.table.strings.UiString
  * @param modifier layout modifier for the chips row
  * @param includeClearAllChip whether to include a leading "Clear" chip to reset all filters
  */
-public fun <T : Any, C> TableActiveFilters(
-    columns: ImmutableList<ColumnSpec<T, C>>,
+public fun <T : Any, C, E> TableActiveFilters(
+    columns: ImmutableList<ColumnSpec<T, C, E>>,
     state: TableState<C>,
     strings: StringProvider = DefaultStrings,
     modifier: Modifier = Modifier,
     includeClearAllChip: Boolean = true,
 ) {
-    val keyToSpec: Map<C, ColumnSpec<T, C>> = remember(columns) { columns.associateBy { it.key } }
+    val keyToSpec: Map<C, ColumnSpec<T, C, E>> = remember(columns) { columns.associateBy { it.key } }
     val activeFilters: List<Pair<C, TableFilterState<*>>> =
         state.filters.filter { (_, st) -> st.values?.isEmpty() == false }.toList()
     if (activeFilters.isEmpty()) return

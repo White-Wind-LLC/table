@@ -94,6 +94,8 @@ kotlin {
             implementation(project(":table-core"))
             implementation(project(":table-format"))
             implementation(libs.kotlinx.datetime)
+            implementation(libs.androidx.lifecycle.viewmodel.compose)
+            implementation(libs.kermit)
         }
 
         commonTest.dependencies {
