@@ -12,6 +12,7 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import kotlinx.datetime.LocalDate
 import ua.wwind.table.filter.component.main.booleann.BooleanFilter
+import ua.wwind.table.filter.component.main.custom.CustomFilter
 import ua.wwind.table.filter.component.main.date.DateFilter
 import ua.wwind.table.filter.component.main.enumm.EnumFilter
 import ua.wwind.table.filter.component.main.number.NumberFilter
@@ -42,7 +43,8 @@ internal fun <T> FilterPanel(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
+                    .padding(horizontal = 16.dp)
+                    .padding(top = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             when (type) {
@@ -110,6 +112,18 @@ internal fun <T> FilterPanel(
                         autoFilterDebounce = autoFilterDebounce,
                         onChange = { onChange(it as? TableFilterState<T>) },
                     )
+
+                is TableFilterType.CustomTableFilter<*> -> {
+                    val customFilter = type as TableFilterType.CustomTableFilter<Any>
+                    CustomFilter<Any>(
+                        filter = customFilter,
+                        state = state as? TableFilterState<Any>,
+                        onClose = onDismissRequest,
+                        strings = strings,
+                        autoApplyFilters = autoApplyFilters,
+                        onChange = { onChange(it as? TableFilterState<T>) },
+                    )
+                }
 
                 TableFilterType.DisabledTableFilter -> {
                     // No-op

@@ -12,6 +12,7 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -28,7 +29,8 @@ import ua.wwind.table.state.SortState
 @OptIn(ExperimentalTableApi::class)
 class SampleViewModel : ViewModel() {
     // StateFlow for people list to enable reactive transformations
-    private val people = MutableStateFlow<List<Person>>(createDemoData())
+    val _people = MutableStateFlow<List<Person>>(createDemoData())
+    val people: StateFlow<List<Person>> = _people.asStateFlow()
 
     // Current filters state
     private val currentFilters = MutableStateFlow<Map<PersonColumn, TableFilterState<*>>>(emptyMap())
@@ -38,7 +40,7 @@ class SampleViewModel : ViewModel() {
 
     // Filtered and sorted people - derived from combining three StateFlows
     val displayedPeople: StateFlow<List<Person>> =
-        combine(people, currentFilters, currentSort) { peopleList, filters, sort ->
+        combine(_people, currentFilters, currentSort) { peopleList, filters, sort ->
             // Apply filtering
             val filtered =
                 peopleList.filter { person ->
@@ -180,10 +182,10 @@ class SampleViewModel : ViewModel() {
             // If state has no constraint or values, skip this field (not restrictive)
             if (stateAny.constraint == null ||
                 (
-                    stateAny.values == null &&
-                        stateAny.constraint != FilterConstraint.IS_NULL &&
-                        stateAny.constraint != FilterConstraint.IS_NOT_NULL
-                )
+                        stateAny.values == null &&
+                                stateAny.constraint != FilterConstraint.IS_NULL &&
+                                stateAny.constraint != FilterConstraint.IS_NOT_NULL
+                        )
             ) {
                 continue
             }
@@ -353,25 +355,34 @@ class SampleViewModel : ViewModel() {
 
                 PersonColumn.SALARY -> {
                     val value = person.salary
-                    val st = stateAny as TableFilterState<Int>
-                    val constraint = st.constraint ?: continue
-                    val ok =
-                        when (constraint) {
-                            FilterConstraint.GT -> value > (st.values?.getOrNull(0) ?: value)
-                            FilterConstraint.GTE -> value >= (st.values?.getOrNull(0) ?: value)
-                            FilterConstraint.LT -> value < (st.values?.getOrNull(0) ?: value)
-                            FilterConstraint.LTE -> value <= (st.values?.getOrNull(0) ?: value)
-                            FilterConstraint.EQUALS -> value == (st.values?.getOrNull(0) ?: value)
-                            FilterConstraint.NOT_EQUALS -> value != (st.values?.getOrNull(0) ?: value)
-                            FilterConstraint.BETWEEN -> {
-                                val from = st.values?.getOrNull(0) ?: value
-                                val to = st.values?.getOrNull(1) ?: value
-                                from <= value && value <= to
-                            }
+                    // Check if using custom NumericRangeFilter
+                    if (stateAny.values?.firstOrNull() is ua.wwind.table.sample.filter.NumericRangeFilterState) {
+                        val customState =
+                            stateAny.values?.firstOrNull() as? ua.wwind.table.sample.filter.NumericRangeFilterState
+                        val ok = customState?.let { value in it.min..it.max } ?: true
+                        if (!ok) return false
+                    } else {
+                        // Standard number filter
+                        val st = stateAny as TableFilterState<Int>
+                        val constraint = st.constraint ?: continue
+                        val ok =
+                            when (constraint) {
+                                FilterConstraint.GT -> value > (st.values?.getOrNull(0) ?: value)
+                                FilterConstraint.GTE -> value >= (st.values?.getOrNull(0) ?: value)
+                                FilterConstraint.LT -> value < (st.values?.getOrNull(0) ?: value)
+                                FilterConstraint.LTE -> value <= (st.values?.getOrNull(0) ?: value)
+                                FilterConstraint.EQUALS -> value == (st.values?.getOrNull(0) ?: value)
+                                FilterConstraint.NOT_EQUALS -> value != (st.values?.getOrNull(0) ?: value)
+                                FilterConstraint.BETWEEN -> {
+                                    val from = st.values?.getOrNull(0) ?: value
+                                    val to = st.values?.getOrNull(1) ?: value
+                                    from <= value && value <= to
+                                }
 
-                            else -> true
-                        }
-                    if (!ok) return false
+                                else -> true
+                            }
+                        if (!ok) return false
+                    }
                 }
 
                 PersonColumn.RATING -> {
@@ -480,7 +491,7 @@ class SampleViewModel : ViewModel() {
     }
 
     fun toggleMovementExpanded(personId: Int) {
-        people.update { currentPeople ->
+        _people.update { currentPeople ->
             val index = currentPeople.indexOfFirst { person -> person.id == personId }
             if (index < 0) return@update currentPeople
 
@@ -581,7 +592,7 @@ class SampleViewModel : ViewModel() {
             is SampleUiEvent.CompleteEditing -> {
                 val edited = editingRowState.person
                 if (edited != null) {
-                    people.update { currentPeople ->
+                    _people.update { currentPeople ->
                         val index = currentPeople.indexOfFirst { it.id == edited.id }
                         if (index >= 0) {
                             // Return updated list with modified person
@@ -609,10 +620,10 @@ class SampleViewModel : ViewModel() {
         val ratingFilter: Map<PersonColumn, TableFilterState<*>> =
             mapOf(
                 PersonColumn.RATING to
-                    TableFilterState(
-                        constraint = FilterConstraint.GTE,
-                        values = listOf(4),
-                    ),
+                        TableFilterState(
+                            constraint = FilterConstraint.GTE,
+                            values = listOf(4),
+                        ),
             )
         val ratingRule =
             TableFormatRule<PersonColumn, Map<PersonColumn, TableFilterState<*>>>(
@@ -630,10 +641,10 @@ class SampleViewModel : ViewModel() {
         val activeFilter: Map<PersonColumn, TableFilterState<*>> =
             mapOf(
                 PersonColumn.ACTIVE to
-                    TableFilterState(
-                        constraint = FilterConstraint.EQUALS,
-                        values = listOf(false),
-                    ),
+                        TableFilterState(
+                            constraint = FilterConstraint.EQUALS,
+                            values = listOf(false),
+                        ),
             )
         val activeRule =
             TableFormatRule<PersonColumn, Map<PersonColumn, TableFilterState<*>>>(

@@ -104,11 +104,13 @@ fun SampleApp(modifier: Modifier = Modifier) {
             dimensions = TableDimensions(defaultColumnWidth = 100.dp),
         )
 
+    val people by viewModel.people.collectAsState()
     val columns =
-        remember {
+        remember(people) {
             createTableColumns(
                 onToggleMovementExpanded = viewModel::toggleMovementExpanded,
-                onEvent = viewModel::onEvent,
+                allPeople = people,
+                onEvent = viewModel::onEvent
             )
         }
 

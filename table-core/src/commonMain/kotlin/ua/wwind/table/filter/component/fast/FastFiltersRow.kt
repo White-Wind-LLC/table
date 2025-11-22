@@ -156,6 +156,17 @@ internal fun <T : Any, C, E> FastFiltersRow(
                                         onChange = onChange,
                                     )
 
+                                is TableFilterType.CustomTableFilter<*> -> {
+                                    val customFilter = filterType as TableFilterType.CustomTableFilter<Any>
+                                    CustomFastFilter<Any>(
+                                        filter = customFilter,
+                                        state = state.filters[spec.key] as? TableFilterState<Any>,
+                                        onChange = { newState ->
+                                            onChange(spec, newState as? TableFilterState<T>)
+                                        },
+                                    )
+                                }
+
                                 TableFilterType.DisabledTableFilter, null -> {
                                     // No filter for this column
                                 }

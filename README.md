@@ -501,6 +501,8 @@ column(PersonField.Name, valueOf = { it.name }) {
 - **BooleanTableFilter**: equals; optional `getTitle(BooleanType)`.
 - **DateTableFilter**: gt/gte/lt/lte/equals/between (uses `kotlinx.datetime.LocalDate`).
 - **EnumTableFilter<T: Enum<T>>**: in/not_in/equals with `options: List<T>` and `getTitle(T)`.
+- **CustomTableFilter<T>**: fully custom filter UI and state. Implement `CustomFilterRenderer<T>` for main panel and
+  optional fast filter, and `CustomFilterStateProvider<T>` for chip text. Supports data visualizations of any complexity.
 - **DisabledTableFilter**: special marker filter type that completely disables filtering for a column while keeping
   the API contract (no filter UI is rendered for such columns in filter panels and conditional formatting dialogs).
 
@@ -530,6 +532,7 @@ Fast filters provide quick inline filtering directly in a dedicated row below th
     - `BooleanTableFilter` → EQUALS (tri-state checkbox)
     - `DateTableFilter` → EQUALS (date picker)
     - `EnumTableFilter` → EQUALS (dropdown)
+    - `CustomTableFilter` → fully custom (implement `RenderFastFilter` or leave empty)
 - **Auto-apply**: Fast filters always apply changes automatically with debounce (controlled by
   `settings.autoFilterDebounce`).
 

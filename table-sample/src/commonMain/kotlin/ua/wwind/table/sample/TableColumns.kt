@@ -38,6 +38,7 @@ import ua.wwind.table.component.TableCellTextField
 import ua.wwind.table.component.TableCellTextFieldWithTooltipError
 import ua.wwind.table.editableTableColumns
 import ua.wwind.table.filter.data.TableFilterType
+import ua.wwind.table.sample.filter.createSalaryRangeFilter
 import ua.wwind.table.tableColumns
 
 /**
@@ -46,6 +47,7 @@ import ua.wwind.table.tableColumns
 @OptIn(ExperimentalMaterial3Api::class)
 fun createTableColumns(
     onToggleMovementExpanded: (personId: Int) -> Unit,
+    allPeople: List<Person>,
     onEvent: (SampleUiEvent) -> Unit,
 ): ImmutableList<ColumnSpec<Person, PersonColumn, PersonEditState>> =
     editableTableColumns<Person, PersonColumn, PersonEditState> {
@@ -244,14 +246,10 @@ fun createTableColumns(
         }
         column(PersonColumn.SALARY, { it.salary }) {
             title { "Salary" }
-            autoWidth()
+            width(350.dp, 350.dp)
             sortable()
-            filter(
-                TableFilterType.NumberTableFilter(
-                    delegate = TableFilterType.NumberTableFilter.IntDelegate,
-                    rangeOptions = 0 to 200000,
-                ),
-            )
+            // Custom visual range filter with histogram
+            filter(createSalaryRangeFilter(allPeople))
             align(Alignment.CenterEnd)
             cell { item ->
                 Text(

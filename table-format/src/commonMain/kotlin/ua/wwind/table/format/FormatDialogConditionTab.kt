@@ -183,6 +183,16 @@ public fun <E : Enum<E>, FILTER> FormatDialogConditionTab(
                                             onChange = { newState -> filterData.onChange(newState as TableFilterState<*>) },
                                             strings = strings,
                                         )
+
+                                    is TableFilterType.CustomTableFilter<*> -> {
+                                        // Custom filters are not supported in conditional formatting
+                                        Text(
+                                            text = "Custom filters are not supported in conditional formatting",
+                                            modifier = Modifier.padding(16.dp),
+                                            style = MaterialTheme.typography.bodyMedium,
+                                        )
+                                    }
+
                                     is TableFilterType.DisabledTableFilter -> Unit
                                 }
                             }
@@ -540,6 +550,11 @@ internal fun <E : Enum<E>> buildFilterHeaderTitle(
 
                 else -> null
             }
+        }
+
+        is TableFilterType.CustomTableFilter<*> -> {
+            // Custom filters are not supported in conditional formatting
+            null
         }
 
         TableFilterType.DisabledTableFilter -> null
