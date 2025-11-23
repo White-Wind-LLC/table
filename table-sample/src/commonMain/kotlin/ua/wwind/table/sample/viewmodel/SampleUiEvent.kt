@@ -7,33 +7,33 @@ import ua.wwind.table.sample.model.Position
 sealed class SampleUiEvent {
     /** Start editing a row - creates a mutable copy */
     data class StartEditing(
-            val rowIndex: Int,
-            val person: Person,
+        val rowIndex: Int,
+        val person: Person,
     ) : SampleUiEvent()
 
     /** Update name field during editing */
     data class UpdateName(
-            val name: String,
+        val name: String,
     ) : SampleUiEvent()
 
     /** Update age field during editing */
     data class UpdateAge(
-            val age: Int,
+        val age: Int,
     ) : SampleUiEvent()
 
     /** Update email field during editing */
     data class UpdateEmail(
-            val email: String,
+        val email: String,
     ) : SampleUiEvent()
 
     /** Update position field during editing */
     data class UpdatePosition(
-            val position: Position,
+        val position: Position,
     ) : SampleUiEvent()
 
     /** Update salary field during editing */
     data class UpdateSalary(
-            val salary: Int,
+        val salary: Int,
     ) : SampleUiEvent()
 
     /** Complete editing - saves changes to the people list */

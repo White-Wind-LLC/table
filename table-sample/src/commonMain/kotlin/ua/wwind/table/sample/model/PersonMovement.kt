@@ -4,9 +4,9 @@ import kotlinx.datetime.LocalDate
 
 /** Demo data for career movements for a single person. */
 data class PersonMovement(
-        val date: LocalDate,
-        val fromPosition: Position?,
-        val toPosition: Position,
+    val date: LocalDate,
+    val fromPosition: Position?,
+    val toPosition: Position,
 )
 
 /** Columns for the embedded movements table. */

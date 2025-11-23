@@ -12,12 +12,12 @@ import androidx.compose.runtime.Composable
  */
 @Composable
 fun SampleTheme(
-        darkTheme: Boolean,
-        content: @Composable () -> Unit,
+    darkTheme: Boolean,
+    content: @Composable () -> Unit,
 ) {
     val colorScheme: ColorScheme = if (darkTheme) darkColorScheme() else lightColorScheme()
     MaterialTheme(
-            colorScheme = colorScheme,
-            content = content,
+        colorScheme = colorScheme,
+        content = content,
     )
 }

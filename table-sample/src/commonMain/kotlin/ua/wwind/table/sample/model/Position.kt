@@ -2,7 +2,7 @@ package ua.wwind.table.sample.model
 
 /** Enum representing various job positions. */
 enum class Position(
-        val displayName: String,
+    val displayName: String,
 ) {
     JUNIOR_DEVELOPER("Junior Developer"),
     SENIOR_DEVELOPER("Senior Developer"),
