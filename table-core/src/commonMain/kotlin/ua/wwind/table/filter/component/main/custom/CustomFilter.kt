@@ -31,14 +31,15 @@ internal fun <T : Any> CustomFilter(
     onChange: (TableFilterState<T>?) -> Unit,
 ) {
     Column(
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         // Render user's custom filter content
-        val actions = filter.renderFilter.RenderPanel(
-            currentState = state,
-            onDismiss = onClose,
-            onChange = onChange,
-        )
+        val actions =
+            filter.renderFilter.RenderPanel(
+                currentState = state,
+                onDismiss = onClose,
+                onChange = onChange,
+            )
 
         // Standard action buttons (Clear + optional Apply)
         FilterPanelActions(

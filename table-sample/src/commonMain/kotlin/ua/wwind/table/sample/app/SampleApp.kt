@@ -127,6 +127,11 @@ fun SampleApp(modifier: Modifier = Modifier) {
                     enableEditing = enableEditing,
                     onEnableEditingChange = { enableEditing = it },
                     onConditionalFormattingClick = { viewModel.toggleFormatDialog(true) },
+                    onRecalculateAutoWidthsClick = {
+                        // Get visible columns and recalculate auto-widths
+                        val visibleColumns = columns.filter { it.visible }
+                        state.recalculateAutoWidths(visibleColumns)
+                    },
                 )
 
                 HorizontalDivider()

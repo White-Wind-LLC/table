@@ -33,6 +33,7 @@ fun AppToolbar(
     enableEditing: Boolean,
     onEnableEditingChange: (Boolean) -> Unit,
     onConditionalFormattingClick: () -> Unit,
+    onRecalculateAutoWidthsClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Row(
@@ -42,6 +43,8 @@ fun AppToolbar(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Button(onClick = onConditionalFormattingClick) { Text("Conditional formatting") }
+
+        Button(onClick = onRecalculateAutoWidthsClick) { Text("Fit columns") }
 
         ToolbarSwitch(
             label = "Dark theme",
