@@ -17,7 +17,6 @@ import kotlinx.collections.immutable.ImmutableMap
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.toPersistentList
 import ua.wwind.table.ColumnSpec
-import ua.wwind.table.computeAutoWidths
 import ua.wwind.table.config.SelectionMode
 import ua.wwind.table.config.TableDimensions
 import ua.wwind.table.config.TableSettings
@@ -309,30 +308,11 @@ public class TableState<C>
          * This method is useful for scenarios with deferred/paginated data loading where initial
          * auto-width calculation happened on empty data. After data loads and content is measured, call
          * this method to recompute column widths based on the actual content.
-         *
-         * @param visibleColumns list of visible column specifications; only columns with `autoWidth =
-         * true` will be recalculated
-         * @param immediate if true (default), immediately computes and applies widths based on current
-         * measurements. If false, only resets flags to trigger recalculation on next composition.
          */
-        public fun recalculateAutoWidths(
-            visibleColumns: List<ColumnSpec<*, C, *>>,
-            immediate: Boolean = true,
-        ) {
-            if (immediate) {
-                // Immediately compute and apply auto-widths based on current measurements
-                val widths = computeAutoWidths(visibleColumns, this)
-                if (widths.isNotEmpty()) {
-                    setColumnWidths(widths)
-                }
-                // Mark as applied so ApplyAutoWidthEffect doesn't override
-                autoWidthAppliedForEmpty = true
-                autoWidthAppliedForData = true
-            } else {
-                // Reset flags to allow ApplyAutoWidthEffect to recompute on next frame
-                autoWidthAppliedForEmpty = false
-                autoWidthAppliedForData = false
-            }
+        public fun recalculateAutoWidths() {
+            // Reset flags to allow ApplyAutoWidthEffect to recompute on next frame
+            autoWidthAppliedForEmpty = false
+            autoWidthAppliedForData = false
         }
 
         /** Tracks measured row heights in raw pixels for dynamic, precise scrolling. */

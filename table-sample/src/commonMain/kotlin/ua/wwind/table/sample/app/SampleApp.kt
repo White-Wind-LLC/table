@@ -158,8 +158,7 @@ fun SampleApp(modifier: Modifier = Modifier) {
                                     scope.launch { drawerState.close() }
                                 },
                                 onRecalculateAutoWidthsClick = {
-                                    val visibleColumns = columns.filter { it.visible }
-                                    state.recalculateAutoWidths(visibleColumns)
+                                    state.recalculateAutoWidths()
                                     scope.launch { drawerState.close() }
                                 },
                                 onClose = { scope.launch { drawerState.close() } },
