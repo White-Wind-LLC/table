@@ -1,0 +1,219 @@
+package ua.wwind.table.sample.app.components
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import ua.wwind.table.config.FixedSide
+
+/**
+ * Settings sidebar that displays all table configuration options. Designed to be used as drawer
+ * content in a ModalNavigationDrawer.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SettingsSidebar(
+    isDarkTheme: Boolean,
+    onDarkThemeChange: (Boolean) -> Unit,
+    useStripedRows: Boolean,
+    onStripedRowsChange: (Boolean) -> Unit,
+    showFastFilters: Boolean,
+    onShowFastFiltersChange: (Boolean) -> Unit,
+    enableDragToScroll: Boolean,
+    onEnableDragToScrollChange: (Boolean) -> Unit,
+    fixedColumnsCount: Int,
+    onFixedColumnsCountChange: (Int) -> Unit,
+    fixedColumnsSide: FixedSide,
+    onFixedColumnsSideChange: (FixedSide) -> Unit,
+    enableEditing: Boolean,
+    onEnableEditingChange: (Boolean) -> Unit,
+    onConditionalFormattingClick: () -> Unit,
+    onRecalculateAutoWidthsClick: () -> Unit,
+    onClose: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        modifier = modifier.width(360.dp).fillMaxHeight(),
+        color = MaterialTheme.colorScheme.surface,
+        tonalElevation = 1.dp,
+    ) {
+        Column(
+            modifier = Modifier.fillMaxHeight().padding(16.dp),
+        ) {
+            // Header
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = "Settings",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                )
+                IconButton(onClick = onClose) {
+                    Icon(Icons.Default.Close, contentDescription = "Close settings")
+                }
+            }
+
+            HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+
+            // Scrollable content
+            Column(
+                modifier = Modifier.weight(1f).verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(0.dp),
+            ) {
+                // Appearance Section
+                SettingsSection(title = "Appearance") {
+                    SettingSwitch(
+                        label = "Dark theme",
+                        checked = isDarkTheme,
+                        onCheckedChange = onDarkThemeChange,
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    SettingSwitch(
+                        label = "Striped rows",
+                        checked = useStripedRows,
+                        onCheckedChange = onStripedRowsChange,
+                    )
+                }
+
+                // Table Behavior Section
+                SettingsSection(title = "Table Behavior") {
+                    SettingSwitch(
+                        label = "Fast filters",
+                        checked = showFastFilters,
+                        onCheckedChange = onShowFastFiltersChange,
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    SettingSwitch(
+                        label = "Drag to scroll",
+                        checked = enableDragToScroll,
+                        onCheckedChange = onEnableDragToScrollChange,
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    SettingSwitch(
+                        label = "Cell editing",
+                        checked = enableEditing,
+                        onCheckedChange = onEnableEditingChange,
+                    )
+                }
+
+                // Columns Section
+                SettingsSection(title = "Columns") {
+                    // Fixed columns count
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text("Fixed columns")
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            OutlinedButton(
+                                onClick = {
+                                    if (fixedColumnsCount > 0) {
+                                        onFixedColumnsCountChange(fixedColumnsCount - 1)
+                                    }
+                                },
+                            ) { Text("-") }
+                            Text("$fixedColumnsCount", modifier = Modifier.width(24.dp))
+                            OutlinedButton(
+                                onClick = { onFixedColumnsCountChange(fixedColumnsCount + 1) },
+                            ) { Text("+") }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // Fixed columns side
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text("Fixed side")
+                        SingleChoiceSegmentedButtonRow {
+                            SegmentedButton(
+                                selected = fixedColumnsSide == FixedSide.Left,
+                                onClick = { onFixedColumnsSideChange(FixedSide.Left) },
+                                shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
+                            ) { Text("Left") }
+                            SegmentedButton(
+                                selected = fixedColumnsSide == FixedSide.Right,
+                                onClick = { onFixedColumnsSideChange(FixedSide.Right) },
+                                shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
+                            ) { Text("Right") }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // Fit columns button
+                    Button(
+                        onClick = onRecalculateAutoWidthsClick,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) { Text("Fit columns") }
+                }
+
+                // Advanced Section
+                SettingsSection(title = "Advanced") {
+                    Button(
+                        onClick = onConditionalFormattingClick,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) { Text("Conditional formatting") }
+                }
+            }
+        }
+    }
+}
+
+/** A switch control for settings with label. */
+@Composable
+private fun SettingSwitch(
+    label: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(label)
+        Switch(
+            checked = checked,
+            onCheckedChange = onCheckedChange,
+        )
+    }
+}

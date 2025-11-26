@@ -6,19 +6,29 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.shape.CornerSize
+import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalDrawerSheet
+import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Surface
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.launch
 import ua.wwind.table.ExperimentalTableApi
 import ua.wwind.table.config.FixedSide
 import ua.wwind.table.config.RowHeightMode
@@ -30,6 +40,7 @@ import ua.wwind.table.format.rememberCustomization
 import ua.wwind.table.sample.app.components.AppToolbar
 import ua.wwind.table.sample.app.components.ConditionalFormattingDialog
 import ua.wwind.table.sample.app.components.MainTable
+import ua.wwind.table.sample.app.components.SettingsSidebar
 import ua.wwind.table.sample.column.PersonColumn
 import ua.wwind.table.sample.column.createTableColumns
 import ua.wwind.table.sample.model.Person
@@ -106,60 +117,101 @@ fun SampleApp(modifier: Modifier = Modifier) {
             dimensions = TableDimensions(defaultColumnWidth = 100.dp),
         )
 
+    // Drawer state for settings sidebar
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
+
     SampleTheme(darkTheme = isDarkTheme) {
-        Surface(modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-            Column(
-                modifier = Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing),
-            ) {
-                AppToolbar(
-                    isDarkTheme = isDarkTheme,
-                    onDarkThemeChange = { isDarkTheme = it },
-                    useStripedRows = useStripedRows,
-                    onStripedRowsChange = { useStripedRows = it },
-                    showFastFilters = showFastFilters,
-                    onShowFastFiltersChange = { showFastFilters = it },
-                    enableDragToScroll = enableDragToScroll,
-                    onEnableDragToScrollChange = { enableDragToScroll = it },
-                    fixedColumnsCount = fixedColumnsCount,
-                    onFixedColumnsCountChange = { fixedColumnsCount = it },
-                    fixedColumnsSide = fixedColumnsSide,
-                    onFixedColumnsSideChange = { fixedColumnsSide = it },
-                    enableEditing = enableEditing,
-                    onEnableEditingChange = { enableEditing = it },
-                    onConditionalFormattingClick = { viewModel.toggleFormatDialog(true) },
-                    onRecalculateAutoWidthsClick = {
-                        // Get visible columns and recalculate auto-widths
-                        val visibleColumns = columns.filter { it.visible }
-                        state.recalculateAutoWidths(visibleColumns)
-                    },
-                )
-
-                HorizontalDivider()
-
-                MainTable(
-                    displayedPeople = displayedPeople,
-                    state = state,
-                    editState = viewModel.editingRowState,
-                    columns = columns,
-                    customization = customization,
-                    onFiltersChanged = viewModel::updateFilters,
-                    onSortChanged = viewModel::updateSort,
-                    onRowEditStart = { person, rowIndex ->
-                        viewModel.onEvent(SampleUiEvent.StartEditing(rowIndex, person))
-                    },
-                    onRowEditComplete = { rowIndex ->
-                        if (viewModel.validateEditedPerson()) {
-                            viewModel.onEvent(SampleUiEvent.CompleteEditing)
-                            true
-                        } else {
-                            false
+        CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+            ModalNavigationDrawer(
+                drawerState = drawerState,
+                drawerContent = {
+                    CompositionLocalProvider(
+                        LocalLayoutDirection provides LayoutDirection.Ltr,
+                    ) {
+                        ModalDrawerSheet(
+                            drawerShape =
+                                MaterialTheme.shapes.large.copy(
+                                    topStart = CornerSize(16.dp),
+                                    bottomStart = CornerSize(16.dp),
+                                    topEnd = CornerSize(0.dp),
+                                    bottomEnd = CornerSize(0.dp),
+                                ),
+                        ) {
+                            SettingsSidebar(
+                                isDarkTheme = isDarkTheme,
+                                onDarkThemeChange = { isDarkTheme = it },
+                                useStripedRows = useStripedRows,
+                                onStripedRowsChange = { useStripedRows = it },
+                                showFastFilters = showFastFilters,
+                                onShowFastFiltersChange = { showFastFilters = it },
+                                enableDragToScroll = enableDragToScroll,
+                                onEnableDragToScrollChange = { enableDragToScroll = it },
+                                fixedColumnsCount = fixedColumnsCount,
+                                onFixedColumnsCountChange = { fixedColumnsCount = it },
+                                fixedColumnsSide = fixedColumnsSide,
+                                onFixedColumnsSideChange = { fixedColumnsSide = it },
+                                enableEditing = enableEditing,
+                                onEnableEditingChange = { enableEditing = it },
+                                onConditionalFormattingClick = {
+                                    viewModel.toggleFormatDialog(true)
+                                    scope.launch { drawerState.close() }
+                                },
+                                onRecalculateAutoWidthsClick = {
+                                    val visibleColumns = columns.filter { it.visible }
+                                    state.recalculateAutoWidths(visibleColumns)
+                                    scope.launch { drawerState.close() }
+                                },
+                                onClose = { scope.launch { drawerState.close() } },
+                            )
                         }
-                    },
-                    onEditCancelled = { rowIndex ->
-                        viewModel.onEvent(SampleUiEvent.CancelEditing)
-                    },
-                    modifier = Modifier.padding(16.dp),
-                )
+                    }
+                },
+                gesturesEnabled = true,
+            ) {
+                CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+                    Surface(modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+                        Column(
+                            modifier =
+                                Modifier
+                                    .fillMaxSize()
+                                    .windowInsetsPadding(WindowInsets.safeDrawing),
+                        ) {
+                            AppToolbar(
+                                onSettingsClick = { scope.launch { drawerState.open() } },
+                            )
+
+                            HorizontalDivider()
+
+                            MainTable(
+                                displayedPeople = displayedPeople,
+                                state = state,
+                                editState = viewModel.editingRowState,
+                                columns = columns,
+                                customization = customization,
+                                onFiltersChanged = viewModel::updateFilters,
+                                onSortChanged = viewModel::updateSort,
+                                onRowEditStart = { person, rowIndex ->
+                                    viewModel.onEvent(
+                                        SampleUiEvent.StartEditing(rowIndex, person),
+                                    )
+                                },
+                                onRowEditComplete = { rowIndex ->
+                                    if (viewModel.validateEditedPerson()) {
+                                        viewModel.onEvent(SampleUiEvent.CompleteEditing)
+                                        true
+                                    } else {
+                                        false
+                                    }
+                                },
+                                onEditCancelled = { rowIndex ->
+                                    viewModel.onEvent(SampleUiEvent.CancelEditing)
+                                },
+                                modifier = Modifier.padding(16.dp),
+                            )
+                        }
+                    }
+                }
             }
         }
 
