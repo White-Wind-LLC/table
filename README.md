@@ -67,10 +67,10 @@ Add repository (usually `mavenCentral`) and include the modules you need:
 
 ```kotlin
 dependencies {
-    implementation("ua.wwind.table-kmp:table-core:1.6.2")
+    implementation("ua.wwind.table-kmp:table-core:1.6.3")
     // optional
-    implementation("ua.wwind.table-kmp:table-format:1.6.2")
-    implementation("ua.wwind.table-kmp:table-paging:1.6.2")
+    implementation("ua.wwind.table-kmp:table-format:1.6.3")
+    implementation("ua.wwind.table-kmp:table-paging:1.6.3")
 }
 ```
 
@@ -482,7 +482,7 @@ column(PersonField.Name, valueOf = { it.name }) {
     - Grouping: `state.groupBy(column)` to enable grouping; `state.groupBy(null)` to disable.
     - Column order/size: `state.setColumnOrder(order)`, `state.resizeColumn(column, Set/Reset)`,
       `state.setColumnWidths(map)`.
-    - Auto-width recalculation: `state.recalculateAutoWidths(visibleColumns, immediate?)` to manually recompute column
+    - Auto-width recalculation: `state.recalculateAutoWidths()` to manually recompute column
       widths based on current content measurements. Useful for deferred/paginated data loading where initial auto-width
       calculation happened on empty data.
     - Filters: `state.setFilter(column, TableFilterState(...))`; current per‑column `state.filters`.
@@ -561,7 +561,7 @@ Table(
 - Dynamic height: set `rowHeightMode = RowHeightMode.Dynamic`. Use per‑column `rowHeight(min, max)` to hint bounds.
 - Auto‑width: call `autoWidth(max?)` in column builder. The table measures header + first batch of rows and applies
   widths once per phase. Double‑click the header resizer to snap a column to its measured max content width.
-- Alternatively, use `state.recalculateAutoWidths(visibleColumns)` to manually trigger width recalculation based on
+- Alternatively, use `state.recalculateAutoWidths()` to manually trigger width recalculation based on
   current content measurements (useful for deferred/paginated data loading scenarios).
 
 ### Drag-to-scroll

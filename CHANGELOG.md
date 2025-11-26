@@ -2,14 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
-### 1.6.2 — 2025-11-27
+### 1.6.3 — 2025-11-27
 
 - Added: `TableState.recalculateAutoWidths()` method for manual column width recalculation.
     - Useful for deferred/paginated data loading scenarios where initial auto-width calculation occurred on empty data.
     - After data loads and content is measured, call this method to recompute column widths based on actual content.
-    - `immediate` parameter (default true) controls whether widths are applied immediately or on next composition.
 
-Compare: [v1.6.1...v1.6.2](https://github.com/White-Wind-LLC/table/compare/v1.6.1...v1.6.2)
+Compare: [v1.6.1...v1.6.3](https://github.com/White-Wind-LLC/table/compare/v1.6.1...v1.6.3)
 
 ### 1.6.1 — 2025-11-22
 
