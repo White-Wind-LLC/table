@@ -13,7 +13,6 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.SubcomposeLayout
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -38,7 +37,6 @@ internal fun <T : Any, C, E> TableViewportPrefetcher(
     state: TableState<C>,
     colors: TableColors,
     customization: TableCustomization<T, C>,
-    tableWidth: Dp,
     editState: E,
     placeholderRow: (@Composable () -> Unit)?,
     verticalState: LazyListState,
@@ -78,7 +76,7 @@ internal fun <T : Any, C, E> TableViewportPrefetcher(
             return@SubcomposeLayout layout(0, 0) {}
         }
 
-        val widthPx = with(density) { tableWidth.roundToPx() }
+        val widthPx = with(density) { state.tableWidth.roundToPx() }
         val constraints =
             androidx.compose.ui.unit.Constraints
                 .fixedWidth(widthPx)
@@ -103,7 +101,6 @@ internal fun <T : Any, C, E> TableViewportPrefetcher(
                                 state = state,
                                 colors = colors,
                                 customization = customization,
-                                tableWidth = tableWidth,
                                 editState = editState,
                                 rowEmbedded = null,
                                 placeholderRow = placeholderRow,

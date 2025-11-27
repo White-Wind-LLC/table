@@ -13,7 +13,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.Dp
 import kotlinx.collections.immutable.ImmutableList
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.config.TableColors
@@ -30,7 +29,6 @@ internal fun <T : Any, C, E> TableBody(
     state: TableState<C>,
     colors: TableColors,
     customization: TableCustomization<T, C>,
-    tableWidth: Dp,
     editState: E,
     rowEmbedded: (@Composable (rowIndex: Int, item: T) -> Unit)?,
     placeholderRow: (@Composable () -> Unit)?,
@@ -55,7 +53,6 @@ internal fun <T : Any, C, E> TableBody(
                 state = state,
                 colors = colors,
                 customization = customization,
-                tableWidth = tableWidth,
                 editState = editState,
                 rowEmbedded = rowEmbedded,
                 placeholderRow = placeholderRow,
@@ -75,7 +72,6 @@ internal fun <T : Any, C, E> TableBody(
         state = state,
         colors = colors,
         customization = customization,
-        tableWidth = tableWidth,
         editState = editState,
         placeholderRow = placeholderRow,
         verticalState = verticalState,
@@ -94,7 +90,6 @@ internal fun <T : Any, C, E> TableBodyEmbedded(
     state: TableState<C>,
     colors: TableColors,
     customization: TableCustomization<T, C>,
-    tableWidth: Dp,
     editState: E,
     rowEmbedded: (@Composable (rowIndex: Int, item: T) -> Unit)?,
     placeholderRow: (@Composable () -> Unit)?,
@@ -115,7 +110,6 @@ internal fun <T : Any, C, E> TableBodyEmbedded(
                 state = state,
                 colors = colors,
                 customization = customization,
-                tableWidth = tableWidth,
                 editState = editState,
                 rowEmbedded = rowEmbedded,
                 placeholderRow = placeholderRow,
@@ -138,7 +132,6 @@ private fun <T : Any, C, E> TableBodyRow(
     state: TableState<C>,
     colors: TableColors,
     customization: TableCustomization<T, C>,
-    tableWidth: Dp,
     editState: E,
     rowEmbedded: (@Composable (rowIndex: Int, item: T) -> Unit)?,
     placeholderRow: (@Composable () -> Unit)?,
@@ -192,7 +185,6 @@ private fun <T : Any, C, E> TableBodyRow(
         state = state,
         colors = colors,
         customization = customization,
-        tableWidth = tableWidth,
         editState = editState,
         rowEmbedded = rowEmbedded,
         placeholderRow = placeholderRow,
@@ -204,7 +196,7 @@ private fun <T : Any, C, E> TableBodyRow(
     )
 
     HorizontalDivider(
-        modifier = Modifier.width(tableWidth),
+        modifier = Modifier.width(state.tableWidth),
         thickness = state.dimensions.dividerThickness,
     )
 }

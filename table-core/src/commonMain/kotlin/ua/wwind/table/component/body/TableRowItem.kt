@@ -80,7 +80,6 @@ internal fun <T : Any, C, E> TableRowItem(
     state: TableState<C>,
     colors: ua.wwind.table.config.TableColors,
     customization: TableCustomization<T, C>,
-    tableWidth: Dp,
     editState: E,
     rowEmbedded: (@Composable (rowIndex: Int, item: T) -> Unit)?,
     placeholderRow: (@Composable () -> Unit)?,
@@ -144,7 +143,7 @@ internal fun <T : Any, C, E> TableRowItem(
                 null
             }
 
-        var rowModifier = Modifier.width(tableWidth).then(rowStyle?.modifier ?: Modifier)
+        var rowModifier = Modifier.width(state.tableWidth).then(rowStyle?.modifier ?: Modifier)
         if (isDynamicRowHeight) {
             rowModifier = rowModifier.height(IntrinsicSize.Min)
             if (minRowHeight != null || maxRowHeight != null) {
@@ -158,7 +157,7 @@ internal fun <T : Any, C, E> TableRowItem(
 
         if (item != null) {
             Column {
-                Column(modifier = Modifier.width(tableWidth)) {
+                Column(modifier = Modifier.width(state.tableWidth)) {
                     RenderTableRowItem(
                         rowModifier = rowModifier,
                         state = state,
@@ -187,7 +186,7 @@ internal fun <T : Any, C, E> TableRowItem(
                     if (isDynamicRowHeight) {
                         Modifier
                     } else {
-                        Modifier.height(dimensions.rowHeight).width(tableWidth)
+                        Modifier.height(dimensions.rowHeight).width(state.tableWidth)
                     },
                 verticalAlignment = Alignment.CenterVertically,
             ) { placeholderRow?.invoke() }

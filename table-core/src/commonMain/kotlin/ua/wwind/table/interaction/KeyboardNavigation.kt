@@ -13,15 +13,11 @@ import androidx.compose.ui.input.key.isMetaPressed
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
-import androidx.compose.ui.unit.Density
-import androidx.compose.ui.unit.Dp
-import kotlinx.coroutines.CoroutineScope
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.ExperimentalTableApi
 import ua.wwind.table.state.TableState
 
 @ExperimentalTableApi
-@Suppress("LongParameterList")
 internal fun <T : Any, C> Modifier.tableKeyboardNavigation(
     focusRequester: FocusRequester,
     itemsCount: Int,
@@ -29,9 +25,6 @@ internal fun <T : Any, C> Modifier.tableKeyboardNavigation(
     visibleColumns: List<ColumnSpec<T, C, *>>,
     verticalState: LazyListState,
     horizontalState: ScrollState,
-    tableWidth: Dp,
-    density: Density,
-    coroutineScope: CoroutineScope,
 ): Modifier {
     return this
         .focusRequester(focusRequester)

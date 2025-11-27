@@ -137,8 +137,6 @@ public fun <T : Any, C, E> EditableTable(
     // Update visible columns in state for tableWidth calculation
     state.visibleColumns = visibleColumns
 
-    val tableWidth = state.tableWidth
-
     var contextMenuState by remember { mutableStateOf(ContextMenuState<T>()) }
 
     val tableFocusRequester = remember { FocusRequester() }
@@ -245,9 +243,6 @@ public fun <T : Any, C, E> EditableTable(
                         visibleColumns = visibleColumns,
                         verticalState = verticalState,
                         horizontalState = horizontalState,
-                        tableWidth = tableWidth,
-                        density = density,
-                        coroutineScope = coroutineScope,
                     )
 
             Column(
@@ -258,14 +253,12 @@ public fun <T : Any, C, E> EditableTable(
                         columns = columns,
                         state = state,
                         strings = strings,
-                        width = tableWidth,
                     )
                 }
 
                 TableHeader(
                     columns = columns,
                     state = state,
-                    tableWidth = tableWidth,
                     headerColor = colors.headerContainerColor,
                     headerContentColor = colors.headerContentColor,
                     rowContainerColor = colors.rowContainerColor,
@@ -274,7 +267,7 @@ public fun <T : Any, C, E> EditableTable(
                     icons = icons,
                     horizontalState = horizontalState,
                 )
-                HorizontalDivider(modifier = Modifier.width(tableWidth))
+                HorizontalDivider(modifier = Modifier.width(state.tableWidth))
 
                 Box {
                     if (embedded) {
@@ -286,7 +279,6 @@ public fun <T : Any, C, E> EditableTable(
                             state = state,
                             colors = colors,
                             customization = customization,
-                            tableWidth = tableWidth,
                             editState = editState,
                             rowEmbedded = rowEmbedded,
                             placeholderRow = placeholderRow,
@@ -315,7 +307,6 @@ public fun <T : Any, C, E> EditableTable(
                             state = state,
                             colors = colors,
                             customization = customization,
-                            tableWidth = tableWidth,
                             editState = editState,
                             placeholderRow = placeholderRow,
                             onRowClick = onRowClick,

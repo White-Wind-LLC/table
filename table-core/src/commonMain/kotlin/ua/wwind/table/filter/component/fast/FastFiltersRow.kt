@@ -36,7 +36,6 @@ private const val FAST_FILTER_ROW_HEIGHT = 40
 
 @Composable
 internal fun <T : Any, C, E> FastFiltersRow(
-    tableWidth: Dp,
     visibleColumns: ImmutableList<ColumnSpec<T, C, E>>,
     widthResolver: (C) -> Dp,
     rowContainerColor: Color,
@@ -50,11 +49,11 @@ internal fun <T : Any, C, E> FastFiltersRow(
 
     Column {
         HorizontalDivider(
-            modifier = Modifier.width(tableWidth),
+            modifier = Modifier.width(state.tableWidth),
             thickness = state.dimensions.dividerThickness,
         )
         LazyRow(
-            modifier = modifier.height(FAST_FILTER_ROW_HEIGHT.dp).width(tableWidth),
+            modifier = modifier.height(FAST_FILTER_ROW_HEIGHT.dp).width(state.tableWidth),
             state = rememberLazyListState(),
             userScrollEnabled = false,
         ) {

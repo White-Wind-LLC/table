@@ -25,7 +25,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.Dp
 import kotlinx.collections.immutable.ImmutableList
 import sh.calvin.reorderable.rememberReorderableLazyListState
 import ua.wwind.table.ColumnSpec
@@ -45,7 +44,6 @@ import ua.wwind.table.strings.StringProvider
 internal fun <T : Any, C, E> TableHeader(
     columns: ImmutableList<ColumnSpec<T, C, E>>,
     state: TableState<C>,
-    tableWidth: Dp,
     headerColor: Color,
     headerContentColor: Color,
     rowContainerColor: Color,
@@ -78,7 +76,6 @@ internal fun <T : Any, C, E> TableHeader(
             CompositionLocalProvider(LocalTableHeaderIcons provides icons) {
                 Box(Modifier.height(state.dimensions.headerHeight)) {
                     TableHeaderRow(
-                        tableWidth = tableWidth,
                         lazyListState = lazyListState,
                         reorderState = reorderState,
                         visibleColumns = derived.visibleColumns,
@@ -93,7 +90,6 @@ internal fun <T : Any, C, E> TableHeader(
                     )
 
                     ColumnResizersOverlay(
-                        tableWidth = tableWidth,
                         visibleColumns = derived.visibleColumns,
                         widthResolver = { key -> derived.widthMap[key] ?: dimensions.defaultColumnWidth },
                         dimensions = dimensions,
@@ -117,7 +113,6 @@ internal fun <T : Any, C, E> TableHeader(
                 ) + fadeOut(),
         ) {
             FastFiltersRow(
-                tableWidth = tableWidth,
                 visibleColumns = derived.visibleColumns,
                 widthResolver = { key -> derived.widthMap[key] ?: dimensions.defaultColumnWidth },
                 rowContainerColor = rowContainerColor,

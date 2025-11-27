@@ -23,7 +23,6 @@ import ua.wwind.table.strings.StringProvider
 
 @Composable
 internal fun <T : Any, C, E> TableHeaderRow(
-    tableWidth: Dp,
     lazyListState: LazyListState,
     reorderState: ReorderableLazyListState,
     visibleColumns: ImmutableList<ColumnSpec<T, C, E>>,
@@ -39,7 +38,7 @@ internal fun <T : Any, C, E> TableHeaderRow(
     val settings = state.settings
 
     LazyRow(
-        modifier = Modifier.width(tableWidth),
+        modifier = Modifier.width(state.tableWidth),
         state = lazyListState,
         userScrollEnabled = false,
     ) {

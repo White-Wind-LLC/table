@@ -29,12 +29,12 @@ import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.ImmutableList
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.config.TableDimensions
+import ua.wwind.table.state.currentTableState
 
 private const val OVERLAY_THICKNESS_DP = 6
 
 @Composable
 internal fun <T : Any, C, E> ColumnResizersOverlay(
-    tableWidth: Dp,
     visibleColumns: ImmutableList<ColumnSpec<T, C, E>>,
     widthResolver: (C) -> Dp,
     dimensions: TableDimensions,
@@ -43,7 +43,8 @@ internal fun <T : Any, C, E> ColumnResizersOverlay(
     onResizeEnd: () -> Unit = {},
     onDoubleClick: (key: C) -> Unit = {},
 ) {
-    Box(modifier = Modifier.width(tableWidth)) {
+    val state = currentTableState()
+    Box(modifier = Modifier.width(state.tableWidth)) {
         val density = LocalDensity.current
 
         // Compute absolute X offsets (in Dp) for each column boundary divider
