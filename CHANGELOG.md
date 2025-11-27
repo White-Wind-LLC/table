@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+### 1.6.4 — 2025-11-27
+
+- Added: `TableState.tableWidth` computed property to dynamically calculate total table width based on visible columns
+  and their widths.
+    - Automatically recalculates when column order, widths, or visible columns change using `derivedStateOf`.
+    - Accounts for both regular column widths and divider widths, including special handling for fixed column dividers.
+    - Eliminates need for manual width computation in row-embedded content and other custom layouts.
+- Removed: `calculateTableWidth()` function from `LayoutUtils.kt` in favor of centralized `tableWidth` property in
+  `TableState`.
+- Changed: Internal visibility improvements and code cleanup:
+    - Changed `tableKeyboardNavigation` modifier from public to internal as it's not part of the public API.
+    - Simplified `LocalTableState` declaration with explicit type annotation.
+    - Minor formatting adjustments to KDoc comments and code structure.
+- Fixed: Row-embedded content (e.g., nested tables) now uses its own width instead of `tableWidth`
+  for proper width alignment.
+
+Compare: [v1.6.3...v1.6.4](https://github.com/White-Wind-LLC/table/compare/v1.6.3...v1.6.4)
+
 ### 1.6.3 — 2025-11-27
 
 - Added: `TableState.recalculateAutoWidths()` method for manual column width recalculation.
