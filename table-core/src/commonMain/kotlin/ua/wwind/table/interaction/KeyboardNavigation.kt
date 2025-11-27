@@ -22,7 +22,7 @@ import ua.wwind.table.state.TableState
 
 @ExperimentalTableApi
 @Suppress("LongParameterList")
-public fun <T : Any, C> Modifier.tableKeyboardNavigation(
+internal fun <T : Any, C> Modifier.tableKeyboardNavigation(
     focusRequester: FocusRequester,
     itemsCount: Int,
     state: TableState<C>,

@@ -7,11 +7,11 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.datetime.LocalDate
 import kotlin.math.roundToInt
 
-@Immutable
 /**
  * Describes the UI and behavior of a column filter for values of type [T].
  * Each subtype enumerates supported [constraints] and, when needed, parsing/formatting helpers.
  */
+@Immutable
 public sealed class TableFilterType<T>(
     public open val constraints: ImmutableList<FilterConstraint>,
 ) {

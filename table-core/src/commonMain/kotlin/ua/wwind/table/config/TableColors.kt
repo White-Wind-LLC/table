@@ -6,10 +6,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
 
-@Immutable
 /**
  * Color palette used by the table header and rows.
  */
+@Immutable
 public data class TableColors(
     val headerContainerColor: Color,
     val headerContentColor: Color,

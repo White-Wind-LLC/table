@@ -3,6 +3,7 @@ package ua.wwind.table.state
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
@@ -12,6 +13,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableMap
 import kotlinx.collections.immutable.persistentMapOf
@@ -23,8 +25,8 @@ import ua.wwind.table.config.TableSettings
 import ua.wwind.table.data.SortOrder
 import ua.wwind.table.filter.data.TableFilterState
 
-@Immutable
 /** Current sort state: which [column] is sorted and in which [order]. */
+@Immutable
 public data class SortState<C>(
     val column: C,
     val order: SortOrder,
@@ -39,11 +41,11 @@ public sealed interface ColumnWidthAction {
     public data object Reset : ColumnWidthAction
 }
 
-@Stable
 /**
  * Mutable state holder for a table instance. Manages column order/widths, sorting, filters and
  * selection.
  */
+@Stable
 public class TableState<C>
     internal constructor(
         initialColumns: List<C>,
@@ -58,6 +60,48 @@ public class TableState<C>
             mutableStateListOf<C>().apply { addAll(initialOrder.ifEmpty { initialColumns }) }
         public val columnWidths: SnapshotStateMap<C, Dp> =
             mutableStateMapOf<C, Dp>().apply { putAll(initialWidths) }
+
+        /**
+         * Current visible columns list. Must be set externally before tableWidth is accessed.
+         */
+        internal var visibleColumns: List<ColumnSpec<*, C, *>> = emptyList()
+
+        /**
+         * Current table width computed from visible columns and their widths.
+         * Automatically recalculates when columnOrder, columnWidths, or visibleColumns change.
+         */
+        public val tableWidth: Dp by derivedStateOf {
+            computeTableWidth(visibleColumns)
+        }
+
+        /**
+         * Computes the total table width from visible columns and dividers.
+         */
+        private fun computeTableWidth(columns: List<ColumnSpec<*, C, *>>): Dp {
+            val effectiveFixedCount =
+                if (settings.fixedColumnsCount >= columns.size) 0 else settings.fixedColumnsCount
+
+            // Sum column widths (use stored widths, spec width or default)
+            val columnsTotal: Dp =
+                columns.fold(0.dp) { acc, spec ->
+                    val w = columnWidths[spec.key] ?: spec.width ?: dimensions.defaultColumnWidth
+                    acc + w
+                }
+
+            // Calculate divider contribution:
+            // - If there are no fixed columns: each column has its regular divider (count = columns)
+            // - If there are fixed columns: all but one divider are regular, and one between fixed and scrollable is
+            //   thicker
+            val dividerTotal: Dp =
+                if (effectiveFixedCount == 0) {
+                    dimensions.dividerThickness * columns.size
+                } else {
+                    // total dividers = columns count, but one of them uses fixedColumnDividerThickness
+                    dimensions.dividerThickness * (columns.size - 1) + dimensions.fixedColumnDividerThickness
+                }
+
+            return columnsTotal + dividerTotal
+        }
 
         /**
          * Tracks the maximum measured minimal content width per column across visible rows. Used to
@@ -216,7 +260,11 @@ public class TableState<C>
         public fun toggleSelect(index: Int) {
             when (settings.selectionMode) {
                 SelectionMode.None -> Unit
-                SelectionMode.Single -> selectedIndex = if (selectedIndex == index) null else index
+
+                SelectionMode.Single -> {
+                    selectedIndex = if (selectedIndex == index) null else index
+                }
+
                 SelectionMode.Multiple -> {
                     // In multiple mode, keep selection for focus but primary is checked set
                     selectedIndex = index

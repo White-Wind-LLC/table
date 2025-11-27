@@ -5,8 +5,7 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -58,18 +57,18 @@ fun MainTable(
         rowKey = { item, index -> index },
         rowEmbedded = { _, person ->
             val visible = person.expandedMovement
+            if (visible) {
+                HorizontalDivider(
+                    thickness = state.dimensions.dividerThickness,
+                    modifier = Modifier.width(state.tableWidth),
+                )
+            }
             AnimatedVisibility(
                 visible = visible,
                 enter = expandVertically() + fadeIn(),
                 exit = shrinkVertically() + fadeOut(),
             ) {
-                Column {
-                    HorizontalDivider(
-                        thickness = state.dimensions.dividerThickness,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                    PersonMovementsSection(person = person)
-                }
+                PersonMovementsSection(person = person)
             }
         },
         onRowEditStart = onRowEditStart,

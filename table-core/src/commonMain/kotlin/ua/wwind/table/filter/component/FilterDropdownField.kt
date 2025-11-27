@@ -43,12 +43,12 @@ public fun <T> Flow<T>.collectAsEffect(block: (T) -> Unit) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Suppress("LongParameterList")
-@Composable
 /**
  * Dropdown field specialized for enum values. Optionally supports multi-select with [checked].
  */
+@OptIn(ExperimentalMaterial3Api::class)
+@Suppress("LongParameterList")
+@Composable
 public fun <E : Enum<E>> FilterDropdownField(
     currentValue: E?,
     getTitle: @Composable (E) -> String = { it.name },
@@ -99,6 +99,7 @@ public fun <E : Enum<E>> FilterDropdownField(
                             text = {
                                 when (checked) {
                                     null -> Text(getTitle(enum))
+
                                     else -> {
                                         Row(
                                             verticalAlignment = Alignment.CenterVertically,

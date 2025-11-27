@@ -59,9 +59,6 @@ import ua.wwind.table.strings.DefaultStrings
 import ua.wwind.table.strings.LocalStringProvider
 import ua.wwind.table.strings.StringProvider
 
-@Suppress("LongParameterList")
-@ExperimentalTableApi
-@Composable
 /**
  * Composable editable data table that renders a header and a virtualized list of rows.
  *
@@ -93,6 +90,9 @@ import ua.wwind.table.strings.StringProvider
  * @param icons header icons used for sort and filter affordances
  * @param shape surface shape of the table
  */
+@Suppress("LongParameterList")
+@ExperimentalTableApi
+@Composable
 public fun <T : Any, C, E> EditableTable(
     itemsCount: Int,
     itemAt: (Int) -> T?,
@@ -133,10 +133,11 @@ public fun <T : Any, C, E> EditableTable(
                 }
             }
         }
-    val tableWidth by
-        remember(visibleColumns, state.columnWidths, state.dimensions) {
-            derivedStateOf { computeTableWidth(visibleColumns, state) }
-        }
+
+    // Update visible columns in state for tableWidth calculation
+    state.visibleColumns = visibleColumns
+
+    val tableWidth = state.tableWidth
 
     var contextMenuState by remember { mutableStateOf(ContextMenuState<T>()) }
 
@@ -361,9 +362,6 @@ public fun <T : Any, C, E> EditableTable(
     }
 }
 
-@Suppress("LongParameterList")
-@ExperimentalTableApi
-@Composable
 /**
  * Composable read-only data table that renders a header and a virtualized list of rows.
  *
@@ -395,6 +393,9 @@ public fun <T : Any, C, E> EditableTable(
  * @param icons header icons used for sort and filter affordances
  * @param shape surface shape of the table
  */
+@Suppress("LongParameterList")
+@ExperimentalTableApi
+@Composable
 public fun <T : Any, C> Table(
     itemsCount: Int,
     itemAt: (Int) -> T?,

@@ -25,13 +25,13 @@ import kotlinx.collections.immutable.ImmutableList
 import ua.wwind.table.component.TableTextField
 import ua.wwind.table.component.TableTextFieldDefaults
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Suppress("LongParameterList")
-@Composable
 /**
  * Generic dropdown field used by filter panels to select one or many values of arbitrary type.
  * If [checked] is provided, the menu displays checkboxes for multi-select.
  */
+@OptIn(ExperimentalMaterial3Api::class)
+@Suppress("LongParameterList")
+@Composable
 public fun FilterDropdownAnyField(
     currentValue: Any?,
     getTitle: @Composable (Any) -> String = { it.toString() },
@@ -84,6 +84,7 @@ public fun FilterDropdownAnyField(
                             text = {
                                 when (checked) {
                                     null -> Text(getTitle(item))
+
                                     else -> {
                                         Row(
                                             verticalAlignment = Alignment.CenterVertically,

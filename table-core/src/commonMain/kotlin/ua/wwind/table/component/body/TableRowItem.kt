@@ -157,27 +157,28 @@ internal fun <T : Any, C, E> TableRowItem(
         }
 
         if (item != null) {
-            Column(modifier = Modifier.width(tableWidth)) {
-                RenderTableRowItem(
-                    rowModifier = rowModifier,
-                    state = state,
-                    index = index,
-                    visibleColumns = visibleColumns,
-                    dimensions = dimensions,
-                    customization = customization,
-                    item = item,
-                    editState = editState,
-                    isSelected = isSelected,
-                    settings = settings,
-                    horizontalState = horizontalState,
-                    finalRowColor = finalRowColor,
-                    isDynamicRowHeight = isDynamicRowHeight,
-                    requestTableFocus = requestTableFocus,
-                    onRowClick = onRowClick,
-                    onRowLongClick = onRowLongClick,
-                    onContextMenu = onContextMenu,
-                )
-
+            Column {
+                Column(modifier = Modifier.width(tableWidth)) {
+                    RenderTableRowItem(
+                        rowModifier = rowModifier,
+                        state = state,
+                        index = index,
+                        visibleColumns = visibleColumns,
+                        dimensions = dimensions,
+                        customization = customization,
+                        item = item,
+                        editState = editState,
+                        isSelected = isSelected,
+                        settings = settings,
+                        horizontalState = horizontalState,
+                        finalRowColor = finalRowColor,
+                        isDynamicRowHeight = isDynamicRowHeight,
+                        requestTableFocus = requestTableFocus,
+                        onRowClick = onRowClick,
+                        onRowLongClick = onRowLongClick,
+                        onContextMenu = onContextMenu,
+                    )
+                }
                 rowEmbedded?.invoke(index, item)
             }
         } else {
