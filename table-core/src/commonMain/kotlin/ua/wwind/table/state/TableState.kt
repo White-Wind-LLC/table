@@ -20,6 +20,7 @@ import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.toPersistentList
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.config.SelectionMode
+import ua.wwind.table.config.TableDefaults
 import ua.wwind.table.config.TableDimensions
 import ua.wwind.table.config.TableSettings
 import ua.wwind.table.data.SortOrder
@@ -518,7 +519,7 @@ public fun <C> rememberTableState(
     initialOrder: ImmutableList<C> = columns,
     initialWidths: ImmutableMap<C, Dp> = persistentMapOf(),
     settings: TableSettings = TableSettings(),
-    dimensions: TableDimensions = TableDimensions(),
+    dimensions: TableDimensions = TableDefaults.standardDimensions(),
 ): TableState<C> {
     // Important: Do not include initialOrder/initialWidths/initialSort in the remember keys.
     // These parameters should only be used for initial state, not for triggering state recreation

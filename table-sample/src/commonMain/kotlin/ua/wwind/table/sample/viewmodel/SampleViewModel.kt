@@ -36,7 +36,7 @@ import ua.wwind.table.state.SortState
 @OptIn(ExperimentalTableApi::class)
 class SampleViewModel : ViewModel() {
     // StateFlow for people list to enable reactive transformations
-    val _people = MutableStateFlow<List<Person>>(createDemoData())
+    private val _people = MutableStateFlow<List<Person>>(createDemoData())
     val people: StateFlow<List<Person>> = _people.asStateFlow()
 
     // Current filters state

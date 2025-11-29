@@ -2,16 +2,13 @@ package ua.wwind.table.config
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 
-/**
- * Common size constants and defaults used by the table layout.
- */
+/** Common size constants and defaults used by the table layout. */
 @Immutable
 public data class TableDimensions(
-    val defaultColumnWidth: Dp = 200.dp,
-    val rowHeight: Dp = 52.dp,
-    val headerHeight: Dp = 56.dp,
-    val dividerThickness: Dp = 1.dp,
-    val fixedColumnDividerThickness: Dp = dividerThickness * 2,
+    val defaultColumnWidth: Dp,
+    val rowHeight: Dp,
+    val headerHeight: Dp,
+    val dividerThickness: Dp,
+    val fixedColumnDividerThickness: Dp,
 )

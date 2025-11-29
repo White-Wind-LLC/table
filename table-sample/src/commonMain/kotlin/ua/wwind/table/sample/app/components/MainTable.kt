@@ -37,6 +37,7 @@ fun MainTable(
     onRowEditStart: (Person, Int) -> Unit,
     onRowEditComplete: (Int) -> Boolean,
     onEditCancelled: (Int) -> Unit,
+    useCompactMode: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     // Observe filters and sort state changes
@@ -68,7 +69,7 @@ fun MainTable(
                 enter = expandVertically() + fadeIn(),
                 exit = shrinkVertically() + fadeOut(),
             ) {
-                PersonMovementsSection(person = person)
+                PersonMovementsSection(person = person, useCompactMode = useCompactMode)
             }
         },
         onRowEditStart = onRowEditStart,

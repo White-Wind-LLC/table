@@ -54,6 +54,8 @@ fun SettingsSidebar(
     onFixedColumnsSideChange: (FixedSide) -> Unit,
     enableEditing: Boolean,
     onEnableEditingChange: (Boolean) -> Unit,
+    useCompactMode: Boolean,
+    onCompactModeChange: (Boolean) -> Unit,
     onConditionalFormattingClick: () -> Unit,
     onRecalculateAutoWidthsClick: () -> Unit,
     onClose: () -> Unit,
@@ -102,6 +104,12 @@ fun SettingsSidebar(
                         label = "Striped rows",
                         checked = useStripedRows,
                         onCheckedChange = onStripedRowsChange,
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    SettingSwitch(
+                        label = "Compact mode",
+                        checked = useCompactMode,
+                        onCheckedChange = onCompactModeChange,
                     )
                 }
 

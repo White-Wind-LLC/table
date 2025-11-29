@@ -38,6 +38,7 @@ import ua.wwind.table.component.TableCellTextField
 import ua.wwind.table.component.TableCellTextFieldWithTooltipError
 import ua.wwind.table.editableTableColumns
 import ua.wwind.table.filter.data.TableFilterType
+import ua.wwind.table.sample.config.CellPadding
 import ua.wwind.table.sample.filter.createSalaryRangeFilter
 import ua.wwind.table.sample.model.Person
 import ua.wwind.table.sample.model.PersonEditState
@@ -53,14 +54,21 @@ fun createTableColumns(
     onToggleMovementExpanded: (personId: Int) -> Unit,
     allPeople: List<Person>,
     onEvent: (SampleUiEvent) -> Unit,
+    useCompactMode: Boolean = false,
 ): ImmutableList<ColumnSpec<Person, PersonColumn, PersonEditState>> =
-    editableTableColumns<Person, PersonColumn, PersonEditState> {
+    editableTableColumns {
+        val cellPadding = if (useCompactMode) CellPadding.compact else CellPadding.standard
         column(PersonColumn.EXPAND, valueOf = { it.expandedMovement }) {
+            val iconButtonSize = if (useCompactMode) 36.dp else 48.dp
             title { "Movements" }
-            autoWidth(40.dp)
+            width(iconButtonSize, iconButtonSize)
             resizable(false)
             cell { item ->
-                IconButton(onClick = { onToggleMovementExpanded(item.id) }) {
+                // Use smaller IconButton in compact mode to allow shorter rows
+                IconButton(
+                    onClick = { onToggleMovementExpanded(item.id) },
+                    modifier = Modifier.size(iconButtonSize),
+                ) {
                     if (item.expandedMovement) {
                         Icon(
                             imageVector = Icons.Filled.ExpandLess,
@@ -82,7 +90,7 @@ fun createTableColumns(
             autoWidth(500.dp)
             sortable()
             filter(TableFilterType.TextTableFilter())
-            cell { item -> Text(item.name, modifier = Modifier.padding(horizontal = 16.dp)) }
+            cell { item -> Text(item.name, modifier = Modifier.padding(cellPadding)) }
 
             // Editing configuration - table will manage when to show this
             editCell { person, editState, onComplete ->
@@ -118,7 +126,7 @@ fun createTableColumns(
             cell { item ->
                 Text(
                     item.age.toString(),
-                    modifier = Modifier.padding(horizontal = 16.dp),
+                    modifier = Modifier.padding(cellPadding),
                 )
             }
 
@@ -156,7 +164,7 @@ fun createTableColumns(
             cell { item ->
                 Text(
                     if (item.active) "Yes" else "No",
-                    modifier = Modifier.padding(horizontal = 16.dp),
+                    modifier = Modifier.padding(cellPadding),
                 )
             }
         }
@@ -168,7 +176,7 @@ fun createTableColumns(
             cell { item ->
                 Text(
                     item.id.toString(),
-                    modifier = Modifier.padding(horizontal = 16.dp),
+                    modifier = Modifier.padding(cellPadding),
                 )
             }
         }
@@ -177,21 +185,21 @@ fun createTableColumns(
             autoWidth()
             sortable()
             filter(TableFilterType.TextTableFilter())
-            cell { item -> Text(item.email, modifier = Modifier.padding(horizontal = 16.dp)) }
+            cell { item -> Text(item.email, modifier = Modifier.padding(cellPadding)) }
         }
         column(PersonColumn.CITY, { it.city }) {
             title { "City" }
             autoWidth(500.dp)
             sortable()
             filter(TableFilterType.TextTableFilter())
-            cell { item -> Text(item.city, modifier = Modifier.padding(horizontal = 16.dp)) }
+            cell { item -> Text(item.city, modifier = Modifier.padding(cellPadding)) }
         }
         column(PersonColumn.COUNTRY, { it.country }) {
             title { "Country" }
             autoWidth(500.dp)
             sortable()
             filter(TableFilterType.TextTableFilter())
-            cell { item -> Text(item.country, modifier = Modifier.padding(horizontal = 16.dp)) }
+            cell { item -> Text(item.country, modifier = Modifier.padding(cellPadding)) }
         }
         column(PersonColumn.DEPARTMENT, { it.department }) {
             title { "Department" }
@@ -199,7 +207,7 @@ fun createTableColumns(
             sortable()
             filter(TableFilterType.TextTableFilter())
             cell { item ->
-                Text(item.department, modifier = Modifier.padding(horizontal = 16.dp))
+                Text(item.department, modifier = Modifier.padding(cellPadding))
             }
         }
         column(PersonColumn.POSITION, { it.position }) {
@@ -213,7 +221,7 @@ fun createTableColumns(
                 ),
             )
             cell { item ->
-                Text(item.position.displayName, modifier = Modifier.padding(horizontal = 16.dp))
+                Text(item.position.displayName, modifier = Modifier.padding(cellPadding))
             }
 
             // Editing configuration with dropdown
@@ -268,7 +276,7 @@ fun createTableColumns(
             cell { item ->
                 Text(
                     "$${item.salary}",
-                    modifier = Modifier.padding(horizontal = 16.dp),
+                    modifier = Modifier.padding(cellPadding),
                 )
             }
 
@@ -314,7 +322,7 @@ fun createTableColumns(
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(2.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(horizontal = 16.dp),
+                    modifier = Modifier.padding(cellPadding),
                 ) {
                     repeat(item.rating) {
                         Icon(
@@ -342,7 +350,7 @@ fun createTableColumns(
                             year()
                         },
                     ),
-                    modifier = Modifier.padding(horizontal = 16.dp),
+                    modifier = Modifier.padding(cellPadding),
                 )
             }
         }
@@ -350,10 +358,14 @@ fun createTableColumns(
         column(PersonColumn.NOTES, { it.notes }) {
             title { "Notes" }
             // Let the row grow by content; optionally set bounds in dynamic mode
-            rowHeight(min = 48.dp, max = 200.dp)
+            // Use smaller min height in compact mode
+            rowHeight(
+                min = if (useCompactMode) 36.dp else 48.dp,
+                max = 200.dp,
+            )
             autoWidth(500.dp)
             filter(TableFilterType.TextTableFilter())
-            cell { item -> Text(item.notes, modifier = Modifier.padding(horizontal = 16.dp)) }
+            cell { item -> Text(item.notes, modifier = Modifier.padding(cellPadding)) }
         }
 
         // Computed fields
@@ -369,13 +381,14 @@ fun createTableColumns(
             autoWidth(500.dp)
             sortable()
             cell { item ->
-                Text(ageGroup(item), modifier = Modifier.padding(horizontal = 16.dp))
+                Text(ageGroup(item), modifier = Modifier.padding(cellPadding))
             }
         }
     }
 
-fun createMovementColumns(): ImmutableList<ColumnSpec<PersonMovement, PersonMovementColumn, Unit>> =
+fun createMovementColumns(useCompactMode: Boolean = false): ImmutableList<ColumnSpec<PersonMovement, PersonMovementColumn, Unit>> =
     tableColumns<PersonMovement, PersonMovementColumn> {
+        val cellPadding = if (useCompactMode) CellPadding.compact else CellPadding.standard
         column(PersonMovementColumn.DATE, valueOf = { it.date }) {
             title { "Date" }
             autoWidth()
@@ -390,7 +403,7 @@ fun createMovementColumns(): ImmutableList<ColumnSpec<PersonMovement, PersonMove
                             year()
                         },
                     ),
-                    modifier = Modifier.padding(horizontal = 16.dp),
+                    modifier = Modifier.padding(cellPadding),
                     fontFamily = FontFamily.Monospace,
                 )
             }
@@ -402,7 +415,7 @@ fun createMovementColumns(): ImmutableList<ColumnSpec<PersonMovement, PersonMove
             cell { movement ->
                 Text(
                     movement.fromPosition?.displayName ?: "-",
-                    modifier = Modifier.padding(horizontal = 16.dp),
+                    modifier = Modifier.padding(cellPadding),
                 )
             }
         }
@@ -413,7 +426,7 @@ fun createMovementColumns(): ImmutableList<ColumnSpec<PersonMovement, PersonMove
             cell { movement ->
                 Text(
                     movement.toPosition.displayName,
-                    modifier = Modifier.padding(horizontal = 16.dp),
+                    modifier = Modifier.padding(cellPadding),
                 )
             }
         }

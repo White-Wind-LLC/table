@@ -33,7 +33,7 @@ import ua.wwind.table.ExperimentalTableApi
 import ua.wwind.table.config.FixedSide
 import ua.wwind.table.config.RowHeightMode
 import ua.wwind.table.config.SelectionMode
-import ua.wwind.table.config.TableDimensions
+import ua.wwind.table.config.TableDefaults
 import ua.wwind.table.config.TableSettings
 import ua.wwind.table.filter.data.TableFilterState
 import ua.wwind.table.format.rememberCustomization
@@ -60,6 +60,7 @@ fun SampleApp(modifier: Modifier = Modifier) {
     var fixedColumnsCount by remember { mutableStateOf(0) }
     var fixedColumnsSide by remember { mutableStateOf(FixedSide.Left) }
     var enableEditing by remember { mutableStateOf(false) }
+    var useCompactMode by remember { mutableStateOf(true) }
 
     val settings =
         remember(
@@ -92,11 +93,12 @@ fun SampleApp(modifier: Modifier = Modifier) {
 
     // Create columns with callbacks
     val columns =
-        remember(people) {
+        remember(people, useCompactMode) {
             createTableColumns(
                 onToggleMovementExpanded = viewModel::toggleMovementExpanded,
                 allPeople = people,
                 onEvent = viewModel::onEvent,
+                useCompactMode = useCompactMode,
             )
         }
 
@@ -114,7 +116,14 @@ fun SampleApp(modifier: Modifier = Modifier) {
         rememberTableState(
             columns = PersonColumn.entries.toImmutableList(),
             settings = settings,
-            dimensions = TableDimensions(defaultColumnWidth = 100.dp),
+            dimensions =
+                remember(useCompactMode) {
+                    if (useCompactMode) {
+                        TableDefaults.compactDimensions().copy(defaultColumnWidth = 100.dp)
+                    } else {
+                        TableDefaults.standardDimensions().copy(defaultColumnWidth = 200.dp)
+                    }
+                },
         )
 
     // Drawer state for settings sidebar
@@ -153,6 +162,8 @@ fun SampleApp(modifier: Modifier = Modifier) {
                                 onFixedColumnsSideChange = { fixedColumnsSide = it },
                                 enableEditing = enableEditing,
                                 onEnableEditingChange = { enableEditing = it },
+                                useCompactMode = useCompactMode,
+                                onCompactModeChange = { useCompactMode = it },
                                 onConditionalFormattingClick = {
                                     viewModel.toggleFormatDialog(true)
                                     scope.launch { drawerState.close() }
@@ -206,6 +217,7 @@ fun SampleApp(modifier: Modifier = Modifier) {
                                 onEditCancelled = { rowIndex ->
                                     viewModel.onEvent(SampleUiEvent.CancelEditing)
                                 },
+                                useCompactMode = useCompactMode,
                                 modifier = Modifier.padding(16.dp),
                             )
                         }

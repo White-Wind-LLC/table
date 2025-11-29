@@ -26,9 +26,10 @@ import ua.wwind.table.strings.DefaultStrings
 @Composable
 fun PersonMovementsSection(
     person: Person,
+    useCompactMode: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
-    val columns = remember { createMovementColumns() }
+    val columns = remember(useCompactMode) { createMovementColumns(useCompactMode) }
     val movementSettings =
         remember {
             TableSettings(
