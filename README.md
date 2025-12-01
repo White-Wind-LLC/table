@@ -712,6 +712,10 @@ Public API highlights:
 
 - Android, JVM (Desktop), JS (Web), iOS (KMP source sets present; targets enabled via project conventions).
 
+### Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=White-Wind-LLC/table&type=date&legend=top-left)](https://www.star-history.com/#White-Wind-LLC/table&type=date&legend=top-left)
+
 ### Third-Party Libraries
 
 This project uses the following open source libraries:
