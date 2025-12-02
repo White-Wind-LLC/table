@@ -12,5 +12,6 @@ public data class TableColors(
     val rowSelectedContainerColor: Color,
     val stripedRowContainerColor: Color,
     val groupContainerColor: Color,
+    val footerContainerColor: Color,
+    val footerContentColor: Color,
 )
-

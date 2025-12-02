@@ -37,6 +37,7 @@ import ua.wwind.table.filter.data.TableFilterType
  * @param groupHeader optional custom renderer for the group header
  * @param headerDecorations whether to render built-in sort/filter icons in the header cell
  * @param headerClickToSort whether clicking the entire header cell toggles sorting
+ * @param footer optional composable content for the footer cell
  */
 @Immutable
 public data class ColumnSpec<T : Any, C, E>(
@@ -75,6 +76,8 @@ public data class ColumnSpec<T : Any, C, E>(
      * edit completion.
      */
     val editCell: (@Composable BoxScope.(T, E, onComplete: () -> Unit) -> Unit)? = null,
+    /** Optional composable content for the footer cell */
+    val footer: (@Composable BoxScope.() -> Unit)? = null,
 )
 
 /** DSL builder for a list of readonly [ColumnSpec]. */
@@ -140,6 +143,7 @@ public open class ReadonlyColumnBuilder<T : Any, C, E>
         protected var editable: Boolean = false
         protected var canStartEdit: ((T, Int) -> Boolean)? = null
         protected var editCell: (@Composable BoxScope.(T, E, onComplete: () -> Unit) -> Unit)? = null
+        protected var footer: (@Composable BoxScope.() -> Unit)? = null
 
         /** Set simple text header. */
         public fun header(text: String) {
@@ -247,6 +251,11 @@ public open class ReadonlyColumnBuilder<T : Any, C, E>
             headerClickToSort = value
         }
 
+        /** Define footer cell content. */
+        public fun footer(content: @Composable BoxScope.() -> Unit) {
+            footer = content
+        }
+
         internal fun build(): ColumnSpec<T, C, E> =
             ColumnSpec(
                 key = key,
@@ -271,6 +280,7 @@ public open class ReadonlyColumnBuilder<T : Any, C, E>
                 editable = editable,
                 canStartEdit = canStartEdit,
                 editCell = editCell,
+                footer = footer,
             )
     }
 

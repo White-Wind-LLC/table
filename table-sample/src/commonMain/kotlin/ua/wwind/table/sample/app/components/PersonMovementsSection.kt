@@ -15,6 +15,7 @@ import ua.wwind.table.ExperimentalTableApi
 import ua.wwind.table.Table
 import ua.wwind.table.config.RowHeightMode
 import ua.wwind.table.config.SelectionMode
+import ua.wwind.table.config.TableDefaults
 import ua.wwind.table.config.TableSettings
 import ua.wwind.table.sample.column.createMovementColumns
 import ua.wwind.table.sample.model.Person
@@ -29,7 +30,10 @@ fun PersonMovementsSection(
     useCompactMode: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
-    val columns = remember(useCompactMode) { createMovementColumns(useCompactMode) }
+    val columns =
+        remember(useCompactMode, person.movements) {
+            createMovementColumns(useCompactMode, person.movements)
+        }
     val movementSettings =
         remember {
             TableSettings(
@@ -42,12 +46,14 @@ fun PersonMovementsSection(
                 selectionMode = SelectionMode.None,
                 rowHeightMode = RowHeightMode.Dynamic,
                 enableDragToScroll = false,
+                showFooter = true,
             )
         }
     val movementState =
         rememberTableState(
             columns = PersonMovementColumn.entries.toImmutableList(),
             settings = movementSettings,
+            dimensions = TableDefaults.compactDimensions(),
         )
 
     Column(

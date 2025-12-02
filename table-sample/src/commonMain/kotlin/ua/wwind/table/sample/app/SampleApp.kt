@@ -30,7 +30,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.launch
 import ua.wwind.table.ExperimentalTableApi
-import ua.wwind.table.config.FixedSide
+import ua.wwind.table.config.PinnedSide
 import ua.wwind.table.config.RowHeightMode
 import ua.wwind.table.config.SelectionMode
 import ua.wwind.table.config.TableDefaults
@@ -57,19 +57,23 @@ fun SampleApp(modifier: Modifier = Modifier) {
     var useStripedRows by remember { mutableStateOf(true) }
     var showFastFilters by remember { mutableStateOf(true) }
     var enableDragToScroll by remember { mutableStateOf(true) }
-    var fixedColumnsCount by remember { mutableStateOf(0) }
-    var fixedColumnsSide by remember { mutableStateOf(FixedSide.Left) }
+    var pinnedColumnsCount by remember { mutableStateOf(0) }
+    var pinnedColumnsSide by remember { mutableStateOf(PinnedSide.Left) }
     var enableEditing by remember { mutableStateOf(false) }
     var useCompactMode by remember { mutableStateOf(true) }
+    var showFooter by remember { mutableStateOf(true) }
+    var footerPinned by remember { mutableStateOf(true) }
 
     val settings =
         remember(
             useStripedRows,
             showFastFilters,
             enableDragToScroll,
-            fixedColumnsCount,
-            fixedColumnsSide,
+            pinnedColumnsCount,
+            pinnedColumnsSide,
             enableEditing,
+            showFooter,
+            footerPinned,
         ) {
             TableSettings(
                 isDragEnabled = false,
@@ -81,9 +85,11 @@ fun SampleApp(modifier: Modifier = Modifier) {
                 selectionMode = SelectionMode.None,
                 rowHeightMode = RowHeightMode.Dynamic,
                 enableDragToScroll = enableDragToScroll,
-                fixedColumnsCount = fixedColumnsCount,
-                fixedColumnsSide = fixedColumnsSide,
+                pinnedColumnsCount = pinnedColumnsCount,
+                pinnedColumnsSide = pinnedColumnsSide,
                 editingEnabled = enableEditing,
+                showFooter = showFooter,
+                footerPinned = footerPinned,
             )
         }
 
@@ -156,14 +162,18 @@ fun SampleApp(modifier: Modifier = Modifier) {
                                 onShowFastFiltersChange = { showFastFilters = it },
                                 enableDragToScroll = enableDragToScroll,
                                 onEnableDragToScrollChange = { enableDragToScroll = it },
-                                fixedColumnsCount = fixedColumnsCount,
-                                onFixedColumnsCountChange = { fixedColumnsCount = it },
-                                fixedColumnsSide = fixedColumnsSide,
-                                onFixedColumnsSideChange = { fixedColumnsSide = it },
+                                pinnedColumnsCount = pinnedColumnsCount,
+                                onPinnedColumnsCountChange = { pinnedColumnsCount = it },
+                                pinnedColumnsSide = pinnedColumnsSide,
+                                onPinnedColumnsSideChange = { pinnedColumnsSide = it },
                                 enableEditing = enableEditing,
                                 onEnableEditingChange = { enableEditing = it },
                                 useCompactMode = useCompactMode,
                                 onCompactModeChange = { useCompactMode = it },
+                                showFooter = showFooter,
+                                onShowFooterChange = { showFooter = it },
+                                footerPinned = footerPinned,
+                                onFooterPinnedChange = { footerPinned = it },
                                 onConditionalFormattingClick = {
                                     viewModel.toggleFormatDialog(true)
                                     scope.launch { drawerState.close() }

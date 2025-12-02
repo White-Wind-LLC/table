@@ -29,15 +29,37 @@ public data class TableSettings(
      * instead.
      */
     val enableDragToScroll: Boolean = true,
+    /** Number of pinned columns */
+    val pinnedColumnsCount: Int = 0,
+    /** Side to pin columns to */
+    val pinnedColumnsSide: PinnedSide = PinnedSide.Left,
     /** Number of fixed columns */
-    val fixedColumnsCount: Int = 0,
+    @Deprecated(
+        "Use pinnedColumnsCount instead",
+        ReplaceWith("pinnedColumnsCount"),
+        level = DeprecationLevel.WARNING,
+    )
+    val fixedColumnsCount: Int = pinnedColumnsCount,
     /** Side to fix columns to */
-    val fixedColumnsSide: FixedSide = FixedSide.Left,
+    @Deprecated(
+        "Use pinnedColumnsSide instead",
+        ReplaceWith("pinnedColumnsSide"),
+        level = DeprecationLevel.WARNING,
+    )
+    val fixedColumnsSide: FixedSide =
+        when (pinnedColumnsSide) {
+            PinnedSide.Left -> FixedSide.Left
+            PinnedSide.Right -> FixedSide.Right
+        },
     /**
      * Enable cell editing mode for the table. When disabled, all column-level edit settings are
      * ignored.
      */
     val editingEnabled: Boolean = false,
+    /** Show footer row */
+    val showFooter: Boolean = false,
+    /** Pin footer at the bottom (only for non-embedded tables) */
+    val footerPinned: Boolean = true,
 )
 
 /** Row selection behavior. */
@@ -47,11 +69,19 @@ public enum class SelectionMode {
     Multiple,
 }
 
-/** Side to fix columns to. */
-public enum class FixedSide {
+/** Side to pin columns to. */
+public enum class PinnedSide {
     Left,
     Right,
 }
+
+/** Side to fix columns to. */
+@Deprecated(
+    "Use PinnedSide instead",
+    ReplaceWith("PinnedSide", "ua.wwind.table.config.PinnedSide"),
+    level = DeprecationLevel.WARNING,
+)
+public typealias FixedSide = PinnedSide
 
 /** Row height behavior. */
 public enum class RowHeightMode {

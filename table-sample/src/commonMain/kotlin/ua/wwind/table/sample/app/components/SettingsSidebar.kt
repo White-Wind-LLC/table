@@ -1,5 +1,6 @@
 package ua.wwind.table.sample.app.components
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -29,9 +30,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import ua.wwind.table.config.FixedSide
+import ua.wwind.table.config.PinnedSide
 
 /**
  * Settings sidebar that displays all table configuration options. Designed to be used as drawer
@@ -48,14 +50,18 @@ fun SettingsSidebar(
     onShowFastFiltersChange: (Boolean) -> Unit,
     enableDragToScroll: Boolean,
     onEnableDragToScrollChange: (Boolean) -> Unit,
-    fixedColumnsCount: Int,
-    onFixedColumnsCountChange: (Int) -> Unit,
-    fixedColumnsSide: FixedSide,
-    onFixedColumnsSideChange: (FixedSide) -> Unit,
+    pinnedColumnsCount: Int,
+    onPinnedColumnsCountChange: (Int) -> Unit,
+    pinnedColumnsSide: PinnedSide,
+    onPinnedColumnsSideChange: (PinnedSide) -> Unit,
     enableEditing: Boolean,
     onEnableEditingChange: (Boolean) -> Unit,
     useCompactMode: Boolean,
     onCompactModeChange: (Boolean) -> Unit,
+    showFooter: Boolean,
+    onShowFooterChange: (Boolean) -> Unit,
+    footerPinned: Boolean,
+    onFooterPinnedChange: (Boolean) -> Unit,
     onConditionalFormattingClick: () -> Unit,
     onRecalculateAutoWidthsClick: () -> Unit,
     onClose: () -> Unit,
@@ -132,53 +138,70 @@ fun SettingsSidebar(
                         checked = enableEditing,
                         onCheckedChange = onEnableEditingChange,
                     )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    SettingSwitch(
+                        label = "Show footer",
+                        checked = showFooter,
+                        onCheckedChange = onShowFooterChange,
+                    )
+                    AnimatedVisibility(
+                        visible = showFooter,
+                    ) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        SettingSwitch(
+                            label = "Pin footer",
+                            checked = footerPinned,
+                            onCheckedChange = onFooterPinnedChange,
+                            modifier = Modifier.then(if (!showFooter) Modifier.alpha(0.5f) else Modifier),
+                        )
+                    }
                 }
 
                 // Columns Section
                 SettingsSection(title = "Columns") {
-                    // Fixed columns count
+                    // Pinned columns count
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Text("Fixed columns")
+                        Text("Pinned columns")
                         Row(
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             OutlinedButton(
                                 onClick = {
-                                    if (fixedColumnsCount > 0) {
-                                        onFixedColumnsCountChange(fixedColumnsCount - 1)
+                                    if (pinnedColumnsCount > 0) {
+                                        onPinnedColumnsCountChange(pinnedColumnsCount - 1)
                                     }
                                 },
                             ) { Text("-") }
-                            Text("$fixedColumnsCount", modifier = Modifier.width(24.dp))
+                            Text("$pinnedColumnsCount", modifier = Modifier.width(24.dp))
                             OutlinedButton(
-                                onClick = { onFixedColumnsCountChange(fixedColumnsCount + 1) },
+                                onClick = { onPinnedColumnsCountChange(pinnedColumnsCount + 1) },
                             ) { Text("+") }
                         }
                     }
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    // Fixed columns side
+                    // Pinned columns side
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Text("Fixed side")
+                        Text("Pinned side")
                         SingleChoiceSegmentedButtonRow {
                             SegmentedButton(
-                                selected = fixedColumnsSide == FixedSide.Left,
-                                onClick = { onFixedColumnsSideChange(FixedSide.Left) },
+                                selected = pinnedColumnsSide == PinnedSide.Left,
+                                onClick = { onPinnedColumnsSideChange(PinnedSide.Left) },
                                 shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
                             ) { Text("Left") }
                             SegmentedButton(
-                                selected = fixedColumnsSide == FixedSide.Right,
-                                onClick = { onFixedColumnsSideChange(FixedSide.Right) },
+                                selected = pinnedColumnsSide == PinnedSide.Right,
+                                onClick = { onPinnedColumnsSideChange(PinnedSide.Right) },
                                 shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
                             ) { Text("Right") }
                         }

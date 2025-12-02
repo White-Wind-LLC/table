@@ -4,6 +4,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -29,7 +30,6 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollDispatcher
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.ImmutableList
@@ -41,11 +41,13 @@ import ua.wwind.table.component.TableHeaderIcons
 import ua.wwind.table.component.body.GroupStickyOverlay
 import ua.wwind.table.component.body.TableBody
 import ua.wwind.table.component.body.TableBodyEmbedded
+import ua.wwind.table.component.footer.TableFooter
 import ua.wwind.table.config.DefaultTableCustomization
 import ua.wwind.table.config.TableColors
 import ua.wwind.table.config.TableCustomization
 import ua.wwind.table.config.TableDefaults
 import ua.wwind.table.interaction.ApplyAutoWidthEffect
+import ua.wwind.table.interaction.ApplyAutoWidthEmbeddedEffect
 import ua.wwind.table.interaction.ContextMenuState
 import ua.wwind.table.interaction.EnsureSelectedCellVisibleEffect
 import ua.wwind.table.interaction.draggableTable
@@ -140,7 +142,6 @@ public fun <T : Any, C, E> EditableTable(
     var contextMenuState by remember { mutableStateOf(ContextMenuState<T>()) }
 
     val tableFocusRequester = remember { FocusRequester() }
-    val density = LocalDensity.current
     val coroutineScope = rememberCoroutineScope()
 
     // Consume drag and fling deltas so parent containers don't scroll while dragging inside the
@@ -269,7 +270,7 @@ public fun <T : Any, C, E> EditableTable(
                 )
                 HorizontalDivider(modifier = Modifier.width(state.tableWidth))
 
-                Box {
+                Box(if (embedded) Modifier else Modifier.weight(1f, false)) {
                     if (embedded) {
                         TableBodyEmbedded(
                             itemsCount = itemsCount,
@@ -327,6 +328,7 @@ public fun <T : Any, C, E> EditableTable(
                             horizontalState = horizontalState,
                             requestTableFocus = { tableFocusRequester.requestFocus() },
                             enableScrolling = enableScrolling,
+                            modifier = Modifier.fillMaxSize(),
                         )
                     }
                     if (state.groupBy != null) {
@@ -337,6 +339,29 @@ public fun <T : Any, C, E> EditableTable(
                             colors = colors,
                             verticalState = verticalState,
                             horizontalState = horizontalState,
+                        )
+                    }
+                }
+
+                // Footer rendering
+                if (state.settings.showFooter) {
+                    // If footer is pinned and table is not embedded, it's rendered outside the Box
+                    // Otherwise, it's rendered as part of the TableBody scroll
+                    if (!embedded && state.settings.footerPinned) {
+                        HorizontalDivider(modifier = Modifier.width(state.tableWidth))
+                        TableFooter(
+                            visibleColumns = visibleColumns,
+                            widthResolver = { key ->
+                                val spec = columns.firstOrNull { it.key == key }
+                                state.resolveColumnWidth(key, spec)
+                            },
+                            footerColor = colors.footerContainerColor,
+                            footerContentColor = colors.footerContentColor,
+                            dimensions = dimensions,
+                            horizontalState = horizontalState,
+                            tableWidth = state.tableWidth,
+                            pinnedColumnsCount = state.settings.pinnedColumnsCount,
+                            pinnedColumnsSide = state.settings.pinnedColumnsSide,
                         )
                     }
                 }

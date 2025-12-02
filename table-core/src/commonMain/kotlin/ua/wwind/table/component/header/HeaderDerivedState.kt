@@ -39,7 +39,7 @@ internal fun <T : Any, C, E> rememberHeaderDerivedState(
         derivedStateOf {
             buildMap {
                 columns.forEach { spec ->
-                    val width = state.columnWidths[spec.key] ?: spec.width ?: dimensions.defaultColumnWidth
+                    val width = state.resolveColumnWidth(spec.key, spec)
                     @Suppress("UNCHECKED_CAST")
                     put(spec.key as C, width)
                 }

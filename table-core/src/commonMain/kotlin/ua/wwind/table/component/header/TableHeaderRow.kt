@@ -18,7 +18,7 @@ import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.ReorderableLazyListState
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.state.TableState
-import ua.wwind.table.state.calculateFixedColumnState
+import ua.wwind.table.state.calculatePinnedColumnState
 import ua.wwind.table.strings.StringProvider
 
 @Composable
@@ -45,12 +45,12 @@ internal fun <T : Any, C, E> TableHeaderRow(
         items(items = visibleColumns, key = { item -> item.key as Any }) { spec ->
             val index = visibleColumns.indexOf(spec)
 
-            val fixedState =
-                calculateFixedColumnState(
+            val pinnedState =
+                calculatePinnedColumnState(
                     columnIndex = index,
                     totalVisibleColumns = visibleColumns.size,
-                    fixedColumnsCount = settings.fixedColumnsCount,
-                    fixedColumnsSide = settings.fixedColumnsSide,
+                    pinnedColumnsCount = settings.pinnedColumnsCount,
+                    pinnedColumnsSide = settings.pinnedColumnsSide,
                     horizontalState = horizontalState,
                 )
 
@@ -58,12 +58,12 @@ internal fun <T : Any, C, E> TableHeaderRow(
                 state = reorderState,
                 key = spec.key as Any,
                 animateItemModifier = if (isResizing) Modifier else Modifier.animateItem(),
-                enabled = !fixedState.isFixed,
+                enabled = !pinnedState.isPinned,
                 modifier =
                     Modifier
-                        .zIndex(fixedState.zIndex)
+                        .zIndex(pinnedState.zIndex)
                         .graphicsLayer {
-                            this.translationX = fixedState.translationX
+                            this.translationX = pinnedState.translationX
                         },
             ) { isDragging ->
                 val elevation = animateDpAsState(if (isDragging) 16.dp else 0.dp).value
@@ -75,7 +75,7 @@ internal fun <T : Any, C, E> TableHeaderRow(
                     tonalElevation = elevation,
                     modifier =
                         Modifier
-                            .draggableHandle(enabled = !fixedState.isFixed),
+                            .draggableHandle(enabled = !pinnedState.isPinned),
                 ) {
                     val width = widthResolver(spec.key)
 
@@ -84,8 +84,8 @@ internal fun <T : Any, C, E> TableHeaderRow(
                         state = state,
                     ) {
                         val dividerThickness =
-                            if (fixedState.isLastLeftFixed) {
-                                style.dimensions.fixedColumnDividerThickness
+                            if (pinnedState.isLastLeftPinned) {
+                                style.dimensions.pinnedColumnDividerThickness
                             } else {
                                 style.dimensions.dividerThickness
                             }
@@ -100,9 +100,9 @@ internal fun <T : Any, C, E> TableHeaderRow(
                             onOpenFilter = { onFilterColumnChange(spec.key) },
                             onDismissFilter = { onFilterColumnChange(null) },
                             onToggleSort = { state.setSort(spec.key) },
-                            showLeftDivider = fixedState.isFirstRightFixed,
-                            leftDividerThickness = style.dimensions.fixedColumnDividerThickness,
-                            showRightDivider = !fixedState.isLastBeforeRightFixed,
+                            showLeftDivider = pinnedState.isFirstRightPinned,
+                            leftDividerThickness = style.dimensions.pinnedColumnDividerThickness,
+                            showRightDivider = !pinnedState.isLastBeforeRightPinned,
                         )
                     }
                 }

@@ -15,6 +15,7 @@ formatting add‑on (`table-format`), and paging integration (`table-paging`).
 - [Quick start](#quick-start)
 - [Cell editing mode](#cell-editing-mode)
 - [Data grouping](#data-grouping)
+- [Footer row](#footer-row)
 - [Paging integration (table-paging)](#paging-integration-table-paging)
 - [Conditional formatting (table-format)](#conditional-formatting-table-format)
 - [Core API reference (table-core)](#core-api-reference-table-core)
@@ -47,6 +48,7 @@ Live demo: [white-wind-llc.github.io/table](https://white-wind-llc.github.io/tab
 - Header with sort/filter icons (customizable via `TableHeaderDefaults.icons`).
 - Per‑column sorting (3‑state: ASC → DESC → none).
 - Data grouping by column with customizable group headers and sticky positioning.
+- Footer row with customizable content per column (totals, averages, summaries); supports pinned and scrollable modes.
 - Drag & drop to reorder columns in the header.
 - Column resize via drag with per‑column min width.
 - Filters: text, number (int/double, ranges), boolean, date, enum (single/multi; IN/NOT IN/EQUALS) with built‑in
@@ -59,7 +61,7 @@ Live demo: [white-wind-llc.github.io/table](https://white-wind-llc.github.io/tab
   alignment).
 - i18n via `StringProvider` (default `DefaultStrings`).
 - Targets: Android / JVM (Desktop) / JS (Web) / iOS (KMP source sets present; targets enabled via project conventions).
-- Fixed (pinned) columns with configurable side (left/right) and count.
+- Pinned columns with configurable side (left/right) and count.
 
 ### Installation
 
@@ -379,6 +381,81 @@ val state = rememberTableState(
 )
 ```
 
+### Footer row
+
+Display a summary footer row at the bottom of the table with custom content per column:
+
+```kotlin
+val columns = tableColumns<Person, PersonField> {
+    column(PersonField.Name, valueOf = { it.name }) {
+        header("Name")
+        cell { Text(it.name) }
+        
+        // Footer content for this column
+        footer {
+            Text(
+                text = "Total: ${people.size}",
+                fontWeight = FontWeight.Bold
+            )
+        }
+    }
+    
+    column(PersonField.Age, valueOf = { it.age }) {
+        header("Age")
+        cell { Text(it.age.toString()) }
+        
+        footer {
+            val avgAge = people.map { it.age }.average()
+            Text(
+                text = "Avg: ${"%.1f".format(avgAge)}",
+                fontWeight = FontWeight.Bold
+            )
+        }
+    }
+    
+    column(PersonField.Salary, valueOf = { it.salary }) {
+        header("Salary")
+        cell { Text("$${it.salary}") }
+        
+        footer {
+            val total = people.sumOf { it.salary }
+            Text(
+                text = "Total: $$total",
+                fontWeight = FontWeight.Bold
+            )
+        }
+    }
+}
+```
+
+Configure footer behavior via table settings:
+
+```kotlin
+val state = rememberTableState(
+    columns = columns.map { it.key },
+    settings = TableSettings(
+        showFooter = true,      // Enable footer display
+        footerPinned = true,    // Pin footer at bottom (default)
+        // ... other settings
+    )
+)
+```
+
+Footer options:
+
+- **showFooter**: Enable or disable footer row display.
+- **footerPinned**: When `true` (default), footer stays visible at the bottom of the table viewport, similar to a sticky
+  header. When `false`, footer scrolls with table content.
+- **footerHeight**: Customize footer height via `TableDimensions.footerHeight`.
+- **footerColors**: Customize footer colors via `TableColors.footerContainerColor` and `TableColors.footerContentColor`.
+
+The footer:
+
+- Respects column widths and alignment settings from the main table.
+- Supports pinned columns just like header and body rows.
+- Synchronizes horizontal scrolling with the rest of the table.
+- For embedded tables, footer is always non-pinned and scrolls with content.
+
 ### Paging integration (`table-paging`)
 
 ```kotlin
@@ -453,6 +530,7 @@ content color, text style, alignment, etc.).
       secondary table inside each row, while still reusing the same table state, filters and formatting rules.
 - **Columns DSL**: `tableColumns { column(key, valueOf) { ... } }` produces `List<ColumnSpec<T, C>>`.
     - Header: `header("Text")` or `header { ... }`; optional `title { "Name" }` for active filter chips.
+    - Footer: `footer { ... }` for custom footer cell content (summaries, totals, etc.).
     - Sorting: `sortable()`, `headerClickToSort(Boolean)`.
     - Filters UI: `filter(TableFilterType.*)`.
     - Sizing: `width(min, pref)`, `autoWidth(max)`, `resizable(Boolean)`, `align(Alignment.Horizontal)`.
@@ -492,9 +570,10 @@ column(PersonField.Name, valueOf = { it.name }) {
     - `TableSettings`: `isDragEnabled`, `autoApplyFilters`, `autoFilterDebounce`, `stripedRows`,
       `showActiveFiltersHeader`, `selectionMode: None/Single/Multiple`, `groupContentAlignment`,
       `rowHeightMode: Fixed/Dynamic`, `enableDragToScroll` (controls whether drag-to-scroll is enabled; when disabled,
-      traditional scrollbars are used instead), `editingEnabled` (master switch for cell editing mode).
-    - `TableDimensions`: `defaultColumnWidth`, `defaultRowHeight`, `checkBoxColumnWidth`, `verticalDividerThickness`,
-      `verticalDividerPaddingHorizontal`.
+      traditional scrollbars are used instead), `editingEnabled` (master switch for cell editing mode), `showFooter`
+      (enable footer row display), `footerPinned` (pin footer at bottom or scroll with content).
+    - `TableDimensions`: `defaultColumnWidth`, `defaultRowHeight`, `footerHeight`, `checkBoxColumnWidth`,
+      `verticalDividerThickness`, `verticalDividerPaddingHorizontal`.
     - `TableColors`: via `TableDefaults.colors(...)`.
 
 ### Filters (built‑in types)

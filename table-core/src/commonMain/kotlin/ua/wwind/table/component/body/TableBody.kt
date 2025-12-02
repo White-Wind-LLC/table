@@ -3,7 +3,6 @@ package ua.wwind.table.component.body
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
@@ -15,6 +14,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import kotlinx.collections.immutable.ImmutableList
 import ua.wwind.table.ColumnSpec
+import ua.wwind.table.component.footer.TableFooter
 import ua.wwind.table.config.TableColors
 import ua.wwind.table.config.TableCustomization
 import ua.wwind.table.state.TableState
@@ -39,9 +39,12 @@ internal fun <T : Any, C, E> TableBody(
     horizontalState: ScrollState,
     requestTableFocus: () -> Unit,
     enableScrolling: Boolean,
+    modifier: Modifier = Modifier,
 ) {
+    val showFooter = state.settings.showFooter && !state.settings.footerPinned
+
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier,
         state = verticalState,
         userScrollEnabled = enableScrolling,
     ) {
@@ -62,6 +65,28 @@ internal fun <T : Any, C, E> TableBody(
                 horizontalState = horizontalState,
                 requestTableFocus = requestTableFocus,
             )
+        }
+
+        // Add footer as last item if not pinned
+        if (showFooter) {
+            item(key = "footer") {
+                HorizontalDivider(modifier = Modifier.width(state.tableWidth))
+                TableFooter(
+                    visibleColumns = visibleColumns,
+                    widthResolver = { key ->
+                        val spec = visibleColumns.firstOrNull { it.key == key }
+                        state.resolveColumnWidth(key, spec)
+                    },
+                    footerColor = colors.footerContainerColor,
+                    footerContentColor = colors.footerContentColor,
+                    dimensions = state.dimensions,
+                    horizontalState = horizontalState,
+                    tableWidth = state.tableWidth,
+                    pinnedColumnsCount = state.settings.pinnedColumnsCount,
+                    pinnedColumnsSide = state.settings.pinnedColumnsSide,
+                    pinned = false,
+                )
+            }
         }
     }
     // Offscreen prefetch of the next viewport to make PgDn precise with dynamic row heights
@@ -99,7 +124,7 @@ internal fun <T : Any, C, E> TableBodyEmbedded(
     horizontalState: ScrollState,
     requestTableFocus: () -> Unit,
 ) {
-    if (itemsCount <= 0) return
+    if (itemsCount <= 0 && !state.settings.showFooter) return
 
     Column {
         for (index in 0 until itemsCount) {
@@ -118,6 +143,26 @@ internal fun <T : Any, C, E> TableBodyEmbedded(
                 onContextMenu = onContextMenu,
                 horizontalState = horizontalState,
                 requestTableFocus = requestTableFocus,
+            )
+        }
+
+        // Add footer for embedded tables (always non-pinned)
+        if (state.settings.showFooter) {
+            HorizontalDivider(modifier = Modifier.width(state.tableWidth))
+            TableFooter(
+                visibleColumns = visibleColumns,
+                widthResolver = { key ->
+                    val spec = visibleColumns.firstOrNull { it.key == key }
+                    state.resolveColumnWidth(key, spec)
+                },
+                footerColor = colors.footerContainerColor,
+                footerContentColor = colors.footerContentColor,
+                dimensions = state.dimensions,
+                horizontalState = horizontalState,
+                tableWidth = state.tableWidth,
+                pinnedColumnsCount = state.settings.pinnedColumnsCount,
+                pinnedColumnsSide = state.settings.pinnedColumnsSide,
+                pinned = false,
             )
         }
     }

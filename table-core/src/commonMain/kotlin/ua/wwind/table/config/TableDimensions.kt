@@ -9,6 +9,13 @@ public data class TableDimensions(
     val defaultColumnWidth: Dp,
     val rowHeight: Dp,
     val headerHeight: Dp,
+    val footerHeight: Dp,
     val dividerThickness: Dp,
-    val fixedColumnDividerThickness: Dp,
+    val pinnedColumnDividerThickness: Dp,
+    @Deprecated(
+        "Use pinnedColumnDividerThickness instead",
+        ReplaceWith("pinnedColumnDividerThickness"),
+        level = DeprecationLevel.WARNING,
+    )
+    val fixedColumnDividerThickness: Dp = pinnedColumnDividerThickness,
 )

@@ -29,7 +29,7 @@ import ua.wwind.table.ColumnSpec
 import ua.wwind.table.filter.data.TableFilterState
 import ua.wwind.table.filter.data.TableFilterType
 import ua.wwind.table.state.TableState
-import ua.wwind.table.state.calculateFixedColumnState
+import ua.wwind.table.state.calculatePinnedColumnState
 import ua.wwind.table.strings.StringProvider
 
 private const val FAST_FILTER_ROW_HEIGHT = 40
@@ -62,17 +62,17 @@ internal fun <T : Any, C, E> FastFiltersRow(
                 val filterType = spec.filter as? TableFilterType<Any?>
                 val autoFilterDebounce = state.settings.autoFilterDebounce
 
-                val fixedState =
-                    calculateFixedColumnState(
+                val pinnedState =
+                    calculatePinnedColumnState(
                         columnIndex = index,
                         totalVisibleColumns = visibleColumns.size,
-                        fixedColumnsCount = settings.fixedColumnsCount,
-                        fixedColumnsSide = settings.fixedColumnsSide,
+                        pinnedColumnsCount = settings.pinnedColumnsCount,
+                        pinnedColumnsSide = settings.pinnedColumnsSide,
                         horizontalState = horizontalState,
                     )
 
                 val surfaceColor =
-                    if (fixedState.isFixed) {
+                    if (pinnedState.isPinned) {
                         if (rowContainerColor != Unspecified) {
                             rowContainerColor.copy(alpha = 1f)
                         } else {
@@ -86,18 +86,18 @@ internal fun <T : Any, C, E> FastFiltersRow(
                     color = surfaceColor,
                     modifier =
                         Modifier
-                            .zIndex(fixedState.zIndex)
+                            .zIndex(pinnedState.zIndex)
                             .graphicsLayer {
-                                this.translationX = fixedState.translationX
+                                this.translationX = pinnedState.translationX
                             },
                 ) {
                     val width = widthResolver(spec.key)
 
                     Row {
-                        if (fixedState.isFirstRightFixed) {
+                        if (pinnedState.isFirstRightPinned) {
                             VerticalDivider(
                                 modifier = Modifier.fillMaxHeight(),
-                                thickness = state.dimensions.fixedColumnDividerThickness,
+                                thickness = state.dimensions.pinnedColumnDividerThickness,
                             )
                         }
                         Box(
@@ -171,12 +171,12 @@ internal fun <T : Any, C, E> FastFiltersRow(
                                 }
                             }
                         }
-                        if (!fixedState.isLastBeforeRightFixed) {
+                        if (!pinnedState.isLastBeforeRightPinned) {
                             VerticalDivider(
                                 modifier = Modifier.fillMaxHeight(),
                                 thickness =
-                                    if (fixedState.isLastLeftFixed) {
-                                        state.dimensions.fixedColumnDividerThickness
+                                    if (pinnedState.isLastLeftPinned) {
+                                        state.dimensions.pinnedColumnDividerThickness
                                     } else {
                                         state.dimensions.dividerThickness
                                     },

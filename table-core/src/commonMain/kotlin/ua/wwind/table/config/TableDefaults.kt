@@ -17,6 +17,9 @@ public object TableDefaults {
         rowSelectedContainerColor: Color = MaterialTheme.colorScheme.tertiary,
         stripedRowContainerColor: Color = MaterialTheme.colorScheme.surfaceContainerLowest,
         groupContainerColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        footerContainerColor: Color = MaterialTheme.colorScheme.surfaceContainer,
+        footerContentColor: Color =
+            MaterialTheme.colorScheme.contentColorFor(footerContainerColor),
     ): TableColors =
         TableColors(
             headerContainerColor = headerContainerColor,
@@ -25,6 +28,8 @@ public object TableDefaults {
             rowSelectedContainerColor = rowSelectedContainerColor,
             stripedRowContainerColor = stripedRowContainerColor,
             groupContainerColor = groupContainerColor,
+            footerContainerColor = footerContainerColor,
+            footerContentColor = footerContentColor,
         )
 
     /** Standard dimensions for table with comfortable spacing and sizes. */
@@ -33,8 +38,9 @@ public object TableDefaults {
             defaultColumnWidth = 200.dp,
             rowHeight = 52.dp,
             headerHeight = 56.dp,
+            footerHeight = 52.dp,
             dividerThickness = 1.dp,
-            fixedColumnDividerThickness = 2.dp,
+            pinnedColumnDividerThickness = 2.dp,
         )
 
     /** Compact dimensions for table with minimal spacing and sizes. */
@@ -43,7 +49,8 @@ public object TableDefaults {
             defaultColumnWidth = 120.dp,
             rowHeight = 36.dp,
             headerHeight = 40.dp,
+            footerHeight = 36.dp,
             dividerThickness = 1.dp,
-            fixedColumnDividerThickness = 2.dp,
+            pinnedColumnDividerThickness = 2.dp,
         )
 }

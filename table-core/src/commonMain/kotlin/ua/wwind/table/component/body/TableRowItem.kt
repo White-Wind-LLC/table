@@ -47,7 +47,7 @@ import ua.wwind.table.config.TableRowStyle
 import ua.wwind.table.config.TableSettings
 import ua.wwind.table.interaction.tableRowInteractions
 import ua.wwind.table.state.TableState
-import ua.wwind.table.state.calculateFixedColumnState
+import ua.wwind.table.state.calculatePinnedColumnState
 
 /**
  * Context for the currently editing cell, providing row index and column key.
@@ -221,7 +221,7 @@ private fun <C, T : Any, E> RenderTableRowItem(
             },
     ) {
         visibleColumns.forEachIndexed { colIndex, spec ->
-            val width = state.columnWidths[spec.key] ?: spec.width ?: dimensions.defaultColumnWidth
+            val width = state.resolveColumnWidth(spec.key, spec)
             var cellTopLeft by remember(spec.key, index) { mutableStateOf(Offset.Zero) }
             val cellStyle: TableCellStyle =
                 customization.resolveCellStyle(
@@ -245,20 +245,20 @@ private fun <C, T : Any, E> RenderTableRowItem(
                 state.selectedCell?.let { it.rowIndex == index && it.column == spec.key } ==
                     true
 
-            val fixedState =
-                calculateFixedColumnState(
+            val pinnedState =
+                calculatePinnedColumnState(
                     columnIndex = colIndex,
                     totalVisibleColumns = visibleColumns.size,
-                    fixedColumnsCount = settings.fixedColumnsCount,
-                    fixedColumnsSide = settings.fixedColumnsSide,
+                    pinnedColumnsCount = settings.pinnedColumnsCount,
+                    pinnedColumnsSide = settings.pinnedColumnsSide,
                     horizontalState = horizontalState,
                 )
 
-            // For fixed columns, always ensure there's a solid background
-            // Use the row background color for fixed cells to prevent transparency
+            // For pinned columns, always ensure there's a solid background
+            // Use the row background color for pinned cells to prevent transparency
             val finalCellStyle =
-                if (fixedState.isFixed) {
-                    // Always use row background for fixed columns to ensure opacity
+                if (pinnedState.isPinned) {
+                    // Always use row background for pinned columns to ensure opacity
                     val backgroundToUse =
                         if (cellStyle.background != Unspecified) {
                             cellStyle.background
@@ -270,8 +270,8 @@ private fun <C, T : Any, E> RenderTableRowItem(
                     cellStyle
                 }
             val dividerThickness =
-                if (fixedState.isLastLeftFixed) {
-                    dimensions.fixedColumnDividerThickness
+                if (pinnedState.isLastLeftPinned) {
+                    dimensions.pinnedColumnDividerThickness
                 } else {
                     dimensions.dividerThickness
                 }
@@ -283,14 +283,14 @@ private fun <C, T : Any, E> RenderTableRowItem(
                 cellStyle = finalCellStyle,
                 alignment = spec.alignment,
                 isSelected = isCellSelected,
-                showLeftDivider = fixedState.isFirstRightFixed,
-                leftDividerThickness = dimensions.fixedColumnDividerThickness,
-                showRightDivider = !fixedState.isLastBeforeRightFixed,
-                isFixed = fixedState.isFixed,
+                showLeftDivider = pinnedState.isFirstRightPinned,
+                leftDividerThickness = dimensions.pinnedColumnDividerThickness,
+                showRightDivider = !pinnedState.isLastBeforeRightPinned,
+                isFixed = pinnedState.isPinned,
                 modifier =
                     Modifier
-                        .zIndex(fixedState.zIndex)
-                        .graphicsLayer { this.translationX = fixedState.translationX }
+                        .zIndex(pinnedState.zIndex)
+                        .graphicsLayer { this.translationX = pinnedState.translationX }
                         .onGloballyPositioned { coordinates ->
                             cellTopLeft = coordinates.positionInRoot()
                         }.then(

@@ -26,6 +26,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -111,6 +112,14 @@ fun createTableColumns(
                         ),
                 )
             }
+
+            footer {
+                Text(
+                    "Total: ${allPeople.size}",
+                    modifier = Modifier.padding(cellPadding),
+                    fontWeight = FontWeight.Bold,
+                )
+            }
         }
         column(PersonColumn.AGE, { it.age }) {
             title { "Age" }
@@ -153,6 +162,21 @@ fun createTableColumns(
                         KeyboardActions(
                             onDone = { onComplete() },
                         ),
+                )
+            }
+
+            footer {
+                val avgAge =
+                    if (allPeople.isNotEmpty()) {
+                        allPeople.map { it.age }.average()
+                    } else {
+                        0.0
+                    }
+                val rounded = (avgAge * 10).toInt() / 10.0
+                Text(
+                    "Avg: $rounded",
+                    modifier = Modifier.padding(cellPadding),
+                    fontWeight = FontWeight.Bold,
                 )
             }
         }
@@ -306,6 +330,15 @@ fun createTableColumns(
                         ),
                 )
             }
+
+            footer {
+                val totalSalary = allPeople.sumOf { it.salary }
+                Text(
+                    "Total: $$totalSalary",
+                    modifier = Modifier.padding(cellPadding),
+                    fontWeight = FontWeight.Bold,
+                )
+            }
         }
         column(PersonColumn.RATING, { it.rating }) {
             title { "Rating" }
@@ -386,7 +419,10 @@ fun createTableColumns(
         }
     }
 
-fun createMovementColumns(useCompactMode: Boolean = false): ImmutableList<ColumnSpec<PersonMovement, PersonMovementColumn, Unit>> =
+fun createMovementColumns(
+    useCompactMode: Boolean = false,
+    allMovements: List<PersonMovement> = emptyList(),
+): ImmutableList<ColumnSpec<PersonMovement, PersonMovementColumn, Unit>> =
     tableColumns<PersonMovement, PersonMovementColumn> {
         val cellPadding = if (useCompactMode) CellPadding.compact else CellPadding.standard
         column(PersonMovementColumn.DATE, valueOf = { it.date }) {
@@ -405,6 +441,14 @@ fun createMovementColumns(useCompactMode: Boolean = false): ImmutableList<Column
                     ),
                     modifier = Modifier.padding(cellPadding),
                     fontFamily = FontFamily.Monospace,
+                )
+            }
+
+            footer {
+                Text(
+                    "Total: ${allMovements.size}",
+                    modifier = Modifier.padding(cellPadding),
+                    fontWeight = FontWeight.Bold,
                 )
             }
         }

@@ -76,29 +76,46 @@ public class TableState<C>
         }
 
         /**
+         * Resolves the effective width for a column given its key and optional spec.
+         *
+         * Resolution priority:
+         * 1. User-resized width from [columnWidths]
+         * 2. Spec-defined width from [spec]
+         * 3. Default width from [dimensions.defaultColumnWidth]
+         *
+         * @param key column key
+         * @param spec optional column spec; if null, only [columnWidths] and default are considered
+         * @return effective column width
+         */
+        public fun resolveColumnWidth(
+            key: C,
+            spec: ColumnSpec<*, C, *>? = null,
+        ): Dp = columnWidths[key] ?: spec?.width ?: dimensions.defaultColumnWidth
+
+        /**
          * Computes the total table width from visible columns and dividers.
          */
         private fun computeTableWidth(columns: List<ColumnSpec<*, C, *>>): Dp {
-            val effectiveFixedCount =
-                if (settings.fixedColumnsCount >= columns.size) 0 else settings.fixedColumnsCount
+            val effectivePinnedCount =
+                if (settings.pinnedColumnsCount >= columns.size) 0 else settings.pinnedColumnsCount
 
             // Sum column widths (use stored widths, spec width or default)
             val columnsTotal: Dp =
                 columns.fold(0.dp) { acc, spec ->
-                    val w = columnWidths[spec.key] ?: spec.width ?: dimensions.defaultColumnWidth
+                    val w = resolveColumnWidth(spec.key, spec)
                     acc + w
                 }
 
             // Calculate divider contribution:
-            // - If there are no fixed columns: each column has its regular divider (count = columns)
-            // - If there are fixed columns: all but one divider are regular, and one between fixed and scrollable is
+            // - If there are no pinned columns: each column has its regular divider (count = columns)
+            // - If there are pinned columns: all but one divider are regular, and one between pinned and scrollable is
             //   thicker
             val dividerTotal: Dp =
-                if (effectiveFixedCount == 0) {
+                if (effectivePinnedCount == 0) {
                     dimensions.dividerThickness * columns.size
                 } else {
-                    // total dividers = columns count, but one of them uses fixedColumnDividerThickness
-                    dimensions.dividerThickness * (columns.size - 1) + dimensions.fixedColumnDividerThickness
+                    // total dividers = columns count, but one of them uses pinnedColumnDividerThickness
+                    dimensions.dividerThickness * (columns.size - 1) + dimensions.pinnedColumnDividerThickness
                 }
 
             return columnsTotal + dividerTotal
@@ -362,6 +379,7 @@ public class TableState<C>
             // Reset flags to allow ApplyAutoWidthEffect to recompute on next frame
             autoWidthAppliedForEmpty = false
             autoWidthAppliedForData = false
+            columnContentMaxWidths.clear()
         }
 
         /** Tracks measured row heights in raw pixels for dynamic, precise scrolling. */
