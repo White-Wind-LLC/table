@@ -43,6 +43,7 @@ import ua.wwind.table.strings.StringProvider
 internal fun <T : Any, C, E> HeaderCell(
     spec: ColumnSpec<T, C, E>,
     state: TableState<C>,
+    tableData: E,
     strings: StringProvider,
     width: Dp,
     dividerThickness: Dp,
@@ -119,6 +120,7 @@ internal fun <T : Any, C, E> HeaderCell(
                 info = info,
                 isFilterOpen = isFilterOpen,
                 state = state,
+                tableData = tableData,
                 onDismissFilter = onDismissFilter,
                 strings = strings,
             )
@@ -186,6 +188,7 @@ private fun <C, E> HeaderContent(
     info: TableHeaderCellInfo<Any?>,
     isFilterOpen: Boolean,
     state: TableState<C>,
+    tableData: E,
     onDismissFilter: () -> Unit,
     strings: StringProvider,
 ) {
@@ -204,7 +207,7 @@ private fun <C, E> HeaderContent(
                 val titleText = spec.title?.invoke()
                 TruncationTooltipBox(title = titleText) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        spec.header()
+                        spec.header(tableData)
                         if (spec.headerDecorations) {
                             info.sortIcon.invoke()
                         }
@@ -221,6 +224,7 @@ private fun <C, E> HeaderContent(
                     FilterPanel(
                         type = spec.filter as? TableFilterType<Any?>,
                         state = state.filters[spec.key] as? TableFilterState<Any?>,
+                        tableData = tableData,
                         expanded = true,
                         onDismissRequest = onDismissFilter,
                         strings = strings,

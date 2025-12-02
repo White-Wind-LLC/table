@@ -42,9 +42,9 @@ import ua.wwind.table.filter.data.TableFilterType
 import ua.wwind.table.sample.config.CellPadding
 import ua.wwind.table.sample.filter.createSalaryRangeFilter
 import ua.wwind.table.sample.model.Person
-import ua.wwind.table.sample.model.PersonEditState
 import ua.wwind.table.sample.model.PersonMovement
 import ua.wwind.table.sample.model.PersonMovementColumn
+import ua.wwind.table.sample.model.PersonTableData
 import ua.wwind.table.sample.model.Position
 import ua.wwind.table.sample.viewmodel.SampleUiEvent
 import ua.wwind.table.tableColumns
@@ -53,10 +53,9 @@ import ua.wwind.table.tableColumns
 @OptIn(ExperimentalMaterial3Api::class)
 fun createTableColumns(
     onToggleMovementExpanded: (personId: Int) -> Unit,
-    allPeople: List<Person>,
     onEvent: (SampleUiEvent) -> Unit,
     useCompactMode: Boolean = false,
-): ImmutableList<ColumnSpec<Person, PersonColumn, PersonEditState>> =
+): ImmutableList<ColumnSpec<Person, PersonColumn, PersonTableData>> =
     editableTableColumns {
         val cellPadding = if (useCompactMode) CellPadding.compact else CellPadding.standard
         column(PersonColumn.EXPAND, valueOf = { it.expandedMovement }) {
@@ -94,7 +93,7 @@ fun createTableColumns(
             cell { item -> Text(item.name, modifier = Modifier.padding(cellPadding)) }
 
             // Editing configuration - table will manage when to show this
-            editCell { person, editState, onComplete ->
+            editCell { person, tableData, onComplete ->
                 var text by remember(person) { mutableStateOf(person.name) }
 
                 TableCellTextFieldWithTooltipError(
@@ -103,7 +102,7 @@ fun createTableColumns(
                         text = it
                         onEvent(SampleUiEvent.UpdateName(it))
                     },
-                    errorMessage = editState.nameError,
+                    errorMessage = tableData.editState.nameError,
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                     keyboardActions =
@@ -113,9 +112,9 @@ fun createTableColumns(
                 )
             }
 
-            footer {
+            footer { tableData ->
                 Text(
-                    "Total: ${allPeople.size}",
+                    "Total: ${tableData.displayedPeople.size}",
                     modifier = Modifier.padding(cellPadding),
                     fontWeight = FontWeight.Bold,
                 )
@@ -140,7 +139,7 @@ fun createTableColumns(
             }
 
             // Editing configuration
-            editCell { person, editState, onComplete ->
+            editCell { person, tableData, onComplete ->
                 var text by remember(person) { mutableStateOf(person.age.toString()) }
 
                 TableCellTextFieldWithTooltipError(
@@ -151,7 +150,7 @@ fun createTableColumns(
                             onEvent(SampleUiEvent.UpdateAge(age))
                         }
                     },
-                    errorMessage = editState.ageError,
+                    errorMessage = tableData.editState.ageError,
                     singleLine = true,
                     keyboardOptions =
                         KeyboardOptions(
@@ -165,10 +164,10 @@ fun createTableColumns(
                 )
             }
 
-            footer {
+            footer { tableData ->
                 val avgAge =
-                    if (allPeople.isNotEmpty()) {
-                        allPeople.map { it.age }.average()
+                    if (tableData.displayedPeople.isNotEmpty()) {
+                        tableData.displayedPeople.map { it.age }.average()
                     } else {
                         0.0
                     }
@@ -249,7 +248,7 @@ fun createTableColumns(
             }
 
             // Editing configuration with dropdown
-            editCell { person, editState, onComplete ->
+            editCell { person, tableData, onComplete ->
                 var expanded by remember { mutableStateOf(false) }
                 var selectedPosition by remember(person) { mutableStateOf(person.position) }
 
@@ -294,8 +293,8 @@ fun createTableColumns(
             title { "Salary" }
             width(350.dp, 350.dp)
             sortable()
-            // Custom visual range filter with histogram
-            filter(createSalaryRangeFilter(allPeople))
+            // Custom visual range filter with histogram - uses tableData internally
+            filter(createSalaryRangeFilter())
             align(Alignment.CenterEnd)
             cell { item ->
                 Text(
@@ -305,7 +304,7 @@ fun createTableColumns(
             }
 
             // Editing configuration
-            editCell { person, editState, onComplete ->
+            editCell { person, tableData, onComplete ->
                 var text by remember(person) { mutableStateOf(person.salary.toString()) }
 
                 TableCellTextFieldWithTooltipError(
@@ -316,7 +315,7 @@ fun createTableColumns(
                             onEvent(SampleUiEvent.UpdateSalary(salary))
                         }
                     },
-                    errorMessage = editState.salaryError,
+                    errorMessage = tableData.editState.salaryError,
                     singleLine = true,
                     prefix = { Text("$") },
                     keyboardOptions =
@@ -331,8 +330,8 @@ fun createTableColumns(
                 )
             }
 
-            footer {
-                val totalSalary = allPeople.sumOf { it.salary }
+            footer { tableData ->
+                val totalSalary = tableData.displayedPeople.sumOf { it.salary }
                 Text(
                     "Total: $$totalSalary",
                     modifier = Modifier.padding(cellPadding),
@@ -419,11 +418,8 @@ fun createTableColumns(
         }
     }
 
-fun createMovementColumns(
-    useCompactMode: Boolean = false,
-    allMovements: List<PersonMovement> = emptyList(),
-): ImmutableList<ColumnSpec<PersonMovement, PersonMovementColumn, Unit>> =
-    tableColumns<PersonMovement, PersonMovementColumn> {
+fun createMovementColumns(useCompactMode: Boolean = false): ImmutableList<ColumnSpec<PersonMovement, PersonMovementColumn, Person>> =
+    tableColumns {
         val cellPadding = if (useCompactMode) CellPadding.compact else CellPadding.standard
         column(PersonMovementColumn.DATE, valueOf = { it.date }) {
             title { "Date" }
@@ -444,9 +440,9 @@ fun createMovementColumns(
                 )
             }
 
-            footer {
+            footer { person ->
                 Text(
-                    "Total: ${allMovements.size}",
+                    "Total: ${person.movements.size}",
                     modifier = Modifier.padding(cellPadding),
                     fontWeight = FontWeight.Bold,
                 )

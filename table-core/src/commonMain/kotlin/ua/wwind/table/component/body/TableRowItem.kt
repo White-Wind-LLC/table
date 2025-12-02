@@ -80,7 +80,7 @@ internal fun <T : Any, C, E> TableRowItem(
     state: TableState<C>,
     colors: ua.wwind.table.config.TableColors,
     customization: TableCustomization<T, C>,
-    editState: E,
+    tableData: E,
     rowEmbedded: (@Composable (rowIndex: Int, item: T) -> Unit)?,
     placeholderRow: (@Composable () -> Unit)?,
     onRowClick: ((T) -> Unit)?,
@@ -166,7 +166,7 @@ internal fun <T : Any, C, E> TableRowItem(
                         dimensions = dimensions,
                         customization = customization,
                         item = item,
-                        editState = editState,
+                        tableData = tableData,
                         isSelected = isSelected,
                         settings = settings,
                         horizontalState = horizontalState,
@@ -203,7 +203,7 @@ private fun <C, T : Any, E> RenderTableRowItem(
     dimensions: TableDimensions,
     customization: TableCustomization<T, C>,
     item: T,
-    editState: E,
+    tableData: E,
     isSelected: Boolean,
     settings: TableSettings,
     horizontalState: ScrollState,
@@ -383,7 +383,7 @@ private fun <C, T : Any, E> RenderTableRowItem(
                         LocalEditCellContext provides EditCellContext(index, spec.key as Any),
                         LocalEditCellFocusRequester provides focusRequester,
                     ) {
-                        spec.editCell.invoke(this, item, editState) {
+                        spec.editCell.invoke(this, item, tableData) {
                             // onComplete callback - move to next editable cell
                             state.completeCurrentCellEdit(visibleColumns)
                         }

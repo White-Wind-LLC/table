@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.zIndex
@@ -20,8 +21,9 @@ import ua.wwind.table.state.calculatePinnedColumnState
 internal fun <T : Any, C, E> TableFooterRow(
     visibleColumns: ImmutableList<ColumnSpec<T, C, E>>,
     widthResolver: (C) -> Dp,
-    footerColor: androidx.compose.ui.graphics.Color,
-    footerContentColor: androidx.compose.ui.graphics.Color,
+    tableData: E,
+    footerColor: Color,
+    footerContentColor: Color,
     dimensions: TableDimensions,
     horizontalState: ScrollState,
     pinnedColumnsCount: Int,
@@ -68,7 +70,7 @@ internal fun <T : Any, C, E> TableFooterRow(
                         .zIndex(pinnedState.zIndex)
                         .graphicsLayer { this.translationX = pinnedState.translationX },
             ) {
-                spec.footer?.invoke(this)
+                spec.footer?.invoke(this, tableData)
             }
         }
     }

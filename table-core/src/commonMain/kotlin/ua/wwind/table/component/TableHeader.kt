@@ -44,6 +44,7 @@ import ua.wwind.table.strings.StringProvider
 internal fun <T : Any, C, E> TableHeader(
     columns: ImmutableList<ColumnSpec<T, C, E>>,
     state: TableState<C>,
+    tableData: E,
     headerColor: Color,
     headerContentColor: Color,
     rowContainerColor: Color,
@@ -82,6 +83,7 @@ internal fun <T : Any, C, E> TableHeader(
                         widthResolver = { key -> derived.widthMap[key] ?: dimensions.defaultColumnWidth },
                         style = TableHeaderStyle(headerColor, headerContentColor, dimensions, icons),
                         state = state,
+                        tableData = tableData,
                         strings = strings,
                         filterColumn = filterColumn,
                         onFilterColumnChange = { filterColumn = it },
@@ -117,6 +119,7 @@ internal fun <T : Any, C, E> TableHeader(
                 widthResolver = { key -> derived.widthMap[key] ?: dimensions.defaultColumnWidth },
                 rowContainerColor = rowContainerColor,
                 state = state,
+                tableData = tableData,
                 strings = strings,
                 onChange = { spec, newState -> state.setFilter(spec.key, newState) },
                 horizontalState = horizontalState,

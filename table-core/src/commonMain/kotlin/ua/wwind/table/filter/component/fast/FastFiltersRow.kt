@@ -40,6 +40,7 @@ internal fun <T : Any, C, E> FastFiltersRow(
     widthResolver: (C) -> Dp,
     rowContainerColor: Color,
     state: TableState<C>,
+    tableData: E,
     strings: StringProvider,
     onChange: (ColumnSpec<T, C, E>, TableFilterState<T>?) -> Unit,
     modifier: Modifier = Modifier,
@@ -155,11 +156,12 @@ internal fun <T : Any, C, E> FastFiltersRow(
                                         onChange = onChange,
                                     )
 
-                                is TableFilterType.CustomTableFilter<*> -> {
-                                    val customFilter = filterType as TableFilterType.CustomTableFilter<Any>
-                                    CustomFastFilter<Any>(
+                                is TableFilterType.CustomTableFilter<*, *> -> {
+                                    val customFilter = filterType as TableFilterType.CustomTableFilter<Any, E>
+                                    CustomFastFilter<Any, E>(
                                         filter = customFilter,
                                         state = state.filters[spec.key] as? TableFilterState<Any>,
+                                        tableData = tableData,
                                         onChange = { newState ->
                                             onChange(spec, newState as? TableFilterState<T>)
                                         },

@@ -23,7 +23,7 @@ import ua.wwind.table.state.LocalTableState
  *
  * Example usage with custom TextField:
  * ```kotlin
- * editCell { person, editState, onComplete ->
+ * editCell { person, tableData, onComplete ->
  *     var text by remember(person) { mutableStateOf(person.name) }
  *
  *     TextField(

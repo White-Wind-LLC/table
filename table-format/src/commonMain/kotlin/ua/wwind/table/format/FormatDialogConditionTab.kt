@@ -144,47 +144,52 @@ public fun <E : Enum<E>, FILTER> FormatDialogConditionTab(
                         AnimatedVisibility(visible = expanded) {
                             Surface {
                                 when (val filter = filterData.filterType) {
-                                    is TableFilterType.TextTableFilter ->
+                                    is TableFilterType.TextTableFilter -> {
                                         FormatTextFilter(
                                             filter = filter,
                                             state = filterData.filterState as TableFilterState<String>,
                                             onChange = { newState -> filterData.onChange(newState as TableFilterState<*>) },
                                             strings = strings,
                                         )
+                                    }
 
-                                    is TableFilterType.BooleanTableFilter ->
+                                    is TableFilterType.BooleanTableFilter -> {
                                         FormatBooleanFilter(
                                             filter = filter,
                                             state = filterData.filterState as TableFilterState<Boolean>,
                                             onChange = { newState -> filterData.onChange(newState as TableFilterState<*>) },
                                             strings = strings,
                                         )
+                                    }
 
-                                    is TableFilterType.DateTableFilter ->
+                                    is TableFilterType.DateTableFilter -> {
                                         FormatDateFilter(
                                             filter = filter,
                                             state = filterData.filterState as TableFilterState<kotlinx.datetime.LocalDate>,
                                             onChange = { newState -> filterData.onChange(newState as TableFilterState<*>) },
                                             strings = strings,
                                         )
+                                    }
 
-                                    is TableFilterType.EnumTableFilter<*> ->
+                                    is TableFilterType.EnumTableFilter<*> -> {
                                         FormatEnumFilter(
                                             filter = filter,
                                             state = filterData.filterState as TableFilterState<*>,
                                             onChange = { newState -> filterData.onChange(newState as TableFilterState<*>) },
                                             strings = strings,
                                         )
+                                    }
 
-                                    is TableFilterType.NumberTableFilter<*> ->
+                                    is TableFilterType.NumberTableFilter<*> -> {
                                         FormatNumberFilter(
                                             filter = filter as TableFilterType.NumberTableFilter<Number>,
                                             state = filterData.filterState as TableFilterState<Number>,
                                             onChange = { newState -> filterData.onChange(newState as TableFilterState<*>) },
                                             strings = strings,
                                         )
+                                    }
 
-                                    is TableFilterType.CustomTableFilter<*> -> {
+                                    is TableFilterType.CustomTableFilter<*, *> -> {
                                         // Custom filters are not supported in conditional formatting
                                         Text(
                                             text = "Custom filters are not supported in conditional formatting",
@@ -193,7 +198,9 @@ public fun <E : Enum<E>, FILTER> FormatDialogConditionTab(
                                         )
                                     }
 
-                                    is TableFilterType.DisabledTableFilter -> Unit
+                                    is TableFilterType.DisabledTableFilter -> {
+                                        // No Op
+                                    }
                                 }
                             }
                         }
@@ -377,7 +384,9 @@ private fun FormatEnumFilter(
 
             FilterConstraint.IS_NULL, FilterConstraint.IS_NOT_NULL -> {}
 
-            else -> throw IllegalArgumentException("Unsupported constraint for list filter: $constraint")
+            else -> {
+                throw IllegalArgumentException("Unsupported constraint for list filter: $constraint")
+            }
         }
     }
 }
@@ -513,7 +522,9 @@ internal fun <E : Enum<E>> buildFilterHeaderTitle(
                     "${strings.get(constraint.toUiString())} ${valuesLocal.firstOrNull()}"
                 }
 
-                else -> null
+                else -> {
+                    null
+                }
             }
         }
 
@@ -552,7 +563,7 @@ internal fun <E : Enum<E>> buildFilterHeaderTitle(
             }
         }
 
-        is TableFilterType.CustomTableFilter<*> -> {
+        is TableFilterType.CustomTableFilter<*, *> -> {
             // Custom filters are not supported in conditional formatting
             null
         }

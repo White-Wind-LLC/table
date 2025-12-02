@@ -71,13 +71,13 @@ import ua.wwind.table.strings.StringProvider
  * Generic parameters:
  * - [T] actual row item type.
  * - [C] column key type.
- * - [E] edit state type for row editing.
+ * - [E] table data type - shared state accessible in headers, footers, and edit cells.
  *
  * @param itemsCount total number of rows to display
  * @param itemAt loader that returns an item for the given index; may return null while loading
  * @param state mutable table state (sorting, filters, order, selection)
  * @param columns list of visible/available column specifications
- * @param editState current edit state instance
+ * @param tableData current table data instance - accessible in headers, footers, and edit cells
  * @param modifier layout modifier for the whole table
  * @param placeholderRow optional row content shown when an item is null
  * @param rowKey stable key for rows; defaults to index
@@ -100,7 +100,7 @@ public fun <T : Any, C, E> EditableTable(
     itemAt: (Int) -> T?,
     state: TableState<C>,
     columns: ImmutableList<ColumnSpec<T, C, E>>,
-    editState: E,
+    tableData: E,
     modifier: Modifier = Modifier,
     placeholderRow: (@Composable () -> Unit)? = null,
     rowKey: (item: T?, index: Int) -> Any = { _, i -> i },
@@ -260,6 +260,7 @@ public fun <T : Any, C, E> EditableTable(
                 TableHeader(
                     columns = columns,
                     state = state,
+                    tableData = tableData,
                     headerColor = colors.headerContainerColor,
                     headerContentColor = colors.headerContentColor,
                     rowContainerColor = colors.rowContainerColor,
@@ -280,7 +281,7 @@ public fun <T : Any, C, E> EditableTable(
                             state = state,
                             colors = colors,
                             customization = customization,
-                            editState = editState,
+                            tableData = tableData,
                             rowEmbedded = rowEmbedded,
                             placeholderRow = placeholderRow,
                             onRowClick = onRowClick,
@@ -308,7 +309,7 @@ public fun <T : Any, C, E> EditableTable(
                             state = state,
                             colors = colors,
                             customization = customization,
-                            editState = editState,
+                            tableData = tableData,
                             placeholderRow = placeholderRow,
                             onRowClick = onRowClick,
                             onRowLongClick = onRowLongClick,
@@ -355,6 +356,7 @@ public fun <T : Any, C, E> EditableTable(
                                 val spec = columns.firstOrNull { it.key == key }
                                 state.resolveColumnWidth(key, spec)
                             },
+                            tableData = tableData,
                             footerColor = colors.footerContainerColor,
                             footerContentColor = colors.footerContentColor,
                             dimensions = dimensions,
@@ -443,7 +445,92 @@ public fun <T : Any, C> Table(
         itemAt = itemAt,
         state = state,
         columns = columns,
-        editState = Unit,
+        tableData = Unit,
+        modifier = modifier,
+        placeholderRow = placeholderRow,
+        rowKey = rowKey,
+        onRowClick = onRowClick,
+        onRowLongClick = onRowLongClick,
+        contextMenu = contextMenu,
+        customization = customization,
+        colors = colors,
+        strings = strings,
+        verticalState = verticalState,
+        horizontalState = horizontalState,
+        icons = icons,
+        shape = shape,
+        rowEmbedded = rowEmbedded,
+        embedded = embedded,
+        onRowEditStart = null,
+        onRowEditComplete = null,
+        onEditCancelled = null,
+    )
+}
+
+/**
+ * Composable data table with custom table data state.
+ *
+ * This overload allows passing custom table data that will be accessible in headers, footers, and edit cells.
+ *
+ * - Columns are described by [columns] (`ColumnSpec`).
+ * - Data is provided via [itemsCount] and [itemAt] loader.
+ * - Sorting, filters, ordering and selection are controlled by [state].
+ *
+ * Generic parameters:
+ * - [T] actual row item type.
+ * - [C] column key type.
+ * - [E] table data type - shared state accessible in headers, footers, and edit cells.
+ *
+ * @param itemsCount total number of rows to display
+ * @param itemAt loader that returns an item for the given index; may return null while loading
+ * @param state mutable table state (sorting, filters, order, selection)
+ * @param columns list of visible/available column specifications
+ * @param tableData current table data instance - accessible in headers, footers, and edit cells
+ * @param modifier layout modifier for the whole table
+ * @param placeholderRow optional row content shown when an item is null
+ * @param rowKey stable key for rows; defaults to index
+ * @param onRowClick row primary action handler
+ * @param onRowLongClick optional long-press handler
+ * @param contextMenu optional context menu host, invoked with item and absolute position
+ * @param customization styling hooks for rows and cells
+ * @param colors container/content colors
+ * @param strings string provider for UI text
+ * @param verticalState list scroll state
+ * @param horizontalState horizontal scroll state of the whole table
+ * @param icons header icons used for sort and filter affordances
+ * @param shape surface shape of the table
+ */
+@Suppress("LongParameterList")
+@ExperimentalTableApi
+@Composable
+public fun <T : Any, C, E> Table(
+    itemsCount: Int,
+    itemAt: (Int) -> T?,
+    state: TableState<C>,
+    columns: ImmutableList<ColumnSpec<T, C, E>>,
+    tableData: E,
+    modifier: Modifier = Modifier,
+    placeholderRow: (@Composable () -> Unit)? = null,
+    rowKey: (item: T?, index: Int) -> Any = { _, i -> i },
+    onRowClick: ((T) -> Unit)? = null,
+    onRowLongClick: ((T) -> Unit)? = null,
+    contextMenu: (@Composable (item: T, pos: Offset, dismiss: () -> Unit) -> Unit)? = null,
+    customization: TableCustomization<T, C> = DefaultTableCustomization(),
+    colors: TableColors = TableDefaults.colors(),
+    strings: StringProvider = DefaultStrings,
+    verticalState: LazyListState = rememberLazyListState(),
+    horizontalState: ScrollState = rememberScrollState(),
+    icons: TableHeaderIcons = TableHeaderDefaults.icons(),
+    shape: Shape = RoundedCornerShape(4.dp),
+    rowEmbedded: (@Composable (rowIndex: Int, item: T) -> Unit)? = null,
+    embedded: Boolean = false,
+) {
+    EditableTable(
+        itemsCount = itemsCount,
+        itemAt = itemAt,
+        state = state,
+        columns = columns,
+        tableData = tableData,
         modifier = modifier,
         placeholderRow = placeholderRow,
         rowKey = rowKey,

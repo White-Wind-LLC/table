@@ -17,6 +17,7 @@ import ua.wwind.table.config.TableDimensions
 internal fun <T : Any, C, E> TableFooter(
     visibleColumns: ImmutableList<ColumnSpec<T, C, E>>,
     widthResolver: (C) -> Dp,
+    tableData: E,
     footerColor: Color,
     footerContentColor: Color,
     dimensions: TableDimensions,
@@ -31,6 +32,7 @@ internal fun <T : Any, C, E> TableFooter(
             TableFooterRow(
                 visibleColumns = visibleColumns,
                 widthResolver = widthResolver,
+                tableData = tableData,
                 footerColor = footerColor,
                 footerContentColor = footerContentColor,
                 dimensions = dimensions,

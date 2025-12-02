@@ -29,6 +29,7 @@ internal fun <T : Any, C, E> TableHeaderRow(
     widthResolver: (C) -> Dp,
     style: TableHeaderStyle,
     state: TableState<C>,
+    tableData: E,
     strings: StringProvider,
     filterColumn: C?,
     onFilterColumnChange: (C?) -> Unit,
@@ -93,6 +94,7 @@ internal fun <T : Any, C, E> TableHeaderRow(
                         HeaderCell(
                             spec = spec,
                             state = state,
+                            tableData = tableData,
                             strings = strings,
                             width = width,
                             dividerThickness = dividerThickness,

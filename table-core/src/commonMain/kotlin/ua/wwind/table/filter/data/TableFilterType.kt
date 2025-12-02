@@ -15,8 +15,8 @@ import kotlin.math.roundToInt
 public sealed class TableFilterType<T>(
     public open val constraints: ImmutableList<FilterConstraint>,
 ) {
-    @Immutable
     /** Text filter supporting contains/starts/ends/equals constraints. */
+    @Immutable
     public data class TextTableFilter(
         override val constraints: ImmutableList<FilterConstraint> =
             persistentListOf(
@@ -27,8 +27,8 @@ public sealed class TableFilterType<T>(
             ),
     ) : TableFilterType<String>(constraints)
 
-    @Immutable
     /** Numeric filter with optional range slider support via [rangeOptions] and [delegate]. */
+    @Immutable
     public data class NumberTableFilter<T : Number>(
         override val constraints: ImmutableList<FilterConstraint> =
             persistentListOf(
@@ -101,8 +101,8 @@ public sealed class TableFilterType<T>(
         }
     }
 
-    @Immutable
     /** Boolean filter with a single EQUALS constraint. */
+    @Immutable
     public data class BooleanTableFilter(
         override val constraints: ImmutableList<FilterConstraint> =
             persistentListOf(
@@ -111,8 +111,8 @@ public sealed class TableFilterType<T>(
         val getTitle: @Composable ((BooleanType) -> String)? = null,
     ) : TableFilterType<Boolean>(constraints)
 
-    @Immutable
     /** Date filter with comparison and equals constraints. */
+    @Immutable
     public data class DateTableFilter(
         override val constraints: ImmutableList<FilterConstraint> =
             persistentListOf(
@@ -125,14 +125,14 @@ public sealed class TableFilterType<T>(
             ),
     ) : TableFilterType<LocalDate>(constraints)
 
-    @Immutable
     /** Disabled filter type used when filtering must be explicitly turned off for a column. */
+    @Immutable
     public data object DisabledTableFilter : TableFilterType<Nothing>(
         constraints = persistentListOf(),
     )
 
-    @Immutable
     /** Enum filter supporting IN/NOT_IN/EQUALS with custom [getTitle] provider. */
+    @Immutable
     public data class EnumTableFilter<T : Enum<T>>(
         val options: ImmutableList<T>,
         override val constraints: ImmutableList<FilterConstraint> =
@@ -144,17 +144,18 @@ public sealed class TableFilterType<T>(
         val getTitle: @Composable (T) -> String,
     ) : TableFilterType<ImmutableList<T>>(constraints)
 
-    @Immutable
     /**
      * Custom filter type that delegates UI rendering and state logic to user-provided implementations.
      * Allows full control over filter UI while maintaining visual consistency with built-in filters.
      *
      * @param T the type of filter state managed by the custom filter
+     * @param E the type of table data accessible in filter rendering
      * @param renderFilter provides UI rendering callbacks for main panel and fast filter
      * @param stateProvider provides state introspection callbacks for active state detection and chip text
      */
-    public data class CustomTableFilter<T>(
-        val renderFilter: CustomFilterRenderer<T>,
+    @Immutable
+    public data class CustomTableFilter<T, E>(
+        val renderFilter: CustomFilterRenderer<T, E>,
         val stateProvider: CustomFilterStateProvider<T>,
     ) : TableFilterType<T>(constraints = persistentListOf())
 
@@ -180,12 +181,14 @@ public sealed class TableFilterType<T>(
  * Implementations control the complete visual appearance and interaction logic.
  *
  * @param T the type of filter state
+ * @param E the type of table data accessible during rendering
  */
-public interface CustomFilterRenderer<T> {
+public interface CustomFilterRenderer<T, E> {
     /**
      * Render the main filter panel shown in a dropdown when the filter button is clicked.
      *
      * @param currentState the current filter state from the table
+     * @param tableData the current table data for accessing context like displayed items
      * @param onDismiss callback to close the filter panel
      * @param onChange callback to update the filter state; pass null to clear the filter
      * @return CustomFilterActions to control apply/clear behavior
@@ -193,6 +196,7 @@ public interface CustomFilterRenderer<T> {
     @Composable
     public fun RenderPanel(
         currentState: TableFilterState<T>?,
+        tableData: E,
         onDismiss: () -> Unit,
         onChange: (TableFilterState<T>?) -> Unit,
     ): TableFilterType.CustomFilterActions
@@ -202,11 +206,13 @@ public interface CustomFilterRenderer<T> {
      * Return null or empty composable if fast filter is not supported.
      *
      * @param currentState the current filter state from the table
+     * @param tableData the current table data for accessing context like displayed items
      * @param onChange callback to update the filter state; pass null to clear the filter
      */
     @Composable
     public fun RenderFastFilter(
         currentState: TableFilterState<T>?,
+        tableData: E,
         onChange: (TableFilterState<T>?) -> Unit,
     )
 }

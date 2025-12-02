@@ -23,9 +23,10 @@ import ua.wwind.table.strings.StringProvider
 
 @Suppress("LongParameterList", "UNCHECKED_CAST")
 @Composable
-internal fun <T> FilterPanel(
+internal fun <T, E> FilterPanel(
     type: TableFilterType<T>?,
     state: TableFilterState<T>?,
+    tableData: E,
     expanded: Boolean,
     onDismissRequest: () -> Unit,
     strings: StringProvider,
@@ -113,11 +114,12 @@ internal fun <T> FilterPanel(
                         onChange = { onChange(it as? TableFilterState<T>) },
                     )
 
-                is TableFilterType.CustomTableFilter<*> -> {
-                    val customFilter = type as TableFilterType.CustomTableFilter<Any>
-                    CustomFilter<Any>(
+                is TableFilterType.CustomTableFilter<*, *> -> {
+                    val customFilter = type as TableFilterType.CustomTableFilter<Any, E>
+                    CustomFilter<Any, E>(
                         filter = customFilter,
                         state = state as? TableFilterState<Any>,
+                        tableData = tableData,
                         onClose = onDismissRequest,
                         strings = strings,
                         autoApplyFilters = autoApplyFilters,

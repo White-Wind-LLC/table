@@ -18,7 +18,7 @@ import ua.wwind.table.filter.data.TableFilterType
  * Contains header/cell content, sizing, alignment, sorting and filtering capabilities.
  *
  * @param key unique column key
- * @param header composable content for the header cell
+ * @param header composable content for the header cell; receives table state data
  * @param cell composable content for each row cell
  * @param valueOf function that extracts the comparable value of this column from [T]; used for
  * grouping and other logic
@@ -37,12 +37,12 @@ import ua.wwind.table.filter.data.TableFilterType
  * @param groupHeader optional custom renderer for the group header
  * @param headerDecorations whether to render built-in sort/filter icons in the header cell
  * @param headerClickToSort whether clicking the entire header cell toggles sorting
- * @param footer optional composable content for the footer cell
+ * @param footer optional composable content for the footer cell; receives table state data
  */
 @Immutable
 public data class ColumnSpec<T : Any, C, E>(
     val key: C,
-    val header: @Composable () -> Unit,
+    val header: @Composable (E) -> Unit,
     val cell: @Composable BoxScope.(T) -> Unit,
     val valueOf: (T) -> Any?,
     val title: (@Composable () -> String)? = null,
@@ -72,30 +72,30 @@ public data class ColumnSpec<T : Any, C, E>(
      */
     val canStartEdit: ((T, Int) -> Boolean)? = null,
     /**
-     * Composable slot for editing UI. Receives the item, edit state, and an onComplete callback to signal
-     * edit completion.
+     * Composable slot for editing UI. Receives the item, table data, and an onComplete callback to signal
+     * edit completion. Table data allows access to shared state (e.g., validation errors, aggregated values).
      */
     val editCell: (@Composable BoxScope.(T, E, onComplete: () -> Unit) -> Unit)? = null,
-    /** Optional composable content for the footer cell */
-    val footer: (@Composable BoxScope.() -> Unit)? = null,
+    /** Optional composable content for the footer cell; receives table state data */
+    val footer: (@Composable BoxScope.(E) -> Unit)? = null,
 )
 
 /** DSL builder for a list of readonly [ColumnSpec]. */
-public class ReadonlyTableColumnsBuilder<T : Any, C> internal constructor() {
-    private val specs = mutableListOf<ColumnSpec<T, C, Unit>>()
+public class ReadonlyTableColumnsBuilder<T : Any, C, E> internal constructor() {
+    private val specs = mutableListOf<ColumnSpec<T, C, E>>()
 
     /** Declare a column with the given [key] and configure it via [block]. */
     public fun column(
         key: C,
         valueOf: (T) -> Any?,
-        block: ReadonlyColumnBuilder<T, C, Unit>.() -> Unit,
+        block: ReadonlyColumnBuilder<T, C, E>.() -> Unit,
     ) {
-        val builder = ReadonlyColumnBuilder<T, C, Unit>(key, valueOf)
+        val builder = ReadonlyColumnBuilder<T, C, E>(key, valueOf)
         builder.block()
         specs += builder.build()
     }
 
-    internal fun build(): ImmutableList<ColumnSpec<T, C, Unit>> = specs.toImmutableList()
+    internal fun build(): ImmutableList<ColumnSpec<T, C, E>> = specs.toImmutableList()
 }
 
 /** DSL builder for a list of editable [ColumnSpec]. */
@@ -116,14 +116,14 @@ public class EditableTableColumnsBuilder<T : Any, C, E> internal constructor() {
     internal fun build(): ImmutableList<ColumnSpec<T, C, E>> = specs.toImmutableList()
 }
 
-@Suppress("TooManyFunctions")
 /** Builder for a single readonly [ColumnSpec]. */
+@Suppress("TooManyFunctions")
 public open class ReadonlyColumnBuilder<T : Any, C, E>
     internal constructor(
         protected val key: C,
         protected val valueOf: ((T) -> Any?),
     ) {
-        protected var header: (@Composable () -> Unit)? = null
+        protected var header: (@Composable (E) -> Unit)? = null
         protected var title: (@Composable () -> String)? = null
         protected var cell: (@Composable BoxScope.(T) -> Unit)? = null
         protected var sortable: Boolean = false
@@ -143,7 +143,7 @@ public open class ReadonlyColumnBuilder<T : Any, C, E>
         protected var editable: Boolean = false
         protected var canStartEdit: ((T, Int) -> Boolean)? = null
         protected var editCell: (@Composable BoxScope.(T, E, onComplete: () -> Unit) -> Unit)? = null
-        protected var footer: (@Composable BoxScope.() -> Unit)? = null
+        protected var footer: (@Composable BoxScope.(E) -> Unit)? = null
 
         /** Set simple text header. */
         public fun header(text: String) {
@@ -158,7 +158,7 @@ public open class ReadonlyColumnBuilder<T : Any, C, E>
         }
 
         /** Set custom composable header content. */
-        public fun header(content: @Composable () -> Unit) {
+        public fun header(content: @Composable (E) -> Unit) {
             header = content
         }
 
@@ -252,7 +252,7 @@ public open class ReadonlyColumnBuilder<T : Any, C, E>
         }
 
         /** Define footer cell content. */
-        public fun footer(content: @Composable BoxScope.() -> Unit) {
+        public fun footer(content: @Composable BoxScope.(E) -> Unit) {
             footer = content
         }
 
@@ -301,14 +301,14 @@ public class EditableColumnBuilder<T : Any, C, E>
         }
     }
 
-/** DSL entry to declare readonly table columns. */
-public fun <T : Any, C> tableColumns(build: ReadonlyTableColumnsBuilder<T, C>.() -> Unit): ImmutableList<ColumnSpec<T, C, Unit>> =
-    ReadonlyTableColumnsBuilder<T, C>().apply(build).build()
+/** DSL entry to declare readonly table columns with custom table data type. */
+public fun <T : Any, C, E> tableColumns(build: ReadonlyTableColumnsBuilder<T, C, E>.() -> Unit): ImmutableList<ColumnSpec<T, C, E>> =
+    ReadonlyTableColumnsBuilder<T, C, E>().apply(build).build()
 
 /** DSL entry to declare editable table columns. */
 public fun <T : Any, C, E> editableTableColumns(
     build: EditableTableColumnsBuilder<T, C, E>.() -> Unit,
 ): ImmutableList<ColumnSpec<T, C, E>> = EditableTableColumnsBuilder<T, C, E>().apply(build).build()
 
-/** Type alias for readonly table columns (without edit state) */
+/** Type alias for readonly table columns (without table data) */
 public typealias ReadonlyColumnSpec<T, C> = ColumnSpec<T, C, Unit>

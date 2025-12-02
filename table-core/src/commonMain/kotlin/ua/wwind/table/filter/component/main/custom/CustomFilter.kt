@@ -15,6 +15,7 @@ import ua.wwind.table.strings.StringProvider
  *
  * @param filter the custom filter type containing the renderer and state provider
  * @param state the current filter state from the table
+ * @param tableData current table data for accessing context during filter rendering
  * @param onClose callback to close the filter panel
  * @param strings string provider for localization
  * @param autoApplyFilters whether filters should apply automatically or require Apply button
@@ -22,9 +23,10 @@ import ua.wwind.table.strings.StringProvider
  */
 @Suppress("UNCHECKED_CAST")
 @Composable
-internal fun <T : Any> CustomFilter(
-    filter: TableFilterType.CustomTableFilter<T>,
+internal fun <T : Any, E> CustomFilter(
+    filter: TableFilterType.CustomTableFilter<T, E>,
     state: TableFilterState<T>?,
+    tableData: E,
     onClose: () -> Unit,
     strings: StringProvider,
     autoApplyFilters: Boolean,
@@ -37,6 +39,7 @@ internal fun <T : Any> CustomFilter(
         val actions =
             filter.renderFilter.RenderPanel(
                 currentState = state,
+                tableData = tableData,
                 onDismiss = onClose,
                 onChange = onChange,
             )
