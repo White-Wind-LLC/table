@@ -2,6 +2,32 @@
 
 All notable changes to this project will be documented in this file.
 
+### 1.7.1 — 2025-12-02
+
+- Added: Support for custom table data (`tableData` parameter) that can be shared across headers, footers, filters, and
+  edit cells.
+    - New `Table` overload that accepts `tableData` parameter for passing shared state to table components.
+    - Generic parameter `E` now represents table data type instead of edit state type for improved flexibility.
+    - Headers, footers, and edit cells receive table data as a parameter, enabling access to shared state during
+      rendering.
+    - Filters (custom, fast, and panel) receive table data for enhanced customization and state synchronization.
+    - `EditableTable` parameter renamed from `editState` to `tableData` to better reflect its purpose.
+- Changed: Enhanced column specification API for table data support.
+    - `ColumnSpec.header` signature changed from `@Composable () -> Unit` to `@Composable (E) -> Unit`.
+    - `ColumnSpec.footer` signature changed from `@Composable BoxScope.() -> Unit` to
+      `@Composable BoxScope.(E) -> Unit`.
+    - `ColumnSpec.editCell` documentation updated to clarify table data parameter usage.
+    - `ReadonlyTableColumnsBuilder` now generic over table data type `E` for consistent API surface.
+    - `TableFilterType.Custom` interface methods updated to receive table data parameter.
+- Changed: Documentation improvements and sample app refactoring.
+    - README updated with comprehensive table data usage examples and best practices.
+    - Sample app refactored to demonstrate table data patterns with centralized validation logic.
+    - New utility classes added: `PersonValidator`, `PersonFilterMatcher`, `PersonFilterStateFactory`,
+      `DefaultFormatRulesProvider`, and `PersonSorter`.
+    - `PersonTableData` model introduced in sample to showcase shared state management across table components.
+
+Compare: [v1.7.0...v1.7.1](https://github.com/White-Wind-LLC/table/compare/v1.7.0...v1.7.1)
+
 ### 1.7.0 — 2025-12-02
 
 - Added: Table footer support with full customization and pinning capabilities.
