@@ -374,7 +374,12 @@ public fun <T : Any, C, E> EditableTable(
             onDismiss = { contextMenuState = contextMenuState.copy(visible = false) },
         )
 
-        ApplyAutoWidthEffect(visibleColumns, itemsCount, verticalState, state)
+        // Apply auto-width effect based on table mode
+        if (embedded) {
+            ApplyAutoWidthEmbeddedEffect(visibleColumns, itemsCount, state)
+        } else {
+            ApplyAutoWidthEffect(visibleColumns, itemsCount, verticalState, state)
+        }
     }
 }
 
