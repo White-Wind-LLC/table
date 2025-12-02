@@ -117,7 +117,7 @@ enum class PersonField { Name, Age }
 #### 2) Columns (DSL `tableColumns`)
 
 ```kotlin
-val columns = tableColumns<Person, PersonField> {
+val columns = tableColumns<Person, PersonField, PersonTableData> {
     column(PersonField.Name, valueOf = { it.name }) {
         header("Name")
         cell { Text(it.name) }
@@ -126,6 +126,11 @@ val columns = tableColumns<Person, PersonField> {
         filter(TableFilterType.TextTableFilter())
         // Auto‑fit to content with optional max cap
         autoWidth(max = 500.dp)
+
+        // Optional footer with access to table data
+        footer { tableData ->
+            Text("Total: ${tableData.displayedPeople.size}")
+        }
     }
 
     column(PersonField.Age, valueOf = { it.age }) {
@@ -144,7 +149,8 @@ val columns = tableColumns<Person, PersonField> {
 ```
 
 Column options: `sortable`, `resizable`, `visible`, `width(min, pref)`, `autoWidth(max)`, `align(...)`,
-`rowHeight(min, max)`, `filter(...)`, `groupHeader(...)`, `headerDecorations(...)`, `headerClickToSort(...)`.
+`rowHeight(min, max)`, `filter(...)`, `groupHeader(...)`, `headerDecorations(...)`, `headerClickToSort(...)`,
+`footer(...)`.
 
 #### 3) Table state
 
@@ -186,6 +192,8 @@ The table supports row‑scoped cell editing with custom edit UI, validation and
 
 - **Table‑level switch**: enable editing via `TableSettings(editingEnabled = true)`.
 - **Editable table**: use `EditableTable<T, C, E>` when you need editing support.
+- **Table data parameter**: the generic parameter `E` represents table data (shared state) accessible in headers,
+  footers, and edit cells. This allows passing validation errors, aggregated values, or any other table-wide state.
 - **Editable columns DSL**: declare columns with `editableTableColumns<T, C, E> { ... }` and per‑cell `editCell`.
 - **Callbacks**: validate and react to edit lifecycle with `onRowEditStart`, `onRowEditComplete`, `onEditCancelled`.
 - **Keyboard**: Enter/Done moves to the next editable cell; Escape cancels editing (desktop targets).
@@ -208,6 +216,12 @@ Minimal example with `TableCellTextField`:
 ```kotlin
 data class Person(val id: Int, val name: String, val age: Int)
 
+// Table data containing displayed items and edit state
+data class PersonTableData(
+    val displayedPeople: List<Person> = emptyList(),
+    val editState: PersonEditState = PersonEditState(),
+)
+
 // Per‑row edit state (validation, errors, etc.)
 data class PersonEditState(
     val person: Person? = null,
@@ -228,22 +242,27 @@ val state = rememberTableState(
 )
 
 // Editable columns definition
-val columns = editableTableColumns<Person, PersonColumn, PersonEditState> {
+val columns = editableTableColumns<Person, PersonColumn, PersonTableData> {
     column(PersonColumn.NAME, valueOf = { it.name }) {
         title { "Name" }
         cell { person -> Text(person.name) }
 
         // Edit UI for the cell; table decides when to show it
-        editCell { person, editState, onComplete ->
+        editCell { person, tableData, onComplete ->
             var text by remember(person) { mutableStateOf(person.name) }
 
             TableCellTextField(
                 value = text,
                 onValueChange = { text = it },
-                isError = editState.nameError.isNotEmpty(),
+                isError = tableData.editState.nameError.isNotEmpty(),
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                 keyboardActions = KeyboardActions(onDone = { onComplete() }),
             )
+        }
+
+        // Footer with access to table data
+        footer { tableData ->
+            Text("Total: ${tableData.displayedPeople.size}")
         }
     }
 
@@ -251,7 +270,7 @@ val columns = editableTableColumns<Person, PersonColumn, PersonEditState> {
         title { "Age" }
         cell { person -> Text(person.age.toString()) }
 
-        editCell { person, editState, onComplete ->
+        editCell { person, tableData, onComplete ->
             var text by remember(person) { mutableStateOf(person.age.toString()) }
 
             TableCellTextField(
@@ -275,7 +294,7 @@ EditableTable(
     itemAt = { index -> people.getOrNull(index) },
     state = state,
     columns = columns,
-    editState = currentEditState, // your PersonEditState instance
+    tableData = currentTableData, // your PersonTableData instance
     onRowEditStart = { person, rowIndex ->
         // Initialize edit state for the row
     },
@@ -383,44 +402,24 @@ val state = rememberTableState(
 
 ### Footer row
 
-Display a summary footer row at the bottom of the table with custom content per column:
+Display a summary footer row at the bottom of the table with custom content per column. Footer receives table data as a
+parameter, allowing access to displayed items and other table state:
 
 ```kotlin
-val columns = tableColumns<Person, PersonField> {
+data class PersonTableData(
+    val displayedPeople: List<Person>,
+    val editState: PersonEditState,
+)
+
+val columns = tableColumns<Person, PersonField, PersonTableData> {
     column(PersonField.Name, valueOf = { it.name }) {
         header("Name")
         cell { Text(it.name) }
-        
-        // Footer content for this column
-        footer {
+
+        // Footer content with access to table data (Unit for non-editable tables)
+        footer { tableData ->
             Text(
-                text = "Total: ${people.size}",
-                fontWeight = FontWeight.Bold
-            )
-        }
-    }
-    
-    column(PersonField.Age, valueOf = { it.age }) {
-        header("Age")
-        cell { Text(it.age.toString()) }
-        
-        footer {
-            val avgAge = people.map { it.age }.average()
-            Text(
-                text = "Avg: ${"%.1f".format(avgAge)}",
-                fontWeight = FontWeight.Bold
-            )
-        }
-    }
-    
-    column(PersonField.Salary, valueOf = { it.salary }) {
-        header("Salary")
-        cell { Text("$${it.salary}") }
-        
-        footer {
-            val total = people.sumOf { it.salary }
-            Text(
-                text = "Total: $$total",
+                text = "Total: ${tableData.displayedPeople.size}",
                 fontWeight = FontWeight.Bold
             )
         }
@@ -520,22 +519,33 @@ content color, text style, alignment, etc.).
 
 ### Core API reference (table-core)
 
-- **Composable `Table<T, C>`**: renders header and virtualized rows.
-    - **Required**: `itemsCount`, `itemAt(index)`, `state: TableState<C>`, `columns: List<ColumnSpec<T, C>>`.
+- **Composable `Table<T, C>`**: renders header and virtualized rows for read-only tables (tableData = Unit).
+    - **Required**: `itemsCount`, `itemAt(index)`, `state: TableState<C>`, `columns: List<ColumnSpec<T, C, Unit>>`.
     - **Slots**: `placeholderRow()`.
     - **UX**: `onRowClick`, `onRowLongClick`, `contextMenu(item, pos, dismiss)`.
     - **Look**: `customization`, `colors = TableDefaults.colors()`, `icons = TableHeaderDefaults.icons()`, `strings`.
     - **Scroll**: optional `verticalState`, `horizontalState`.
     - **Embedded content**: `embedded` flag and `rowEmbedded` slot let you render nested detail content or even a
       secondary table inside each row, while still reusing the same table state, filters and formatting rules.
-- **Columns DSL**: `tableColumns { column(key, valueOf) { ... } }` produces `List<ColumnSpec<T, C>>`.
-    - Header: `header("Text")` or `header { ... }`; optional `title { "Name" }` for active filter chips.
-    - Footer: `footer { ... }` for custom footer cell content (summaries, totals, etc.).
-    - Sorting: `sortable()`, `headerClickToSort(Boolean)`.
-    - Filters UI: `filter(TableFilterType.*)`.
-    - Sizing: `width(min, pref)`, `autoWidth(max)`, `resizable(Boolean)`, `align(Alignment.Horizontal)`.
-    - Row height hints: `rowHeight(min, max)` used when `rowHeightMode = Dynamic`.
-    - Decorations: `headerDecorations(Boolean)` to hide built‑ins when fully customizing header.
+- **Composable `Table<T, C, E>`**: overload that accepts custom table data for headers, footers, and edit cells.
+    - **Additional parameter**: `tableData: E` - shared state accessible in headers, footers, custom filters, and edit
+      cells.
+    - All other parameters same as read-only variant.
+- **Composable `EditableTable<T, C, E>`**: renders header and virtualized rows with editing support.
+    - **Additional parameters**: `tableData: E`, `onRowEditStart`, `onRowEditComplete`, `onEditCancelled`.
+    - Columns must use `ColumnSpec<T, C, E>` with `E` matching the tableData type.
+- **Columns DSL**:
+    - `tableColumns<T, C, E> { ... }` produces `List<ColumnSpec<T, C, E>>` for read-only tables.
+    - `editableTableColumns<T, C, E> { ... }` produces `List<ColumnSpec<T, C, E>>` for editable tables.
+    - Column configuration:
+        - Header: `header("Text")` or `header(tableData) { ... }`; optional `title { "Name" }` for active filter chips.
+        - Footer: `footer(tableData) { ... }` for custom footer cell content with access to table data.
+        - Editing: `editCell { item, tableData, onComplete -> ... }` for custom edit UI.
+        - Sorting: `sortable()`, `headerClickToSort(Boolean)`.
+        - Filters UI: `filter(TableFilterType.*)`.
+        - Sizing: `width(min, pref)`, `autoWidth(max)`, `resizable(Boolean)`, `align(Alignment.Horizontal)`.
+        - Row height hints: `rowHeight(min, max)` used when `rowHeightMode = Dynamic`.
+          - Decorations: `headerDecorations(Boolean)` to hide built‑ins when fully customizing header.
 - **Header customization**
     - When `headerDecorations = true` (default), the table places sort and filter icons automatically.
     - For a fully custom header, set `headerDecorations(false)` and use helpers inside `header { ... }`:
@@ -583,8 +593,11 @@ column(PersonField.Name, valueOf = { it.name }) {
 - **BooleanTableFilter**: equals; optional `getTitle(BooleanType)`.
 - **DateTableFilter**: gt/gte/lt/lte/equals/between (uses `kotlinx.datetime.LocalDate`).
 - **EnumTableFilter<T: Enum<T>>**: in/not_in/equals with `options: List<T>` and `getTitle(T)`.
-- **CustomTableFilter<T>**: fully custom filter UI and state. Implement `CustomFilterRenderer<T>` for main panel and
-  optional fast filter, and `CustomFilterStateProvider<T>` for chip text. Supports data visualizations of any complexity.
+- **CustomTableFilter<T, E>**: fully custom filter UI and state with access to table data. Implement
+  `CustomFilterRenderer<T, E>` for main panel and
+  optional fast filter (both receive `tableData: E` parameter), and `CustomFilterStateProvider<T>` for chip text.
+  Supports data visualizations of any complexity, including dynamic histograms and statistics based on current table
+  data.
 - **DisabledTableFilter**: special marker filter type that completely disables filtering for a column while keeping
   the API contract (no filter UI is rendered for such columns in filter panels and conditional formatting dialogs).
 
