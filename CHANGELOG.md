@@ -2,6 +2,36 @@
 
 All notable changes to this project will be documented in this file.
 
+### 1.7.0 — 2025-12-02
+
+- Added: Table footer support with full customization and pinning capabilities.
+    - New `footer` DSL in `ColumnSpec` builder for defining per-column footer content.
+    - `TableSettings.showFooter` enables footer row rendering below table body.
+    - `TableSettings.footerPinned` controls whether footer stays pinned at the bottom (non-embedded tables only).
+    - Footer respects pinned column configuration for consistent horizontal scrolling behavior.
+    - `TableColors` extended with `footerContainerColor` and `footerContentColor` properties.
+    - `TableDimensions` extended with `footerHeight` property for customizable footer sizing.
+- Changed: Terminology update from "fixed" to "pinned" columns for better clarity.
+    - `TableSettings.fixedColumnsCount` → `pinnedColumnsCount` (deprecated with `ReplaceWith` migration).
+    - `TableSettings.fixedColumnsSide` → `pinnedColumnsSide` (deprecated with `ReplaceWith` migration).
+    - `FixedSide` enum → `PinnedSide` enum (deprecated as typealias for backward compatibility).
+    - `FixedColumnState` → `PinnedColumnState` (internal state class renamed).
+    - `TableDimensions.fixedColumnDividerThickness` → `pinnedColumnDividerThickness` (deprecated with `ReplaceWith`
+      migration).
+    - All internal references updated to use "pinned" terminology throughout the codebase.
+- Changed: Refactored `TableDefaults` into a dedicated object with factory methods.
+    - Extracted from `TableColors.kt` to new `TableDefaults.kt` module for better organization.
+    - `TableDefaults.colors()` composable for creating color schemes with Material 3 theme defaults.
+    - `TableDefaults.standardDimensions()` for comfortable spacing and standard sizes (52dp rows, 56dp header).
+    - `TableDefaults.compactDimensions()` for minimal spacing and compact sizes (36dp rows, 40dp header).
+    - `TableDimensions` constructor now requires all parameters (no default values) to encourage explicit
+      configuration.
+- Fixed: Auto-width adjustment for embedded tables now uses dedicated `ApplyAutoWidthEffect` utility.
+    - Resolves issues with incorrect column width calculations in nested table scenarios.
+    - Ensures embedded tables properly measure and apply auto-width independently from parent tables.
+
+Compare: [v1.6.4...v1.7.0](https://github.com/White-Wind-LLC/table/compare/v1.6.4...v1.7.0)
+
 ### 1.6.4 — 2025-11-27
 
 - Added: `TableState.tableWidth` computed property to dynamically calculate total table width based on visible columns
