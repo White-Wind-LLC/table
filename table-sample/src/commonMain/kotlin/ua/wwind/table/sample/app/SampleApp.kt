@@ -94,15 +94,13 @@ fun SampleApp(modifier: Modifier = Modifier) {
         }
 
     // Collect state from ViewModel
-    val people by viewModel.people.collectAsState()
-    val displayedPeople by viewModel.displayedPeople.collectAsState()
+    val tableData by viewModel.tableData.collectAsState()
 
     // Create columns with callbacks
     val columns =
-        remember(people, useCompactMode) {
+        remember(useCompactMode) {
             createTableColumns(
                 onToggleMovementExpanded = viewModel::toggleMovementExpanded,
-                allPeople = people,
                 onEvent = viewModel::onEvent,
                 useCompactMode = useCompactMode,
             )
@@ -204,9 +202,8 @@ fun SampleApp(modifier: Modifier = Modifier) {
                             HorizontalDivider()
 
                             MainTable(
-                                displayedPeople = displayedPeople,
                                 state = state,
-                                editState = viewModel.editingRowState,
+                                tableData = tableData,
                                 columns = columns,
                                 customization = customization,
                                 onFiltersChanged = viewModel::updateFilters,

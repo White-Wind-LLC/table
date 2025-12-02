@@ -39,29 +39,30 @@ import ua.wwind.table.filter.data.CustomFilterStateProvider
 import ua.wwind.table.filter.data.FilterConstraint
 import ua.wwind.table.filter.data.TableFilterState
 import ua.wwind.table.filter.data.TableFilterType
-import ua.wwind.table.sample.model.Person
+import ua.wwind.table.sample.model.PersonTableData
 import kotlin.math.roundToInt
 
 /**
  * Creates a visual numeric range filter for salary column with histogram. Demonstrates the power of
- * custom filters with rich UI.
+ * custom filters with rich UI. The filter uses tableData to access displayed people for histogram.
  */
-fun createSalaryRangeFilter(allData: List<Person>): TableFilterType.CustomTableFilter<NumericRangeFilterState> =
+fun createSalaryRangeFilter(): TableFilterType.CustomTableFilter<NumericRangeFilterState, PersonTableData> =
     TableFilterType.CustomTableFilter(
-        renderFilter = NumericRangeFilterRenderer(allData),
+        renderFilter = NumericRangeFilterRenderer(),
         stateProvider = NumericRangeFilterStateProvider(),
     )
 
 /** Renderer for numeric range filter with histogram visualization. */
-private class NumericRangeFilterRenderer(
-    private val allData: List<Person>,
-) : CustomFilterRenderer<NumericRangeFilterState> {
+private class NumericRangeFilterRenderer : CustomFilterRenderer<NumericRangeFilterState, PersonTableData> {
     @Composable
     override fun RenderPanel(
         currentState: TableFilterState<NumericRangeFilterState>?,
+        tableData: PersonTableData,
         onDismiss: () -> Unit,
         onChange: (TableFilterState<NumericRangeFilterState>?) -> Unit,
     ): TableFilterType.CustomFilterActions {
+        // Use people filtered by all filters EXCEPT salary filter for range calculation
+        val allData = tableData.peopleExcludingSalaryFilter
         val dataMin = allData.minOfOrNull { it.salary } ?: 0
         val dataMax = allData.maxOfOrNull { it.salary } ?: 200000
 
@@ -136,12 +137,13 @@ private class NumericRangeFilterRenderer(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
-                    val filtered =
+                    // Show matched count against data available with all filters except salary
+                    val matched =
                         allData.count {
                             it.salary in rangeMin.roundToInt()..rangeMax.roundToInt()
                         }
                     Text(
-                        "Matched: $filtered/${allData.size}",
+                        "Matched: $matched/${allData.size}",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.primary,
                     )
@@ -244,8 +246,11 @@ private class NumericRangeFilterRenderer(
     @Composable
     override fun RenderFastFilter(
         currentState: TableFilterState<NumericRangeFilterState>?,
+        tableData: PersonTableData,
         onChange: (TableFilterState<NumericRangeFilterState>?) -> Unit,
     ) {
+        // Use people filtered by all filters EXCEPT salary filter for range calculation
+        val allData = tableData.peopleExcludingSalaryFilter
         val dataMin = allData.minOfOrNull { it.salary } ?: 0
         val dataMax = allData.maxOfOrNull { it.salary } ?: 200000
 

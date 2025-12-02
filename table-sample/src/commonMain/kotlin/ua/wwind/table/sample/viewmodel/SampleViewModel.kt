@@ -30,6 +30,7 @@ import ua.wwind.table.sample.filter.NumericRangeFilterState
 import ua.wwind.table.sample.filter.createFilterTypes
 import ua.wwind.table.sample.model.Person
 import ua.wwind.table.sample.model.PersonEditState
+import ua.wwind.table.sample.model.PersonTableData
 import ua.wwind.table.sample.model.Position
 import ua.wwind.table.state.SortState
 
@@ -47,7 +48,7 @@ class SampleViewModel : ViewModel() {
     private val currentSort = MutableStateFlow<SortState<PersonColumn>?>(null)
 
     // Filtered and sorted people - derived from combining three StateFlows
-    val displayedPeople: StateFlow<List<Person>> =
+    private val displayedPeople: StateFlow<List<Person>> =
         combine(_people, currentFilters, currentSort) { peopleList, filters, sort ->
             // Apply filtering
             val filtered =
@@ -59,27 +60,59 @@ class SampleViewModel : ViewModel() {
             } else {
                 val base =
                     when (sort.column) {
-                        PersonColumn.NAME ->
+                        PersonColumn.NAME -> {
                             filtered.sortedBy { it.name.lowercase() }
-                        PersonColumn.AGE -> filtered.sortedBy { it.age }
-                        PersonColumn.ACTIVE -> filtered.sortedBy { it.active }
-                        PersonColumn.ID -> filtered.sortedBy { it.id }
-                        PersonColumn.EMAIL ->
+                        }
+
+                        PersonColumn.AGE -> {
+                            filtered.sortedBy { it.age }
+                        }
+
+                        PersonColumn.ACTIVE -> {
+                            filtered.sortedBy { it.active }
+                        }
+
+                        PersonColumn.ID -> {
+                            filtered.sortedBy { it.id }
+                        }
+
+                        PersonColumn.EMAIL -> {
                             filtered.sortedBy { it.email.lowercase() }
-                        PersonColumn.CITY ->
+                        }
+
+                        PersonColumn.CITY -> {
                             filtered.sortedBy { it.city.lowercase() }
-                        PersonColumn.COUNTRY ->
+                        }
+
+                        PersonColumn.COUNTRY -> {
                             filtered.sortedBy { it.country.lowercase() }
-                        PersonColumn.DEPARTMENT ->
+                        }
+
+                        PersonColumn.DEPARTMENT -> {
                             filtered.sortedBy { it.department.lowercase() }
-                        PersonColumn.POSITION ->
+                        }
+
+                        PersonColumn.POSITION -> {
                             filtered.sortedBy { it.position.name }
-                        PersonColumn.SALARY -> filtered.sortedBy { it.salary }
-                        PersonColumn.RATING -> filtered.sortedBy { it.rating }
-                        PersonColumn.HIRE_DATE -> filtered.sortedBy { it.hireDate }
-                        PersonColumn.NOTES ->
+                        }
+
+                        PersonColumn.SALARY -> {
+                            filtered.sortedBy { it.salary }
+                        }
+
+                        PersonColumn.RATING -> {
+                            filtered.sortedBy { it.rating }
+                        }
+
+                        PersonColumn.HIRE_DATE -> {
+                            filtered.sortedBy { it.hireDate }
+                        }
+
+                        PersonColumn.NOTES -> {
                             filtered.sortedBy { it.notes.lowercase() }
-                        PersonColumn.AGE_GROUP ->
+                        }
+
+                        PersonColumn.AGE_GROUP -> {
                             filtered.sortedBy {
                                 when {
                                     it.age < 25 -> 0
@@ -87,10 +120,26 @@ class SampleViewModel : ViewModel() {
                                     else -> 2
                                 }
                             }
-                        else -> filtered
+                        }
+
+                        else -> {
+                            filtered
+                        }
                     }
                 if (sort.order == SortOrder.DESCENDING) base.asReversed() else base
             }
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList(),
+        )
+
+    // People filtered by all filters except salary filter (for salary range calculation)
+    private val peopleExcludingSalaryFilter: StateFlow<List<Person>> =
+        combine(_people, currentFilters) { peopleList, filters ->
+            // Apply all filters except salary filter
+            val filtersExcludingSalary = filters.filterKeys { it != PersonColumn.SALARY }
+            peopleList.filter { person -> matchesPerson(person, filtersExcludingSalary) }
         }.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
@@ -115,9 +164,26 @@ class SampleViewModel : ViewModel() {
     var showFormatDialog by mutableStateOf(false)
         private set
 
-    // Editing state
-    var editingRowState by mutableStateOf<PersonEditState>(PersonEditState())
-        private set
+    // Editing state as StateFlow for reactive composition
+    private val editingRowState = MutableStateFlow(PersonEditState())
+
+    // Combined table data - reactive state containing displayed people and editing state
+    val tableData: StateFlow<PersonTableData> =
+        combine(
+            displayedPeople,
+            peopleExcludingSalaryFilter,
+            editingRowState,
+        ) { people, peopleExcludingSalary, editState ->
+            PersonTableData(
+                displayedPeople = people,
+                peopleExcludingSalaryFilter = peopleExcludingSalary,
+                editState = editState,
+            )
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = PersonTableData(),
+        )
 
     /** Toggle dialog visibility */
     fun toggleFormatDialog(show: Boolean) {
@@ -143,48 +209,77 @@ class SampleViewModel : ViewModel() {
             val current: TableFilterState<*>? = rule.filter[column]
             val defaultState: TableFilterState<*> =
                 when (column) {
-                    PersonColumn.NAME ->
+                    PersonColumn.NAME -> {
                         TableFilterState<String>(constraint = null, values = null)
-                    PersonColumn.AGE ->
+                    }
+
+                    PersonColumn.AGE -> {
                         TableFilterState<Int>(constraint = null, values = null)
-                    PersonColumn.ACTIVE ->
+                    }
+
+                    PersonColumn.ACTIVE -> {
                         TableFilterState<Boolean>(
                             constraint = FilterConstraint.EQUALS,
                             values = null,
                         )
-                    PersonColumn.ID ->
+                    }
+
+                    PersonColumn.ID -> {
                         TableFilterState<Int>(constraint = null, values = null)
-                    PersonColumn.EMAIL ->
+                    }
+
+                    PersonColumn.EMAIL -> {
                         TableFilterState<String>(constraint = null, values = null)
-                    PersonColumn.CITY ->
+                    }
+
+                    PersonColumn.CITY -> {
                         TableFilterState<String>(constraint = null, values = null)
-                    PersonColumn.COUNTRY ->
+                    }
+
+                    PersonColumn.COUNTRY -> {
                         TableFilterState<String>(constraint = null, values = null)
-                    PersonColumn.DEPARTMENT ->
+                    }
+
+                    PersonColumn.DEPARTMENT -> {
                         TableFilterState<String>(constraint = null, values = null)
-                    PersonColumn.POSITION ->
+                    }
+
+                    PersonColumn.POSITION -> {
                         TableFilterState<List<Position>>(
                             constraint = null,
                             values = null,
                         )
-                    PersonColumn.SALARY ->
+                    }
+
+                    PersonColumn.SALARY -> {
                         TableFilterState<Int>(constraint = null, values = null)
-                    PersonColumn.RATING ->
+                    }
+
+                    PersonColumn.RATING -> {
                         TableFilterState<Int>(constraint = null, values = null)
-                    PersonColumn.HIRE_DATE ->
-                        TableFilterState<kotlinx.datetime.LocalDate>(
+                    }
+
+                    PersonColumn.HIRE_DATE -> {
+                        TableFilterState<LocalDate>(
                             constraint = null,
                             values = null,
                         )
-                    PersonColumn.NOTES ->
+                    }
+
+                    PersonColumn.NOTES -> {
                         TableFilterState<String>(constraint = null, values = null)
-                    PersonColumn.AGE_GROUP ->
+                    }
+
+                    PersonColumn.AGE_GROUP -> {
                         TableFilterState<String>(constraint = null, values = null)
-                    PersonColumn.EXPAND ->
+                    }
+
+                    PersonColumn.EXPAND -> {
                         TableFilterState<Boolean>(
                             constraint = FilterConstraint.EQUALS,
                             values = null,
                         )
+                    }
                 }
             FormatFilterData(
                 field = column,
@@ -226,56 +321,97 @@ class SampleViewModel : ViewModel() {
                     val constraint = st.constraint ?: continue
                     val ok =
                         when (constraint) {
-                            FilterConstraint.CONTAINS ->
+                            FilterConstraint.CONTAINS -> {
                                 value.contains(query, ignoreCase = true)
-                            FilterConstraint.STARTS_WITH ->
+                            }
+
+                            FilterConstraint.STARTS_WITH -> {
                                 value.startsWith(query, ignoreCase = true)
-                            FilterConstraint.ENDS_WITH ->
+                            }
+
+                            FilterConstraint.ENDS_WITH -> {
                                 value.endsWith(query, ignoreCase = true)
-                            FilterConstraint.EQUALS -> value.equals(query, ignoreCase = true)
-                            FilterConstraint.NOT_EQUALS ->
+                            }
+
+                            FilterConstraint.EQUALS -> {
+                                value.equals(query, ignoreCase = true)
+                            }
+
+                            FilterConstraint.NOT_EQUALS -> {
                                 !value.equals(query, ignoreCase = true)
-                            else -> true
+                            }
+
+                            else -> {
+                                true
+                            }
                         }
                     if (!ok) return false
                 }
+
                 PersonColumn.AGE -> {
                     val value = person.age
                     val st = stateAny as TableFilterState<Int>
                     val constraint = st.constraint ?: continue
                     val ok =
                         when (constraint) {
-                            FilterConstraint.GT -> value > (st.values?.getOrNull(0) ?: value)
-                            FilterConstraint.GTE -> value >= (st.values?.getOrNull(0) ?: value)
-                            FilterConstraint.LT -> value < (st.values?.getOrNull(0) ?: value)
-                            FilterConstraint.LTE -> value <= (st.values?.getOrNull(0) ?: value)
-                            FilterConstraint.EQUALS ->
+                            FilterConstraint.GT -> {
+                                value > (st.values?.getOrNull(0) ?: value)
+                            }
+
+                            FilterConstraint.GTE -> {
+                                value >= (st.values?.getOrNull(0) ?: value)
+                            }
+
+                            FilterConstraint.LT -> {
+                                value < (st.values?.getOrNull(0) ?: value)
+                            }
+
+                            FilterConstraint.LTE -> {
+                                value <= (st.values?.getOrNull(0) ?: value)
+                            }
+
+                            FilterConstraint.EQUALS -> {
                                 value == (st.values?.getOrNull(0) ?: value)
-                            FilterConstraint.NOT_EQUALS ->
+                            }
+
+                            FilterConstraint.NOT_EQUALS -> {
                                 value != (st.values?.getOrNull(0) ?: value)
+                            }
+
                             FilterConstraint.BETWEEN -> {
                                 val from = st.values?.getOrNull(0) ?: value
                                 val to = st.values?.getOrNull(1) ?: value
-                                from <= value && value <= to
+                                value in from..to
                             }
-                            else -> true
+
+                            else -> {
+                                true
+                            }
                         }
                     if (!ok) return false
                 }
+
                 PersonColumn.ACTIVE -> {
                     val value = person.active
                     val st = stateAny as TableFilterState<Boolean>
                     val constraint = st.constraint ?: continue
                     val ok =
                         when (constraint) {
-                            FilterConstraint.EQUALS ->
+                            FilterConstraint.EQUALS -> {
                                 st.values?.firstOrNull()?.let { v -> value == v } ?: true
-                            FilterConstraint.NOT_EQUALS ->
+                            }
+
+                            FilterConstraint.NOT_EQUALS -> {
                                 st.values?.firstOrNull()?.let { v -> value != v } ?: true
-                            else -> true
+                            }
+
+                            else -> {
+                                true
+                            }
                         }
                     if (!ok) return false
                 }
+
                 PersonColumn.ID -> {
                     val value = person.id
                     val st = stateAny as TableFilterState<Int>
@@ -528,6 +664,7 @@ class SampleViewModel : ViewModel() {
                         }
                     if (!ok) return false
                 }
+
                 PersonColumn.EXPAND -> return true
             }
         }
@@ -563,7 +700,7 @@ class SampleViewModel : ViewModel() {
      * passed, false otherwise.
      */
     fun validateEditedPerson(): Boolean {
-        val edited = editingRowState.person ?: return true
+        val edited = editingRowState.value.person ?: return true
 
         var nameError = ""
         var ageError = ""
@@ -587,12 +724,13 @@ class SampleViewModel : ViewModel() {
         }
 
         // Update edit state with errors
-        editingRowState =
-            editingRowState.copy(
+        editingRowState.update { current ->
+            current.copy(
                 nameError = nameError,
                 ageError = ageError,
                 salaryError = salaryError,
             )
+        }
 
         // Return true if no errors
         return nameError.isEmpty() && ageError.isEmpty() && salaryError.isEmpty()
@@ -602,46 +740,57 @@ class SampleViewModel : ViewModel() {
     fun onEvent(event: SampleUiEvent) {
         when (event) {
             is SampleUiEvent.StartEditing -> {
-                if (editingRowState.rowIndex != event.rowIndex) {
+                if (editingRowState.value.rowIndex != event.rowIndex) {
                     // Create a copy of the person for editing
-                    editingRowState = PersonEditState(event.person, rowIndex = event.rowIndex)
+                    editingRowState.value = PersonEditState(event.person, rowIndex = event.rowIndex)
                 }
             }
+
             is SampleUiEvent.UpdateName -> {
-                editingRowState =
-                    editingRowState.copy(
-                        person = editingRowState.person?.copy(name = event.name),
+                editingRowState.update { current ->
+                    current.copy(
+                        person = current.person?.copy(name = event.name),
                         nameError = "", // Clear error on update
                     )
+                }
             }
+
             is SampleUiEvent.UpdateAge -> {
-                editingRowState =
-                    editingRowState.copy(
-                        person = editingRowState.person?.copy(age = event.age),
+                editingRowState.update { current ->
+                    current.copy(
+                        person = current.person?.copy(age = event.age),
                         ageError = "", // Clear error on update
                     )
+                }
             }
+
             is SampleUiEvent.UpdateEmail -> {
-                editingRowState =
-                    editingRowState.copy(
-                        person = editingRowState.person?.copy(email = event.email),
+                editingRowState.update { current ->
+                    current.copy(
+                        person = current.person?.copy(email = event.email),
                     )
+                }
             }
+
             is SampleUiEvent.UpdatePosition -> {
-                editingRowState =
-                    editingRowState.copy(
-                        person = editingRowState.person?.copy(position = event.position),
+                editingRowState.update { current ->
+                    current.copy(
+                        person = current.person?.copy(position = event.position),
                     )
+                }
             }
+
             is SampleUiEvent.UpdateSalary -> {
-                editingRowState =
-                    editingRowState.copy(
-                        person = editingRowState.person?.copy(salary = event.salary),
+                editingRowState.update { current ->
+                    current.copy(
+                        person = current.person?.copy(salary = event.salary),
                         salaryError = "", // Clear error on update
                     )
+                }
             }
+
             is SampleUiEvent.CompleteEditing -> {
-                val edited = editingRowState.person
+                val edited = editingRowState.value.person
                 if (edited != null) {
                     _people.update { currentPeople ->
                         val index = currentPeople.indexOfFirst { it.id == edited.id }
@@ -654,11 +803,12 @@ class SampleViewModel : ViewModel() {
                     }
                 }
                 // Clear editing state
-                editingRowState = PersonEditState()
+                editingRowState.value = PersonEditState()
             }
+
             is SampleUiEvent.CancelEditing -> {
                 // Discard changes
-                editingRowState = PersonEditState()
+                editingRowState.value = PersonEditState()
             }
         }
     }

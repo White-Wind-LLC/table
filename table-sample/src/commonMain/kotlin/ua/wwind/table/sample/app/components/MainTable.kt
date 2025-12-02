@@ -19,7 +19,7 @@ import ua.wwind.table.config.TableCustomization
 import ua.wwind.table.filter.data.TableFilterState
 import ua.wwind.table.sample.column.PersonColumn
 import ua.wwind.table.sample.model.Person
-import ua.wwind.table.sample.model.PersonEditState
+import ua.wwind.table.sample.model.PersonTableData
 import ua.wwind.table.state.SortState
 import ua.wwind.table.state.TableState
 import ua.wwind.table.strings.DefaultStrings
@@ -27,10 +27,9 @@ import ua.wwind.table.strings.DefaultStrings
 @OptIn(ExperimentalTableApi::class)
 @Composable
 fun MainTable(
-    displayedPeople: List<Person>,
     state: TableState<PersonColumn>,
-    editState: PersonEditState,
-    columns: ImmutableList<ColumnSpec<Person, PersonColumn, PersonEditState>>,
+    tableData: PersonTableData,
+    columns: ImmutableList<ColumnSpec<Person, PersonColumn, PersonTableData>>,
     customization: TableCustomization<Person, PersonColumn>,
     onFiltersChanged: (Map<PersonColumn, TableFilterState<*>>) -> Unit,
     onSortChanged: (SortState<PersonColumn>?) -> Unit,
@@ -48,14 +47,14 @@ fun MainTable(
     LaunchedEffect(state) { snapshotFlow { state.sort }.collect { sort -> onSortChanged(sort) } }
 
     EditableTable(
-        itemsCount = displayedPeople.size,
-        itemAt = { index -> displayedPeople.getOrNull(index) },
+        itemsCount = tableData.displayedPeople.size,
+        itemAt = { index -> tableData.displayedPeople.getOrNull(index) },
         state = state,
-        editState = editState,
+        tableData = tableData,
         columns = columns,
         customization = customization,
         strings = DefaultStrings,
-        rowKey = { item, index -> index },
+        rowKey = { _, index -> index },
         rowEmbedded = { _, person ->
             val visible = person.expandedMovement
             if (visible) {

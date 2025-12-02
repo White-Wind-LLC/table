@@ -31,8 +31,8 @@ fun PersonMovementsSection(
     modifier: Modifier = Modifier,
 ) {
     val columns =
-        remember(useCompactMode, person.movements) {
-            createMovementColumns(useCompactMode, person.movements)
+        remember(useCompactMode) {
+            createMovementColumns(useCompactMode)
         }
     val movementSettings =
         remember {
@@ -70,6 +70,7 @@ fun PersonMovementsSection(
             itemsCount = person.movements.size,
             itemAt = { index -> person.movements.getOrNull(index) },
             state = movementState,
+            tableData = person,
             columns = columns,
             strings = DefaultStrings,
             rowKey = { item, index -> item?.date ?: index },
