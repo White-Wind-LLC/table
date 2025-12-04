@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+### 1.7.2 — 2025-12-04
+
+- Added: `shape` parameter to paging `Table` composables for customizable table surface shape (default:
+  `RoundedCornerShape(4.dp)`).
+    - Aligns paging module API with core table module for consistent shape customization.
+    - Both overloads of paging `Table` function now support shape parameter.
+- Added: New paging `Table` composable overload with `tableData` parameter for shared state access.
+    - Enables passing table data to headers, footers, and edit cells in paging tables.
+    - Generic parameter `E` represents table data type, consistent with core table API.
+    - Provides full feature parity with core `Table` composable for table data customization.
+
+Compare: [v1.7.1...v1.7.2](https://github.com/White-Wind-LLC/table/compare/v1.7.1...v1.7.2)
+
 ### 1.7.1 — 2025-12-02
 
 - Added: Support for custom table data (`tableData` parameter) that can be shared across headers, footers, filters, and
