@@ -105,3 +105,48 @@ public fun <T : Any, C, E> Table(
         shape = shape,
     )
 }
+
+@OptIn(ExperimentalTableApi::class)
+@Composable
+@Suppress("LongParameterList", "ktlint:standard:function-naming")
+public fun <T : Any, C> Table(
+    items: PagingData<T>?,
+    state: TableState<C>,
+    columns: ImmutableList<ColumnSpec<T, C, Unit>>,
+    modifier: Modifier = Modifier,
+    placeholderRow: (@Composable () -> Unit)? = null,
+    rowKey: (item: T?, index: Int) -> Any = { _, i -> i },
+    onRowClick: ((T) -> Unit)? = null,
+    onRowLongClick: ((T) -> Unit)? = null,
+    contextMenu: (@Composable (item: T, pos: Offset, dismiss: () -> Unit) -> Unit)? = null,
+    customization: TableCustomization<T, C> = DefaultTableCustomization(),
+    colors: TableColors = TableDefaults.colors(),
+    strings: StringProvider = DefaultStrings,
+    verticalState: LazyListState = rememberLazyListState(),
+    horizontalState: ScrollState = rememberScrollState(),
+    icons: TableHeaderIcons = TableHeaderDefaults.icons(),
+    shape: Shape = RoundedCornerShape(4.dp),
+) {
+    val itemsCount = remember(items) { items?.data?.size ?: 0 }
+    val itemAt = remember(items) { { index: Int -> items?.data?.get(index)?.getOrNull() } }
+
+    Table(
+        itemsCount = itemsCount,
+        itemAt = itemAt,
+        state = state,
+        columns = columns,
+        modifier = modifier,
+        placeholderRow = placeholderRow,
+        rowKey = rowKey,
+        onRowClick = onRowClick,
+        onRowLongClick = onRowLongClick,
+        contextMenu = contextMenu,
+        customization = customization,
+        colors = colors,
+        strings = strings,
+        verticalState = verticalState,
+        horizontalState = horizontalState,
+        icons = icons,
+        shape = shape,
+    )
+}
