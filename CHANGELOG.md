@@ -34,10 +34,6 @@ All notable changes to this project will be documented in this file.
           Text(item.name)
       }
       ```
-- Changed: Internal measurement utilities updated to propagate `tableData` parameter through the measurement pipeline.
-    - `MeasureCellMinWidth` now receives and forwards table data to measured content.
-    - Group header rendering components updated to pass table data to cell content.
-    - Ensures consistent data flow throughout the entire table rendering lifecycle.
 
 **Benefits of this change:**
 
