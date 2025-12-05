@@ -2,6 +2,52 @@
 
 All notable changes to this project will be documented in this file.
 
+### 1.7.3 — 2025-12-05
+
+**BREAKING CHANGES:**
+
+- **Changed:** Cell lambda signature updated to include `tableData` parameter for consistent API across all table
+  components.
+    - `ColumnSpec.cell` signature changed from `@Composable BoxScope.(T) -> Unit` to
+      `@Composable BoxScope.(T, E) -> Unit`.
+    - All cell content now receives the table data parameter, matching the signature of `header`, `footer`, and
+      `editCell`.
+    - Provides access to shared state within regular cell rendering, enabling dynamic behavior based on table-wide
+      context.
+    - **Migration:** Update all `cell { item -> ... }` declarations to `cell { item, tableData -> ... }` or
+      `cell { item, _ -> ... }` if table data is not needed.
+    - **Example:**
+      ```kotlin
+      // Before (1.7.2)
+      cell { item ->
+          Text(item.name)
+      }
+      
+      // After (1.7.3)
+      cell { item, tableData ->
+          // Can now access tableData for conditional rendering
+          Text(item.name)
+      }
+      
+      // Or use underscore if not needed
+      cell { item, _ ->
+          Text(item.name)
+      }
+      ```
+- Changed: Internal measurement utilities updated to propagate `tableData` parameter through the measurement pipeline.
+    - `MeasureCellMinWidth` now receives and forwards table data to measured content.
+    - Group header rendering components updated to pass table data to cell content.
+    - Ensures consistent data flow throughout the entire table rendering lifecycle.
+
+**Benefits of this change:**
+
+- Consistent lambda signatures across all table component slots (cell, header, footer, editCell).
+- Cells can now access shared table state for dynamic rendering without prop drilling.
+- Better alignment with the table data pattern introduced in v1.7.1.
+- Enables more flexible cell customization based on table-wide context.
+
+Compare: [v1.7.2...v1.7.3](https://github.com/White-Wind-LLC/table/compare/v1.7.2...v1.7.3)
+
 ### 1.7.2 — 2025-12-04
 
 - Added: `shape` parameter to paging `Table` composables for customizable table surface shape (default:
