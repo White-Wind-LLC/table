@@ -24,17 +24,26 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import io.github.fletchmckee.liquid.LiquidState
+import io.github.fletchmckee.liquid.liquid
 
 /**
  * Floating action bar shown at the bottom when items are selected.
  * Displays the count of selected items and provides delete/clear actions.
- * Features a Liquid Glass (glassmorphism) effect with semi-transparent background.
+ * Features a Liquid Glass effect powered by the Liquid library with GPU-accelerated shaders.
+ *
+ * @param selectedCount Number of selected items to display
+ * @param onDeleteClick Callback when delete button is clicked
+ * @param onClearSelection Callback when clear selection button is clicked
+ * @param liquidState State for the Liquid Glass effect (must be shared with liquefiable content)
+ * @param modifier Modifier for the composable
  */
 @Composable
 fun SelectionActionBar(
     selectedCount: Int,
     onDeleteClick: () -> Unit,
     onClearSelection: () -> Unit,
+    liquidState: LiquidState,
     modifier: Modifier = Modifier,
 ) {
     AnimatedVisibility(
@@ -43,16 +52,15 @@ fun SelectionActionBar(
         exit = slideOutVertically { it },
         modifier = modifier,
     ) {
-        // Liquid Glass effect: semi-transparent background with blur and subtle border
+        // Liquid Glass effect: GPU-accelerated shader distortion with semi-transparent background
         Surface(
-            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.75f),
-            tonalElevation = 0.dp,
-            shadowElevation = 16.dp,
+            modifier = Modifier.liquid(liquidState),
+            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
             shape = RoundedCornerShape(24.dp),
             border =
                 BorderStroke(
                     width = 1.dp,
-                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
+                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
                 ),
         ) {
             Row(

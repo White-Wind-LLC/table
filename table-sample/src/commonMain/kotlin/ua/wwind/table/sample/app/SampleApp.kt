@@ -30,6 +30,8 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import io.github.fletchmckee.liquid.liquefiable
+import io.github.fletchmckee.liquid.rememberLiquidState
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.launch
 import ua.wwind.table.ExperimentalTableApi
@@ -138,6 +140,9 @@ fun SampleApp(modifier: Modifier = Modifier) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
+    // Liquid glass effect state for SelectionActionBar
+    val liquidState = rememberLiquidState()
+
     // Toggle visibility of SELECTION column by adjusting width based on selection mode
     val selectionColumnWidth =
         if (tableData.selectionModeEnabled) {
@@ -243,11 +248,12 @@ fun SampleApp(modifier: Modifier = Modifier) {
                                         viewModel.onEvent(SampleUiEvent.CancelEditing)
                                     },
                                     useCompactMode = useCompactMode,
-                                    modifier = Modifier.padding(16.dp),
+                                    modifier = Modifier.padding(16.dp)
+                                        .liquefiable(liquidState),
                                 )
                             }
 
-                            // Floating selection action bar at the bottom
+                            // Floating selection action bar at the bottom with Liquid Glass effect
                             SelectionActionBar(
                                 selectedCount = tableData.selectedIds.size,
                                 onDeleteClick = {
@@ -256,6 +262,7 @@ fun SampleApp(modifier: Modifier = Modifier) {
                                 onClearSelection = {
                                     viewModel.onEvent(SampleUiEvent.ClearSelection)
                                 },
+                                liquidState = liquidState,
                                 modifier =
                                     Modifier
                                         .align(Alignment.BottomCenter)

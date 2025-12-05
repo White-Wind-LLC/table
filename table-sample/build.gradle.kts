@@ -96,6 +96,7 @@ kotlin {
             implementation(libs.kotlinx.datetime)
             implementation(libs.androidx.lifecycle.viewmodel.compose)
             implementation(libs.kermit)
+            implementation(libs.liquid)
         }
 
         commonTest.dependencies {
