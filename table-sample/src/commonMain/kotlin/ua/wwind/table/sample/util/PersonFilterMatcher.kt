@@ -49,6 +49,7 @@ object PersonFilterMatcher {
                     PersonColumn.NOTES -> matchesTextField(person.notes, stateAny)
                     PersonColumn.AGE_GROUP -> matchesAgeGroupField(person.age, stateAny)
                     PersonColumn.EXPAND -> true
+                    PersonColumn.SELECTION -> true
                 }
 
             if (!matches) return false

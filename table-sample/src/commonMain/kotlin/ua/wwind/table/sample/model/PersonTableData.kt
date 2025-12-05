@@ -14,4 +14,8 @@ data class PersonTableData(
     val peopleExcludingSalaryFilter: List<Person> = emptyList(),
     /** Current editing state (validation errors, edited person) */
     val editState: PersonEditState = PersonEditState(),
+    /** IDs of selected persons */
+    val selectedIds: Set<Int> = emptySet(),
+    /** Whether selection mode is enabled */
+    val selectionModeEnabled: Boolean = false,
 )

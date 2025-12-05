@@ -56,6 +56,8 @@ fun SettingsSidebar(
     onPinnedColumnsSideChange: (PinnedSide) -> Unit,
     enableEditing: Boolean,
     onEnableEditingChange: (Boolean) -> Unit,
+    enableSelectionMode: Boolean,
+    onEnableSelectionModeChange: (Boolean) -> Unit,
     useCompactMode: Boolean,
     onCompactModeChange: (Boolean) -> Unit,
     showFooter: Boolean,
@@ -137,6 +139,12 @@ fun SettingsSidebar(
                         label = "Cell editing",
                         checked = enableEditing,
                         onCheckedChange = onEnableEditingChange,
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    SettingSwitch(
+                        label = "Selection mode",
+                        checked = enableSelectionMode,
+                        onCheckedChange = onEnableSelectionModeChange,
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                     SettingSwitch(

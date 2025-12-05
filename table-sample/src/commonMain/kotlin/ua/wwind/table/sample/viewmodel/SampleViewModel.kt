@@ -43,6 +43,10 @@ class SampleViewModel : ViewModel() {
     // Current sort state
     private val currentSort = MutableStateFlow<SortState<PersonColumn>?>(null)
 
+    // Selection state
+    private val selectedIds = MutableStateFlow<Set<Int>>(emptySet())
+    private val selectionModeEnabled = MutableStateFlow(false)
+
     // Filtered and sorted people - derived from combining three StateFlows
     private val displayedPeople: StateFlow<List<Person>> =
         combine(_people, currentFilters, currentSort) { peopleList, filters, sort ->
@@ -95,11 +99,15 @@ class SampleViewModel : ViewModel() {
             displayedPeople,
             peopleExcludingSalaryFilter,
             editingRowState,
-        ) { people, peopleExcludingSalary, editState ->
+            selectedIds,
+            selectionModeEnabled,
+        ) { people, peopleExcludingSalary, editState, selected, selectionEnabled ->
             PersonTableData(
                 displayedPeople = people,
                 peopleExcludingSalaryFilter = peopleExcludingSalary,
                 editState = editState,
+                selectedIds = selected,
+                selectionModeEnabled = selectionEnabled,
             )
         }.stateIn(
             scope = viewModelScope,
@@ -159,6 +167,15 @@ class SampleViewModel : ViewModel() {
     /** Update sort state - triggers automatic recalculation via StateFlow combination */
     fun updateSort(sort: SortState<PersonColumn>?) {
         currentSort.value = sort
+    }
+
+    /** Toggle selection mode on or off */
+    fun setSelectionMode(enabled: Boolean) {
+        selectionModeEnabled.value = enabled
+        if (!enabled) {
+            // Clear selections when disabling selection mode
+            selectedIds.value = emptySet()
+        }
     }
 
     /** Toggle expanded state for person movement details */
@@ -270,6 +287,40 @@ class SampleViewModel : ViewModel() {
             is SampleUiEvent.CancelEditing -> {
                 // Discard changes
                 editingRowState.value = PersonEditState()
+            }
+
+            is SampleUiEvent.ToggleSelection -> {
+                selectedIds.update { current ->
+                    if (event.personId in current) {
+                        current - event.personId
+                    } else {
+                        current + event.personId
+                    }
+                }
+            }
+
+            is SampleUiEvent.ToggleSelectAll -> {
+                val displayedIds = displayedPeople.value.map { it.id }.toSet()
+                selectedIds.update { current ->
+                    // If all displayed are selected, deselect all; otherwise select all displayed
+                    if (displayedIds.all { it in current }) {
+                        current - displayedIds
+                    } else {
+                        current + displayedIds
+                    }
+                }
+            }
+
+            is SampleUiEvent.DeleteSelected -> {
+                val idsToDelete = selectedIds.value
+                _people.update { currentPeople ->
+                    currentPeople.filter { it.id !in idsToDelete }
+                }
+                selectedIds.value = emptySet()
+            }
+
+            is SampleUiEvent.ClearSelection -> {
+                selectedIds.value = emptySet()
             }
         }
     }

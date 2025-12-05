@@ -62,6 +62,7 @@ fun ConditionalFormattingDialog(
                 PersonColumn.NOTES -> "Notes"
                 PersonColumn.AGE_GROUP -> "Age group"
                 PersonColumn.EXPAND -> "Movements"
+                PersonColumn.SELECTION -> "Selection"
             }
         },
         filters = buildFormatFilterData,

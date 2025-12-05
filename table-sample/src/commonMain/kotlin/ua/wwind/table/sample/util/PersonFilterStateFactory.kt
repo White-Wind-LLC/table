@@ -49,5 +49,12 @@ object PersonFilterStateFactory {
                     constraint = FilterConstraint.EQUALS,
                     values = null,
                 )
+
+            PersonColumn.SELECTION -> {
+                TableFilterState<Int>(
+                    constraint = null,
+                    values = null,
+                )
+            }
         }
 }

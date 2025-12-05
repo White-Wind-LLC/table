@@ -1,6 +1,7 @@
 package ua.wwind.table.sample.column
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -11,6 +12,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
@@ -19,12 +21,14 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TriStateCheckbox
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -58,6 +62,51 @@ fun createTableColumns(
 ): ImmutableList<ColumnSpec<Person, PersonColumn, PersonTableData>> =
     editableTableColumns {
         val cellPadding = if (useCompactMode) CellPadding.compact else CellPadding.standard
+        val checkboxSize = if (useCompactMode) 36.dp else 48.dp
+
+        // Selection checkbox column - visibility controlled via width in SampleApp
+        column(PersonColumn.SELECTION, valueOf = { it.id }) {
+            title { "" }
+            width(checkboxSize, checkboxSize)
+            resizable(false)
+            cell { item, tableData ->
+                if (tableData.selectionModeEnabled) {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier.fillMaxSize(),
+                    ) {
+                        Checkbox(
+                            checked = item.id in tableData.selectedIds,
+                            onCheckedChange = {
+                                onEvent(SampleUiEvent.ToggleSelection(item.id))
+                            },
+                        )
+                    }
+                }
+            }
+            header { tableData ->
+                if (tableData.selectionModeEnabled) {
+                    val displayedIds = tableData.displayedPeople.map { it.id }.toSet()
+                    val selectedDisplayedCount = displayedIds.count { it in tableData.selectedIds }
+                    val toggleState =
+                        when (selectedDisplayedCount) {
+                            0 -> ToggleableState.Off
+                            displayedIds.size -> ToggleableState.On
+                            else -> ToggleableState.Indeterminate
+                        }
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier.fillMaxSize(),
+                    ) {
+                        TriStateCheckbox(
+                            state = toggleState,
+                            onClick = { onEvent(SampleUiEvent.ToggleSelectAll) },
+                        )
+                    }
+                }
+            }
+        }
+
         column(PersonColumn.EXPAND, valueOf = { it.expandedMovement }) {
             val iconButtonSize = if (useCompactMode) 36.dp else 48.dp
             title { "Movements" }

@@ -41,4 +41,18 @@ sealed class SampleUiEvent {
 
     /** Cancel editing - discards changes */
     data object CancelEditing : SampleUiEvent()
+
+    /** Toggle selection for a person by ID */
+    data class ToggleSelection(
+        val personId: Int,
+    ) : SampleUiEvent()
+
+    /** Toggle selection for all displayed persons */
+    data object ToggleSelectAll : SampleUiEvent()
+
+    /** Delete all selected persons */
+    data object DeleteSelected : SampleUiEvent()
+
+    /** Clear all selections */
+    data object ClearSelection : SampleUiEvent()
 }

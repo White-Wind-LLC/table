@@ -1,5 +1,6 @@
 package ua.wwind.table.sample.app
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,12 +17,14 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.LayoutDirection
@@ -40,6 +43,7 @@ import ua.wwind.table.format.rememberCustomization
 import ua.wwind.table.sample.app.components.AppToolbar
 import ua.wwind.table.sample.app.components.ConditionalFormattingDialog
 import ua.wwind.table.sample.app.components.MainTable
+import ua.wwind.table.sample.app.components.SelectionActionBar
 import ua.wwind.table.sample.app.components.SettingsSidebar
 import ua.wwind.table.sample.column.PersonColumn
 import ua.wwind.table.sample.column.createTableColumns
@@ -134,6 +138,17 @@ fun SampleApp(modifier: Modifier = Modifier) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
+    // Toggle visibility of SELECTION column by adjusting width based on selection mode
+    val selectionColumnWidth =
+        if (tableData.selectionModeEnabled) {
+            if (useCompactMode) 36.dp else 48.dp
+        } else {
+            0.dp
+        }
+    LaunchedEffect(selectionColumnWidth) {
+        state.setColumnWidths(mapOf(PersonColumn.SELECTION to selectionColumnWidth))
+    }
+
     SampleTheme(darkTheme = isDarkTheme) {
         CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
             ModalNavigationDrawer(
@@ -166,6 +181,8 @@ fun SampleApp(modifier: Modifier = Modifier) {
                                 onPinnedColumnsSideChange = { pinnedColumnsSide = it },
                                 enableEditing = enableEditing,
                                 onEnableEditingChange = { enableEditing = it },
+                                enableSelectionMode = tableData.selectionModeEnabled,
+                                onEnableSelectionModeChange = { viewModel.setSelectionMode(it) },
                                 useCompactMode = useCompactMode,
                                 onCompactModeChange = { useCompactMode = it },
                                 showFooter = showFooter,
@@ -189,43 +206,60 @@ fun SampleApp(modifier: Modifier = Modifier) {
             ) {
                 CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
                     Surface(modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                        Column(
+                        Box(
                             modifier =
                                 Modifier
                                     .fillMaxSize()
                                     .windowInsetsPadding(WindowInsets.safeDrawing),
                         ) {
-                            AppToolbar(
-                                onSettingsClick = { scope.launch { drawerState.open() } },
-                            )
+                            Column(modifier = Modifier.fillMaxSize()) {
+                                AppToolbar(
+                                    onSettingsClick = { scope.launch { drawerState.open() } },
+                                )
 
-                            HorizontalDivider()
+                                HorizontalDivider()
 
-                            MainTable(
-                                state = state,
-                                tableData = tableData,
-                                columns = columns,
-                                customization = customization,
-                                onFiltersChanged = viewModel::updateFilters,
-                                onSortChanged = viewModel::updateSort,
-                                onRowEditStart = { person, rowIndex ->
-                                    viewModel.onEvent(
-                                        SampleUiEvent.StartEditing(rowIndex, person),
-                                    )
+                                MainTable(
+                                    state = state,
+                                    tableData = tableData,
+                                    columns = columns,
+                                    customization = customization,
+                                    onFiltersChanged = viewModel::updateFilters,
+                                    onSortChanged = viewModel::updateSort,
+                                    onRowEditStart = { person, rowIndex ->
+                                        viewModel.onEvent(
+                                            SampleUiEvent.StartEditing(rowIndex, person),
+                                        )
+                                    },
+                                    onRowEditComplete = { rowIndex ->
+                                        if (viewModel.validateEditedPerson()) {
+                                            viewModel.onEvent(SampleUiEvent.CompleteEditing)
+                                            true
+                                        } else {
+                                            false
+                                        }
+                                    },
+                                    onEditCancelled = { rowIndex ->
+                                        viewModel.onEvent(SampleUiEvent.CancelEditing)
+                                    },
+                                    useCompactMode = useCompactMode,
+                                    modifier = Modifier.padding(16.dp),
+                                )
+                            }
+
+                            // Floating selection action bar at the bottom
+                            SelectionActionBar(
+                                selectedCount = tableData.selectedIds.size,
+                                onDeleteClick = {
+                                    viewModel.onEvent(SampleUiEvent.DeleteSelected)
                                 },
-                                onRowEditComplete = { rowIndex ->
-                                    if (viewModel.validateEditedPerson()) {
-                                        viewModel.onEvent(SampleUiEvent.CompleteEditing)
-                                        true
-                                    } else {
-                                        false
-                                    }
+                                onClearSelection = {
+                                    viewModel.onEvent(SampleUiEvent.ClearSelection)
                                 },
-                                onEditCancelled = { rowIndex ->
-                                    viewModel.onEvent(SampleUiEvent.CancelEditing)
-                                },
-                                useCompactMode = useCompactMode,
-                                modifier = Modifier.padding(16.dp),
+                                modifier =
+                                    Modifier
+                                        .align(Alignment.BottomCenter)
+                                        .padding(16.dp),
                             )
                         }
                     }
