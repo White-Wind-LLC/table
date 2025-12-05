@@ -31,6 +31,7 @@ import kotlin.math.min
 @ExperimentalTableApi
 internal fun <T : Any, C, E> GroupStickyOverlay(
     itemAt: (Int) -> T?,
+    tableData: E,
     visibleColumns: ImmutableList<ColumnSpec<T, C, E>>,
     customization: TableCustomization<T, C>,
     colors: TableColors,
@@ -94,6 +95,7 @@ internal fun <T : Any, C, E> GroupStickyOverlay(
                 GroupHeaderCell(
                     value = value,
                     item = item,
+                    tableData = tableData,
                     spec = spec,
                     width = viewportWidthDp,
                     height = state.dimensions.rowHeight,

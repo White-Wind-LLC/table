@@ -19,10 +19,11 @@ import ua.wwind.table.state.LocalTableState
  * feedback loops with composition and measurement.
  */
 @Composable
-internal fun <T> MeasureCellMinWidth(
+internal fun <T, E> MeasureCellMinWidth(
     item: T,
+    tableData: E,
     measureKey: Any,
-    content: @Composable BoxScope.(T) -> Unit,
+    content: @Composable BoxScope.(T, E) -> Unit,
     onMeasured: (Dp) -> Unit,
 ) {
     val density = LocalDensity.current
@@ -34,7 +35,7 @@ internal fun <T> MeasureCellMinWidth(
     SubcomposeLayout {
         val measurables =
             subcompose("measure") {
-                Box { content(item) }
+                Box { content(item, tableData) }
             }
         holder[0] = measurables.maxOfOrNull { it.maxIntrinsicWidth(0) } ?: 0
         layout(0, 0) {}

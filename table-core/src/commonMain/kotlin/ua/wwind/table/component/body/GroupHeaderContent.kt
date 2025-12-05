@@ -24,6 +24,7 @@ import ua.wwind.table.state.currentTableState
 internal fun <T : Any, C, E> GroupHeaderCell(
     value: Any?,
     item: T,
+    tableData: E,
     spec: ColumnSpec<T, C, E>,
     width: Dp,
     height: Dp,
@@ -50,7 +51,7 @@ internal fun <T : Any, C, E> GroupHeaderCell(
                             .height(height),
                 ) {
                     spec.groupHeader?.invoke(this, value) ?: run {
-                        spec.cell.invoke(this, item)
+                        spec.cell.invoke(this, item, tableData)
                     }
                 }
             }

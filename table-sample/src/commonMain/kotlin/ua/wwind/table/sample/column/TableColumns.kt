@@ -63,7 +63,7 @@ fun createTableColumns(
             title { "Movements" }
             width(iconButtonSize, iconButtonSize)
             resizable(false)
-            cell { item ->
+            cell { item, _ ->
                 // Use smaller IconButton in compact mode to allow shorter rows
                 IconButton(
                     onClick = { onToggleMovementExpanded(item.id) },
@@ -90,7 +90,7 @@ fun createTableColumns(
             autoWidth(500.dp)
             sortable()
             filter(TableFilterType.TextTableFilter())
-            cell { item -> Text(item.name, modifier = Modifier.padding(cellPadding)) }
+            cell { item, _ -> Text(item.name, modifier = Modifier.padding(cellPadding)) }
 
             // Editing configuration - table will manage when to show this
             editCell { person, tableData, onComplete ->
@@ -131,7 +131,7 @@ fun createTableColumns(
                 ),
             )
             align(Alignment.CenterEnd)
-            cell { item ->
+            cell { item, _ ->
                 Text(
                     item.age.toString(),
                     modifier = Modifier.padding(cellPadding),
@@ -184,7 +184,7 @@ fun createTableColumns(
             autoWidth()
             sortable()
             filter(TableFilterType.BooleanTableFilter())
-            cell { item ->
+            cell { item, _ ->
                 Text(
                     if (item.active) "Yes" else "No",
                     modifier = Modifier.padding(cellPadding),
@@ -196,7 +196,7 @@ fun createTableColumns(
             autoWidth()
             sortable()
             align(Alignment.CenterEnd)
-            cell { item ->
+            cell { item, _ ->
                 Text(
                     item.id.toString(),
                     modifier = Modifier.padding(cellPadding),
@@ -208,28 +208,28 @@ fun createTableColumns(
             autoWidth()
             sortable()
             filter(TableFilterType.TextTableFilter())
-            cell { item -> Text(item.email, modifier = Modifier.padding(cellPadding)) }
+            cell { item, _ -> Text(item.email, modifier = Modifier.padding(cellPadding)) }
         }
         column(PersonColumn.CITY, { it.city }) {
             title { "City" }
             autoWidth(500.dp)
             sortable()
             filter(TableFilterType.TextTableFilter())
-            cell { item -> Text(item.city, modifier = Modifier.padding(cellPadding)) }
+            cell { item, _ -> Text(item.city, modifier = Modifier.padding(cellPadding)) }
         }
         column(PersonColumn.COUNTRY, { it.country }) {
             title { "Country" }
             autoWidth(500.dp)
             sortable()
             filter(TableFilterType.TextTableFilter())
-            cell { item -> Text(item.country, modifier = Modifier.padding(cellPadding)) }
+            cell { item, _ -> Text(item.country, modifier = Modifier.padding(cellPadding)) }
         }
         column(PersonColumn.DEPARTMENT, { it.department }) {
             title { "Department" }
             autoWidth(500.dp)
             sortable()
             filter(TableFilterType.TextTableFilter())
-            cell { item ->
+            cell { item, _ ->
                 Text(item.department, modifier = Modifier.padding(cellPadding))
             }
         }
@@ -243,7 +243,7 @@ fun createTableColumns(
                     getTitle = { it.displayName },
                 ),
             )
-            cell { item ->
+            cell { item, _ ->
                 Text(item.position.displayName, modifier = Modifier.padding(cellPadding))
             }
 
@@ -296,7 +296,7 @@ fun createTableColumns(
             // Custom visual range filter with histogram - uses tableData internally
             filter(createSalaryRangeFilter())
             align(Alignment.CenterEnd)
-            cell { item ->
+            cell { item, _ ->
                 Text(
                     "$${item.salary}",
                     modifier = Modifier.padding(cellPadding),
@@ -350,7 +350,7 @@ fun createTableColumns(
                 ),
             )
             align(Alignment.Center)
-            cell { item ->
+            cell { item, _ ->
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(2.dp),
                     verticalAlignment = Alignment.CenterVertically,
@@ -371,7 +371,7 @@ fun createTableColumns(
             autoWidth()
             sortable()
             filter(TableFilterType.DateTableFilter())
-            cell { item ->
+            cell { item, _ ->
                 Text(
                     item.hireDate.format(
                         LocalDate.Format {
@@ -397,7 +397,7 @@ fun createTableColumns(
             )
             autoWidth(500.dp)
             filter(TableFilterType.TextTableFilter())
-            cell { item -> Text(item.notes, modifier = Modifier.padding(cellPadding)) }
+            cell { item, _ -> Text(item.notes, modifier = Modifier.padding(cellPadding)) }
         }
 
         // Computed fields
@@ -412,7 +412,7 @@ fun createTableColumns(
             title { "Age group" }
             autoWidth(500.dp)
             sortable()
-            cell { item ->
+            cell { item, _ ->
                 Text(ageGroup(item), modifier = Modifier.padding(cellPadding))
             }
         }
@@ -424,7 +424,7 @@ fun createMovementColumns(useCompactMode: Boolean = false): ImmutableList<Column
         column(PersonMovementColumn.DATE, valueOf = { it.date }) {
             title { "Date" }
             autoWidth()
-            cell { movement ->
+            cell { movement, _ ->
                 Text(
                     movement.date.format(
                         LocalDate.Format {
@@ -452,7 +452,7 @@ fun createMovementColumns(useCompactMode: Boolean = false): ImmutableList<Column
         column(PersonMovementColumn.FROM_POSITION, valueOf = { it.fromPosition }) {
             title { "From" }
             autoWidth()
-            cell { movement ->
+            cell { movement, _ ->
                 Text(
                     movement.fromPosition?.displayName ?: "-",
                     modifier = Modifier.padding(cellPadding),
@@ -463,7 +463,7 @@ fun createMovementColumns(useCompactMode: Boolean = false): ImmutableList<Column
         column(PersonMovementColumn.TO_POSITION, valueOf = { it.toPosition }) {
             title { "To" }
             autoWidth()
-            cell { movement ->
+            cell { movement, _ ->
                 Text(
                     movement.toPosition.displayName,
                     modifier = Modifier.padding(cellPadding),

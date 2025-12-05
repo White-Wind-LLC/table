@@ -91,8 +91,9 @@ internal fun <T : Any, C, E> HeaderCell(
     if (spec.resizable || spec.autoWidth) {
         MeasureCellMinWidth(
             item = Unit,
+            tableData = tableData,
             measureKey = Pair(spec.key, "header"),
-            content = { _ ->
+            content = { _, _ ->
                 HeaderMeasureContent(spec, info)
             },
         ) { measuredMinWidth ->

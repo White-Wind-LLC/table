@@ -210,6 +210,7 @@ private fun <T : Any, C, E> TableBodyRow(
                     GroupHeaderCell(
                         value = currentValue,
                         item = item,
+                        tableData = tableData,
                         spec = groupSpec,
                         width = viewportWidthDp,
                         height = state.dimensions.rowHeight,

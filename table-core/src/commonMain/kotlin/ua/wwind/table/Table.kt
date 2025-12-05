@@ -335,6 +335,7 @@ public fun <T : Any, C, E> EditableTable(
                     if (state.groupBy != null) {
                         GroupStickyOverlay(
                             itemAt = itemAt,
+                            tableData = tableData,
                             visibleColumns = visibleColumns,
                             customization = customization,
                             colors = colors,

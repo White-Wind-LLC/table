@@ -359,6 +359,7 @@ private fun <C, T : Any, E> RenderTableRowItem(
                     Box(Modifier.size(0.dp)) {
                         MeasureCellMinWidth(
                             item = item,
+                            tableData = tableData,
                             measureKey = Pair(spec.key, index),
                             content = spec.cell,
                         ) { measuredMinWidth ->
@@ -389,7 +390,7 @@ private fun <C, T : Any, E> RenderTableRowItem(
                         }
                     }
                 } else {
-                    spec.cell.invoke(this, item)
+                    spec.cell.invoke(this, item, tableData)
                 }
             }
         }

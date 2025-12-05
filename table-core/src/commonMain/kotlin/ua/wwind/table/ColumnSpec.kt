@@ -43,7 +43,7 @@ import ua.wwind.table.filter.data.TableFilterType
 public data class ColumnSpec<T : Any, C, E>(
     val key: C,
     val header: @Composable (E) -> Unit,
-    val cell: @Composable BoxScope.(T) -> Unit,
+    val cell: @Composable BoxScope.(T, E) -> Unit,
     val valueOf: (T) -> Any?,
     val title: (@Composable () -> String)? = null,
     val sortable: Boolean = false,
@@ -125,7 +125,7 @@ public open class ReadonlyColumnBuilder<T : Any, C, E>
     ) {
         protected var header: (@Composable (E) -> Unit)? = null
         protected var title: (@Composable () -> String)? = null
-        protected var cell: (@Composable BoxScope.(T) -> Unit)? = null
+        protected var cell: (@Composable BoxScope.(T, E) -> Unit)? = null
         protected var sortable: Boolean = false
         protected var resizable: Boolean = true
         protected var visible: Boolean = true
@@ -178,7 +178,7 @@ public open class ReadonlyColumnBuilder<T : Any, C, E>
         }
 
         /** Define body cell content. */
-        public fun cell(content: @Composable BoxScope.(T) -> Unit) {
+        public fun cell(content: @Composable BoxScope.(item: T, tableData: E) -> Unit) {
             cell = content
         }
 
@@ -262,7 +262,7 @@ public open class ReadonlyColumnBuilder<T : Any, C, E>
                 header = checkNotNull(header) { "Column header must be provided" },
                 title = title,
                 cell = checkNotNull(cell) { "Column cell must be provided" },
-                valueOf = checkNotNull(valueOf) { "Column valueOf must be provided" },
+                valueOf = valueOf,
                 sortable = sortable,
                 resizable = resizable,
                 visible = visible,
