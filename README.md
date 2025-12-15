@@ -986,7 +986,7 @@ Public API highlights:
 
 ### Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=White-Wind-LLC/table&type=date&legend=top-left)](https://www.star-history.com/#White-Wind-LLC/table&type=date&legend=top-left)
+[![Star History Chart](https://api.star-history.com/svg?repos=White-Wind-LLC/table&type=date&theme=dark&legend=top-left)](https://www.star-history.com/#White-Wind-LLC/table&type=date&legend=top-left)
 
 ### Third-Party Libraries
 
