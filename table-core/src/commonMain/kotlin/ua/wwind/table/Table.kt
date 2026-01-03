@@ -10,18 +10,11 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.focus.FocusRequester
@@ -33,11 +26,7 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.ImmutableList
-import ua.wwind.table.component.ActiveFiltersHeader
-import ua.wwind.table.component.ContextMenuHost
-import ua.wwind.table.component.TableHeader
-import ua.wwind.table.component.TableHeaderDefaults
-import ua.wwind.table.component.TableHeaderIcons
+import ua.wwind.table.component.*
 import ua.wwind.table.component.body.GroupStickyOverlay
 import ua.wwind.table.component.body.TableBody
 import ua.wwind.table.component.body.TableBodyEmbedded
@@ -46,12 +35,7 @@ import ua.wwind.table.config.DefaultTableCustomization
 import ua.wwind.table.config.TableColors
 import ua.wwind.table.config.TableCustomization
 import ua.wwind.table.config.TableDefaults
-import ua.wwind.table.interaction.ApplyAutoWidthEffect
-import ua.wwind.table.interaction.ApplyAutoWidthEmbeddedEffect
-import ua.wwind.table.interaction.ContextMenuState
-import ua.wwind.table.interaction.EnsureSelectedCellVisibleEffect
-import ua.wwind.table.interaction.draggableTable
-import ua.wwind.table.interaction.tableKeyboardNavigation
+import ua.wwind.table.interaction.*
 import ua.wwind.table.platform.getPlatform
 import ua.wwind.table.platform.isMobile
 import ua.wwind.table.state.LocalTableState
@@ -271,78 +255,86 @@ public fun <T : Any, C, E> EditableTable(
                 )
                 HorizontalDivider(modifier = Modifier.width(state.tableWidth))
 
-                Box(if (embedded) Modifier else Modifier.weight(1f, false)) {
-                    if (embedded) {
-                        TableBodyEmbedded(
-                            itemsCount = itemsCount,
-                            itemAt = itemAt,
-                            rowKey = rowKey,
-                            visibleColumns = visibleColumns,
-                            state = state,
-                            colors = colors,
-                            customization = customization,
-                            tableData = tableData,
-                            rowEmbedded = rowEmbedded,
-                            placeholderRow = placeholderRow,
-                            onRowClick = onRowClick,
-                            onRowLongClick = onRowLongClick,
-                            onContextMenu =
-                                contextMenu?.let {
-                                    { item: T, pos: Offset ->
-                                        contextMenuState =
-                                            contextMenuState.copy(
-                                                visible = true,
-                                                position = pos,
-                                                item = item,
-                                            )
-                                    }
-                                },
-                            horizontalState = horizontalState,
-                            requestTableFocus = { tableFocusRequester.requestFocus() },
-                        )
-                    } else {
-                        TableBody(
-                            itemsCount = itemsCount,
-                            itemAt = itemAt,
-                            rowKey = rowKey,
-                            visibleColumns = visibleColumns,
-                            state = state,
-                            colors = colors,
-                            customization = customization,
-                            tableData = tableData,
-                            placeholderRow = placeholderRow,
-                            onRowClick = onRowClick,
-                            onRowLongClick = onRowLongClick,
-                            onContextMenu =
-                                contextMenu?.let {
-                                    { item: T, pos: Offset ->
-                                        contextMenuState =
-                                            contextMenuState.copy(
-                                                visible = true,
-                                                position = pos,
-                                                item = item,
-                                            )
-                                    }
-                                },
-                            rowEmbedded = rowEmbedded,
-                            verticalState = verticalState,
-                            horizontalState = horizontalState,
-                            requestTableFocus = { tableFocusRequester.requestFocus() },
-                            enableScrolling = enableScrolling,
-                            modifier = Modifier.fillMaxSize(),
-                        )
+                val bodyContent: @Composable () -> Unit = {
+                    Box(if (embedded) Modifier else Modifier.weight(1f, false)) {
+                        if (embedded) {
+                            TableBodyEmbedded(
+                                itemsCount = itemsCount,
+                                itemAt = itemAt,
+                                rowKey = rowKey,
+                                visibleColumns = visibleColumns,
+                                state = state,
+                                colors = colors,
+                                customization = customization,
+                                tableData = tableData,
+                                rowEmbedded = rowEmbedded,
+                                placeholderRow = placeholderRow,
+                                onRowClick = onRowClick,
+                                onRowLongClick = onRowLongClick,
+                                onContextMenu =
+                                    contextMenu?.let {
+                                        { item: T, pos: Offset ->
+                                            contextMenuState =
+                                                contextMenuState.copy(
+                                                    visible = true,
+                                                    position = pos,
+                                                    item = item,
+                                                )
+                                        }
+                                    },
+                                horizontalState = horizontalState,
+                                requestTableFocus = { tableFocusRequester.requestFocus() },
+                            )
+                        } else {
+                            TableBody(
+                                itemsCount = itemsCount,
+                                itemAt = itemAt,
+                                rowKey = rowKey,
+                                visibleColumns = visibleColumns,
+                                state = state,
+                                colors = colors,
+                                customization = customization,
+                                tableData = tableData,
+                                placeholderRow = placeholderRow,
+                                onRowClick = onRowClick,
+                                onRowLongClick = onRowLongClick,
+                                onContextMenu =
+                                    contextMenu?.let {
+                                        { item: T, pos: Offset ->
+                                            contextMenuState =
+                                                contextMenuState.copy(
+                                                    visible = true,
+                                                    position = pos,
+                                                    item = item,
+                                                )
+                                        }
+                                    },
+                                rowEmbedded = rowEmbedded,
+                                verticalState = verticalState,
+                                horizontalState = horizontalState,
+                                requestTableFocus = { tableFocusRequester.requestFocus() },
+                                enableScrolling = enableScrolling,
+                                modifier = Modifier.fillMaxSize(),
+                            )
+                        }
+                        if (state.groupBy != null) {
+                            GroupStickyOverlay(
+                                itemAt = itemAt,
+                                tableData = tableData,
+                                visibleColumns = visibleColumns,
+                                customization = customization,
+                                colors = colors,
+                                verticalState = verticalState,
+                                horizontalState = horizontalState,
+                            )
+                        }
                     }
-                    if (state.groupBy != null) {
-                        GroupStickyOverlay(
-                            itemAt = itemAt,
-                            tableData = tableData,
-                            visibleColumns = visibleColumns,
-                            customization = customization,
-                            colors = colors,
-                            verticalState = verticalState,
-                            horizontalState = horizontalState,
-                        )
-                    }
+                }
+
+                if (state.settings.enableTextSelection) {
+                    SelectionContainer { bodyContent() }
+                } else {
+                    bodyContent()
                 }
 
                 // Footer rendering

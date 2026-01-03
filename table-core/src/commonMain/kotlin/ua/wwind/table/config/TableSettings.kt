@@ -60,6 +60,8 @@ public data class TableSettings(
     val showFooter: Boolean = false,
     /** Pin footer at the bottom (only for non-embedded tables) */
     val footerPinned: Boolean = true,
+    /** Enable text selection in table rows (wraps body in SelectionContainer) */
+    val enableTextSelection: Boolean = false,
 )
 
 /** Row selection behavior. */
