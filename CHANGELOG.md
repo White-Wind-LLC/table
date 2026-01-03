@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+### 1.7.4 — 2026-01-03
+
+- Changed: Updated Kotlin to 2.3.0 and related tooling dependencies.
+    - Kotlin version bumped from 2.2.21 to 2.3.0.
+    - AndroidX Activity Compose updated from 1.12.0 to 1.12.2.
+    - Kover (code coverage) updated from 0.9.3 to 0.9.4.
+    - Compose Stability Analyzer updated from 0.6.0 to 0.6.6.
+
+Compare: [v1.7.3...v1.7.4](https://github.com/White-Wind-LLC/table/compare/v1.7.3...v1.7.4)
+
 ### 1.7.3 — 2025-12-05
 
 **BREAKING CHANGES:**
