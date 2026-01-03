@@ -1,29 +1,9 @@
 package ua.wwind.table.sample.app
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CornerSize
-import androidx.compose.material3.DrawerValue
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalDrawerSheet
-import androidx.compose.material3.ModalNavigationDrawer
-import androidx.compose.material3.Surface
-import androidx.compose.material3.rememberDrawerState
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -35,18 +15,10 @@ import io.github.fletchmckee.liquid.rememberLiquidState
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.launch
 import ua.wwind.table.ExperimentalTableApi
-import ua.wwind.table.config.PinnedSide
-import ua.wwind.table.config.RowHeightMode
-import ua.wwind.table.config.SelectionMode
-import ua.wwind.table.config.TableDefaults
-import ua.wwind.table.config.TableSettings
+import ua.wwind.table.config.*
 import ua.wwind.table.filter.data.TableFilterState
 import ua.wwind.table.format.rememberCustomization
-import ua.wwind.table.sample.app.components.AppToolbar
-import ua.wwind.table.sample.app.components.ConditionalFormattingDialog
-import ua.wwind.table.sample.app.components.MainTable
-import ua.wwind.table.sample.app.components.SelectionActionBar
-import ua.wwind.table.sample.app.components.SettingsSidebar
+import ua.wwind.table.sample.app.components.*
 import ua.wwind.table.sample.column.PersonColumn
 import ua.wwind.table.sample.column.createTableColumns
 import ua.wwind.table.sample.model.Person
@@ -96,6 +68,7 @@ fun SampleApp(modifier: Modifier = Modifier) {
                 editingEnabled = enableEditing,
                 showFooter = showFooter,
                 footerPinned = footerPinned,
+                enableTextSelection = true,
             )
         }
 
