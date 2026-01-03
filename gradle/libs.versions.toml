@@ -1,8 +1,8 @@
 [versions]
 # --- Project metadata ---
-version-name = "1.7.3"
-version-date = "05.12.2025"
-android-version-code = "24"
+version-name = "1.7.4"
+version-date = "03.01.2026"
+android-version-code = "25"
 
 # --- Android SDK & AGP ---
 android-compileSdk = "36"
@@ -11,13 +11,13 @@ android-targetSdk = "36"
 agp = "8.11.2"
 
 # --- Kotlin Toolchain & Compose ---
-kotlin = "2.2.21"
+kotlin = "2.3.0"
 compose-multiplatform = "1.9.3"
 
 # --- Core AndroidX ---
 androidx-core = "1.17.0"
 androidx-appcompat = "1.7.1"
-androidx-activityCompose = "1.12.0"
+androidx-activityCompose = "1.12.2"
 androidx-lifecycle = "2.9.6"
 
 # --- KotlinX & Utilities ---
@@ -43,10 +43,10 @@ hotReload = "1.0.0"
 buildKonfig = "0.17.1"
 detekt = "1.23.8"
 ktlint-gradle = "14.0.1"
-kover = "0.9.3"
+kover = "0.9.4"
 dokka = "2.1.0"
 mavenPublish = "0.35.0"
-stability-analyzer = "0.6.0"
+stability-analyzer = "0.6.6"
 
 [libraries]
 # --- AndroidX Core & Lifecycle ---
