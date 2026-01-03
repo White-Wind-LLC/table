@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+### 1.7.5 — 2026-01-03
+
+- Added: `enableTextSelection` setting in `TableSettings` for optional text selection support in table rows.
+    - When enabled, wraps the table body in Compose `SelectionContainer` to allow users to select and copy text content.
+    - Defaults to `false` to preserve existing behavior and avoid interfering with row click/selection interactions.
+    - Useful for data display tables where users need to copy cell values without custom clipboard handling.
+
+Compare: [v1.7.4...v1.7.5](https://github.com/White-Wind-LLC/table/compare/v1.7.4...v1.7.5)
+
 ### 1.7.4 — 2026-01-03
 
 - Changed: Updated Kotlin to 2.3.0 and related tooling dependencies.
