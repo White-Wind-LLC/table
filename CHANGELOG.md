@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+### 1.7.6 — 2026-01-05
+
+- Added: `border` parameter to `Table` and `EditableTable` composables for customizable outer table border.
+    - Accepts `BorderStroke?` to fully customize border appearance (color, thickness, brush).
+    - `null` (default) applies theme-based border using `dividerThickness` and `MaterialTheme.colorScheme.outlineVariant`.
+    - `TableDefaults.NoBorder` sentinel value disables the outer border entirely.
+    - Paging `Table` functions updated with the same `border` parameter for API consistency.
+
+Compare: [v1.7.5...v1.7.6](https://github.com/White-Wind-LLC/table/compare/v1.7.5...v1.7.6)
+
 ### 1.7.5 — 2026-01-03
 
 - Added: `enableTextSelection` setting in `TableSettings` for optional text selection support in table rows.
