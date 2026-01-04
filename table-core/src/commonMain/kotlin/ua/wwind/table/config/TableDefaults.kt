@@ -1,5 +1,6 @@
 package ua.wwind.table.config
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
@@ -7,6 +8,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 public object TableDefaults {
+    /**
+     * Sentinel value to disable table border.
+     * Pass this to the border parameter to hide the outer border.
+     */
+    public val NoBorder: BorderStroke = BorderStroke(0.dp, Color.Transparent)
+
     /** Convenience factory for default [TableColors] derived from [androidx.compose.material3.MaterialTheme]. */
     @Composable
     public fun colors(

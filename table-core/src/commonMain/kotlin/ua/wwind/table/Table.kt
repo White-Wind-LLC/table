@@ -14,7 +14,15 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.focus.FocusRequester
@@ -26,7 +34,11 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.ImmutableList
-import ua.wwind.table.component.*
+import ua.wwind.table.component.ActiveFiltersHeader
+import ua.wwind.table.component.ContextMenuHost
+import ua.wwind.table.component.TableHeader
+import ua.wwind.table.component.TableHeaderDefaults
+import ua.wwind.table.component.TableHeaderIcons
 import ua.wwind.table.component.body.GroupStickyOverlay
 import ua.wwind.table.component.body.TableBody
 import ua.wwind.table.component.body.TableBodyEmbedded
@@ -35,7 +47,12 @@ import ua.wwind.table.config.DefaultTableCustomization
 import ua.wwind.table.config.TableColors
 import ua.wwind.table.config.TableCustomization
 import ua.wwind.table.config.TableDefaults
-import ua.wwind.table.interaction.*
+import ua.wwind.table.interaction.ApplyAutoWidthEffect
+import ua.wwind.table.interaction.ApplyAutoWidthEmbeddedEffect
+import ua.wwind.table.interaction.ContextMenuState
+import ua.wwind.table.interaction.EnsureSelectedCellVisibleEffect
+import ua.wwind.table.interaction.draggableTable
+import ua.wwind.table.interaction.tableKeyboardNavigation
 import ua.wwind.table.platform.getPlatform
 import ua.wwind.table.platform.isMobile
 import ua.wwind.table.state.LocalTableState
@@ -75,6 +92,7 @@ import ua.wwind.table.strings.StringProvider
  * @param horizontalState horizontal scroll state of the whole table
  * @param icons header icons used for sort and filter affordances
  * @param shape surface shape of the table
+ * @param border outer border stroke; `null` uses theme default, [TableDefaults.NoBorder] disables border
  */
 @Suppress("LongParameterList")
 @ExperimentalTableApi
@@ -98,6 +116,7 @@ public fun <T : Any, C, E> EditableTable(
     horizontalState: ScrollState = rememberScrollState(),
     icons: TableHeaderIcons = TableHeaderDefaults.icons(),
     shape: Shape = RoundedCornerShape(4.dp),
+    border: BorderStroke? = null,
     rowEmbedded: (@Composable (rowIndex: Int, item: T) -> Unit)? = null,
     embedded: Boolean = false,
     /** Callback when row editing starts. Receives non-null item and row index. */
@@ -197,10 +216,22 @@ public fun <T : Any, C, E> EditableTable(
         Surface(
             shape = shape,
             border =
-                BorderStroke(
-                    state.dimensions.dividerThickness,
-                    MaterialTheme.colorScheme.outlineVariant,
-                ),
+                when {
+                    border == TableDefaults.NoBorder -> {
+                        null
+                    }
+
+                    border != null -> {
+                        border
+                    }
+
+                    else -> {
+                        BorderStroke(
+                            dimensions.dividerThickness,
+                            MaterialTheme.colorScheme.outlineVariant,
+                        )
+                    }
+                },
             modifier = modifier,
         ) {
             // Inner content with clipping and interactions
@@ -408,6 +439,7 @@ public fun <T : Any, C, E> EditableTable(
  * @param horizontalState horizontal scroll state of the whole table
  * @param icons header icons used for sort and filter affordances
  * @param shape surface shape of the table
+ * @param border outer border stroke; `null` uses theme default, [TableDefaults.NoBorder] disables border
  */
 @Suppress("LongParameterList")
 @ExperimentalTableApi
@@ -430,6 +462,7 @@ public fun <T : Any, C> Table(
     horizontalState: ScrollState = rememberScrollState(),
     icons: TableHeaderIcons = TableHeaderDefaults.icons(),
     shape: Shape = RoundedCornerShape(4.dp),
+    border: BorderStroke? = null,
     rowEmbedded: (@Composable (rowIndex: Int, item: T) -> Unit)? = null,
     embedded: Boolean = false,
 ) {
@@ -452,6 +485,7 @@ public fun <T : Any, C> Table(
         horizontalState = horizontalState,
         icons = icons,
         shape = shape,
+        border = border,
         rowEmbedded = rowEmbedded,
         embedded = embedded,
         onRowEditStart = null,
@@ -492,6 +526,7 @@ public fun <T : Any, C> Table(
  * @param horizontalState horizontal scroll state of the whole table
  * @param icons header icons used for sort and filter affordances
  * @param shape surface shape of the table
+ * @param border outer border stroke; `null` uses theme default, [TableDefaults.NoBorder] disables border
  */
 @Suppress("LongParameterList")
 @ExperimentalTableApi
@@ -515,6 +550,7 @@ public fun <T : Any, C, E> Table(
     horizontalState: ScrollState = rememberScrollState(),
     icons: TableHeaderIcons = TableHeaderDefaults.icons(),
     shape: Shape = RoundedCornerShape(4.dp),
+    border: BorderStroke? = null,
     rowEmbedded: (@Composable (rowIndex: Int, item: T) -> Unit)? = null,
     embedded: Boolean = false,
 ) {
@@ -537,6 +573,7 @@ public fun <T : Any, C, E> Table(
         horizontalState = horizontalState,
         icons = icons,
         shape = shape,
+        border = border,
         rowEmbedded = rowEmbedded,
         embedded = embedded,
         onRowEditStart = null,
