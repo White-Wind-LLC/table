@@ -1,5 +1,6 @@
 package ua.wwind.table.paging
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -58,6 +59,7 @@ import ua.wwind.table.strings.StringProvider
  * @param horizontalState horizontal scroll state of the whole table
  * @param icons header icons used for sort and filter affordances
  * @param shape surface shape of the table
+ * @param border outer border stroke; `null` uses theme default, [TableDefaults.NoBorder] disables border
  */
 @OptIn(ExperimentalTableApi::class)
 @Composable
@@ -80,6 +82,7 @@ public fun <T : Any, C, E> Table(
     horizontalState: ScrollState = rememberScrollState(),
     icons: TableHeaderIcons = TableHeaderDefaults.icons(),
     shape: Shape = RoundedCornerShape(4.dp),
+    border: BorderStroke? = null,
 ) {
     val itemsCount = remember(items) { items?.data?.size ?: 0 }
     val itemAt = remember(items) { { index: Int -> items?.data?.get(index)?.getOrNull() } }
@@ -103,9 +106,41 @@ public fun <T : Any, C, E> Table(
         horizontalState = horizontalState,
         icons = icons,
         shape = shape,
+        border = border,
     )
 }
 
+/**
+ * Composable data table with paging support.
+ *
+ * This overload wraps [PagingData] and delegates to the core [Table] composable.
+ *
+ * - Columns are described by [columns] (`ColumnSpec`).
+ * - Data is provided via [items] (`PagingData`).
+ * - Sorting, filters, ordering and selection are controlled by [state].
+ *
+ * Generic parameters:
+ * - [T] actual row item type.
+ * - [C] column key type.
+ *
+ * @param items paging data container with loaded items
+ * @param state mutable table state (sorting, filters, order, selection)
+ * @param columns list of visible/available column specifications
+ * @param modifier layout modifier for the whole table
+ * @param placeholderRow optional row content shown when an item is null
+ * @param rowKey stable key for rows; defaults to index
+ * @param onRowClick row primary action handler
+ * @param onRowLongClick optional long-press handler
+ * @param contextMenu optional context menu host, invoked with item and absolute position
+ * @param customization styling hooks for rows and cells
+ * @param colors container/content colors
+ * @param strings string provider for UI text
+ * @param verticalState list scroll state
+ * @param horizontalState horizontal scroll state of the whole table
+ * @param icons header icons used for sort and filter affordances
+ * @param shape surface shape of the table
+ * @param border outer border stroke; `null` uses theme default, [TableDefaults.NoBorder] disables border
+ */
 @OptIn(ExperimentalTableApi::class)
 @Composable
 @Suppress("LongParameterList", "ktlint:standard:function-naming")
@@ -126,6 +161,7 @@ public fun <T : Any, C> Table(
     horizontalState: ScrollState = rememberScrollState(),
     icons: TableHeaderIcons = TableHeaderDefaults.icons(),
     shape: Shape = RoundedCornerShape(4.dp),
+    border: BorderStroke? = null,
 ) {
     val itemsCount = remember(items) { items?.data?.size ?: 0 }
     val itemAt = remember(items) { { index: Int -> items?.data?.get(index)?.getOrNull() } }
@@ -148,5 +184,6 @@ public fun <T : Any, C> Table(
         horizontalState = horizontalState,
         icons = icons,
         shape = shape,
+        border = border,
     )
 }

@@ -59,7 +59,7 @@ Live demo: [white-wind-llc.github.io/table](https://white-wind-llc.github.io/tab
 - Embedded (nested) tables via the `embedded` flag and `rowEmbedded` slot for building master–detail layouts inside
   a single table.
 - Extensive customization via `TableCustomization` (background/content color, elevation, borders, typography,
-  alignment).
+  alignment). Outer table border is configurable via `border` parameter (custom stroke or disabled entirely).
 - i18n via `StringProvider` (default `DefaultStrings`).
 - Targets: Android / JVM (Desktop) / JS (Web) / iOS (KMP source sets present; targets enabled via project conventions).
 - Pinned columns with configurable side (left/right) and count.
@@ -186,7 +186,8 @@ fun PeopleTable(items: List<Person>) {
 ```
 
 Useful parameters: `placeholderRow`, `contextMenu` (long‑press/right‑click),
-`colors = TableDefaults.colors()`, `icons = TableHeaderDefaults.icons()`.
+`colors = TableDefaults.colors()`, `icons = TableHeaderDefaults.icons()`,
+`border` (outer border stroke; `null` uses theme default, `TableDefaults.NoBorder` disables border).
 
 ### Cell editing mode
 
@@ -525,7 +526,8 @@ content color, text style, alignment, etc.).
     - **Required**: `itemsCount`, `itemAt(index)`, `state: TableState<C>`, `columns: List<ColumnSpec<T, C, Unit>>`.
     - **Slots**: `placeholderRow()`.
     - **UX**: `onRowClick`, `onRowLongClick`, `contextMenu(item, pos, dismiss)`.
-    - **Look**: `customization`, `colors = TableDefaults.colors()`, `icons = TableHeaderDefaults.icons()`, `strings`.
+    - **Look**: `customization`, `colors = TableDefaults.colors()`, `icons = TableHeaderDefaults.icons()`, `strings`,
+      `shape`, `border` (outer border; `null` = theme default, `TableDefaults.NoBorder` = no border).
     - **Scroll**: optional `verticalState`, `horizontalState`.
     - **Embedded content**: `embedded` flag and `rowEmbedded` slot let you render nested detail content or even a
       secondary table inside each row, while still reusing the same table state, filters and formatting rules.
