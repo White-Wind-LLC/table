@@ -37,6 +37,7 @@ import ua.wwind.table.component.header.computeReorderMove
 import ua.wwind.table.component.header.rememberHeaderDerivedState
 import ua.wwind.table.config.TableDimensions
 import ua.wwind.table.filter.component.fast.FastFiltersRow
+import ua.wwind.table.filter.data.TableFilterType
 import ua.wwind.table.state.ColumnWidthAction
 import ua.wwind.table.state.TableState
 import ua.wwind.table.strings.StringProvider
@@ -109,7 +110,10 @@ internal fun <T : Any, C, E> TableHeader(
             HorizontalDivider(modifier = Modifier.width(state.tableWidth))
         }
         AnimatedVisibility(
-            visible = state.settings.showFastFilters,
+            visible = state.settings.showFastFilters &&
+                derived.visibleColumns.any {
+                    it.filter != null && it.filter !is TableFilterType.DisabledTableFilter
+                },
             enter =
                 slideInVertically(
                     initialOffsetY = { fullHeight -> -fullHeight },

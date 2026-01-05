@@ -70,10 +70,10 @@ Add repository (usually `mavenCentral`) and include the modules you need:
 
 ```kotlin
 dependencies {
-    implementation("ua.wwind.table-kmp:table-core:1.7.7")
+    implementation("ua.wwind.table-kmp:table-core:1.7.8")
     // optional
-    implementation("ua.wwind.table-kmp:table-format:1.7.7")
-    implementation("ua.wwind.table-kmp:table-paging:1.7.7")
+    implementation("ua.wwind.table-kmp:table-format:1.7.8")
+    implementation("ua.wwind.table-kmp:table-paging:1.7.8")
 }
 ```
 
@@ -629,7 +629,8 @@ val filtered = remember(items, state.filters) {
 Fast filters provide quick inline filtering directly in a dedicated row below the header. They share the same
 `TableFilterState` as main filters but with simplified UI and pre-set default constraints:
 
-- **Location**: Rendered as a horizontal row below the header when `settings.showFastFilters = true`.
+- **Location**: Rendered as a horizontal row below the header when `settings.showFastFilters = true` and at least
+  one visible column has a filter configured (not `null` or `DisabledTableFilter`).
 - **Synchronized state**: Fast filters and main filter panels use the same `state.filters`, changes in one immediately
   reflect in the other.
 - **Default constraints**: Each fast filter type uses a sensible default:

@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+### 1.7.8 — 2026-01-06
+
+- Fixed: Fast Filters row now only displays when at least one visible column has a filter configured.
+    - Previously, the row would show even when no columns had filters, resulting in an empty filters row.
+    - Now requires both `showFastFilters = true` AND at least one visible column with a non-null, non-disabled filter.
+    - Columns with `null` or `DisabledTableFilter` are excluded from the visibility check.
+
+Compare: [v1.7.7...v1.7.8](https://github.com/White-Wind-LLC/table/compare/v1.7.7...v1.7.8)
+
 ### 1.7.7 — 2026-01-05
 
 - Added: Configurable divider visibility settings in `TableSettings`.
