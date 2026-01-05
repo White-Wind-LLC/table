@@ -49,10 +49,6 @@ internal fun <T : Any, C, E> FastFiltersRow(
     val settings = state.settings
 
     Column {
-        HorizontalDivider(
-            modifier = Modifier.width(state.tableWidth),
-            thickness = state.dimensions.dividerThickness,
-        )
         LazyRow(
             modifier = modifier.height(FAST_FILTER_ROW_HEIGHT.dp).width(state.tableWidth),
             state = rememberLazyListState(),
@@ -109,7 +105,7 @@ internal fun <T : Any, C, E> FastFiltersRow(
                             contentAlignment = Alignment.Center,
                         ) {
                             when (filterType) {
-                                is TableFilterType.TextTableFilter ->
+                                is TableFilterType.TextTableFilter -> {
                                     FastTextFilter(
                                         spec = spec,
                                         state =
@@ -119,8 +115,9 @@ internal fun <T : Any, C, E> FastFiltersRow(
                                         strings = strings,
                                         onChange = onChange,
                                     )
+                                }
 
-                                is TableFilterType.BooleanTableFilter ->
+                                is TableFilterType.BooleanTableFilter -> {
                                     FastBooleanFilter(
                                         spec = spec,
                                         state = state.filters[spec.key] as? TableFilterState<Boolean>,
@@ -128,8 +125,9 @@ internal fun <T : Any, C, E> FastFiltersRow(
                                         strings = strings,
                                         onChange = onChange,
                                     )
+                                }
 
-                                is TableFilterType.NumberTableFilter<*> ->
+                                is TableFilterType.NumberTableFilter<*> -> {
                                     FastNumberFilter(
                                         spec = spec,
                                         state = state.filters[spec.key],
@@ -137,8 +135,9 @@ internal fun <T : Any, C, E> FastFiltersRow(
                                         strings = strings,
                                         onChange = onChange,
                                     )
+                                }
 
-                                is TableFilterType.DateTableFilter ->
+                                is TableFilterType.DateTableFilter -> {
                                     FastDateFilter(
                                         spec = spec,
                                         state = state.filters[spec.key] as? TableFilterState<LocalDate>,
@@ -146,8 +145,9 @@ internal fun <T : Any, C, E> FastFiltersRow(
                                         strings = strings,
                                         onChange = onChange,
                                     )
+                                }
 
-                                is TableFilterType.EnumTableFilter<*> ->
+                                is TableFilterType.EnumTableFilter<*> -> {
                                     FastEnumFilter(
                                         spec = spec,
                                         state = state.filters[spec.key],
@@ -155,6 +155,7 @@ internal fun <T : Any, C, E> FastFiltersRow(
                                         strings = strings,
                                         onChange = onChange,
                                     )
+                                }
 
                                 is TableFilterType.CustomTableFilter<*, *> -> {
                                     val customFilter = filterType as TableFilterType.CustomTableFilter<Any, E>
@@ -174,19 +175,28 @@ internal fun <T : Any, C, E> FastFiltersRow(
                             }
                         }
                         if (!pinnedState.isLastBeforeRightPinned) {
-                            VerticalDivider(
-                                modifier = Modifier.fillMaxHeight(),
-                                thickness =
-                                    if (pinnedState.isLastLeftPinned) {
-                                        state.dimensions.pinnedColumnDividerThickness
-                                    } else {
-                                        state.dimensions.dividerThickness
-                                    },
-                            )
+                            if (pinnedState.isLastLeftPinned) {
+                                VerticalDivider(
+                                    modifier = Modifier.fillMaxHeight(),
+                                    thickness = state.dimensions.pinnedColumnDividerThickness,
+                                )
+                            }
+                            if (state.settings.showVerticalDividers) {
+                                VerticalDivider(
+                                    modifier = Modifier.fillMaxHeight(),
+                                    thickness = state.dimensions.dividerThickness,
+                                )
+                            }
                         }
                     }
                 }
             }
+        }
+        if (state.settings.showFastFiltersDivider) {
+            HorizontalDivider(
+                modifier = Modifier.width(state.tableWidth),
+                thickness = state.dimensions.dividerThickness,
+            )
         }
     }
 }

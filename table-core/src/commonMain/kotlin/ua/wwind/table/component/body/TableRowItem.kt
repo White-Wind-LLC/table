@@ -285,8 +285,10 @@ private fun <C, T : Any, E> RenderTableRowItem(
                 isSelected = isCellSelected,
                 showLeftDivider = pinnedState.isFirstRightPinned,
                 leftDividerThickness = dimensions.pinnedColumnDividerThickness,
-                showRightDivider = !pinnedState.isLastBeforeRightPinned,
-                isFixed = pinnedState.isPinned,
+                showRightDivider =
+                    !pinnedState.isLastBeforeRightPinned &&
+                        (state.settings.showVerticalDividers || pinnedState.isLastLeftPinned),
+                isPinned = pinnedState.isPinned,
                 modifier =
                     Modifier
                         .zIndex(pinnedState.zIndex)

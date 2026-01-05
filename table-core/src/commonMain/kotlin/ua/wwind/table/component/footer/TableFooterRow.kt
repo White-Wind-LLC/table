@@ -28,6 +28,7 @@ internal fun <T : Any, C, E> TableFooterRow(
     horizontalState: ScrollState,
     pinnedColumnsCount: Int,
     pinnedColumnsSide: PinnedSide,
+    showVerticalDividers: Boolean = true,
 ) {
     Row(
         modifier = Modifier.height(dimensions.footerHeight),
@@ -63,8 +64,10 @@ internal fun <T : Any, C, E> TableFooterRow(
                 isSelected = false,
                 showLeftDivider = pinnedState.isFirstRightPinned,
                 leftDividerThickness = dimensions.pinnedColumnDividerThickness,
-                showRightDivider = !pinnedState.isLastBeforeRightPinned,
-                isFixed = pinnedState.isPinned,
+                showRightDivider =
+                    !pinnedState.isLastBeforeRightPinned &&
+                        (showVerticalDividers || pinnedState.isLastLeftPinned),
+                isPinned = pinnedState.isPinned,
                 modifier =
                     Modifier
                         .zIndex(pinnedState.zIndex)

@@ -70,10 +70,10 @@ Add repository (usually `mavenCentral`) and include the modules you need:
 
 ```kotlin
 dependencies {
-    implementation("ua.wwind.table-kmp:table-core:1.7.6")
+    implementation("ua.wwind.table-kmp:table-core:1.7.7")
     // optional
-    implementation("ua.wwind.table-kmp:table-format:1.7.6")
-    implementation("ua.wwind.table-kmp:table-paging:1.7.6")
+    implementation("ua.wwind.table-kmp:table-format:1.7.7")
+    implementation("ua.wwind.table-kmp:table-paging:1.7.7")
 }
 ```
 
@@ -588,7 +588,11 @@ column(PersonField.Name, valueOf = { it.name }) {
       `rowHeightMode: Fixed/Dynamic`, `enableDragToScroll` (controls whether drag-to-scroll is enabled; when disabled,
       traditional scrollbars are used instead), `editingEnabled` (master switch for cell editing mode), `showFooter`
       (enable footer row display), `footerPinned` (pin footer at bottom or scroll with content),
-      `enableTextSelection` (wrap table body in `SelectionContainer` to allow text selection; defaults to `false`).
+      `enableTextSelection` (wrap table body in `SelectionContainer` to allow text selection; defaults to `false`),
+      `showVerticalDividers` (show/hide vertical dividers between columns; defaults to `true`),
+      `showRowDividers` (show/hide horizontal dividers between rows; defaults to `true`),
+      `showHeaderDivider` (show/hide horizontal divider below header; defaults to `true`),
+      `showFastFiltersDivider` (show/hide horizontal divider below fast filters row; defaults to `true`).
     - `TableDimensions`: `defaultColumnWidth`, `defaultRowHeight`, `footerHeight`, `checkBoxColumnWidth`,
       `verticalDividerThickness`, `verticalDividerPaddingHorizontal`.
     - `TableColors`: via `TableDefaults.colors(...)`.

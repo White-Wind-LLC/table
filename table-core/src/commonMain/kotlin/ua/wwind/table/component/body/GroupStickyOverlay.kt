@@ -102,10 +102,12 @@ internal fun <T : Any, C, E> GroupStickyOverlay(
                     colors = colors,
                     customization = customization,
                 )
-                HorizontalDivider(
-                    thickness = state.dimensions.dividerThickness,
-                    modifier = Modifier.width(viewportWidthDp),
-                )
+                if (state.settings.showRowDividers) {
+                    HorizontalDivider(
+                        thickness = state.dimensions.dividerThickness,
+                        modifier = Modifier.width(viewportWidthDp),
+                    )
+                }
             }
         }
     }

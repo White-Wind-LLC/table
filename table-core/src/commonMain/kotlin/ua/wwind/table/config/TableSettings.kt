@@ -62,6 +62,14 @@ public data class TableSettings(
     val footerPinned: Boolean = true,
     /** Enable text selection in table rows (wraps body in SelectionContainer) */
     val enableTextSelection: Boolean = false,
+    /** Show vertical dividers between columns */
+    val showVerticalDividers: Boolean = true,
+    /** Show horizontal dividers between rows */
+    val showRowDividers: Boolean = true,
+    /** Show horizontal divider below the header */
+    val showHeaderDivider: Boolean = true,
+    /** Show horizontal divider below the fast filters row */
+    val showFastFiltersDivider: Boolean = true,
 )
 
 /** Row selection behavior. */

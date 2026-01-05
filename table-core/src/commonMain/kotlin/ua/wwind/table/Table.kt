@@ -5,6 +5,7 @@ import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -23,6 +24,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.focus.FocusRequester
@@ -31,6 +33,7 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollDispatcher
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.ImmutableList
@@ -130,53 +133,23 @@ public fun <T : Any, C, E> EditableTable(
     onEditCancelled: ((rowIndex: Int) -> Unit)? = null,
 ) {
     val dimensions = state.dimensions
-    val visibleColumns by
-        remember(columns, state.columnOrder) {
-            derivedStateOf {
-                state.columnOrder.mapNotNullToImmutable { key ->
-                    columns.find { it.key == key && it.visible }
-                }
+    val visibleColumns by remember(columns, state.columnOrder) {
+        derivedStateOf {
+            state.columnOrder.mapNotNullToImmutable { key ->
+                columns.find { it.key == key && it.visible }
             }
         }
+    }
 
-    // Update visible columns in state for tableWidth calculation
     state.visibleColumns = visibleColumns
 
     var contextMenuState by remember { mutableStateOf(ContextMenuState<T>()) }
-
     val tableFocusRequester = remember { FocusRequester() }
     val coroutineScope = rememberCoroutineScope()
-
-    // Consume drag and fling deltas so parent containers don't scroll while dragging inside the
-    // table
-    val blockParentScrollConnection =
-        remember {
-            object : NestedScrollConnection {
-                // Do not let parents pre-consume drag deltas from our gestures
-                override fun onPreScroll(
-                    available: Offset,
-                    source: NestedScrollSource,
-                ): Offset = Offset.Zero
-
-                override fun onPostScroll(
-                    consumed: Offset,
-                    available: Offset,
-                    source: NestedScrollSource,
-                ): Offset = if (source == NestedScrollSource.UserInput) available else Offset.Zero
-
-                override suspend fun onPreFling(available: Velocity): Velocity = Velocity.Zero
-
-                override suspend fun onPostFling(
-                    consumed: Velocity,
-                    available: Velocity,
-                ): Velocity = available
-            }
-        }
-
-    // Used to participate in nested scroll from our custom drag handling
+    val blockParentScrollConnection = rememberBlockParentScrollConnection()
     val nestedScrollDispatcher = remember { NestedScrollDispatcher() }
 
-    // Reset cached row heights when dataset size changes to avoid stale measurements
+    // Reset cached row heights when dataset size changes
     LaunchedEffect(itemsCount) { state.rowHeightsPx.clear() }
     LaunchedEffect(state.sort) {
         if (verticalState.canScrollBackward) verticalState.scrollToItem(0)
@@ -188,11 +161,8 @@ public fun <T : Any, C, E> EditableTable(
             onStart =
                 onRowEditStart?.let { callback ->
                     { rowIndex: Int ->
-                        // Item is guaranteed to be non-null at this point (verified in startEditing)
                         val item = itemAt(rowIndex)
-                        if (item != null) {
-                            callback(item, rowIndex)
-                        }
+                        if (item != null) callback(item, rowIndex)
                     }
                 },
             onComplete = onRowEditComplete,
@@ -204,192 +174,109 @@ public fun <T : Any, C, E> EditableTable(
         LocalTableState provides state,
         LocalStringProvider provides strings,
     ) {
-        // Ensure selected cell is fully visible whenever it changes (including external API calls)
         EnsureSelectedCellVisibleEffect(
             visibleColumns = visibleColumns,
             verticalState = verticalState,
             horizontalState = horizontalState,
         )
+
         val enableScrolling = remember { !getPlatform().isMobile() && !embedded }
+        val resolvedBorder = resolveBorderStroke(border, dimensions.dividerThickness)
 
-        // Outer container with border and shape - always maintains visual form
-        Surface(
-            shape = shape,
-            border =
-                when {
-                    border == TableDefaults.NoBorder -> {
-                        null
-                    }
-
-                    border != null -> {
-                        border
-                    }
-
-                    else -> {
-                        BorderStroke(
-                            dimensions.dividerThickness,
-                            MaterialTheme.colorScheme.outlineVariant,
-                        )
-                    }
-                },
-            modifier = modifier,
-        ) {
-            // Inner content with clipping and interactions
+        Surface(shape = shape, border = resolvedBorder, modifier = modifier) {
             val innerModifier =
                 Modifier
-                    .then(
-                        if (embedded) {
-                            Modifier
-                        } else {
-                            Modifier.draggableTable(
-                                horizontalState = horizontalState,
-                                verticalState = verticalState,
-                                blockParentScrollConnection = blockParentScrollConnection,
-                                nestedScrollDispatcher = nestedScrollDispatcher,
-                                enableScrolling = enableScrolling,
-                                enableDragToScroll = state.settings.enableDragToScroll,
-                                coroutineScope = coroutineScope,
-                            )
-                        },
-                    ).clipToBounds()
-                    .tableKeyboardNavigation(
-                        focusRequester = tableFocusRequester,
+                    .tableInteractionModifiers(
+                        embedded = embedded,
+                        horizontalState = horizontalState,
+                        verticalState = verticalState,
+                        blockParentScrollConnection = blockParentScrollConnection,
+                        nestedScrollDispatcher = nestedScrollDispatcher,
+                        enableScrolling = enableScrolling,
+                        enableDragToScroll = state.settings.enableDragToScroll,
+                        coroutineScope = coroutineScope,
+                        tableFocusRequester = tableFocusRequester,
                         itemsCount = itemsCount,
                         state = state,
                         visibleColumns = visibleColumns,
-                        verticalState = verticalState,
+                    ).clipToBounds()
+
+            val pinnedFooterHeight =
+                if (!embedded && state.settings.footerPinned && state.settings.showFooter) {
+                    dimensions.footerHeight + (
+                        if (state.settings.showRowDividers) dimensions.dividerThickness else 0.dp
+                    )
+                } else {
+                    0.dp
+                }
+
+            val onContextMenuHandler: ((item: T, pos: Offset) -> Unit)? =
+                contextMenu?.let {
+                    { item: T, pos: Offset ->
+                        contextMenuState = contextMenuState.copy(visible = true, position = pos, item = item)
+                    }
+                }
+
+            Box(modifier = innerModifier) {
+                Column {
+                    if (state.settings.showActiveFiltersHeader) {
+                        ActiveFiltersHeader(columns = columns, state = state, strings = strings)
+                    }
+
+                    TableHeader(
+                        columns = columns,
+                        state = state,
+                        tableData = tableData,
+                        headerColor = colors.headerContainerColor,
+                        headerContentColor = colors.headerContentColor,
+                        rowContainerColor = colors.rowContainerColor,
+                        dimensions = dimensions,
+                        strings = strings,
+                        icons = icons,
                         horizontalState = horizontalState,
                     )
 
-            Column(
-                modifier = innerModifier,
-            ) {
-                if (state.settings.showActiveFiltersHeader) {
-                    ActiveFiltersHeader(
-                        columns = columns,
-                        state = state,
-                        strings = strings,
-                    )
-                }
-
-                TableHeader(
-                    columns = columns,
-                    state = state,
-                    tableData = tableData,
-                    headerColor = colors.headerContainerColor,
-                    headerContentColor = colors.headerContentColor,
-                    rowContainerColor = colors.rowContainerColor,
-                    dimensions = dimensions,
-                    strings = strings,
-                    icons = icons,
-                    horizontalState = horizontalState,
-                )
-                HorizontalDivider(modifier = Modifier.width(state.tableWidth))
-
-                val bodyContent: @Composable () -> Unit = {
-                    Box(if (embedded) Modifier else Modifier.weight(1f, false)) {
-                        if (embedded) {
-                            TableBodyEmbedded(
-                                itemsCount = itemsCount,
-                                itemAt = itemAt,
-                                rowKey = rowKey,
-                                visibleColumns = visibleColumns,
-                                state = state,
-                                colors = colors,
-                                customization = customization,
-                                tableData = tableData,
-                                rowEmbedded = rowEmbedded,
-                                placeholderRow = placeholderRow,
-                                onRowClick = onRowClick,
-                                onRowLongClick = onRowLongClick,
-                                onContextMenu =
-                                    contextMenu?.let {
-                                        { item: T, pos: Offset ->
-                                            contextMenuState =
-                                                contextMenuState.copy(
-                                                    visible = true,
-                                                    position = pos,
-                                                    item = item,
-                                                )
-                                        }
-                                    },
-                                horizontalState = horizontalState,
-                                requestTableFocus = { tableFocusRequester.requestFocus() },
-                            )
-                        } else {
-                            TableBody(
-                                itemsCount = itemsCount,
-                                itemAt = itemAt,
-                                rowKey = rowKey,
-                                visibleColumns = visibleColumns,
-                                state = state,
-                                colors = colors,
-                                customization = customization,
-                                tableData = tableData,
-                                placeholderRow = placeholderRow,
-                                onRowClick = onRowClick,
-                                onRowLongClick = onRowLongClick,
-                                onContextMenu =
-                                    contextMenu?.let {
-                                        { item: T, pos: Offset ->
-                                            contextMenuState =
-                                                contextMenuState.copy(
-                                                    visible = true,
-                                                    position = pos,
-                                                    item = item,
-                                                )
-                                        }
-                                    },
-                                rowEmbedded = rowEmbedded,
-                                verticalState = verticalState,
-                                horizontalState = horizontalState,
-                                requestTableFocus = { tableFocusRequester.requestFocus() },
-                                enableScrolling = enableScrolling,
-                                modifier = Modifier.fillMaxSize(),
-                            )
-                        }
-                        if (state.groupBy != null) {
-                            GroupStickyOverlay(
-                                itemAt = itemAt,
-                                tableData = tableData,
-                                visibleColumns = visibleColumns,
-                                customization = customization,
-                                colors = colors,
-                                verticalState = verticalState,
-                                horizontalState = horizontalState,
-                            )
-                        }
-                    }
-                }
-
-                if (state.settings.enableTextSelection) {
-                    SelectionContainer { bodyContent() }
-                } else {
-                    bodyContent()
-                }
-
-                // Footer rendering
-                if (state.settings.showFooter) {
-                    // If footer is pinned and table is not embedded, it's rendered outside the Box
-                    // Otherwise, it's rendered as part of the TableBody scroll
-                    if (!embedded && state.settings.footerPinned) {
-                        HorizontalDivider(modifier = Modifier.width(state.tableWidth))
-                        TableFooter(
+                    val bodyContent: @Composable () -> Unit = {
+                        TableBodySection(
+                            embedded = embedded,
+                            itemsCount = itemsCount,
+                            itemAt = itemAt,
+                            rowKey = rowKey,
                             visibleColumns = visibleColumns,
-                            widthResolver = { key ->
-                                val spec = columns.firstOrNull { it.key == key }
-                                state.resolveColumnWidth(key, spec)
-                            },
+                            state = state,
+                            colors = colors,
+                            customization = customization,
                             tableData = tableData,
-                            footerColor = colors.footerContainerColor,
-                            footerContentColor = colors.footerContentColor,
-                            dimensions = dimensions,
+                            rowEmbedded = rowEmbedded,
+                            placeholderRow = placeholderRow,
+                            onRowClick = onRowClick,
+                            onRowLongClick = onRowLongClick,
+                            onContextMenu = onContextMenuHandler,
+                            verticalState = verticalState,
                             horizontalState = horizontalState,
-                            tableWidth = state.tableWidth,
-                            pinnedColumnsCount = state.settings.pinnedColumnsCount,
-                            pinnedColumnsSide = state.settings.pinnedColumnsSide,
+                            requestTableFocus = { tableFocusRequester.requestFocus() },
+                            enableScrolling = enableScrolling,
+                            pinnedFooterHeight = pinnedFooterHeight,
                         )
                     }
+
+                    if (state.settings.enableTextSelection) {
+                        SelectionContainer { bodyContent() }
+                    } else {
+                        bodyContent()
+                    }
+                }
+
+                if (!embedded && state.settings.footerPinned && state.settings.showFooter) {
+                    PinnedFooterOverlay(
+                        state = state,
+                        visibleColumns = visibleColumns,
+                        columns = columns,
+                        tableData = tableData,
+                        colors = colors,
+                        horizontalState = horizontalState,
+                        modifier = Modifier.align(Alignment.BottomStart),
+                    )
                 }
             }
         }
@@ -400,7 +287,6 @@ public fun <T : Any, C, E> EditableTable(
             onDismiss = { contextMenuState = contextMenuState.copy(visible = false) },
         )
 
-        // Apply auto-width effect based on table mode
         if (embedded) {
             ApplyAutoWidthEmbeddedEffect(visibleColumns, itemsCount, state)
         } else {
@@ -581,3 +467,212 @@ public fun <T : Any, C, E> Table(
         onEditCancelled = null,
     )
 }
+
+// region Internal Helper Functions
+
+/**
+ * Creates a NestedScrollConnection that blocks parent containers from scrolling
+ * while dragging inside the table.
+ */
+@Composable
+private fun rememberBlockParentScrollConnection(): NestedScrollConnection =
+    remember {
+        object : NestedScrollConnection {
+            override fun onPreScroll(
+                available: Offset,
+                source: NestedScrollSource,
+            ): Offset = Offset.Zero
+
+            override fun onPostScroll(
+                consumed: Offset,
+                available: Offset,
+                source: NestedScrollSource,
+            ): Offset = if (source == NestedScrollSource.UserInput) available else Offset.Zero
+
+            override suspend fun onPreFling(available: Velocity): Velocity = Velocity.Zero
+
+            override suspend fun onPostFling(
+                consumed: Velocity,
+                available: Velocity,
+            ): Velocity = available
+        }
+    }
+
+/**
+ * Resolves the border stroke based on the provided border parameter and table defaults.
+ */
+@Composable
+private fun resolveBorderStroke(
+    border: BorderStroke?,
+    dividerThickness: Dp,
+): BorderStroke? =
+    when {
+        border == TableDefaults.NoBorder -> null
+        border != null -> border
+        else -> BorderStroke(dividerThickness, MaterialTheme.colorScheme.outlineVariant)
+    }
+
+/**
+ * Creates a modifier chain for table interaction handling including dragging and keyboard navigation.
+ */
+@OptIn(ExperimentalTableApi::class)
+@Composable
+private fun <T : Any, C, E> Modifier.tableInteractionModifiers(
+    embedded: Boolean,
+    horizontalState: ScrollState,
+    verticalState: LazyListState,
+    blockParentScrollConnection: NestedScrollConnection,
+    nestedScrollDispatcher: NestedScrollDispatcher,
+    enableScrolling: Boolean,
+    enableDragToScroll: Boolean,
+    coroutineScope: kotlinx.coroutines.CoroutineScope,
+    tableFocusRequester: FocusRequester,
+    itemsCount: Int,
+    state: TableState<C>,
+    visibleColumns: ImmutableList<ColumnSpec<T, C, E>>,
+): Modifier =
+    this
+        .then(
+            if (embedded) {
+                Modifier
+            } else {
+                Modifier.draggableTable(
+                    horizontalState = horizontalState,
+                    verticalState = verticalState,
+                    blockParentScrollConnection = blockParentScrollConnection,
+                    nestedScrollDispatcher = nestedScrollDispatcher,
+                    enableScrolling = enableScrolling,
+                    enableDragToScroll = enableDragToScroll,
+                    coroutineScope = coroutineScope,
+                )
+            },
+        ).tableKeyboardNavigation(
+            focusRequester = tableFocusRequester,
+            itemsCount = itemsCount,
+            state = state,
+            visibleColumns = visibleColumns,
+            verticalState = verticalState,
+            horizontalState = horizontalState,
+        )
+
+/**
+ * Renders the table body content with optional selection container wrapper.
+ */
+@OptIn(ExperimentalTableApi::class)
+@Composable
+private fun <T : Any, C, E> TableBodySection(
+    embedded: Boolean,
+    itemsCount: Int,
+    itemAt: (Int) -> T?,
+    rowKey: (item: T?, index: Int) -> Any,
+    visibleColumns: ImmutableList<ColumnSpec<T, C, E>>,
+    state: TableState<C>,
+    colors: TableColors,
+    customization: TableCustomization<T, C>,
+    tableData: E,
+    rowEmbedded: (@Composable (rowIndex: Int, item: T) -> Unit)?,
+    placeholderRow: (@Composable () -> Unit)?,
+    onRowClick: ((T) -> Unit)?,
+    onRowLongClick: ((T) -> Unit)?,
+    onContextMenu: ((item: T, pos: Offset) -> Unit)?,
+    verticalState: LazyListState,
+    horizontalState: ScrollState,
+    requestTableFocus: () -> Unit,
+    enableScrolling: Boolean,
+    pinnedFooterHeight: Dp,
+) {
+    Box(
+        modifier = if (embedded) Modifier else Modifier.padding(bottom = pinnedFooterHeight),
+    ) {
+        if (embedded) {
+            TableBodyEmbedded(
+                itemsCount = itemsCount,
+                itemAt = itemAt,
+                rowKey = rowKey,
+                visibleColumns = visibleColumns,
+                state = state,
+                colors = colors,
+                customization = customization,
+                tableData = tableData,
+                rowEmbedded = rowEmbedded,
+                placeholderRow = placeholderRow,
+                onRowClick = onRowClick,
+                onRowLongClick = onRowLongClick,
+                onContextMenu = onContextMenu,
+                horizontalState = horizontalState,
+                requestTableFocus = requestTableFocus,
+            )
+        } else {
+            TableBody(
+                itemsCount = itemsCount,
+                itemAt = itemAt,
+                rowKey = rowKey,
+                visibleColumns = visibleColumns,
+                state = state,
+                colors = colors,
+                customization = customization,
+                tableData = tableData,
+                placeholderRow = placeholderRow,
+                onRowClick = onRowClick,
+                onRowLongClick = onRowLongClick,
+                onContextMenu = onContextMenu,
+                rowEmbedded = rowEmbedded,
+                verticalState = verticalState,
+                horizontalState = horizontalState,
+                requestTableFocus = requestTableFocus,
+                enableScrolling = enableScrolling,
+                modifier = Modifier.fillMaxSize(),
+            )
+        }
+        if (state.groupBy != null) {
+            GroupStickyOverlay(
+                itemAt = itemAt,
+                tableData = tableData,
+                visibleColumns = visibleColumns,
+                customization = customization,
+                colors = colors,
+                verticalState = verticalState,
+                horizontalState = horizontalState,
+            )
+        }
+    }
+}
+
+/**
+ * Renders the pinned footer overlay at the bottom of the table.
+ */
+@Composable
+private fun <T : Any, C, E> PinnedFooterOverlay(
+    state: TableState<C>,
+    visibleColumns: ImmutableList<ColumnSpec<T, C, E>>,
+    columns: ImmutableList<ColumnSpec<T, C, E>>,
+    tableData: E,
+    colors: TableColors,
+    horizontalState: ScrollState,
+    modifier: Modifier = Modifier,
+) {
+    val dimensions = state.dimensions
+    Column(modifier = modifier) {
+        if (state.settings.showRowDividers) {
+            HorizontalDivider(modifier = Modifier.width(state.tableWidth))
+        }
+        TableFooter(
+            visibleColumns = visibleColumns,
+            widthResolver = { key ->
+                val spec = columns.firstOrNull { it.key == key }
+                state.resolveColumnWidth(key, spec)
+            },
+            tableData = tableData,
+            footerColor = colors.footerContainerColor,
+            footerContentColor = colors.footerContentColor,
+            dimensions = dimensions,
+            horizontalState = horizontalState,
+            tableWidth = state.tableWidth,
+            pinnedColumnsCount = state.settings.pinnedColumnsCount,
+            pinnedColumnsSide = state.settings.pinnedColumnsSide,
+            showVerticalDividers = state.settings.showVerticalDividers,
+        )
+    }
+}
+
+// endregion

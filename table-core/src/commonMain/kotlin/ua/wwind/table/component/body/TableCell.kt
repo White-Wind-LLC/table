@@ -35,7 +35,7 @@ internal fun TableCell(
     showLeftDivider: Boolean = false,
     leftDividerThickness: Dp = dividerThickness,
     showRightDivider: Boolean = true,
-    isFixed: Boolean = false,
+    isPinned: Boolean = false,
     content: @Composable BoxScope.() -> Unit,
 ) {
     val selectionBorderModifier =
@@ -58,7 +58,7 @@ internal fun TableCell(
         }
 
         // Use Surface for fixed cells to ensure solid background
-        if (isFixed) {
+        if (isPinned) {
             // For fixed cells, always use Surface even if background is Unspecified
             // This ensures proper opacity and prevents see-through effect
             val backgroundColor =

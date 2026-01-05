@@ -70,7 +70,9 @@ internal fun <T : Any, C, E> TableBody(
         // Add footer as last item if not pinned
         if (showFooter) {
             item(key = "footer") {
-                HorizontalDivider(modifier = Modifier.width(state.tableWidth))
+                if (state.settings.showRowDividers) {
+                    HorizontalDivider(modifier = Modifier.width(state.tableWidth))
+                }
                 TableFooter(
                     visibleColumns = visibleColumns,
                     widthResolver = { key ->
@@ -86,6 +88,7 @@ internal fun <T : Any, C, E> TableBody(
                     pinnedColumnsCount = state.settings.pinnedColumnsCount,
                     pinnedColumnsSide = state.settings.pinnedColumnsSide,
                     pinned = false,
+                    showVerticalDividers = state.settings.showVerticalDividers,
                 )
             }
         }
@@ -149,7 +152,9 @@ internal fun <T : Any, C, E> TableBodyEmbedded(
 
         // Add footer for embedded tables (always non-pinned)
         if (state.settings.showFooter) {
-            HorizontalDivider(modifier = Modifier.width(state.tableWidth))
+            if (state.settings.showRowDividers) {
+                HorizontalDivider(modifier = Modifier.width(state.tableWidth))
+            }
             TableFooter(
                 visibleColumns = visibleColumns,
                 widthResolver = { key ->
@@ -165,6 +170,7 @@ internal fun <T : Any, C, E> TableBodyEmbedded(
                 pinnedColumnsCount = state.settings.pinnedColumnsCount,
                 pinnedColumnsSide = state.settings.pinnedColumnsSide,
                 pinned = false,
+                showVerticalDividers = state.settings.showVerticalDividers,
             )
         }
     }
@@ -217,10 +223,12 @@ private fun <T : Any, C, E> TableBodyRow(
                         colors = colors,
                         customization = customization,
                     )
-                    HorizontalDivider(
-                        modifier = Modifier.width(viewportWidthDp),
-                        thickness = state.dimensions.dividerThickness,
-                    )
+                    if (state.settings.showRowDividers) {
+                        HorizontalDivider(
+                            modifier = Modifier.width(viewportWidthDp),
+                            thickness = state.dimensions.dividerThickness,
+                        )
+                    }
                 }
             }
         }
@@ -243,8 +251,10 @@ private fun <T : Any, C, E> TableBodyRow(
         horizontalState = horizontalState,
     )
 
-    HorizontalDivider(
-        modifier = Modifier.width(state.tableWidth),
-        thickness = state.dimensions.dividerThickness,
-    )
+    if (state.settings.showRowDividers) {
+        HorizontalDivider(
+            modifier = Modifier.width(state.tableWidth),
+            thickness = state.dimensions.dividerThickness,
+        )
+    }
 }
