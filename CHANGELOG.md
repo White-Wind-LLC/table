@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+### 1.7.7 — 2026-01-05
+
+- Added: Configurable divider visibility settings in `TableSettings`.
+    - `showVerticalDividers` controls vertical dividers between columns (default: `true`).
+    - `showRowDividers` controls horizontal dividers between rows (default: `true`).
+    - `showHeaderDivider` controls horizontal divider below the header (default: `true`).
+    - `showFastFiltersDivider` controls horizontal divider below the fast filters row (default: `true`).
+- Added: Validation for `TableDimensions` divider thickness values.
+    - `dividerThickness` and `pinnedColumnDividerThickness` must be at least `1.dp`.
+    - Invalid values now throw `IllegalArgumentException` with descriptive message.
+- Fixed: Pinned footer not visible when table body content is large.
+    - Changed footer rendering from sequential Column layout to overlay positioning using Box with `Alignment.BottomStart`.
+    - Added bottom padding to body content to prevent overlap with footer.
+- Changed: Refactored `EditableTable` to reduce cyclomatic complexity.
+
+Compare: [v1.7.6...v1.7.7](https://github.com/White-Wind-LLC/table/compare/v1.7.6...v1.7.7)
+
 ### 1.7.6 — 2026-01-05
 
 - Added: `border` parameter to `Table` and `EditableTable` composables for customizable outer table border.
