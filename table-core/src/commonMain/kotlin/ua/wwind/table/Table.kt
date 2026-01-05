@@ -284,7 +284,6 @@ public fun <T : Any, C, E> EditableTable(
                     icons = icons,
                     horizontalState = horizontalState,
                 )
-                HorizontalDivider(modifier = Modifier.width(state.tableWidth))
 
                 val bodyContent: @Composable () -> Unit = {
                     Box(if (embedded) Modifier else Modifier.weight(1f, false)) {
@@ -373,7 +372,9 @@ public fun <T : Any, C, E> EditableTable(
                     // If footer is pinned and table is not embedded, it's rendered outside the Box
                     // Otherwise, it's rendered as part of the TableBody scroll
                     if (!embedded && state.settings.footerPinned) {
-                        HorizontalDivider(modifier = Modifier.width(state.tableWidth))
+                        if (state.settings.showRowDividers) {
+                            HorizontalDivider(modifier = Modifier.width(state.tableWidth))
+                        }
                         TableFooter(
                             visibleColumns = visibleColumns,
                             widthResolver = { key ->
@@ -388,6 +389,7 @@ public fun <T : Any, C, E> EditableTable(
                             tableWidth = state.tableWidth,
                             pinnedColumnsCount = state.settings.pinnedColumnsCount,
                             pinnedColumnsSide = state.settings.pinnedColumnsSide,
+                            showVerticalDividers = state.settings.showVerticalDividers,
                         )
                     }
                 }

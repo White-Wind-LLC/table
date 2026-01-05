@@ -104,7 +104,9 @@ internal fun <T : Any, C, E> TableHeaderRow(
                             onToggleSort = { state.setSort(spec.key) },
                             showLeftDivider = pinnedState.isFirstRightPinned,
                             leftDividerThickness = style.dimensions.pinnedColumnDividerThickness,
-                            showRightDivider = !pinnedState.isLastBeforeRightPinned,
+                            showRightDivider =
+                                !pinnedState.isLastBeforeRightPinned &&
+                                    (state.settings.showVerticalDividers || pinnedState.isLastLeftPinned),
                         )
                     }
                 }

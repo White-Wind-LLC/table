@@ -1,9 +1,29 @@
 package ua.wwind.table.sample.app
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CornerSize
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalDrawerSheet
+import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.Surface
+import androidx.compose.material3.rememberDrawerState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -15,10 +35,18 @@ import io.github.fletchmckee.liquid.rememberLiquidState
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.launch
 import ua.wwind.table.ExperimentalTableApi
-import ua.wwind.table.config.*
+import ua.wwind.table.config.RowHeightMode
+import ua.wwind.table.config.SelectionMode
+import ua.wwind.table.config.TableDefaults
+import ua.wwind.table.config.TableSettings
 import ua.wwind.table.filter.data.TableFilterState
 import ua.wwind.table.format.rememberCustomization
-import ua.wwind.table.sample.app.components.*
+import ua.wwind.table.sample.app.components.AppToolbar
+import ua.wwind.table.sample.app.components.ConditionalFormattingDialog
+import ua.wwind.table.sample.app.components.MainTable
+import ua.wwind.table.sample.app.components.SampleTableConfig
+import ua.wwind.table.sample.app.components.SelectionActionBar
+import ua.wwind.table.sample.app.components.SettingsSidebar
 import ua.wwind.table.sample.column.PersonColumn
 import ua.wwind.table.sample.column.createTableColumns
 import ua.wwind.table.sample.model.Person
@@ -32,43 +60,30 @@ fun SampleApp(modifier: Modifier = Modifier) {
     var isDarkTheme by remember { mutableStateOf(false) }
     val viewModel: SampleViewModel = viewModel { SampleViewModel() }
 
-    var useStripedRows by remember { mutableStateOf(true) }
-    var showFastFilters by remember { mutableStateOf(true) }
-    var enableDragToScroll by remember { mutableStateOf(true) }
-    var pinnedColumnsCount by remember { mutableStateOf(0) }
-    var pinnedColumnsSide by remember { mutableStateOf(PinnedSide.Left) }
-    var enableEditing by remember { mutableStateOf(false) }
-    var useCompactMode by remember { mutableStateOf(true) }
-    var showFooter by remember { mutableStateOf(true) }
-    var footerPinned by remember { mutableStateOf(true) }
+    var tableConfig by remember { mutableStateOf(SampleTableConfig()) }
 
     val settings =
-        remember(
-            useStripedRows,
-            showFastFilters,
-            enableDragToScroll,
-            pinnedColumnsCount,
-            pinnedColumnsSide,
-            enableEditing,
-            showFooter,
-            footerPinned,
-        ) {
+        remember(tableConfig) {
             TableSettings(
                 isDragEnabled = false,
                 autoApplyFilters = true,
-                showFastFilters = showFastFilters,
+                showFastFilters = tableConfig.showFastFilters,
                 autoFilterDebounce = 200,
-                stripedRows = useStripedRows,
+                stripedRows = tableConfig.useStripedRows,
                 showActiveFiltersHeader = true,
                 selectionMode = SelectionMode.None,
                 rowHeightMode = RowHeightMode.Dynamic,
-                enableDragToScroll = enableDragToScroll,
-                pinnedColumnsCount = pinnedColumnsCount,
-                pinnedColumnsSide = pinnedColumnsSide,
-                editingEnabled = enableEditing,
-                showFooter = showFooter,
-                footerPinned = footerPinned,
+                enableDragToScroll = tableConfig.enableDragToScroll,
+                pinnedColumnsCount = tableConfig.pinnedColumnsCount,
+                pinnedColumnsSide = tableConfig.pinnedColumnsSide,
+                editingEnabled = tableConfig.enableEditing,
+                showFooter = tableConfig.showFooter,
+                footerPinned = tableConfig.footerPinned,
                 enableTextSelection = true,
+                showVerticalDividers = tableConfig.showVerticalDividers,
+                showRowDividers = tableConfig.showRowDividers,
+                showHeaderDivider = tableConfig.showHeaderDivider,
+                showFastFiltersDivider = tableConfig.showFastFiltersDivider,
             )
         }
 
@@ -77,11 +92,11 @@ fun SampleApp(modifier: Modifier = Modifier) {
 
     // Create columns with callbacks
     val columns =
-        remember(useCompactMode) {
+        remember(tableConfig.useCompactMode) {
             createTableColumns(
                 onToggleMovementExpanded = viewModel::toggleMovementExpanded,
                 onEvent = viewModel::onEvent,
-                useCompactMode = useCompactMode,
+                useCompactMode = tableConfig.useCompactMode,
             )
         }
 
@@ -100,8 +115,8 @@ fun SampleApp(modifier: Modifier = Modifier) {
             columns = PersonColumn.entries.toImmutableList(),
             settings = settings,
             dimensions =
-                remember(useCompactMode) {
-                    if (useCompactMode) {
+                remember(tableConfig.useCompactMode) {
+                    if (tableConfig.useCompactMode) {
                         TableDefaults.compactDimensions().copy(defaultColumnWidth = 100.dp)
                     } else {
                         TableDefaults.standardDimensions().copy(defaultColumnWidth = 200.dp)
@@ -119,7 +134,7 @@ fun SampleApp(modifier: Modifier = Modifier) {
     // Toggle visibility of SELECTION column by adjusting width based on selection mode
     val selectionColumnWidth =
         if (tableData.selectionModeEnabled) {
-            if (useCompactMode) 36.dp else 48.dp
+            if (tableConfig.useCompactMode) 36.dp else 48.dp
         } else {
             0.dp
         }
@@ -147,26 +162,10 @@ fun SampleApp(modifier: Modifier = Modifier) {
                             SettingsSidebar(
                                 isDarkTheme = isDarkTheme,
                                 onDarkThemeChange = { isDarkTheme = it },
-                                useStripedRows = useStripedRows,
-                                onStripedRowsChange = { useStripedRows = it },
-                                showFastFilters = showFastFilters,
-                                onShowFastFiltersChange = { showFastFilters = it },
-                                enableDragToScroll = enableDragToScroll,
-                                onEnableDragToScrollChange = { enableDragToScroll = it },
-                                pinnedColumnsCount = pinnedColumnsCount,
-                                onPinnedColumnsCountChange = { pinnedColumnsCount = it },
-                                pinnedColumnsSide = pinnedColumnsSide,
-                                onPinnedColumnsSideChange = { pinnedColumnsSide = it },
-                                enableEditing = enableEditing,
-                                onEnableEditingChange = { enableEditing = it },
+                                config = tableConfig,
+                                onConfigChange = { tableConfig = it },
                                 enableSelectionMode = tableData.selectionModeEnabled,
                                 onEnableSelectionModeChange = { viewModel.setSelectionMode(it) },
-                                useCompactMode = useCompactMode,
-                                onCompactModeChange = { useCompactMode = it },
-                                showFooter = showFooter,
-                                onShowFooterChange = { showFooter = it },
-                                footerPinned = footerPinned,
-                                onFooterPinnedChange = { footerPinned = it },
                                 onConditionalFormattingClick = {
                                     viewModel.toggleFormatDialog(true)
                                     scope.launch { drawerState.close() }
@@ -220,7 +219,7 @@ fun SampleApp(modifier: Modifier = Modifier) {
                                     onEditCancelled = { rowIndex ->
                                         viewModel.onEvent(SampleUiEvent.CancelEditing)
                                     },
-                                    useCompactMode = useCompactMode,
+                                    useCompactMode = tableConfig.useCompactMode,
                                     modifier = Modifier.padding(16.dp)
                                         .liquefiable(liquidState),
                                 )

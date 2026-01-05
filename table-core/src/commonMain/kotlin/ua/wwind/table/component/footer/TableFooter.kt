@@ -26,6 +26,7 @@ internal fun <T : Any, C, E> TableFooter(
     pinnedColumnsCount: Int,
     pinnedColumnsSide: PinnedSide,
     pinned: Boolean = true,
+    showVerticalDividers: Boolean = true,
 ) {
     Surface(color = footerColor, contentColor = footerContentColor) {
         Box(modifier = Modifier.width(tableWidth)) {
@@ -39,6 +40,7 @@ internal fun <T : Any, C, E> TableFooter(
                 horizontalState = horizontalState,
                 pinnedColumnsCount = pinnedColumnsCount,
                 pinnedColumnsSide = pinnedColumnsSide,
+                showVerticalDividers = showVerticalDividers,
             )
         }
     }

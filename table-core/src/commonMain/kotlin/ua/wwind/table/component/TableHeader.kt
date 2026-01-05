@@ -9,6 +9,7 @@ import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Sort
@@ -16,6 +17,7 @@ import androidx.compose.material.icons.outlined.FilterAlt
 import androidx.compose.material.icons.rounded.ArrowDownward
 import androidx.compose.material.icons.rounded.ArrowUpward
 import androidx.compose.material.icons.rounded.FilterAlt
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -102,6 +104,9 @@ internal fun <T : Any, C, E> TableHeader(
                     )
                 }
             }
+        }
+        if (state.settings.showHeaderDivider) {
+            HorizontalDivider(modifier = Modifier.width(state.tableWidth))
         }
         AnimatedVisibility(
             visible = state.settings.showFastFilters,

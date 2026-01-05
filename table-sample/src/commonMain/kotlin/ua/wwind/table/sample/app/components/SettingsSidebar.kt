@@ -44,26 +44,10 @@ import ua.wwind.table.config.PinnedSide
 fun SettingsSidebar(
     isDarkTheme: Boolean,
     onDarkThemeChange: (Boolean) -> Unit,
-    useStripedRows: Boolean,
-    onStripedRowsChange: (Boolean) -> Unit,
-    showFastFilters: Boolean,
-    onShowFastFiltersChange: (Boolean) -> Unit,
-    enableDragToScroll: Boolean,
-    onEnableDragToScrollChange: (Boolean) -> Unit,
-    pinnedColumnsCount: Int,
-    onPinnedColumnsCountChange: (Int) -> Unit,
-    pinnedColumnsSide: PinnedSide,
-    onPinnedColumnsSideChange: (PinnedSide) -> Unit,
-    enableEditing: Boolean,
-    onEnableEditingChange: (Boolean) -> Unit,
+    config: SampleTableConfig,
+    onConfigChange: (SampleTableConfig) -> Unit,
     enableSelectionMode: Boolean,
     onEnableSelectionModeChange: (Boolean) -> Unit,
-    useCompactMode: Boolean,
-    onCompactModeChange: (Boolean) -> Unit,
-    showFooter: Boolean,
-    onShowFooterChange: (Boolean) -> Unit,
-    footerPinned: Boolean,
-    onFooterPinnedChange: (Boolean) -> Unit,
     onConditionalFormattingClick: () -> Unit,
     onRecalculateAutoWidthsClick: () -> Unit,
     onClose: () -> Unit,
@@ -110,14 +94,41 @@ fun SettingsSidebar(
                     Spacer(modifier = Modifier.height(12.dp))
                     SettingSwitch(
                         label = "Striped rows",
-                        checked = useStripedRows,
-                        onCheckedChange = onStripedRowsChange,
+                        checked = config.useStripedRows,
+                        onCheckedChange = { onConfigChange(config.copy(useStripedRows = it)) },
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                     SettingSwitch(
                         label = "Compact mode",
-                        checked = useCompactMode,
-                        onCheckedChange = onCompactModeChange,
+                        checked = config.useCompactMode,
+                        onCheckedChange = { onConfigChange(config.copy(useCompactMode = it)) },
+                    )
+                }
+
+                // Dividers Section
+                SettingsSection(title = "Dividers") {
+                    SettingSwitch(
+                        label = "Vertical dividers",
+                        checked = config.showVerticalDividers,
+                        onCheckedChange = { onConfigChange(config.copy(showVerticalDividers = it)) },
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    SettingSwitch(
+                        label = "Row dividers",
+                        checked = config.showRowDividers,
+                        onCheckedChange = { onConfigChange(config.copy(showRowDividers = it)) },
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    SettingSwitch(
+                        label = "Header divider",
+                        checked = config.showHeaderDivider,
+                        onCheckedChange = { onConfigChange(config.copy(showHeaderDivider = it)) },
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    SettingSwitch(
+                        label = "Fast filters divider",
+                        checked = config.showFastFiltersDivider,
+                        onCheckedChange = { onConfigChange(config.copy(showFastFiltersDivider = it)) },
                     )
                 }
 
@@ -125,20 +136,20 @@ fun SettingsSidebar(
                 SettingsSection(title = "Table Behavior") {
                     SettingSwitch(
                         label = "Fast filters",
-                        checked = showFastFilters,
-                        onCheckedChange = onShowFastFiltersChange,
+                        checked = config.showFastFilters,
+                        onCheckedChange = { onConfigChange(config.copy(showFastFilters = it)) },
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                     SettingSwitch(
                         label = "Drag to scroll",
-                        checked = enableDragToScroll,
-                        onCheckedChange = onEnableDragToScrollChange,
+                        checked = config.enableDragToScroll,
+                        onCheckedChange = { onConfigChange(config.copy(enableDragToScroll = it)) },
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                     SettingSwitch(
                         label = "Cell editing",
-                        checked = enableEditing,
-                        onCheckedChange = onEnableEditingChange,
+                        checked = config.enableEditing,
+                        onCheckedChange = { onConfigChange(config.copy(enableEditing = it)) },
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                     SettingSwitch(
@@ -149,18 +160,18 @@ fun SettingsSidebar(
                     Spacer(modifier = Modifier.height(12.dp))
                     SettingSwitch(
                         label = "Show footer",
-                        checked = showFooter,
-                        onCheckedChange = onShowFooterChange,
+                        checked = config.showFooter,
+                        onCheckedChange = { onConfigChange(config.copy(showFooter = it)) },
                     )
                     AnimatedVisibility(
-                        visible = showFooter,
+                        visible = config.showFooter,
                     ) {
                         Spacer(modifier = Modifier.height(12.dp))
                         SettingSwitch(
                             label = "Pin footer",
-                            checked = footerPinned,
-                            onCheckedChange = onFooterPinnedChange,
-                            modifier = Modifier.then(if (!showFooter) Modifier.alpha(0.5f) else Modifier),
+                            checked = config.footerPinned,
+                            onCheckedChange = { onConfigChange(config.copy(footerPinned = it)) },
+                            modifier = Modifier.then(if (!config.showFooter) Modifier.alpha(0.5f) else Modifier),
                         )
                     }
                 }
@@ -180,14 +191,14 @@ fun SettingsSidebar(
                         ) {
                             OutlinedButton(
                                 onClick = {
-                                    if (pinnedColumnsCount > 0) {
-                                        onPinnedColumnsCountChange(pinnedColumnsCount - 1)
+                                    if (config.pinnedColumnsCount > 0) {
+                                        onConfigChange(config.copy(pinnedColumnsCount = config.pinnedColumnsCount - 1))
                                     }
                                 },
                             ) { Text("-") }
-                            Text("$pinnedColumnsCount", modifier = Modifier.width(24.dp))
+                            Text("${config.pinnedColumnsCount}", modifier = Modifier.width(24.dp))
                             OutlinedButton(
-                                onClick = { onPinnedColumnsCountChange(pinnedColumnsCount + 1) },
+                                onClick = { onConfigChange(config.copy(pinnedColumnsCount = config.pinnedColumnsCount + 1)) },
                             ) { Text("+") }
                         }
                     }
@@ -203,13 +214,13 @@ fun SettingsSidebar(
                         Text("Pinned side")
                         SingleChoiceSegmentedButtonRow {
                             SegmentedButton(
-                                selected = pinnedColumnsSide == PinnedSide.Left,
-                                onClick = { onPinnedColumnsSideChange(PinnedSide.Left) },
+                                selected = config.pinnedColumnsSide == PinnedSide.Left,
+                                onClick = { onConfigChange(config.copy(pinnedColumnsSide = PinnedSide.Left)) },
                                 shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
                             ) { Text("Left") }
                             SegmentedButton(
-                                selected = pinnedColumnsSide == PinnedSide.Right,
-                                onClick = { onPinnedColumnsSideChange(PinnedSide.Right) },
+                                selected = config.pinnedColumnsSide == PinnedSide.Right,
+                                onClick = { onConfigChange(config.copy(pinnedColumnsSide = PinnedSide.Right)) },
                                 shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
                             ) { Text("Right") }
                         }
