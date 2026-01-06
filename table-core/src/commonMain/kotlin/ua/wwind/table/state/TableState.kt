@@ -130,6 +130,12 @@ public class TableState<C>
          */
         public val columnContentMaxWidths: SnapshotStateMap<C, Dp> = mutableStateMapOf()
 
+        /**
+         * Tracks header widths separately. These are preserved during auto-width recalculation
+         * and used as base values after reset.
+         */
+        public val columnHeaderWidths: SnapshotStateMap<C, Dp> = mutableStateMapOf()
+
         /** Whether automatic width fitting has been applied for the empty (header-only) state. */
         public var autoWidthAppliedForEmpty: Boolean by mutableStateOf(false)
 
@@ -280,7 +286,9 @@ public class TableState<C>
         /** Toggle row selection for [index] according to [settings.selectionMode]. */
         public fun toggleSelect(index: Int) {
             when (settings.selectionMode) {
-                SelectionMode.None -> Unit
+                SelectionMode.None -> {
+                    Unit
+                }
 
                 SelectionMode.Single -> {
                     selectedIndex = if (selectedIndex == index) null else index
@@ -361,6 +369,15 @@ public class TableState<C>
             width: Dp,
             source: String,
         ) {
+            // Store header widths separately for preservation during reset
+            if (source == "Header") {
+                val currentHeader = columnHeaderWidths[column]
+                if (currentHeader == null || width > currentHeader) {
+                    logger.v { "AutoWidth: header column=$column updated $currentHeader -> $width" }
+                    columnHeaderWidths[column] = width
+                }
+            }
+
             val current = columnContentMaxWidths[column]
             if (current == null || width > current) {
                 logger.v { "AutoWidth: column=$column updated $current -> $width from $source" }
@@ -383,13 +400,20 @@ public class TableState<C>
          * This method is useful for scenarios with deferred/paginated data loading where initial
          * auto-width calculation happened on empty data. After data loads and content is measured, call
          * this method to recompute column widths based on the actual content.
+         *
+         * Header widths are preserved and used as base values for new measurements.
          */
         public fun recalculateAutoWidths() {
-            logger.v { "AutoWidth: reset flags, clearing ${columnContentMaxWidths.size} measured widths" }
+            logger.v {
+                "AutoWidth: reset flags, clearing ${columnContentMaxWidths.size} measured widths, preserving ${columnHeaderWidths.size} header widths"
+            }
             // Reset flags to allow ApplyAutoWidthEffect to recompute on next frame
             autoWidthAppliedForEmpty = false
             autoWidthAppliedForData = false
+            // Clear row measurements but preserve header widths
             columnContentMaxWidths.clear()
+            // Initialize with header widths as base values
+            columnContentMaxWidths.putAll(columnHeaderWidths)
         }
 
         /** Tracks measured row heights in raw pixels for dynamic, precise scrolling. */

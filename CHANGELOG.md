@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+### 1.7.11 — 2026-01-06
+
+- Fixed: Header widths are now preserved during auto-width recalculation.
+    - Added `columnHeaderWidths` map to store header measurements separately from row measurements.
+    - When `recalculateAutoWidths()` is called, header widths are retained and used as base values.
+    - Previously, calling `recalculateAutoWidths()` would clear all measurements including headers, causing columns to
+      lose header-based sizing since headers only measure once on initial render.
+
+Compare: [v1.7.10...v1.7.11](https://github.com/White-Wind-LLC/table/compare/v1.7.10...v1.7.11)
+
 ### 1.7.10 — 2026-01-06
 
 Add debug logging for column auto-width measurement
