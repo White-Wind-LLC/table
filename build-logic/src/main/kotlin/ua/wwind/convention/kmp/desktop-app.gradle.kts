@@ -22,7 +22,9 @@ compose.desktop {
             val pkgName: String = providers.gradleProperty("desktopPackageName").orNull
                 ?: project.name
             this.packageName = pkgName
+            // Strip any suffix (e.g., -SNAPSHOT, -alpha01) for native package compatibility
             this.packageVersion = libs.findVersion("version-name").get().requiredVersion
+                .substringBefore("-")
 
             targetFormats(
                 TargetFormat.Dmg,

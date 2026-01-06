@@ -14,6 +14,7 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import co.touchlab.kermit.Logger
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableMap
 import kotlinx.collections.immutable.persistentMapOf
@@ -25,6 +26,8 @@ import ua.wwind.table.config.TableDimensions
 import ua.wwind.table.config.TableSettings
 import ua.wwind.table.data.SortOrder
 import ua.wwind.table.filter.data.TableFilterState
+
+private val logger = Logger.withTag("TableAutoWidth")
 
 /** Current sort state: which [column] is sorted and in which [order]. */
 @Immutable
@@ -348,13 +351,19 @@ public class TableState<C>
         /**
          * Update the tracked maximum minimal content width for a [column]. If the provided [width] is
          * greater than the stored value, it will be recorded.
+         *
+         * @param column column key
+         * @param width measured content width
+         * @param source description of the measurement source (e.g. "Header" or "Row[5]")
          */
         public fun updateMaxContentWidth(
             column: C,
             width: Dp,
+            source: String,
         ) {
             val current = columnContentMaxWidths[column]
             if (current == null || width > current) {
+                logger.v { "AutoWidth: column=$column updated $current -> $width from $source" }
                 columnContentMaxWidths[column] = width
             }
         }
@@ -376,6 +385,7 @@ public class TableState<C>
          * this method to recompute column widths based on the actual content.
          */
         public fun recalculateAutoWidths() {
+            logger.v { "AutoWidth: reset flags, clearing ${columnContentMaxWidths.size} measured widths" }
             // Reset flags to allow ApplyAutoWidthEffect to recompute on next frame
             autoWidthAppliedForEmpty = false
             autoWidthAppliedForData = false
