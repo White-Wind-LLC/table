@@ -89,10 +89,12 @@ internal fun <T : Any, C, E> HeaderCell(
 
     // Measure header content minimal width to contribute to max content width for resizable or auto-width columns
     if (spec.resizable || spec.autoWidth) {
+        // Include title text in measureKey so that when localized strings load, re-measurement is triggered
+        val titleText = spec.title?.invoke()
         MeasureCellMinWidth(
             item = Unit,
             tableData = tableData,
-            measureKey = Pair(spec.key, "header"),
+            measureKey = Triple(spec.key, "header", titleText),
             content = { _, _ ->
                 HeaderMeasureContent(spec, info)
             },

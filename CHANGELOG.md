@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+### 1.7.9 — 2026-01-06
+
+- Fixed: trigger header width re-measurement when title text changes. 
+  Previously, headers with lazy-loaded content would only measure once
+  with empty/initial text, causing incorrect column widths on double-click
+  resize.
+
+Compare: [v1.7.8...v1.7.9](https://github.com/White-Wind-LLC/table/compare/v1.7.8...v1.7.9)
+
 ### 1.7.8 — 2026-01-06
 
 - Fixed: Fast Filters row now only displays when at least one visible column has a filter configured.
