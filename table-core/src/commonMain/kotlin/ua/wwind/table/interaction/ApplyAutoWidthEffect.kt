@@ -5,11 +5,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.withFrameNanos
+import co.touchlab.kermit.Logger
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.flow.collectLatest
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.computeAutoWidths
 import ua.wwind.table.state.TableState
+
+private val logger = Logger.withTag("TableAutoWidth")
 
 @Composable
 internal fun <C, T : Any, E> ApplyAutoWidthEffect(
@@ -38,15 +41,23 @@ internal fun <C, T : Any, E> ApplyAutoWidthEffect(
 
             // Phase 1: empty table
             if (!emptyApplied && count == 0 && hasAnyMeasured) {
+                logger.v { "AutoWidth Phase1: empty table, computing widths" }
                 val widths = computeAutoWidths(visibleColumns, state)
-                if (widths.isNotEmpty()) state.setColumnWidths(widths)
+                if (widths.isNotEmpty()) {
+                    logger.v { "AutoWidth Phase1: applying widths=$widths" }
+                    state.setColumnWidths(widths)
+                }
                 state.autoWidthAppliedForEmpty = true
             }
 
             // Phase 2: first visible data
             if (!dataApplied && hasVisibleItems && hasAnyMeasured) {
+                logger.v { "AutoWidth Phase2: first data visible, computing widths (count=$count)" }
                 val widths = computeAutoWidths(visibleColumns, state)
-                if (widths.isNotEmpty()) state.setColumnWidths(widths)
+                if (widths.isNotEmpty()) {
+                    logger.v { "AutoWidth Phase2: applying widths=$widths" }
+                    state.setColumnWidths(widths)
+                }
                 state.autoWidthAppliedForEmpty = true
                 state.autoWidthAppliedForData = true
             }
@@ -84,8 +95,12 @@ internal fun <C, T : Any, E> ApplyAutoWidthEmbeddedEffect(
 
             // Phase 1: empty table
             if (!emptyApplied && count == 0 && hasAnyMeasured) {
+                logger.v { "AutoWidth Embedded Phase1: empty table, computing widths" }
                 val widths = computeAutoWidths(visibleColumns, state)
-                if (widths.isNotEmpty()) state.setColumnWidths(widths)
+                if (widths.isNotEmpty()) {
+                    logger.v { "AutoWidth Embedded Phase1: applying widths=$widths" }
+                    state.setColumnWidths(widths)
+                }
                 state.autoWidthAppliedForEmpty = true
             }
 
@@ -96,8 +111,12 @@ internal fun <C, T : Any, E> ApplyAutoWidthEmbeddedEffect(
                     autoColumns.all { state.columnContentMaxWidths.containsKey(it.key) }
 
                 if (allAutoColumnsHaveMeasurements && autoColumns.isNotEmpty()) {
+                    logger.v { "AutoWidth Embedded Phase2: all columns measured, computing widths (count=$count)" }
                     val widths = computeAutoWidths(visibleColumns, state)
-                    if (widths.isNotEmpty()) state.setColumnWidths(widths)
+                    if (widths.isNotEmpty()) {
+                        logger.v { "AutoWidth Embedded Phase2: applying widths=$widths" }
+                        state.setColumnWidths(widths)
+                    }
                     state.autoWidthAppliedForEmpty = true
                     state.autoWidthAppliedForData = true
                 }

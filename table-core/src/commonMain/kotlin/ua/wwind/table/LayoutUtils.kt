@@ -1,7 +1,10 @@
 package ua.wwind.table
 
 import androidx.compose.ui.unit.Dp
+import co.touchlab.kermit.Logger
 import ua.wwind.table.state.TableState
+
+private val logger = Logger.withTag("TableAutoWidth")
 
 internal fun <C> computeAutoWidths(
     visibleColumns: List<ColumnSpec<*, C, *>>,
@@ -18,6 +21,7 @@ internal fun <C> computeAutoWidths(
                     spec.autoMaxWidth?.let { maxCap ->
                         if (minClamped > maxCap) maxCap else minClamped
                     } ?: minClamped
+                logger.v { "AutoWidth: computed column=${spec.key} measured=$measured base=$base final=$finalWidth" }
                 put(spec.key, finalWidth)
             }
         }
