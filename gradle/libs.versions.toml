@@ -1,6 +1,6 @@
 [versions]
 # --- Project metadata ---
-version-name = "1.7.10-SNAPSHOT"
+version-name = "1.7.10"
 version-date = "06.01.2026"
 android-version-code = "31"
 

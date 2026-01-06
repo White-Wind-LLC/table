@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+### 1.7.10 — 2026-01-06
+
+Add debug logging for column auto-width measurement
+
+- Add verbose-level logging to track auto-width calculation flow
+- Log width updates with source identification (Header/Row[N])
+- Log auto-width reset and recalculation triggers
+- Log computed widths with measured/base/final values
+- Log phase transitions (empty table / first data)
+
+Tag: TableAutoWidth
+
+Compare: [v1.7.9...v1.7.10](https://github.com/White-Wind-LLC/table/compare/v1.7.9...v1.7.10)
+
 ### 1.7.9 — 2026-01-06
 
 - Fixed: trigger header width re-measurement when title text changes. 
