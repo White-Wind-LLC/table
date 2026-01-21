@@ -23,6 +23,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,6 +37,7 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
+import co.touchlab.kermit.Logger
 import kotlinx.collections.immutable.ImmutableList
 import ua.wwind.table.component.ActiveFiltersHeader
 import ua.wwind.table.component.ContextMenuHost
@@ -59,6 +61,7 @@ import ua.wwind.table.interaction.tableKeyboardNavigation
 import ua.wwind.table.platform.getPlatform
 import ua.wwind.table.platform.isMobile
 import ua.wwind.table.state.LocalTableState
+import ua.wwind.table.state.SortState
 import ua.wwind.table.state.TableState
 import ua.wwind.table.state.mapNotNullToImmutable
 import ua.wwind.table.strings.DefaultStrings
@@ -148,11 +151,17 @@ public fun <T : Any, C, E> EditableTable(
     val coroutineScope = rememberCoroutineScope()
     val blockParentScrollConnection = rememberBlockParentScrollConnection()
     val nestedScrollDispatcher = remember { NestedScrollDispatcher() }
+    var rememberedSort by rememberSaveable { mutableStateOf<SortState<C>?>(null) }
 
     // Reset cached row heights when dataset size changes
     LaunchedEffect(itemsCount) { state.rowHeightsPx.clear() }
     LaunchedEffect(state.sort) {
-        if (verticalState.canScrollBackward) verticalState.scrollToItem(0)
+        if (state.sort == rememberedSort) return@LaunchedEffect
+        rememberedSort = state.sort
+        if (verticalState.canScrollBackward) {
+            Logger.d { "state.sort performs scroll to top" }
+            verticalState.scrollToItem(0)
+        }
     }
 
     // Set edit mode callbacks
