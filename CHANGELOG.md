@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+### 1.7.12 — 2026-01-21
+
+- Fixed: Prevent redundant scroll to top when sort state is unchanged.
+    - Added state tracking with `rememberSaveable` to detect actual sort changes.
+    - Previously, any `LaunchedEffect` re-execution would trigger scroll to top, even when sort state remained the same.
+    - Now, scroll to top only occurs when the sort state actually changes, improving user experience during recomposition.
+
+Compare: [v1.7.11...v1.7.12](https://github.com/White-Wind-LLC/table/compare/v1.7.11...v1.7.12)
+
 ### 1.7.11 — 2026-01-06
 
 - Fixed: Header widths are now preserved during auto-width recalculation.
