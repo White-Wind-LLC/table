@@ -26,9 +26,9 @@ object PersonFilterMatcher {
             val constraint = stateAny.constraint
             if (constraint == null ||
                 (
-                        stateAny.values == null &&
-                                !constraint.isNullCheck()
-                        )
+                    stateAny.values == null &&
+                        !constraint.isNullCheck()
+                )
             ) {
                 continue
             }
@@ -86,19 +86,39 @@ object PersonFilterMatcher {
         val constraint = st.constraint ?: return true
 
         return when (constraint) {
-            FilterConstraint.GT -> value > (st.values?.getOrNull(0) ?: value)
-            FilterConstraint.GTE -> value >= (st.values?.getOrNull(0) ?: value)
-            FilterConstraint.LT -> value < (st.values?.getOrNull(0) ?: value)
-            FilterConstraint.LTE -> value <= (st.values?.getOrNull(0) ?: value)
-            FilterConstraint.EQUALS -> value == (st.values?.getOrNull(0) ?: value)
-            FilterConstraint.NOT_EQUALS -> value != (st.values?.getOrNull(0) ?: value)
+            FilterConstraint.GT -> {
+                value > (st.values?.getOrNull(0) ?: value)
+            }
+
+            FilterConstraint.GTE -> {
+                value >= (st.values?.getOrNull(0) ?: value)
+            }
+
+            FilterConstraint.LT -> {
+                value < (st.values?.getOrNull(0) ?: value)
+            }
+
+            FilterConstraint.LTE -> {
+                value <= (st.values?.getOrNull(0) ?: value)
+            }
+
+            FilterConstraint.EQUALS -> {
+                value == (st.values?.getOrNull(0) ?: value)
+            }
+
+            FilterConstraint.NOT_EQUALS -> {
+                value != (st.values?.getOrNull(0) ?: value)
+            }
+
             FilterConstraint.BETWEEN -> {
                 val from = st.values?.getOrNull(0) ?: value
                 val to = st.values?.getOrNull(1) ?: value
                 value in from..to
             }
 
-            else -> true
+            else -> {
+                true
+            }
         }
     }
 
@@ -156,19 +176,39 @@ object PersonFilterMatcher {
         val constraint = st.constraint ?: return true
 
         return when (constraint) {
-            FilterConstraint.GT -> value > (st.values?.getOrNull(0) ?: value)
-            FilterConstraint.GTE -> value >= (st.values?.getOrNull(0) ?: value)
-            FilterConstraint.LT -> value < (st.values?.getOrNull(0) ?: value)
-            FilterConstraint.LTE -> value <= (st.values?.getOrNull(0) ?: value)
-            FilterConstraint.EQUALS -> value == (st.values?.getOrNull(0) ?: value)
-            FilterConstraint.NOT_EQUALS -> value != (st.values?.getOrNull(0) ?: value)
+            FilterConstraint.GT -> {
+                value > (st.values?.getOrNull(0) ?: value)
+            }
+
+            FilterConstraint.GTE -> {
+                value >= (st.values?.getOrNull(0) ?: value)
+            }
+
+            FilterConstraint.LT -> {
+                value < (st.values?.getOrNull(0) ?: value)
+            }
+
+            FilterConstraint.LTE -> {
+                value <= (st.values?.getOrNull(0) ?: value)
+            }
+
+            FilterConstraint.EQUALS -> {
+                value == (st.values?.getOrNull(0) ?: value)
+            }
+
+            FilterConstraint.NOT_EQUALS -> {
+                value != (st.values?.getOrNull(0) ?: value)
+            }
+
             FilterConstraint.BETWEEN -> {
                 val from = st.values?.getOrNull(0) ?: value
                 val to = st.values?.getOrNull(1) ?: value
                 from <= value && value <= to
             }
 
-            else -> true
+            else -> {
+                true
+            }
         }
     }
 

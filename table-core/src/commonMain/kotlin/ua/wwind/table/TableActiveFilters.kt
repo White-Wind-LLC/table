@@ -222,7 +222,9 @@ private fun buildFilterChipTextUnsafe(
                     "${strings.get(constraint.toUiString())} $joined"
                 }
 
-                else -> null
+                else -> {
+                    null
+                }
             }
         }
 
@@ -233,6 +235,8 @@ private fun buildFilterChipTextUnsafe(
             customFilter.stateProvider.buildChipText(s)
         }
 
-        TableFilterType.DisabledTableFilter -> null
+        TableFilterType.DisabledTableFilter -> {
+            null
+        }
     }
 }

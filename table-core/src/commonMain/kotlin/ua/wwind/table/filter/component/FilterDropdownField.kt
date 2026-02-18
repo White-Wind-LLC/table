@@ -98,7 +98,9 @@ public fun <E : Enum<E>> FilterDropdownField(
                         DropdownMenuItem(
                             text = {
                                 when (checked) {
-                                    null -> Text(getTitle(enum))
+                                    null -> {
+                                        Text(getTitle(enum))
+                                    }
 
                                     else -> {
                                         Row(

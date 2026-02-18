@@ -80,7 +80,7 @@ class SampleViewModel : ViewModel() {
 
     // Conditional formatting rules (editable via dialog)
     var rules by
-    mutableStateOf(DefaultFormatRulesProvider.createDefaultRules())
+        mutableStateOf(DefaultFormatRulesProvider.createDefaultRules())
         private set
 
     // Dialog visibility
@@ -120,8 +120,8 @@ class SampleViewModel : ViewModel() {
     /** Update formatting rules */
     fun updateRules(
         newRules: ImmutableList<
-                TableFormatRule<PersonColumn, Map<PersonColumn, TableFilterState<*>>>,
-                >,
+            TableFormatRule<PersonColumn, Map<PersonColumn, TableFilterState<*>>>,
+        >,
     ) {
         rules = newRules
     }

@@ -258,10 +258,18 @@ private class NumericRangeFilterRenderer : CustomFilterRenderer<NumericRangeFilt
 
         val selectedOption =
             when {
-                current == null -> 3 // All
-                current.max <= 50000 -> 0 // < 50k
-                current.min >= 50000 && current.max <= 100000 -> 1 // 50k-100k
-                current.min >= 100000 -> 2 // > 100k
+                current == null -> 3
+
+                // All
+                current.max <= 50000 -> 0
+
+                // < 50k
+                current.min >= 50000 && current.max <= 100000 -> 1
+
+                // 50k-100k
+                current.min >= 100000 -> 2
+
+                // > 100k
                 else -> 3 // Custom/All
             }
 
@@ -288,6 +296,7 @@ private class NumericRangeFilterRenderer : CustomFilterRenderer<NumericRangeFilt
                                     ),
                                 )
                             }
+
                             1 -> {
                                 // 50k-100k
                                 onChange(
@@ -303,6 +312,7 @@ private class NumericRangeFilterRenderer : CustomFilterRenderer<NumericRangeFilt
                                     ),
                                 )
                             }
+
                             2 -> {
                                 // > 100k
                                 onChange(
@@ -318,6 +328,7 @@ private class NumericRangeFilterRenderer : CustomFilterRenderer<NumericRangeFilt
                                     ),
                                 )
                             }
+
                             3 -> {
                                 // All - clear filter
                                 onChange(null)
