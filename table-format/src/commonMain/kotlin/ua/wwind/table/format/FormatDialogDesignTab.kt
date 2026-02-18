@@ -16,6 +16,7 @@ import ua.wwind.table.format.data.TableFormatHorizontalAlignment
 import ua.wwind.table.format.data.TableFormatRule
 import ua.wwind.table.format.data.TableFormatTextStyle
 import ua.wwind.table.format.data.TableFormatVerticalAlignment
+import ua.wwind.table.format.scrollbar.VerticalScrollbarRenderer
 import ua.wwind.table.strings.StringProvider
 import ua.wwind.table.strings.UiString
 
@@ -24,6 +25,7 @@ public fun <E : Enum<E>, FILTER> FormatDialogDesignTab(
     item: TableFormatRule<E, FILTER>,
     onChange: (TableFormatRule<E, FILTER>) -> Unit,
     strings: StringProvider,
+    scrollbarRenderer: VerticalScrollbarRenderer? = null,
 ) {
     Column(
         modifier = Modifier.padding(top = 8.dp),
@@ -40,6 +42,7 @@ public fun <E : Enum<E>, FILTER> FormatDialogDesignTab(
                 onChange(item.copy(cellStyle = item.cellStyle.copy(textStyle = value)))
             },
             modifier = Modifier.fillMaxWidth(),
+            scrollbarRenderer = scrollbarRenderer,
         )
         FormatColorField(
             color = item.cellStyle.contentColor?.toColor(),
@@ -50,6 +53,7 @@ public fun <E : Enum<E>, FILTER> FormatDialogDesignTab(
             },
             modifier = Modifier.fillMaxWidth(),
             strings = strings,
+            scrollbarRenderer = scrollbarRenderer,
         )
         FormatColorField(
             color = item.cellStyle.backgroundColor?.toColor(),
@@ -59,6 +63,7 @@ public fun <E : Enum<E>, FILTER> FormatDialogDesignTab(
             },
             modifier = Modifier.fillMaxWidth(),
             strings = strings,
+            scrollbarRenderer = scrollbarRenderer,
         )
         FormatDropdownField(
             currentValue = item.cellStyle.vertical,
@@ -71,6 +76,7 @@ public fun <E : Enum<E>, FILTER> FormatDialogDesignTab(
                 onChange(item.copy(cellStyle = item.cellStyle.copy(vertical = value)))
             },
             modifier = Modifier.fillMaxWidth(),
+            scrollbarRenderer = scrollbarRenderer,
         )
         FormatDropdownField(
             currentValue = item.cellStyle.horizontal,
@@ -83,6 +89,7 @@ public fun <E : Enum<E>, FILTER> FormatDialogDesignTab(
                 onChange(item.copy(cellStyle = item.cellStyle.copy(horizontal = value)))
             },
             modifier = Modifier.fillMaxWidth(),
+            scrollbarRenderer = scrollbarRenderer,
         )
     }
 }

@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -70,6 +71,8 @@ import ua.wwind.table.filter.data.TableFilterType
 import ua.wwind.table.filter.data.isNullCheck
 import ua.wwind.table.filter.data.toUiString
 import ua.wwind.table.format.data.TableFormatRule
+import ua.wwind.table.format.scrollbar.VerticalScrollbarRenderer
+import ua.wwind.table.format.scrollbar.VerticalScrollbarState
 import ua.wwind.table.strings.StringProvider
 import ua.wwind.table.strings.UiString
 import kotlin.time.ExperimentalTime
@@ -83,6 +86,7 @@ public fun <E : Enum<E>, FILTER> FormatDialogConditionTab(
     filters: (TableFormatRule<E, FILTER>, onApply: (TableFormatRule<E, FILTER>) -> Unit) -> List<FormatFilterData<E>>,
     onChange: (TableFormatRule<E, FILTER>) -> Unit,
     strings: StringProvider,
+    scrollbarRenderer: VerticalScrollbarRenderer? = null,
 ) {
     Box(
         modifier = Modifier.fillMaxSize(),
@@ -228,6 +232,13 @@ public fun <E : Enum<E>, FILTER> FormatDialogConditionTab(
                     HorizontalDivider()
                 }
             }
+            scrollbarRenderer?.Render(
+                modifier =
+                    Modifier
+                        .align(Alignment.TopEnd)
+                        .fillMaxHeight(),
+                state = VerticalScrollbarState.LazyList(listState),
+            )
         }
     }
 }
