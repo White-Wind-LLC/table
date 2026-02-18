@@ -2,6 +2,36 @@
 
 All notable changes to this project will be documented in this file.
 
+### 1.7.13 — 2026-02-18
+
+- Added: Null-check filter support (IS_NULL / IS_NOT_NULL) for text, number, and date filters.
+    - Added `FilterConstraint.isNullCheck()` extension function to identify null-checking constraints.
+    - Added `TableFilterState.isActive()` extension function to determine if a filter should be shown as active in the
+      UI.
+    - Filter UI now hides input fields when null constraint is selected (text, number filters).
+    - Previously, filters with null constraints would not display properly in active filter chips.
+- Fixed: Active filter chips now correctly display null-check filters.
+    - Previously, filters with IS_NULL/IS_NOT_NULL constraints had empty values list and were not shown as active.
+    - Now these filters are properly recognized as active and displayed in the active filters row.
+- Changed: Active filters row now uses scrollable LazyRow with navigation arrows.
+    - "Clear all" chip is now fixed on the left while filter chips can scroll horizontally.
+    - Left/right arrow buttons appear when filters overflow the available width.
+    - Improves usability when many filters are active simultaneously.
+- Added: Date filter support in conditional formatting dialog.
+    - Full date filter UI with date picker, constraint selection, and range support.
+    - Supports IS_NULL and IS_NOT_NULL constraints for conditional formatting rules.
+- Added: Vertical scrollbar support for formatting dialogs.
+    - New `VerticalScrollbarRenderer` and `VerticalScrollbarState` for custom scrollbar rendering.
+    - Optional `scrollbarRenderer` parameter added to `FormatDialog` and `FormatDialogConditionTab`.
+    - Enables proper scrollbar integration in desktop environments.
+- Changed: Updated Kotlin to 2.3.10 and Compose Multiplatform to 1.10.1.
+    - AndroidX Activity Compose updated from 1.12.2 to 1.12.4.
+    - Paging for KMP updated from 2.2.3 to 2.2.6.
+    - Liquid updated from 1.1.0 to 1.1.1.
+    - Kover (code coverage) updated from 0.9.4 to 0.9.7.
+
+Compare: [v1.7.12...v1.7.13](https://github.com/White-Wind-LLC/table/compare/v1.7.12...v1.7.13)
+
 ### 1.7.12 — 2026-01-21
 
 - Fixed: Prevent redundant scroll to top when sort state is unchanged.
