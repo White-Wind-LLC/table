@@ -70,10 +70,10 @@ Add repository (usually `mavenCentral`) and include the modules you need:
 
 ```kotlin
 dependencies {
-    implementation("ua.wwind.table-kmp:table-core:1.7.12")
+    implementation("ua.wwind.table-kmp:table-core:1.7.13")
     // optional
-    implementation("ua.wwind.table-kmp:table-format:1.7.12")
-    implementation("ua.wwind.table-kmp:table-paging:1.7.12")
+    implementation("ua.wwind.table-kmp:table-format:1.7.13")
+    implementation("ua.wwind.table-kmp:table-paging:1.7.13")
 }
 ```
 
@@ -101,6 +101,7 @@ The following table lists compatibility information for released library version
 
 | Version | Kotlin | Compose Multiplatform |
 |---------|-------:|----------------------:|
+| 1.7.13  | 2.3.10 |                1.10.1 |
 | 1.7.4   |  2.3.0 |                 1.9.3 |
 | 1.4.0   | 2.2.21 |                 1.9.3 |
 | 1.3.1   | 2.2.21 |                 1.9.2 |
@@ -599,10 +600,11 @@ column(PersonField.Name, valueOf = { it.name }) {
 
 ### Filters (built‑in types)
 
-- **TextTableFilter**: contains/starts/ends/equals.
-- **NumberTableFilter(Int/Double)**: gt/gte/lt/lte/equals/not_equals/between + optional range slider via `rangeOptions`.
+- **TextTableFilter**: contains/starts/ends/equals/is_null/is_not_null.
+- **NumberTableFilter(Int/Double)**: gt/gte/lt/lte/equals/not_equals/between/is_null/is_not_null + optional range slider
+  via `rangeOptions`.
 - **BooleanTableFilter**: equals; optional `getTitle(BooleanType)`.
-- **DateTableFilter**: gt/gte/lt/lte/equals/between (uses `kotlinx.datetime.LocalDate`).
+- **DateTableFilter**: gt/gte/lt/lte/equals/between/is_null/is_not_null (uses `kotlinx.datetime.LocalDate`).
 - **EnumTableFilter<T: Enum<T>>**: in/not_in/equals with `options: List<T>` and `getTitle(T)`.
 - **CustomTableFilter<T, E>**: fully custom filter UI and state with access to table data. Implement
   `CustomFilterRenderer<T, E>` for main panel and
@@ -988,6 +990,9 @@ Public API highlights:
 - `TableFormatRule<FIELD, FILTER>` with `columns: List<FIELD>`, `cellStyle: TableCellStyleConfig`, `filter: FILTER`.
 - `FormatDialog(...)` and `FormatDialogSettings` for UX tweaks.
 - `FormatFilterData<E>` to describe per‑field filter controls in the dialog.
+- `FilterConstraint.isNullCheck()` extension function to check for IS_NULL/IS_NOT_NULL constraints.
+- `TableFilterState.isActive()` extension function to determine if a filter is active.
+- `VerticalScrollbarRenderer` and `VerticalScrollbarState` for custom scrollbar rendering in formatting dialogs.
 
 ### Supported targets
 
