@@ -249,6 +249,7 @@ private fun FormatTextFilter(
             },
             placeholder = { Text(strings.get(UiString.FilterSearchPlaceholder)) },
             singleLine = true,
+            modifier = Modifier.fillMaxWidth(),
         )
     }
 }
