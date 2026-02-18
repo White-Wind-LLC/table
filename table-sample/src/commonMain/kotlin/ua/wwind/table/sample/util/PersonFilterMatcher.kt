@@ -3,6 +3,7 @@ package ua.wwind.table.sample.util
 import kotlinx.datetime.LocalDate
 import ua.wwind.table.filter.data.FilterConstraint
 import ua.wwind.table.filter.data.TableFilterState
+import ua.wwind.table.filter.data.isNullCheck
 import ua.wwind.table.sample.column.PersonColumn
 import ua.wwind.table.sample.filter.NumericRangeFilterState
 import ua.wwind.table.sample.model.Person
@@ -22,11 +23,11 @@ object PersonFilterMatcher {
     ): Boolean {
         for ((column, stateAny) in filters) {
             // If state has no constraint or values, skip this field (not restrictive)
-            if (stateAny.constraint == null ||
+            val constraint = stateAny.constraint
+            if (constraint == null ||
                 (
                     stateAny.values == null &&
-                        stateAny.constraint != FilterConstraint.IS_NULL &&
-                        stateAny.constraint != FilterConstraint.IS_NOT_NULL
+                        !constraint.isNullCheck()
                 )
             ) {
                 continue
@@ -58,7 +59,7 @@ object PersonFilterMatcher {
     }
 
     private fun matchesTextField(
-        value: String,
+        value: String?,
         state: TableFilterState<*>,
     ): Boolean {
         val st = state as TableFilterState<String>
@@ -66,11 +67,13 @@ object PersonFilterMatcher {
         val constraint = st.constraint ?: return true
 
         return when (constraint) {
-            FilterConstraint.CONTAINS -> value.contains(query, ignoreCase = true)
-            FilterConstraint.STARTS_WITH -> value.startsWith(query, ignoreCase = true)
-            FilterConstraint.ENDS_WITH -> value.endsWith(query, ignoreCase = true)
-            FilterConstraint.EQUALS -> value.equals(query, ignoreCase = true)
-            FilterConstraint.NOT_EQUALS -> !value.equals(query, ignoreCase = true)
+            FilterConstraint.CONTAINS -> value?.contains(query, ignoreCase = true) == true
+            FilterConstraint.STARTS_WITH -> value?.startsWith(query, ignoreCase = true) == true
+            FilterConstraint.ENDS_WITH -> value?.endsWith(query, ignoreCase = true) == true
+            FilterConstraint.EQUALS -> value?.equals(query, ignoreCase = true) == true
+            FilterConstraint.NOT_EQUALS -> value?.equals(query, ignoreCase = true) != true
+            FilterConstraint.IS_NULL -> value.isNullOrEmpty()
+            FilterConstraint.IS_NOT_NULL -> !value.isNullOrEmpty()
             else -> true
         }
     }
@@ -83,19 +86,39 @@ object PersonFilterMatcher {
         val constraint = st.constraint ?: return true
 
         return when (constraint) {
-            FilterConstraint.GT -> value > (st.values?.getOrNull(0) ?: value)
-            FilterConstraint.GTE -> value >= (st.values?.getOrNull(0) ?: value)
-            FilterConstraint.LT -> value < (st.values?.getOrNull(0) ?: value)
-            FilterConstraint.LTE -> value <= (st.values?.getOrNull(0) ?: value)
-            FilterConstraint.EQUALS -> value == (st.values?.getOrNull(0) ?: value)
-            FilterConstraint.NOT_EQUALS -> value != (st.values?.getOrNull(0) ?: value)
+            FilterConstraint.GT -> {
+                value > (st.values?.getOrNull(0) ?: value)
+            }
+
+            FilterConstraint.GTE -> {
+                value >= (st.values?.getOrNull(0) ?: value)
+            }
+
+            FilterConstraint.LT -> {
+                value < (st.values?.getOrNull(0) ?: value)
+            }
+
+            FilterConstraint.LTE -> {
+                value <= (st.values?.getOrNull(0) ?: value)
+            }
+
+            FilterConstraint.EQUALS -> {
+                value == (st.values?.getOrNull(0) ?: value)
+            }
+
+            FilterConstraint.NOT_EQUALS -> {
+                value != (st.values?.getOrNull(0) ?: value)
+            }
+
             FilterConstraint.BETWEEN -> {
                 val from = st.values?.getOrNull(0) ?: value
                 val to = st.values?.getOrNull(1) ?: value
                 value in from..to
             }
 
-            else -> true
+            else -> {
+                true
+            }
         }
     }
 
@@ -153,19 +176,39 @@ object PersonFilterMatcher {
         val constraint = st.constraint ?: return true
 
         return when (constraint) {
-            FilterConstraint.GT -> value > (st.values?.getOrNull(0) ?: value)
-            FilterConstraint.GTE -> value >= (st.values?.getOrNull(0) ?: value)
-            FilterConstraint.LT -> value < (st.values?.getOrNull(0) ?: value)
-            FilterConstraint.LTE -> value <= (st.values?.getOrNull(0) ?: value)
-            FilterConstraint.EQUALS -> value == (st.values?.getOrNull(0) ?: value)
-            FilterConstraint.NOT_EQUALS -> value != (st.values?.getOrNull(0) ?: value)
+            FilterConstraint.GT -> {
+                value > (st.values?.getOrNull(0) ?: value)
+            }
+
+            FilterConstraint.GTE -> {
+                value >= (st.values?.getOrNull(0) ?: value)
+            }
+
+            FilterConstraint.LT -> {
+                value < (st.values?.getOrNull(0) ?: value)
+            }
+
+            FilterConstraint.LTE -> {
+                value <= (st.values?.getOrNull(0) ?: value)
+            }
+
+            FilterConstraint.EQUALS -> {
+                value == (st.values?.getOrNull(0) ?: value)
+            }
+
+            FilterConstraint.NOT_EQUALS -> {
+                value != (st.values?.getOrNull(0) ?: value)
+            }
+
             FilterConstraint.BETWEEN -> {
                 val from = st.values?.getOrNull(0) ?: value
                 val to = st.values?.getOrNull(1) ?: value
                 from <= value && value <= to
             }
 
-            else -> true
+            else -> {
+                true
+            }
         }
     }
 

@@ -93,7 +93,9 @@ internal fun <E : Enum<E>> EnumFilter(
             // No value selection needed for null checks
         }
 
-        else -> error("Unsupported constraint for enum filter: ${enumFilterState.constraint}")
+        else -> {
+            error("Unsupported constraint for enum filter: ${enumFilterState.constraint}")
+        }
     }
 
     FilterPanelActions(

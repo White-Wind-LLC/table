@@ -220,8 +220,10 @@ fun SampleApp(modifier: Modifier = Modifier) {
                                         viewModel.onEvent(SampleUiEvent.CancelEditing)
                                     },
                                     useCompactMode = tableConfig.useCompactMode,
-                                    modifier = Modifier.padding(16.dp)
-                                        .liquefiable(liquidState),
+                                    modifier =
+                                        Modifier
+                                            .padding(16.dp)
+                                            .liquefiable(liquidState),
                                 )
                             }
 

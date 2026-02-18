@@ -4,11 +4,15 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Arrangement.spacedBy
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -18,6 +22,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material.icons.rounded.ArrowDropUp
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -26,10 +33,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RangeSlider
+import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,16 +55,28 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
 import kotlinx.datetime.LocalDate
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.atStartOfDayIn
+import kotlinx.datetime.format
+import kotlinx.datetime.toLocalDateTime
+import ua.wwind.table.component.TableTextField
+import ua.wwind.table.component.TableTextFieldDefaults
 import ua.wwind.table.filter.component.FilterDropdownAnyField
 import ua.wwind.table.filter.component.FilterDropdownField
+import ua.wwind.table.filter.component.collectAsEffect
 import ua.wwind.table.filter.data.BooleanType
 import ua.wwind.table.filter.data.FilterConstraint
 import ua.wwind.table.filter.data.TableFilterState
 import ua.wwind.table.filter.data.TableFilterType
+import ua.wwind.table.filter.data.isNullCheck
 import ua.wwind.table.filter.data.toUiString
 import ua.wwind.table.format.data.TableFormatRule
+import ua.wwind.table.format.scrollbar.VerticalScrollbarRenderer
+import ua.wwind.table.format.scrollbar.VerticalScrollbarState
 import ua.wwind.table.strings.StringProvider
 import ua.wwind.table.strings.UiString
+import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 
 @Suppress("LongMethod", "CyclomaticComplexMethod", "UNCHECKED_CAST")
 @Composable
@@ -63,6 +86,7 @@ public fun <E : Enum<E>, FILTER> FormatDialogConditionTab(
     filters: (TableFormatRule<E, FILTER>, onApply: (TableFormatRule<E, FILTER>) -> Unit) -> List<FormatFilterData<E>>,
     onChange: (TableFormatRule<E, FILTER>) -> Unit,
     strings: StringProvider,
+    scrollbarRenderer: VerticalScrollbarRenderer? = null,
 ) {
     Box(
         modifier = Modifier.fillMaxSize(),
@@ -165,7 +189,7 @@ public fun <E : Enum<E>, FILTER> FormatDialogConditionTab(
                                     is TableFilterType.DateTableFilter -> {
                                         FormatDateFilter(
                                             filter = filter,
-                                            state = filterData.filterState as TableFilterState<kotlinx.datetime.LocalDate>,
+                                            state = filterData.filterState as TableFilterState<LocalDate>,
                                             onChange = { newState -> filterData.onChange(newState as TableFilterState<*>) },
                                             strings = strings,
                                         )
@@ -208,6 +232,13 @@ public fun <E : Enum<E>, FILTER> FormatDialogConditionTab(
                     HorizontalDivider()
                 }
             }
+            scrollbarRenderer?.Render(
+                modifier =
+                    Modifier
+                        .align(Alignment.TopEnd)
+                        .fillMaxHeight(),
+                state = VerticalScrollbarState.LazyList(listState),
+            )
         }
     }
 }
@@ -249,6 +280,7 @@ private fun FormatTextFilter(
             },
             placeholder = { Text(strings.get(UiString.FilterSearchPlaceholder)) },
             singleLine = true,
+            modifier = Modifier.fillMaxWidth(),
         )
     }
 }
@@ -302,16 +334,202 @@ private fun FormatBooleanFilter(
     }
 }
 
-@Suppress("FunctionNaming", "LongParameterList", "UnusedParameter")
+@OptIn(FlowPreview::class)
+@Suppress("FunctionNaming", "LongParameterList")
 @Composable
 private fun FormatDateFilter(
     filter: TableFilterType.DateTableFilter,
-    state: TableFilterState<kotlinx.datetime.LocalDate>,
-    onChange: (TableFilterState<kotlinx.datetime.LocalDate>) -> Unit,
+    state: TableFilterState<LocalDate>,
+    onChange: (TableFilterState<LocalDate>) -> Unit,
     strings: StringProvider,
 ) {
-    // Not implemented for now.
+    var constraint by remember { mutableStateOf(state.constraint ?: filter.constraints.first()) }
+    var firstDate by remember { mutableStateOf(state.values?.getOrNull(0)) }
+    var secondDate by remember {
+        mutableStateOf(
+            if (constraint == FilterConstraint.BETWEEN) {
+                state.values?.getOrNull(1)
+            } else {
+                null
+            },
+        )
+    }
+    val isNullConstraint = constraint.isNullCheck()
+    val isBetween = constraint == FilterConstraint.BETWEEN
+    LaunchedEffect(Unit) {
+        snapshotFlow { Triple(constraint, firstDate, secondDate) }
+            .drop(1)
+            .distinctUntilChanged()
+            .collect { (currentConstraint, currentFirst, currentSecond) ->
+                val values =
+                    when (currentConstraint) {
+                        FilterConstraint.BETWEEN -> {
+                            if (currentFirst != null && currentSecond != null) {
+                                listOf(currentFirst, currentSecond)
+                            } else {
+                                null
+                            }
+                        }
+
+                        FilterConstraint.IS_NULL, FilterConstraint.IS_NOT_NULL -> {
+                            emptyList()
+                        }
+
+                        else -> {
+                            currentFirst?.let { listOf(it) }
+                        }
+                    }
+                onChange(TableFilterState(currentConstraint, values))
+            }
+    }
+    Column(
+        modifier = Modifier.padding(vertical = 8.dp),
+        verticalArrangement = spacedBy(8.dp),
+    ) {
+        FilterDropdownField(
+            currentValue = constraint,
+            getTitle = { c -> strings.get(c.toUiString()) },
+            values = filter.constraints,
+            onClick = { newConstraint ->
+                constraint = newConstraint
+                if (newConstraint != FilterConstraint.BETWEEN) {
+                    secondDate = null
+                }
+            },
+            modifier = Modifier.fillMaxWidth(),
+        )
+        if (!isNullConstraint) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = spacedBy(8.dp),
+            ) {
+                DateField(
+                    value = firstDate,
+                    onDateSelected = { selectedDate ->
+                        firstDate = selectedDate
+                    },
+                    modifier = Modifier.weight(1f),
+                    label = { Text(strings.get(UiString.FilterRangeFromPlaceholder)) },
+                    onClear = { firstDate = null },
+                    strings = strings,
+                )
+                if (isBetween) {
+                    DateField(
+                        value = secondDate,
+                        onDateSelected = { selectedDate ->
+                            secondDate = selectedDate
+                        },
+                        modifier = Modifier.weight(1f),
+                        label = { Text(strings.get(UiString.FilterRangeToPlaceholder)) },
+                        onClear = { secondDate = null },
+                        strings = strings,
+                    )
+                }
+            }
+        }
+    }
 }
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalTime::class)
+@Composable
+private fun DateField(
+    value: LocalDate?,
+    onDateSelected: (LocalDate) -> Unit,
+    modifier: Modifier = Modifier,
+    label: @Composable (() -> Unit)? = null,
+    onClear: () -> Unit = {},
+    dateValidator: (Long) -> Boolean = { true },
+    strings: StringProvider,
+    contentPadding: PaddingValues = TableTextFieldDefaults.contentPadding(),
+    showBorder: Boolean = true,
+) {
+    var showDatePickerDialog by remember { mutableStateOf(false) }
+    val interactionSource = remember { MutableInteractionSource() }
+    interactionSource.interactions.collectAsEffect {
+        if (it is PressInteraction.Release) showDatePickerDialog = true
+    }
+    val datePickerState =
+        rememberDatePickerState(
+            initialSelectedDateMillis = value?.atStartOfDayIn(TimeZone.UTC)?.epochSeconds?.times(1000),
+            yearRange = IntRange(1, 2100),
+            selectableDates =
+                object : SelectableDates {
+                    override fun isSelectableDate(utcTimeMillis: Long): Boolean = dateValidator(utcTimeMillis)
+                },
+        )
+    TableTextField(
+        value = value?.toFormatString().orEmpty(),
+        onValueChange = {},
+        placeholder =
+            label ?: {
+                Text(text = strings.get(UiString.DatePickerSelectDate), maxLines = 1)
+            },
+        readOnly = true,
+        interactionSource = interactionSource,
+        modifier = modifier,
+        singleLine = true,
+        contentPadding = contentPadding,
+        showBorder = showBorder,
+    )
+    if (showDatePickerDialog) {
+        val confirmEnabled by remember { derivedStateOf { datePickerState.selectedDateMillis != null } }
+        DatePickerDialog(
+            onDismissRequest = {
+                showDatePickerDialog = false
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDatePickerDialog = false
+                        datePickerState.selectedDateMillis?.let {
+                            onDateSelected(
+                                Instant
+                                    .fromEpochMilliseconds(it)
+                                    .toLocalDateTime(TimeZone.currentSystemDefault())
+                                    .date,
+                            )
+                        }
+                    },
+                    enabled = confirmEnabled,
+                ) {
+                    Text(strings.get(UiString.DatePickerConfirm))
+                }
+            },
+            dismissButton = {
+                Row {
+                    TextButton(
+                        onClick = {
+                            showDatePickerDialog = false
+                            onClear()
+                        },
+                    ) {
+                        Text(strings.get(UiString.DatePickerClear))
+                    }
+                    TextButton(
+                        onClick = {
+                            showDatePickerDialog = false
+                        },
+                    ) {
+                        Text(strings.get(UiString.DatePickerCancel))
+                    }
+                }
+            },
+        ) {
+            DatePicker(state = datePickerState)
+        }
+    }
+}
+
+private fun LocalDate.toFormatString(): String =
+    this.format(
+        LocalDate.Format {
+            day()
+            chars(".")
+            monthNumber()
+            chars(".")
+            year()
+        },
+    )
 
 @OptIn(FlowPreview::class)
 @Suppress("FunctionNaming", "LongParameterList")
@@ -503,6 +721,9 @@ internal fun <E : Enum<E>> buildFilterHeaderTitle(
         is TableFilterType.TextTableFilter -> {
             val fv = filterData.filterState as? TableFilterState<String> ?: return null
             val constraint = fv.constraint ?: return null
+            if (constraint.isNullCheck()) {
+                return strings.get(constraint.toUiString())
+            }
             val value = fv.values?.firstOrNull()?.takeIf { it.isNotBlank() } ?: return null
             "${strings.get(constraint.toUiString())} \"$value\""
         }
@@ -510,15 +731,18 @@ internal fun <E : Enum<E>> buildFilterHeaderTitle(
         is TableFilterType.NumberTableFilter<*> -> {
             val fv = filterData.filterState as? TableFilterState<*> ?: return null
             val constraint = fv.constraint ?: return null
-            val valuesLocal = fv.values
+            if (constraint.isNullCheck()) {
+                return strings.get(constraint.toUiString())
+            }
+            val valuesLocal = fv.values ?: return null
             when {
-                constraint == FilterConstraint.BETWEEN && (valuesLocal?.size ?: 0) >= 2 -> {
-                    val from = valuesLocal!![0]
+                constraint == FilterConstraint.BETWEEN && valuesLocal.size >= 2 -> {
+                    val from = valuesLocal[0]
                     val to = valuesLocal[1]
                     "${strings.get(constraint.toUiString())} $from - $to"
                 }
 
-                valuesLocal?.firstOrNull() != null -> {
+                valuesLocal.firstOrNull() != null -> {
                     "${strings.get(constraint.toUiString())} ${valuesLocal.firstOrNull()}"
                 }
 
@@ -539,13 +763,33 @@ internal fun <E : Enum<E>> buildFilterHeaderTitle(
         is TableFilterType.DateTableFilter -> {
             val fv = filterData.filterState as? TableFilterState<LocalDate> ?: return null
             val constraint = fv.constraint ?: return null
-            val value: LocalDate = fv.values?.firstOrNull() ?: return null
-            "${strings.get(constraint.toUiString())} $value"
+            if (constraint.isNullCheck()) {
+                return strings.get(constraint.toUiString())
+            }
+            val valuesLocal = fv.values ?: return null
+            return when {
+                constraint == FilterConstraint.BETWEEN && valuesLocal.size >= 2 -> {
+                    val from = valuesLocal[0].toFormatString()
+                    val to = valuesLocal[1].toFormatString()
+                    "${strings.get(constraint.toUiString())} $from - $to"
+                }
+
+                valuesLocal.firstOrNull() != null -> {
+                    "${strings.get(constraint.toUiString())} ${valuesLocal.first().toFormatString()}"
+                }
+
+                else -> {
+                    null
+                }
+            }
         }
 
         is TableFilterType.EnumTableFilter<*> -> {
             val fv = filterData.filterState as? TableFilterState<*> ?: return null
             val constraint = fv.constraint ?: return null
+            if (constraint.isNullCheck()) {
+                return strings.get(constraint.toUiString())
+            }
             val value = fv.values ?: return null
             when (constraint) {
                 FilterConstraint.EQUALS -> {
@@ -559,7 +803,9 @@ internal fun <E : Enum<E>> buildFilterHeaderTitle(
                     "${strings.get(constraint.toUiString())} $joined"
                 }
 
-                else -> null
+                else -> {
+                    null
+                }
             }
         }
 
@@ -568,6 +814,8 @@ internal fun <E : Enum<E>> buildFilterHeaderTitle(
             null
         }
 
-        TableFilterType.DisabledTableFilter -> null
+        TableFilterType.DisabledTableFilter -> {
+            null
+        }
     }
 }

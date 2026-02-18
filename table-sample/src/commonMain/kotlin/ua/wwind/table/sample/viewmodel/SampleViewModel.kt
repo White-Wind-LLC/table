@@ -19,7 +19,7 @@ import ua.wwind.table.format.FormatFilterData
 import ua.wwind.table.format.data.TableFormatRule
 import ua.wwind.table.sample.column.PersonColumn
 import ua.wwind.table.sample.data.createDemoData
-import ua.wwind.table.sample.filter.createFilterTypes
+import ua.wwind.table.sample.filter.filterTypes
 import ua.wwind.table.sample.model.Person
 import ua.wwind.table.sample.model.PersonEditState
 import ua.wwind.table.sample.model.PersonTableData
@@ -77,9 +77,6 @@ class SampleViewModel : ViewModel() {
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyList(),
         )
-
-    // Define filter types per field (to drive the format dialog conditions)
-    val filterTypes = createFilterTypes()
 
     // Conditional formatting rules (editable via dialog)
     var rules by

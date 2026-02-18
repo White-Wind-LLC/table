@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import ua.wwind.table.filter.component.collectAsEffect
+import ua.wwind.table.format.scrollbar.VerticalScrollbarRenderer
 import ua.wwind.table.strings.StringProvider
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -33,6 +34,7 @@ internal fun <E : Enum<E>> FormatColorField(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     strings: StringProvider,
+    scrollbarRenderer: VerticalScrollbarRenderer? = null,
 ) {
     var show by remember { mutableStateOf(false) }
     val interactionSource = remember { MutableInteractionSource() }
@@ -78,6 +80,7 @@ internal fun <E : Enum<E>> FormatColorField(
                 show = false
             },
             strings = strings,
+            scrollbarRenderer = scrollbarRenderer,
         )
     }
 }

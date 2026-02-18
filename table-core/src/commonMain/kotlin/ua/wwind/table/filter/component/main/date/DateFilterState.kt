@@ -105,15 +105,21 @@ internal fun rememberDateFilterState(
 
                 val values =
                     when (editingConstraint) {
-                        FilterConstraint.BETWEEN ->
+                        FilterConstraint.BETWEEN -> {
                             if (editingFirstDate != null && editingSecondDate != null) {
                                 listOf(editingFirstDate!!, editingSecondDate!!)
                             } else {
                                 null
                             }
+                        }
 
-                        FilterConstraint.IS_NULL, FilterConstraint.IS_NOT_NULL -> emptyList()
-                        else -> editingFirstDate?.let { listOf(it) }
+                        FilterConstraint.IS_NULL, FilterConstraint.IS_NOT_NULL -> {
+                            emptyList()
+                        }
+
+                        else -> {
+                            editingFirstDate?.let { listOf(it) }
+                        }
                     }
 
                 if (values == null ||
@@ -158,15 +164,21 @@ internal fun rememberDateFilterState(
             applyFilter = {
                 val values =
                     when (editingConstraint) {
-                        FilterConstraint.BETWEEN ->
+                        FilterConstraint.BETWEEN -> {
                             if (editingFirstDate != null && editingSecondDate != null) {
                                 listOf(editingFirstDate!!, editingSecondDate!!)
                             } else {
                                 null
                             }
+                        }
 
-                        FilterConstraint.IS_NULL, FilterConstraint.IS_NOT_NULL -> emptyList()
-                        else -> editingFirstDate?.let { listOf(it) }
+                        FilterConstraint.IS_NULL, FilterConstraint.IS_NOT_NULL -> {
+                            emptyList()
+                        }
+
+                        else -> {
+                            editingFirstDate?.let { listOf(it) }
+                        }
                     }
 
                 if (values == null) {

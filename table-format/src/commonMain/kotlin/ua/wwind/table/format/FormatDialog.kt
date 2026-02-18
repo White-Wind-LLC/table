@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement.SpaceBetween
 import androidx.compose.foundation.layout.Arrangement.spacedBy
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -60,6 +61,8 @@ import ua.wwind.table.format.component.FormatDialogTabRow
 import ua.wwind.table.format.component.RuleTab
 import ua.wwind.table.format.component.TabData
 import ua.wwind.table.format.data.TableFormatRule
+import ua.wwind.table.format.scrollbar.VerticalScrollbarRenderer
+import ua.wwind.table.format.scrollbar.VerticalScrollbarState
 import ua.wwind.table.strings.StringProvider
 import ua.wwind.table.strings.UiString
 
@@ -88,6 +91,7 @@ public fun <E : Enum<E>, FILTER> FormatDialog(
     strings: StringProvider,
     onDismissRequest: () -> Unit,
     settings: FormatDialogSettings = FormatDialogSettings(),
+    scrollbarRenderer: VerticalScrollbarRenderer? = null,
 ) {
     if (!showDialog) return
     val lazyListState = rememberLazyListState()
@@ -243,6 +247,7 @@ public fun <E : Enum<E>, FILTER> FormatDialog(
                                 item = item,
                                 onChange = { newItem -> editItem = EditFormatRule(index, newItem) },
                                 strings = strings,
+                                scrollbarRenderer = scrollbarRenderer,
                             )
                         }
 
@@ -253,6 +258,7 @@ public fun <E : Enum<E>, FILTER> FormatDialog(
                                 filters = filters,
                                 onChange = { newItem -> editItem = EditFormatRule(index, newItem) },
                                 strings = strings,
+                                scrollbarRenderer = scrollbarRenderer,
                             )
                         }
 
@@ -262,6 +268,7 @@ public fun <E : Enum<E>, FILTER> FormatDialog(
                                 entries = entries,
                                 getTitle = getTitle,
                                 onChange = { newItem -> editItem = EditFormatRule(index, newItem) },
+                                scrollbarRenderer = scrollbarRenderer,
                             )
                         }
                     }
@@ -408,6 +415,13 @@ public fun <E : Enum<E>, FILTER> FormatDialog(
                             HorizontalDivider()
                         }
                     }
+                    scrollbarRenderer?.Render(
+                        modifier =
+                            Modifier
+                                .align(Alignment.TopEnd)
+                                .fillMaxHeight(),
+                        state = VerticalScrollbarState.LazyList(lazyListState),
+                    )
                 }
             }
         },

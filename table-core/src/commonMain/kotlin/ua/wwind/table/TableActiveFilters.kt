@@ -1,21 +1,34 @@
 package ua.wwind.table
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.InputChip
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
 import ua.wwind.table.filter.data.FilterConstraint
 import ua.wwind.table.filter.data.TableFilterState
 import ua.wwind.table.filter.data.TableFilterType
+import ua.wwind.table.filter.data.isActive
+import ua.wwind.table.filter.data.isNullCheck
 import ua.wwind.table.state.TableState
 import ua.wwind.table.strings.DefaultStrings
 import ua.wwind.table.strings.StringProvider
@@ -42,11 +55,13 @@ public fun <T : Any, C, E> TableActiveFilters(
 ) {
     val keyToSpec: Map<C, ColumnSpec<T, C, E>> = remember(columns) { columns.associateBy { it.key } }
     val activeFilters: List<Pair<C, TableFilterState<*>>> =
-        state.filters.filter { (_, st) -> st.values?.isEmpty() == false }.toList()
+        state.filters.filter { (_, st) -> st.isActive() }.toList()
     if (activeFilters.isEmpty()) return
+    val listState: LazyListState = rememberLazyListState()
+    val scope = rememberCoroutineScope()
 
     Row(
-        modifier = modifier.padding(horizontal = 8.dp),
+        modifier = modifier.fillMaxWidth().padding(horizontal = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (includeClearAllChip) {
@@ -54,40 +69,89 @@ public fun <T : Any, C, E> TableActiveFilters(
                 selected = true,
                 onClick = {
                     activeFilters.forEach { (col, _) ->
-                        val filterType = keyToSpec[col]?.filter as? TableFilterType<*>
-                        val defaultConstraint = filterType?.constraints?.firstOrNull() ?: FilterConstraint.EQUALS
+                        val filterType = keyToSpec[col]?.filter
+                        val defaultConstraint =
+                            filterType?.constraints?.firstOrNull() ?: FilterConstraint.EQUALS
                         state.setFilter(col, TableFilterState<Any?>(defaultConstraint, null))
                     }
                 },
                 label = { Text(strings.get(UiString.FilterClear)) },
                 trailingIcon = {
                     Icon(
-                        imageVector = androidx.compose.material.icons.Icons.Rounded.Close,
+                        imageVector = Icons.Rounded.Close,
                         contentDescription = null,
                     )
                 },
-                modifier = Modifier.padding(vertical = 4.dp),
+                modifier = Modifier.padding(vertical = 4.dp).padding(end = 4.dp),
             )
         }
-        activeFilters.forEach { (col, st) ->
-            val spec = keyToSpec[col]
-            val title = spec?.title?.invoke() ?: col.toString()
-            val text = spec?.filter?.let { ft -> buildFilterChipTextUnsafe(ft, st, strings) }
-            if (text != null) {
-                InputChip(
-                    selected = true,
-                    onClick = {
-                        val defaultConstraint = spec.filter.constraints.firstOrNull() ?: FilterConstraint.EQUALS
-                        state.setFilter(col, TableFilterState<Any?>(defaultConstraint, null))
-                    },
-                    label = { Text("$title: $text") },
-                    trailingIcon = {
-                        Icon(
-                            imageVector = androidx.compose.material.icons.Icons.Rounded.Close,
-                            contentDescription = null,
+        AnimatedVisibility(
+            visible = listState.canScrollBackward || listState.canScrollForward,
+        ) {
+            IconButton(
+                enabled = listState.canScrollBackward,
+                onClick = {
+                    scope.launch {
+                        val target = (listState.firstVisibleItemIndex - 1).coerceAtLeast(0)
+                        listState.animateScrollToItem(target)
+                    }
+                },
+                modifier = Modifier.padding(end = 4.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowLeft,
+                    contentDescription = null,
+                )
+            }
+        }
+        LazyRow(
+            modifier = Modifier.weight(1f),
+            state = listState,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            activeFilters.forEach { (col, st) ->
+                item {
+                    val spec = keyToSpec[col]
+                    val title = spec?.title?.invoke() ?: col.toString()
+                    val text = spec?.filter?.let { ft -> buildFilterChipTextUnsafe(ft, st, strings) }
+                    if (text != null) {
+                        InputChip(
+                            selected = true,
+                            onClick = {
+                                val defaultConstraint =
+                                    spec.filter.constraints.firstOrNull() ?: FilterConstraint.EQUALS
+                                state.setFilter(col, TableFilterState<Any?>(defaultConstraint, null))
+                            },
+                            label = { Text("$title: $text") },
+                            trailingIcon = {
+                                Icon(
+                                    imageVector = Icons.Rounded.Close,
+                                    contentDescription = null,
+                                )
+                            },
+                            modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp),
                         )
-                    },
-                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp),
+                    }
+                }
+            }
+        }
+        AnimatedVisibility(
+            visible = listState.canScrollBackward || listState.canScrollForward,
+        ) {
+            IconButton(
+                enabled = listState.canScrollForward,
+                onClick = {
+                    scope.launch {
+                        val lastIndex = (activeFilters.size - 1).coerceAtLeast(0)
+                        val target = (listState.firstVisibleItemIndex + 1).coerceAtMost(lastIndex)
+                        listState.animateScrollToItem(target)
+                    }
+                },
+                modifier = Modifier.padding(start = 4.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                    contentDescription = null,
                 )
             }
         }
@@ -101,17 +165,19 @@ private fun buildFilterChipTextUnsafe(
     state: TableFilterState<*>,
     strings: StringProvider,
 ): String? {
+    val constraint = state.constraint ?: return null
+    if (constraint.isNullCheck()) {
+        return strings.get(constraint.toUiString())
+    }
     return when (filterType) {
         is TableFilterType.TextTableFilter -> {
             val s = state as? TableFilterState<String> ?: return null
-            val constraint = s.constraint ?: return null
             val value = s.values?.firstOrNull()?.takeIf { it.isNotBlank() } ?: return null
             "${strings.get(constraint.toUiString())} \"$value\""
         }
 
         is TableFilterType.NumberTableFilter<*> -> {
             val s = state as? TableFilterState<Number> ?: return null
-            val constraint = s.constraint ?: return null
             val list = s.values ?: emptyList()
             if (constraint == FilterConstraint.BETWEEN && list.size >= 2) {
                 val from = list[0]
@@ -133,15 +199,12 @@ private fun buildFilterChipTextUnsafe(
 
         is TableFilterType.DateTableFilter -> {
             val s = state as? TableFilterState<LocalDate> ?: return null
-            val constraint = s.constraint ?: return null
             val value = s.values?.firstOrNull() ?: return null
             "${strings.get(constraint.toUiString())} $value"
         }
 
         is TableFilterType.EnumTableFilter<*> -> {
-            val s = state as? TableFilterState<*> ?: return null
-            val constraint = s.constraint ?: return null
-            val list = s.values ?: return null
+            val list = state.values ?: return null
             when (constraint) {
                 FilterConstraint.EQUALS -> {
                     val single = (list.singleOrNull() as? Enum<*>) ?: return null
@@ -159,7 +222,9 @@ private fun buildFilterChipTextUnsafe(
                     "${strings.get(constraint.toUiString())} $joined"
                 }
 
-                else -> null
+                else -> {
+                    null
+                }
             }
         }
 
@@ -170,6 +235,8 @@ private fun buildFilterChipTextUnsafe(
             customFilter.stateProvider.buildChipText(s)
         }
 
-        TableFilterType.DisabledTableFilter -> null
+        TableFilterType.DisabledTableFilter -> {
+            null
+        }
     }
 }

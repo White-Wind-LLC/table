@@ -13,6 +13,7 @@ import kotlinx.coroutines.delay
 import ua.wwind.table.filter.data.FilterConstraint
 import ua.wwind.table.filter.data.TableFilterState
 import ua.wwind.table.filter.data.TableFilterType
+import ua.wwind.table.filter.data.isNullCheck
 
 /**
  * State holder for number filter components.
@@ -120,7 +121,11 @@ internal fun <T : Number> rememberNumberFilterState(
                     }
 
                     else -> {
-                        if (firstValue != null) {
+                        val isNullConstraint = editingConstraint.isNullCheck()
+
+                        if (isNullConstraint) {
+                            onStateChange(TableFilterState(editingConstraint, emptyList()))
+                        } else if (firstValue != null) {
                             onStateChange(TableFilterState(editingConstraint, listOf(firstValue)))
                         } else if (editingText.isBlank()) {
                             onStateChange(null)
@@ -168,7 +173,11 @@ internal fun <T : Number> rememberNumberFilterState(
                     }
 
                     else -> {
-                        if (firstValue != null) {
+                        val isNullConstraint = editingConstraint.isNullCheck()
+
+                        if (isNullConstraint) {
+                            onStateChange(TableFilterState(editingConstraint, emptyList()))
+                        } else if (firstValue != null) {
                             onStateChange(TableFilterState(editingConstraint, listOf(firstValue)))
                         } else {
                             onStateChange(null)

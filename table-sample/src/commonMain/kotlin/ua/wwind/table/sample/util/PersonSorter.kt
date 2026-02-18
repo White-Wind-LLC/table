@@ -22,19 +22,58 @@ object PersonSorter {
 
         val sortedList =
             when (sort.column) {
-                PersonColumn.NAME -> people.sortedBy { it.name.lowercase() }
-                PersonColumn.AGE -> people.sortedBy { it.age }
-                PersonColumn.ACTIVE -> people.sortedBy { it.active }
-                PersonColumn.ID -> people.sortedBy { it.id }
-                PersonColumn.EMAIL -> people.sortedBy { it.email.lowercase() }
-                PersonColumn.CITY -> people.sortedBy { it.city.lowercase() }
-                PersonColumn.COUNTRY -> people.sortedBy { it.country.lowercase() }
-                PersonColumn.DEPARTMENT -> people.sortedBy { it.department.lowercase() }
-                PersonColumn.POSITION -> people.sortedBy { it.position.name }
-                PersonColumn.SALARY -> people.sortedBy { it.salary }
-                PersonColumn.RATING -> people.sortedBy { it.rating }
-                PersonColumn.HIRE_DATE -> people.sortedBy { it.hireDate }
-                PersonColumn.NOTES -> people.sortedBy { it.notes.lowercase() }
+                PersonColumn.NAME -> {
+                    people.sortedBy { it.name.lowercase() }
+                }
+
+                PersonColumn.AGE -> {
+                    people.sortedBy { it.age }
+                }
+
+                PersonColumn.ACTIVE -> {
+                    people.sortedBy { it.active }
+                }
+
+                PersonColumn.ID -> {
+                    people.sortedBy { it.id }
+                }
+
+                PersonColumn.EMAIL -> {
+                    people.sortedBy { it.email.orEmpty().lowercase() }
+                }
+
+                PersonColumn.CITY -> {
+                    people.sortedBy { it.city.lowercase() }
+                }
+
+                PersonColumn.COUNTRY -> {
+                    people.sortedBy { it.country.lowercase() }
+                }
+
+                PersonColumn.DEPARTMENT -> {
+                    people.sortedBy { it.department.lowercase() }
+                }
+
+                PersonColumn.POSITION -> {
+                    people.sortedBy { it.position.name }
+                }
+
+                PersonColumn.SALARY -> {
+                    people.sortedBy { it.salary }
+                }
+
+                PersonColumn.RATING -> {
+                    people.sortedBy { it.rating }
+                }
+
+                PersonColumn.HIRE_DATE -> {
+                    people.sortedBy { it.hireDate }
+                }
+
+                PersonColumn.NOTES -> {
+                    people.sortedBy { it.notes.lowercase() }
+                }
+
                 PersonColumn.AGE_GROUP -> {
                     people.sortedBy {
                         when {
@@ -45,7 +84,9 @@ object PersonSorter {
                     }
                 }
 
-                else -> people
+                else -> {
+                    people
+                }
             }
 
         return if (sort.order == SortOrder.DESCENDING) {

@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -50,6 +51,8 @@ import com.github.skydoves.colorpicker.compose.BrightnessSlider
 import com.github.skydoves.colorpicker.compose.ColorEnvelope
 import com.github.skydoves.colorpicker.compose.HsvColorPicker
 import com.github.skydoves.colorpicker.compose.rememberColorPickerController
+import ua.wwind.table.format.scrollbar.VerticalScrollbarRenderer
+import ua.wwind.table.format.scrollbar.VerticalScrollbarState
 import ua.wwind.table.format.toColor
 import ua.wwind.table.strings.StringProvider
 import ua.wwind.table.strings.UiString
@@ -62,6 +65,7 @@ internal fun ColorPickerDialog(
     onDismiss: () -> Unit,
     onChooseColor: (Color) -> Unit,
     strings: StringProvider,
+    scrollbarRenderer: VerticalScrollbarRenderer? = null,
 ) {
     var color by remember { mutableStateOf(initialColor) }
     val controller = rememberColorPickerController()
@@ -197,6 +201,10 @@ internal fun ColorPickerDialog(
                         }
                     }
                 }
+                scrollbarRenderer?.Render(
+                    modifier = Modifier.align(Alignment.TopEnd).fillMaxHeight(),
+                    state = VerticalScrollbarState.Scroll(scrollState),
+                )
             }
         },
         properties =
