@@ -35,16 +35,15 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.toImmutableList
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.format
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.component.TableCellTextField
 import ua.wwind.table.component.TableCellTextFieldWithTooltipError
 import ua.wwind.table.editableTableColumns
-import ua.wwind.table.filter.data.TableFilterType
 import ua.wwind.table.sample.config.CellPadding
 import ua.wwind.table.sample.filter.createSalaryRangeFilter
+import ua.wwind.table.sample.filter.filterTypes
 import ua.wwind.table.sample.model.Person
 import ua.wwind.table.sample.model.PersonMovement
 import ua.wwind.table.sample.model.PersonMovementColumn
@@ -138,7 +137,7 @@ fun createTableColumns(
             title { "Name" }
             autoWidth(500.dp)
             sortable()
-            filter(TableFilterType.TextTableFilter())
+            filterTypes[PersonColumn.NAME]?.let { filter(it) }
             cell { item, _ -> Text(item.name, modifier = Modifier.padding(cellPadding)) }
 
             // Editing configuration - table will manage when to show this
@@ -173,12 +172,7 @@ fun createTableColumns(
             title { "Age" }
             autoWidth()
             sortable()
-            filter(
-                TableFilterType.NumberTableFilter(
-                    delegate = TableFilterType.NumberTableFilter.IntDelegate,
-                    rangeOptions = 0 to 100,
-                ),
-            )
+            filterTypes[PersonColumn.AGE]?.let { filter(it) }
             align(Alignment.CenterEnd)
             cell { item, _ ->
                 Text(
@@ -232,7 +226,7 @@ fun createTableColumns(
             title { "Active" }
             autoWidth()
             sortable()
-            filter(TableFilterType.BooleanTableFilter())
+            filterTypes[PersonColumn.ACTIVE]?.let { filter(it) }
             cell { item, _ ->
                 Text(
                     if (item.active) "Yes" else "No",
@@ -256,28 +250,28 @@ fun createTableColumns(
             title { "Email" }
             autoWidth()
             sortable()
-            filter(TableFilterType.TextTableFilter())
-            cell { item, _ -> Text(item.email, modifier = Modifier.padding(cellPadding)) }
+            filterTypes[PersonColumn.EMAIL]?.let { filter(it) }
+            cell { item, _ -> Text(item.email.orEmpty(), modifier = Modifier.padding(cellPadding)) }
         }
         column(PersonColumn.CITY, { it.city }) {
             title { "City" }
             autoWidth(500.dp)
             sortable()
-            filter(TableFilterType.TextTableFilter())
+            filterTypes[PersonColumn.CITY]?.let { filter(it) }
             cell { item, _ -> Text(item.city, modifier = Modifier.padding(cellPadding)) }
         }
         column(PersonColumn.COUNTRY, { it.country }) {
             title { "Country" }
             autoWidth(500.dp)
             sortable()
-            filter(TableFilterType.TextTableFilter())
+            filterTypes[PersonColumn.COUNTRY]?.let { filter(it) }
             cell { item, _ -> Text(item.country, modifier = Modifier.padding(cellPadding)) }
         }
         column(PersonColumn.DEPARTMENT, { it.department }) {
             title { "Department" }
             autoWidth(500.dp)
             sortable()
-            filter(TableFilterType.TextTableFilter())
+            filterTypes[PersonColumn.DEPARTMENT]?.let { filter(it) }
             cell { item, _ ->
                 Text(item.department, modifier = Modifier.padding(cellPadding))
             }
@@ -286,12 +280,7 @@ fun createTableColumns(
             title { "Position" }
             autoWidth(500.dp)
             sortable()
-            filter(
-                TableFilterType.EnumTableFilter(
-                    options = Position.entries.toImmutableList(),
-                    getTitle = { it.displayName },
-                ),
-            )
+            filterTypes[PersonColumn.POSITION]?.let { filter(it) }
             cell { item, _ ->
                 Text(item.position.displayName, modifier = Modifier.padding(cellPadding))
             }
@@ -392,12 +381,7 @@ fun createTableColumns(
             title { "Rating" }
             autoWidth()
             sortable()
-            filter(
-                TableFilterType.NumberTableFilter(
-                    delegate = TableFilterType.NumberTableFilter.IntDelegate,
-                    rangeOptions = 1 to 5,
-                ),
-            )
+            filterTypes[PersonColumn.RATING]?.let { filter(it) }
             align(Alignment.Center)
             cell { item, _ ->
                 Row(
@@ -419,7 +403,7 @@ fun createTableColumns(
             title { "Hire Date" }
             autoWidth()
             sortable()
-            filter(TableFilterType.DateTableFilter())
+            filterTypes[PersonColumn.HIRE_DATE]?.let { filter(it) }
             cell { item, _ ->
                 Text(
                     item.hireDate.format(
@@ -445,7 +429,7 @@ fun createTableColumns(
                 max = 200.dp,
             )
             autoWidth(500.dp)
-            filter(TableFilterType.TextTableFilter())
+            filterTypes[PersonColumn.NOTES]?.let { filter(it) }
             cell { item, _ -> Text(item.notes, modifier = Modifier.padding(cellPadding)) }
         }
 

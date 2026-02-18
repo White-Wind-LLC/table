@@ -12,7 +12,7 @@ data class Person(
     val age: Int,
     val active: Boolean,
     val id: Int,
-    val email: String,
+    val email: String?,
     val city: String,
     val country: String,
     val department: String,
@@ -29,11 +29,13 @@ data class Person(
                 It spans multiple lines to showcase dynamic row height.
                 You can add more content here as needed.
                 """.trimIndent()
+
             id % 7 == 0 ->
                 """
                 This is a sample multi-line note for demo purposes.
                 It spans two lines to showcase dynamic row height.
                 """.trimIndent()
+
             else -> "This is a single-line note."
         },
     val expandedMovement: Boolean = false,

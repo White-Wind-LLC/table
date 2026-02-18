@@ -21,6 +21,7 @@ import ua.wwind.table.filter.component.FilterPanelActions
 import ua.wwind.table.filter.data.FilterConstraint
 import ua.wwind.table.filter.data.TableFilterState
 import ua.wwind.table.filter.data.TableFilterType
+import ua.wwind.table.filter.data.isNullCheck
 import ua.wwind.table.strings.StringProvider
 import ua.wwind.table.strings.UiString
 
@@ -50,6 +51,7 @@ internal fun <T : Number> NumberFilter(
             onStateChange = onChange,
         )
 
+    val isNullConstraint = numberFilterState.constraint.isNullCheck()
     val isBetween = numberFilterState.constraint == FilterConstraint.BETWEEN
     val min = filter.rangeOptions?.first ?: filter.delegate.default
     val max = filter.rangeOptions?.second ?: filter.delegate.default
@@ -72,50 +74,52 @@ internal fun <T : Number> NumberFilter(
         },
     )
 
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        TableTextField(
-            value = numberFilterState.text,
-            onValueChange = numberFilterState.onTextChange,
-            placeholder = {
-                Text(
-                    strings.get(
-                        if (isBetween) {
-                            UiString.FilterRangeFromPlaceholder
-                        } else {
-                            UiString.FilterEnterNumberPlaceholder
-                        },
-                    ),
-                )
-            },
-            textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.End),
-            modifier = Modifier.weight(1f),
-            singleLine = true,
-        )
-
-        if (isBetween) {
-            Icon(
-                imageVector = Icons.Filled.SwapHoriz,
-                contentDescription = strings.get(UiString.FilterRangeIconDescription),
-            )
+    if (!isNullConstraint) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             TableTextField(
-                value = numberFilterState.secondText,
-                onValueChange = numberFilterState.onSecondTextChange,
+                value = numberFilterState.text,
+                onValueChange = numberFilterState.onTextChange,
                 placeholder = {
-                    Text(strings.get(UiString.FilterRangeToPlaceholder))
+                    Text(
+                        strings.get(
+                            if (isBetween) {
+                                UiString.FilterRangeFromPlaceholder
+                            } else {
+                                UiString.FilterEnterNumberPlaceholder
+                            },
+                        ),
+                    )
                 },
                 textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.End),
                 modifier = Modifier.weight(1f),
                 singleLine = true,
-                isError = !isRangeValid,
             )
+
+            if (isBetween) {
+                Icon(
+                    imageVector = Icons.Filled.SwapHoriz,
+                    contentDescription = strings.get(UiString.FilterRangeIconDescription),
+                )
+                TableTextField(
+                    value = numberFilterState.secondText,
+                    onValueChange = numberFilterState.onSecondTextChange,
+                    placeholder = {
+                        Text(strings.get(UiString.FilterRangeToPlaceholder))
+                    },
+                    textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.End),
+                    modifier = Modifier.weight(1f),
+                    singleLine = true,
+                    isError = !isRangeValid,
+                )
+            }
         }
     }
 
-    if (isBetween && filter.rangeOptions != null) {
+    if (!isNullConstraint && isBetween && filter.rangeOptions != null) {
         RangeSlider(
             value = filter.delegate.toSliderValue(fromValue)..filter.delegate.toSliderValue(toValue),
             onValueChange = { range ->

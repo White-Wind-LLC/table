@@ -36,6 +36,7 @@ import ua.wwind.table.data.SortOrder
 import ua.wwind.table.filter.component.main.FilterPanel
 import ua.wwind.table.filter.data.TableFilterState
 import ua.wwind.table.filter.data.TableFilterType
+import ua.wwind.table.filter.data.isActive
 import ua.wwind.table.state.TableState
 import ua.wwind.table.strings.StringProvider
 
@@ -56,7 +57,7 @@ internal fun <T : Any, C, E> HeaderCell(
     showRightDivider: Boolean = true,
 ) {
     val sortOrder: SortOrder? = state.sort?.takeIf { it.column == spec.key }?.order
-    val isFilterActive: Boolean = state.filters[spec.key]?.values?.isEmpty() == false
+    val isFilterActive: Boolean = state.filters[spec.key]?.isActive() == true
 
     val info =
         TableHeaderCellInfo(

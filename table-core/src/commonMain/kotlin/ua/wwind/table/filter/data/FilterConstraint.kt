@@ -39,3 +39,7 @@ public enum class FilterConstraint {
             IS_NOT_NULL -> UiString.FilterConstraintIsNotNull
         }
 }
+
+/** True when constraint checks null/empty semantics. */
+public fun FilterConstraint.isNullCheck(): Boolean =
+    this == FilterConstraint.IS_NULL || this == FilterConstraint.IS_NOT_NULL

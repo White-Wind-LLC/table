@@ -35,6 +35,7 @@ import ua.wwind.table.filter.component.collectAsEffect
 import ua.wwind.table.filter.data.FilterConstraint
 import ua.wwind.table.filter.data.TableFilterState
 import ua.wwind.table.filter.data.TableFilterType
+import ua.wwind.table.filter.data.isNullCheck
 import ua.wwind.table.strings.StringProvider
 import ua.wwind.table.strings.UiString
 import kotlin.time.ExperimentalTime
@@ -61,6 +62,7 @@ internal fun DateFilter(
             onStateChange = onChange,
         )
 
+    val isNullConstraint = dateFilterState.constraint.isNullCheck()
     val isBetween = dateFilterState.constraint == FilterConstraint.BETWEEN
 
     FilterDropdownField(
@@ -70,32 +72,34 @@ internal fun DateFilter(
         onClick = { dateFilterState.onConstraintChange(it) },
     )
 
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        DateField(
-            value = dateFilterState.firstDate,
-            onDateSelected = { selected ->
-                dateFilterState.onFirstDateChange(selected)
-            },
-            modifier = Modifier.weight(1f),
-            label = { Text(strings.get(UiString.FilterRangeFromPlaceholder)) },
-            onClear = { dateFilterState.onFirstDateChange(null) },
-            strings = strings,
-        )
-
-        if (isBetween) {
+    if (!isNullConstraint) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
             DateField(
-                value = dateFilterState.secondDate,
+                value = dateFilterState.firstDate,
                 onDateSelected = { selected ->
-                    dateFilterState.onSecondDateChange(selected)
+                    dateFilterState.onFirstDateChange(selected)
                 },
                 modifier = Modifier.weight(1f),
-                label = { Text(strings.get(UiString.FilterRangeToPlaceholder)) },
-                onClear = { dateFilterState.onSecondDateChange(null) },
+                label = { Text(strings.get(UiString.FilterRangeFromPlaceholder)) },
+                onClear = { dateFilterState.onFirstDateChange(null) },
                 strings = strings,
             )
+
+            if (isBetween) {
+                DateField(
+                    value = dateFilterState.secondDate,
+                    onDateSelected = { selected ->
+                        dateFilterState.onSecondDateChange(selected)
+                    },
+                    modifier = Modifier.weight(1f),
+                    label = { Text(strings.get(UiString.FilterRangeToPlaceholder)) },
+                    onClear = { dateFilterState.onSecondDateChange(null) },
+                    strings = strings,
+                )
+            }
         }
     }
 

@@ -8,6 +8,7 @@ import ua.wwind.table.filter.component.FilterDropdownField
 import ua.wwind.table.filter.component.FilterPanelActions
 import ua.wwind.table.filter.data.TableFilterState
 import ua.wwind.table.filter.data.TableFilterType
+import ua.wwind.table.filter.data.isNullCheck
 import ua.wwind.table.strings.StringProvider
 import ua.wwind.table.strings.UiString
 
@@ -31,18 +32,21 @@ internal fun TextFilter(
             debounceMs = autoFilterDebounce,
             onStateChange = onChange,
         )
+    val showTextField = !textFilterState.constraint.isNullCheck()
     FilterDropdownField(
         currentValue = textFilterState.constraint,
         getTitle = { c -> strings.get(c.toUiString()) },
         values = filter.constraints,
         onClick = { textFilterState.onConstraintChange(it) },
     )
-    TableTextField(
-        value = textFilterState.text,
-        onValueChange = { textFilterState.onTextChange(it) },
-        placeholder = { Text(strings.get(UiString.FilterSearchPlaceholder)) },
-        singleLine = true,
-    )
+    if (showTextField) {
+        TableTextField(
+            value = textFilterState.text,
+            onValueChange = { textFilterState.onTextChange(it) },
+            placeholder = { Text(strings.get(UiString.FilterSearchPlaceholder)) },
+            singleLine = true,
+        )
+    }
     FilterPanelActions(
         onClose = onClose,
         onApply = { textFilterState.applyFilter() },

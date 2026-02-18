@@ -12,6 +12,7 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
 import ua.wwind.table.filter.data.FilterConstraint
 import ua.wwind.table.filter.data.TableFilterState
+import ua.wwind.table.filter.data.isNullCheck
 
 /**
  * State holder for text filter components
@@ -83,8 +84,12 @@ internal fun rememberTextFilterState(
                 delay(debounceMs)
                 isEditing = false
 
-                if (editingText.isBlank()) {
+                val isNullConstraint = editingConstraint.isNullCheck()
+
+                if (editingText.isBlank() && !isNullConstraint) {
                     onStateChange(null)
+                } else if (isNullConstraint) {
+                    onStateChange(TableFilterState(editingConstraint, emptyList()))
                 } else {
                     onStateChange(TableFilterState(editingConstraint, listOf(editingText)))
                 }
@@ -106,8 +111,12 @@ internal fun rememberTextFilterState(
                 isEditing = true
             },
             applyFilter = {
-                if (editingText.isBlank()) {
+                val isNullConstraint = editingConstraint.isNullCheck()
+
+                if (editingText.isBlank() && !isNullConstraint) {
                     onStateChange(null)
+                } else if (isNullConstraint) {
+                    onStateChange(TableFilterState(editingConstraint, emptyList()))
                 } else {
                     onStateChange(TableFilterState(editingConstraint, listOf(editingText)))
                 }

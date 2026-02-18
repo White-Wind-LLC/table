@@ -26,7 +26,7 @@ object PersonSorter {
                 PersonColumn.AGE -> people.sortedBy { it.age }
                 PersonColumn.ACTIVE -> people.sortedBy { it.active }
                 PersonColumn.ID -> people.sortedBy { it.id }
-                PersonColumn.EMAIL -> people.sortedBy { it.email.lowercase() }
+                PersonColumn.EMAIL -> people.sortedBy { it.email.orEmpty().lowercase() }
                 PersonColumn.CITY -> people.sortedBy { it.city.lowercase() }
                 PersonColumn.COUNTRY -> people.sortedBy { it.country.lowercase() }
                 PersonColumn.DEPARTMENT -> people.sortedBy { it.department.lowercase() }
