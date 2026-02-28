@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+### 1.7.14 — 2026-02-28
+
+- Fixed: Crash caused by ScrollState handling in dropdown menu.
+    - Removed scrollbar renderer from `FormatDropdownField` and related components.
+    - The scrollbar state management was causing crashes in certain scenarios.
+    - Format dialog now works reliably without custom scrollbar integration in dropdowns.
+- Changed: Refactored FormatDialog data classes to separate files.
+    - `EditFormatRule` moved to `ua.wwind.table.format.data` package with `@Immutable` annotation.
+    - `FormatDialogSettings` moved to `ua.wwind.table.format.data` package with `@Immutable` annotation.
+    - Improves code organization and stability for Compose.
+- Changed: Added button in FormatDialog now uses FloatingActionButton instead of IconButton.
+    - Provides better visual prominence and Material 3 compliance.
+    - Close button now uses explicit close icon for clarity.
+- Updated: Sample app import for `FormatDialogSettings` to use new package location.
+
+Compare: [v1.7.13...v1.7.14](https://github.com/White-Wind-LLC/table/compare/v1.7.13...v1.7.14)
+
 ### 1.7.13 — 2026-02-18
 
 - Added: Null-check filter support (IS_NULL / IS_NOT_NULL) for text, number, and date filters.
