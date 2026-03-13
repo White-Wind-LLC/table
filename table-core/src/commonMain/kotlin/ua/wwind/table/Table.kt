@@ -269,7 +269,9 @@ public fun <T : Any, C, E> EditableTable(
                         )
                     }
 
-                    if (state.settings.enableTextSelection) {
+                    // SelectionContainer is disabled while a row is in edit mode to avoid
+                    // cross-hierarchy text selection issues with popup-based editors on Desktop.
+                    if (state.settings.enableTextSelection && state.editingRow == null) {
                         SelectionContainer { bodyContent() }
                     } else {
                         bodyContent()
