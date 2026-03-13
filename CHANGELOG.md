@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+### 1.7.15 — 2026-03-13
+
+- Fixed: Disabled SelectionContainer during row editing to prevent cross-hierarchy text selection issues.
+    - When text selection is enabled and a row is being edited, SelectionContainer is now disabled.
+    - Resolves issues with popup-based editors on Desktop targets where text selection could interfere with editing.
+- Fixed: Prevent parent click activation on Space key in edit cell focus synchronization.
+    - Added key event handler to prevent Space key from being interpreted as click activation on parent elements.
+    - Improves keyboard navigation experience in editable tables.
+- Updated: Compose Multiplatform upgraded to 1.10.2.
+    - AndroidX Activity Compose updated from 1.12.4 to 1.13.0.
+    - Kermit updated from 2.0.8 to 2.1.0.
+    - Paging for KMP updated from 2.2.6 to 2.2.7.
+    - Ktlint Gradle updated from 14.0.1 to 14.2.0.
+
+Compare: [v1.7.14...v1.7.15](https://github.com/White-Wind-LLC/table/compare/v1.7.14...v1.7.15)
+
 ### 1.7.14 — 2026-02-28
 
 - Fixed: Crash caused by ScrollState handling in dropdown menu.
