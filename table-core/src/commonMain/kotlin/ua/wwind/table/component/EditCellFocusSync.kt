@@ -4,6 +4,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import ua.wwind.table.component.body.LocalEditCellContext
 import ua.wwind.table.component.body.LocalEditCellFocusRequester
 import ua.wwind.table.state.LocalTableState
@@ -47,6 +52,10 @@ public fun Modifier.syncEditCellFocus(): Modifier {
     return if (focusRequester != null && editCellContext != null) {
         this
             .focusRequester(focusRequester)
+            // Prevent parent clickable semantics from treating Space as an activation click.
+            .onPreviewKeyEvent { event ->
+                event.key == Key.Spacebar && event.type == KeyEventType.KeyUp
+            }
             .onFocusChanged { focusState ->
                 // Update selectedCell when this component receives focus
                 if (focusState.isFocused) {
