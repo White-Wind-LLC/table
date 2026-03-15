@@ -66,14 +66,14 @@ internal fun <T : Number> rememberNumberFilterState(
     // Derived state from external source
     val sourceText by remember(externalState) {
         derivedStateOf {
-            externalState?.values?.firstOrNull()?.toString() ?: ""
+            externalState?.values?.firstOrNull()?.let { filter.delegate.format(it) } ?: ""
         }
     }
 
     val sourceSecondText by remember(externalState) {
         derivedStateOf {
             if (externalState?.constraint == FilterConstraint.BETWEEN) {
-                externalState.values?.getOrNull(1)?.toString() ?: ""
+                externalState.values?.getOrNull(1)?.let { filter.delegate.format(it) } ?: ""
             } else {
                 ""
             }
