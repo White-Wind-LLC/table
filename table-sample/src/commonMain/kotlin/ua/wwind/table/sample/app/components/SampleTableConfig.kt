@@ -2,6 +2,8 @@ package ua.wwind.table.sample.app.components
 
 import androidx.compose.runtime.Immutable
 import ua.wwind.table.config.PinnedSide
+import ua.wwind.table.platform.getPlatform
+import ua.wwind.table.platform.isMobile
 
 /**
  * Configuration data class for sample table settings.
@@ -11,7 +13,7 @@ import ua.wwind.table.config.PinnedSide
 data class SampleTableConfig(
     val useStripedRows: Boolean = true,
     val showFastFilters: Boolean = true,
-    val enableDragToScroll: Boolean = true,
+    val enableDragToScroll: Boolean = getPlatform().isMobile(),
     val enableRowReorder: Boolean = false,
     val pinnedColumnsCount: Int = 0,
     val pinnedColumnsSide: PinnedSide = PinnedSide.Left,

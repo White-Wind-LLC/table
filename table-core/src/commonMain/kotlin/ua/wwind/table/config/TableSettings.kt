@@ -2,6 +2,8 @@ package ua.wwind.table.config
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Alignment
+import ua.wwind.table.platform.getPlatform
+import ua.wwind.table.platform.isMobile
 
 /** Table behavior settings */
 @Immutable
@@ -9,8 +11,8 @@ public data class TableSettings(
     /**
      * Enable drag and drop row reordering.
      *
-     * This mode is incompatible with sorting, grouping and drag-to-scroll. Incompatible settings
-     * are normalized in [ua.wwind.table.state.rememberTableState].
+     * This mode is incompatible with sorting and grouping. Incompatible settings are normalized in
+     * [ua.wwind.table.state.rememberTableState].
      */
     val rowReorderEnabled: Boolean = false,
     /** @deprecated Use [rowReorderEnabled]. */
@@ -38,10 +40,9 @@ public data class TableSettings(
     val groupContentAlignment: Alignment = Alignment.CenterStart,
     /**
      * Enable drag-to-scroll functionality. When disabled, traditional scrollbars are used
-     * instead. This option is incompatible with row reorder mode and is normalized to `false`
-     * during [ua.wwind.table.state.rememberTableState] when row reorder is enabled.
+     * instead.
      */
-    val enableDragToScroll: Boolean = true,
+    val enableDragToScroll: Boolean = getPlatform().isMobile(),
     /** Number of pinned columns */
     val pinnedColumnsCount: Int = 0,
     /** Side to pin columns to */

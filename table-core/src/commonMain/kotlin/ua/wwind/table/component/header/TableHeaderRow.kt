@@ -29,6 +29,8 @@ import kotlinx.collections.immutable.ImmutableList
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.ReorderableLazyListState
 import ua.wwind.table.ColumnSpec
+import ua.wwind.table.platform.getPlatform
+import ua.wwind.table.platform.isMobile
 import ua.wwind.table.state.TableState
 import ua.wwind.table.state.calculatePinnedColumnState
 import ua.wwind.table.strings.StringProvider
@@ -49,6 +51,7 @@ internal fun <T : Any, C, E> TableHeaderRow(
     horizontalState: ScrollState,
 ) {
     val settings = state.settings
+    val isMobilePlatform = remember { getPlatform().isMobile() }
 
     LazyRow(
         modifier = Modifier.width(state.tableWidth),
@@ -86,11 +89,22 @@ internal fun <T : Any, C, E> TableHeaderRow(
                     contentColor = style.headerContentColor,
                     shadowElevation = elevation,
                     tonalElevation = elevation,
+                    modifier =
+                        if (isMobilePlatform) {
+                            Modifier.draggableHandle(enabled = !pinnedState.isPinned)
+                        } else {
+                            Modifier
+                        },
                 ) {
                     val width = widthResolver(spec.key)
                     val headerHoverInteraction = remember(spec.key) { MutableInteractionSource() }
-                    val isHeaderHovered = headerHoverInteraction.collectIsHoveredAsState().value
-                    val showDragHandle = (isHeaderHovered || isDragging) && !pinnedState.isPinned
+                    val isHeaderHovered =
+                        if (isMobilePlatform) {
+                            false
+                        } else {
+                            headerHoverInteraction.collectIsHoveredAsState().value
+                        }
+                    val showDragHandle = !isMobilePlatform && (isHeaderHovered || isDragging) && !pinnedState.isPinned
 
                     ColumnHeaderDropdownMenuBox(
                         spec = spec,
@@ -99,8 +113,13 @@ internal fun <T : Any, C, E> TableHeaderRow(
                         Box(
                             modifier =
                                 Modifier
-                                    .hoverable(interactionSource = headerHoverInteraction)
-                                    .fillMaxSize(),
+                                    .then(
+                                        if (isMobilePlatform) {
+                                            Modifier
+                                        } else {
+                                            Modifier.hoverable(interactionSource = headerHoverInteraction)
+                                        },
+                                    ).fillMaxSize(),
                         ) {
                             val dividerThickness =
                                 if (pinnedState.isLastLeftPinned) {

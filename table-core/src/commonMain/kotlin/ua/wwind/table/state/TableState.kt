@@ -609,14 +609,7 @@ private fun <C> normalizeTableStateInput(
     }
 
     val warnings = mutableListOf<String>()
-    var normalizedSettings = settings
     var normalizedInitialSort = initialSort
-
-    if (settings.enableDragToScroll) {
-        normalizedSettings = settings.copy(enableDragToScroll = false)
-        warnings +=
-            "rowReorderEnabled is incompatible with enableDragToScroll; enableDragToScroll is forced to false."
-    }
 
     if (initialSort != null) {
         normalizedInitialSort = null
@@ -624,7 +617,7 @@ private fun <C> normalizeTableStateInput(
     }
 
     return NormalizedTableStateInput(
-        settings = normalizedSettings,
+        settings = settings,
         initialSort = normalizedInitialSort,
         warnings = warnings,
     )

@@ -101,6 +101,7 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodel.compose)
             implementation(libs.kermit)
             implementation(libs.liquid)
+            implementation(libs.fastscroller.core)
         }
 
         commonTest.dependencies {

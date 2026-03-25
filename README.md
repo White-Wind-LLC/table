@@ -580,7 +580,7 @@ column(PersonField.Name, valueOf = { it.name }) {
 
 - **State**: `rememberTableState(columns, initialSort?, initialOrder?, initialWidths?, settings?, dimensions?)`.
     - Compatibility normalization: when `settings.rowReorderEnabled = true`,
-      `enableDragToScroll` is forced to `false` and `initialSort` is ignored (warning is logged).
+      `initialSort` is ignored (warning is logged).
     - Sorting: `state.setSort(column, order?)`; current `state.sort`.
     - Grouping: `state.groupBy(column)` to enable grouping; `state.groupBy(null)` to disable.
     - Column order/size: `state.setColumnOrder(order)`, `state.resizeColumn(column, Set/Reset)`,
@@ -596,9 +596,8 @@ column(PersonField.Name, valueOf = { it.name }) {
       `autoApplyFilters`, `autoFilterDebounce`, `stripedRows`,
       `showActiveFiltersHeader`, `selectionMode: None/Single/Multiple`, `groupContentAlignment`,
       `rowHeightMode: Fixed/Dynamic`, `enableDragToScroll` (controls whether drag-to-scroll is enabled; when disabled,
-      traditional scrollbars are used instead; forced off in row reorder mode), `editingEnabled` (master switch for cell
-      editing mode), `showFooter` (enable footer row display), `footerPinned` (pin footer at bottom or scroll with
-      content),
+      traditional scrollbars are used instead), `editingEnabled` (master switch for cell editing mode), `showFooter` (
+      enable footer row display), `footerPinned` (pin footer at bottom or scroll with content),
       `enableTextSelection` (wrap table body in `SelectionContainer` to allow text selection; defaults to `false`),
       `showVerticalDividers` (show/hide vertical dividers between columns; defaults to `true`),
       `showRowDividers` (show/hide horizontal dividers between rows; defaults to `true`),
@@ -861,7 +860,8 @@ fun PeopleScreen(viewModel: MyViewModel) {
 
 ### Row reordering with Reorderable
 
-The library now provides a dedicated row reordering flow powered by [Reorderable](https://github.com/Calvin-LL/Reorderable).
+The library now provides a dedicated row reordering flow powered
+by [Reorderable](https://github.com/Calvin-LL/Reorderable).
 
 - **Enable it**: set `TableSettings(rowReorderEnabled = true)`.
 - **Handle moves**: pass `onRowMove = { fromIndex, toIndex -> ... }` to `Table` or `EditableTable`.
@@ -869,8 +869,8 @@ The library now provides a dedicated row reordering flow powered by [Reorderable
   through Kotlin context parameters.
 - **How context is passed**: the `cell { ... }` DSL is backed by `context(TableCellScope)`, so inside a cell you can
   call `Modifier.draggableHandle()` or `Modifier.longPressDraggableHandle()` directly.
-- **Interaction rules**: while row reorder mode is active, sorting and grouping interactions are disabled, `initialSort`
-  is ignored, and drag-to-scroll is automatically turned off.
+- **Interaction rules**: while row reorder mode is active, sorting and grouping interactions are disabled and
+  `initialSort` is ignored.
 - **Embedded support**: the same API works for embedded table bodies too.
 
 Example:
