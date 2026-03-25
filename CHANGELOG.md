@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+### 1.8.1 — 2026-03-25
+
+- Added: Improved mobile platform interactions for column headers.
+    - Column headers now have draggable handles enabled on mobile for reordering operations.
+    - Hover interactions are now disabled on mobile platforms to prevent touch gesture conflicts.
+- Changed: `enableDragToScroll` setting now defaults to platform-aware value.
+    - Default value changed from `true` to `getPlatform().isMobile()` - enabled on mobile, disabled on desktop.
+    - Drag-to-scroll remains available on desktop when explicitly enabled in settings.
+- Changed: Removed incompatible normalization between row reorder and drag-to-scroll.
+    - `rowReorderEnabled` and `enableDragToScroll` can now be enabled simultaneously.
+    - Previously, enabling row reorder would force disable drag-to-scroll; this behavior has been removed.
+- Updated: Sample app settings sidebar to reflect new interaction options.
+    - Drag to scroll and row reorder toggles are now independent controls.
+
+Compare: [v1.8.0...v1.8.1](https://github.com/White-Wind-LLC/table/compare/v1.8.0...v1.8.1)
+
 ### 1.8.0 — 2026-03-25
 
 - Added: Public row reordering API for table rows powered by [Reorderable](https://github.com/Calvin-LL/Reorderable).
