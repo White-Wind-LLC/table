@@ -1,6 +1,5 @@
 package ua.wwind.convention.kmp
 
-import org.gradle.api.artifacts.VersionCatalogsExtension
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
 
@@ -29,6 +28,8 @@ kotlin {
     val warningsAsErrors: String? by project
     compilerOptions {
         allWarningsAsErrors.set(warningsAsErrors.toBoolean())
+        // Enable Kotlin context parameters for DSL APIs like ColumnSpec.cell context(CellScope).
+        freeCompilerArgs.add("-Xcontext-parameters")
     }
 }
 

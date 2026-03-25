@@ -10,6 +10,12 @@ plugins {
     id("org.jetbrains.compose")
 }
 
+kotlin {
+    compilerOptions {
+        freeCompilerArgs.add("-Xcontext-parameters")
+    }
+}
+
 compose.desktop {
     application {
         // Allow overriding by -PdesktopMainClass, defaulting to MainKt

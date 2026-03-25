@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import ua.wwind.table.ColumnSpec
+import ua.wwind.table.DefaultTableCellScope
 import ua.wwind.table.component.header.ColumnHeaderDropdownMenuBox
 import ua.wwind.table.config.TableCellStyle
 import ua.wwind.table.config.TableColors
@@ -51,7 +52,9 @@ internal fun <T : Any, C, E> GroupHeaderCell(
                             .height(height),
                 ) {
                     spec.groupHeader?.invoke(this, value) ?: run {
-                        spec.cell.invoke(this, item, tableData)
+                        context(DefaultTableCellScope) {
+                            spec.cell(this@Box, item, tableData)
+                        }
                     }
                 }
             }

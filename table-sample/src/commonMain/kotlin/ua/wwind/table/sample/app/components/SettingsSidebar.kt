@@ -143,7 +143,19 @@ fun SettingsSidebar(
                     SettingSwitch(
                         label = "Drag to scroll",
                         checked = config.enableDragToScroll,
-                        onCheckedChange = { onConfigChange(config.copy(enableDragToScroll = it)) },
+                        onCheckedChange = {
+                            val enableRowReorder = if (it) false else config.enableRowReorder
+                            onConfigChange(config.copy(enableDragToScroll = it, enableRowReorder = enableRowReorder))
+                        },
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    SettingSwitch(
+                        label = "Row reorder",
+                        checked = config.enableRowReorder,
+                        onCheckedChange = {
+                            val enableDragToScroll = if (it) false else config.enableDragToScroll
+                            onConfigChange(config.copy(enableRowReorder = it, enableDragToScroll = enableDragToScroll))
+                        },
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                     SettingSwitch(

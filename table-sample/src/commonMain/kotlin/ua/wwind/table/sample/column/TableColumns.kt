@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DragIndicator
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Star
@@ -40,6 +41,7 @@ import kotlinx.datetime.format
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.component.TableCellTextField
 import ua.wwind.table.component.TableCellTextFieldWithTooltipError
+import ua.wwind.table.draggableHandle
 import ua.wwind.table.editableTableColumns
 import ua.wwind.table.sample.config.CellPadding
 import ua.wwind.table.sample.filter.createSalaryRangeFilter
@@ -58,6 +60,7 @@ fun createTableColumns(
     onToggleMovementExpanded: (personId: Int) -> Unit,
     onEvent: (SampleUiEvent) -> Unit,
     useCompactMode: Boolean = false,
+    enableRowReorder: Boolean = false,
 ): ImmutableList<ColumnSpec<Person, PersonColumn, PersonTableData>> =
     editableTableColumns {
         val cellPadding = if (useCompactMode) CellPadding.compact else CellPadding.standard
@@ -68,7 +71,7 @@ fun createTableColumns(
             title { "" }
             width(checkboxSize, checkboxSize)
             resizable(false)
-            cell { item, tableData ->
+            cell {item, tableData ->
                 if (tableData.selectionModeEnabled) {
                     Box(
                         contentAlignment = Alignment.Center,
@@ -79,6 +82,17 @@ fun createTableColumns(
                             onCheckedChange = {
                                 onEvent(SampleUiEvent.ToggleSelection(item.id))
                             },
+                        )
+                    }
+                } else if (enableRowReorder) {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier.fillMaxSize().draggableHandle(),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.DragIndicator,
+                            contentDescription = "Drag to reorder",
+                            modifier = Modifier.size(24.dp),
                         )
                     }
                 }

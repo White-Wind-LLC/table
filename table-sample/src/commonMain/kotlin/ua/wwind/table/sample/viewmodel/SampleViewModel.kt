@@ -319,6 +319,25 @@ class SampleViewModel : ViewModel() {
             is SampleUiEvent.ClearSelection -> {
                 selectedIds.value = emptySet()
             }
+
+            is SampleUiEvent.RowMove -> {
+                _people.update { currentPeople ->
+                    val size = currentPeople.size
+                    if (size < 2) return@update currentPeople
+                    if (event.fromIndex !in 0 until size) return@update currentPeople
+
+                    var targetIndex = event.toIndex.coerceIn(0, size)
+                    if (event.fromIndex == targetIndex || event.fromIndex == targetIndex - 1) {
+                        return@update currentPeople
+                    }
+
+                    val moved = currentPeople.toMutableList()
+                    val person = moved.removeAt(event.fromIndex)
+                    if (targetIndex > event.fromIndex) targetIndex--
+                    moved.add(targetIndex, person)
+                    moved
+                }
+            }
         }
     }
 }

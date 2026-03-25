@@ -33,6 +33,7 @@ fun MainTable(
     customization: TableCustomization<Person, PersonColumn>,
     onFiltersChanged: (Map<PersonColumn, TableFilterState<*>>) -> Unit,
     onSortChanged: (SortState<PersonColumn>?) -> Unit,
+    onRowMove: (fromIndex: Int, toIndex: Int) -> Unit,
     onRowEditStart: (Person, Int) -> Unit,
     onRowEditComplete: (Int) -> Boolean,
     onEditCancelled: (Int) -> Unit,
@@ -54,7 +55,7 @@ fun MainTable(
         columns = columns,
         customization = customization,
         strings = DefaultStrings,
-        rowKey = { _, index -> index },
+        rowKey = { person, index -> person?.id?.toString() ?: "_$index" },
         rowEmbedded = { _, person ->
             val visible = person.expandedMovement
             if (visible) {
@@ -71,6 +72,7 @@ fun MainTable(
                 PersonMovementsSection(person = person, useCompactMode = useCompactMode)
             }
         },
+        onRowMove = onRowMove,
         onRowEditStart = onRowEditStart,
         onRowEditComplete = onRowEditComplete,
         onEditCancelled = onEditCancelled,

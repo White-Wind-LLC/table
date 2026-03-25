@@ -65,7 +65,7 @@ fun SampleApp(modifier: Modifier = Modifier) {
     val settings =
         remember(tableConfig) {
             TableSettings(
-                isDragEnabled = false,
+                isDragEnabled = tableConfig.enableRowReorder,
                 autoApplyFilters = true,
                 showFastFilters = tableConfig.showFastFilters,
                 autoFilterDebounce = 200,
@@ -92,11 +92,12 @@ fun SampleApp(modifier: Modifier = Modifier) {
 
     // Create columns with callbacks
     val columns =
-        remember(tableConfig.useCompactMode) {
+        remember(tableConfig.useCompactMode, tableConfig.enableRowReorder) {
             createTableColumns(
                 onToggleMovementExpanded = viewModel::toggleMovementExpanded,
                 onEvent = viewModel::onEvent,
                 useCompactMode = tableConfig.useCompactMode,
+                enableRowReorder = tableConfig.enableRowReorder,
             )
         }
 
@@ -203,6 +204,9 @@ fun SampleApp(modifier: Modifier = Modifier) {
                                     customization = customization,
                                     onFiltersChanged = viewModel::updateFilters,
                                     onSortChanged = viewModel::updateSort,
+                                    onRowMove = { from, to ->
+                                        viewModel.onEvent(SampleUiEvent.RowMove(from, to))
+                                    },
                                     onRowEditStart = { person, rowIndex ->
                                         viewModel.onEvent(
                                             SampleUiEvent.StartEditing(rowIndex, person),

@@ -36,6 +36,8 @@ import androidx.compose.ui.zIndex
 import kotlinx.collections.immutable.ImmutableList
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.MeasureCellMinWidth
+import ua.wwind.table.TableCellScopeImpl
+import ua.wwind.table.TableRowScope
 import ua.wwind.table.config.RowHeightMode
 import ua.wwind.table.config.SelectionMode
 import ua.wwind.table.config.TableCellContext
@@ -73,6 +75,7 @@ public val LocalEditCellFocusRequester: ProvidableCompositionLocal<FocusRequeste
 
 @Composable
 @Suppress("LongParameterList", "LongMethod", "CyclomaticComplexMethod")
+context(rowScope: TableRowScope)
 internal fun <T : Any, C, E> TableRowItem(
     item: T?,
     index: Int,
@@ -195,6 +198,7 @@ internal fun <T : Any, C, E> TableRowItem(
 }
 
 @Composable
+context(rowScope: TableRowScope)
 private fun <C, T : Any, E> RenderTableRowItem(
     rowModifier: Modifier,
     state: TableState<C>,
@@ -392,7 +396,10 @@ private fun <C, T : Any, E> RenderTableRowItem(
                         }
                     }
                 } else {
-                    spec.cell.invoke(this, item, tableData)
+                    val cellScope = remember(rowScope) { TableCellScopeImpl(rowScope) }
+                    context(cellScope) {
+                        spec.cell(this@TableCell, item, tableData)
+                    }
                 }
             }
         }

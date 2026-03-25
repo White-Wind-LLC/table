@@ -12,6 +12,7 @@ data class SampleTableConfig(
     val useStripedRows: Boolean = true,
     val showFastFilters: Boolean = true,
     val enableDragToScroll: Boolean = true,
+    val enableRowReorder: Boolean = false,
     val pinnedColumnsCount: Int = 0,
     val pinnedColumnsSide: PinnedSide = PinnedSide.Left,
     val enableEditing: Boolean = false,

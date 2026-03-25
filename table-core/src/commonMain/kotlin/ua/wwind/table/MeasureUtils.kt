@@ -23,7 +23,7 @@ internal fun <T, E> MeasureCellMinWidth(
     item: T,
     tableData: E,
     measureKey: Any,
-    content: @Composable BoxScope.(T, E) -> Unit,
+    content: @Composable context(TableCellScope) BoxScope.(T, E) -> Unit,
     onMeasured: (Dp) -> Unit,
 ) {
     val density = LocalDensity.current
@@ -35,7 +35,7 @@ internal fun <T, E> MeasureCellMinWidth(
     SubcomposeLayout {
         val measurables =
             subcompose("measure") {
-                Box { content(item, tableData) }
+                Box { context(DefaultTableCellScope) { content(item, tableData) } }
             }
         holder[0] = measurables.maxOfOrNull { it.maxIntrinsicWidth(0) } ?: 0
         layout(0, 0) {}

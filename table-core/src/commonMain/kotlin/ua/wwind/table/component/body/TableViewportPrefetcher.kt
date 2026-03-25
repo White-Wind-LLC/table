@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.flow.distinctUntilChanged
 import ua.wwind.table.ColumnSpec
+import ua.wwind.table.DefaultTableRowScope
 import ua.wwind.table.config.RowHeightMode
 import ua.wwind.table.config.TableColors
 import ua.wwind.table.config.TableCustomization
@@ -94,22 +95,24 @@ internal fun <T : Any, C, E> TableViewportPrefetcher(
                 } else {
                     val measurables =
                         subcompose(slotId = i) {
-                            TableRowItem(
-                                item = itemAt(i),
-                                index = i,
-                                visibleColumns = visibleColumns,
-                                state = state,
-                                colors = colors,
-                                customization = customization,
-                                tableData = tableData,
-                                rowEmbedded = null,
-                                placeholderRow = placeholderRow,
-                                onRowClick = null,
-                                onRowLongClick = null,
-                                onContextMenu = null,
-                                requestTableFocus = requestTableFocus,
-                                horizontalState = horizontalState,
-                            )
+                            context(DefaultTableRowScope) {
+                                TableRowItem(
+                                    item = itemAt(i),
+                                    index = i,
+                                    visibleColumns = visibleColumns,
+                                    state = state,
+                                    colors = colors,
+                                    customization = customization,
+                                    tableData = tableData,
+                                    rowEmbedded = null,
+                                    placeholderRow = placeholderRow,
+                                    onRowClick = null,
+                                    onRowLongClick = null,
+                                    onContextMenu = null,
+                                    requestTableFocus = requestTableFocus,
+                                    horizontalState = horizontalState,
+                                )
+                            }
                         }
                     val placeables = measurables.map { it.measure(constraints) }
                     (placeables.maxOfOrNull { it.height } ?: 0).also { measured ->

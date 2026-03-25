@@ -8,12 +8,18 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import kotlinx.collections.immutable.ImmutableList
+import sh.calvin.reorderable.ReorderableItem
+import sh.calvin.reorderable.rememberReorderableLazyListState
 import ua.wwind.table.ColumnSpec
+import ua.wwind.table.DefaultTableRowScope
+import ua.wwind.table.TableRowDragScope
+import ua.wwind.table.TableRowScope
 import ua.wwind.table.component.footer.TableFooter
 import ua.wwind.table.config.TableColors
 import ua.wwind.table.config.TableCustomization
@@ -34,6 +40,7 @@ internal fun <T : Any, C, E> TableBody(
     placeholderRow: (@Composable () -> Unit)?,
     onRowClick: ((T) -> Unit)?,
     onRowLongClick: ((T) -> Unit)?,
+    onRowMove: ((fromIndex: Int, toIndex: Int) -> Unit)?,
     onContextMenu: ((T, Offset) -> Unit)?,
     verticalState: LazyListState,
     horizontalState: ScrollState,
@@ -42,6 +49,15 @@ internal fun <T : Any, C, E> TableBody(
     modifier: Modifier = Modifier,
 ) {
     val showFooter = state.settings.showFooter && !state.settings.footerPinned
+    val rowReorderEnabled = state.settings.isDragEnabled && onRowMove != null
+    val reorderState =
+        if (rowReorderEnabled) {
+            rememberReorderableLazyListState(verticalState) { from, to ->
+                onRowMove.invoke(from.index, to.index)
+            }
+        } else {
+            null
+        }
 
     LazyColumn(
         modifier = modifier,
@@ -49,22 +65,53 @@ internal fun <T : Any, C, E> TableBody(
         userScrollEnabled = enableScrolling,
     ) {
         items(count = itemsCount, key = { index -> rowKey(itemAt(index), index) }) { index ->
-            TableBodyRow(
-                index = index,
-                itemAt = itemAt,
-                visibleColumns = visibleColumns,
-                state = state,
-                colors = colors,
-                customization = customization,
-                tableData = tableData,
-                rowEmbedded = rowEmbedded,
-                placeholderRow = placeholderRow,
-                onRowClick = onRowClick,
-                onRowLongClick = onRowLongClick,
-                onContextMenu = onContextMenu,
-                horizontalState = horizontalState,
-                requestTableFocus = requestTableFocus,
-            )
+            val key = rowKey(itemAt(index), index)
+            val currentReorderState = reorderState
+            if (currentReorderState != null) {
+                ReorderableItem(state = currentReorderState, key = key) {
+                    val rowScope: TableRowScope =
+                        remember(this) {
+                            TableRowDragScope(this)
+                        }
+                    context(rowScope) {
+                        TableBodyRow(
+                            index = index,
+                            itemAt = itemAt,
+                            visibleColumns = visibleColumns,
+                            state = state,
+                            colors = colors,
+                            customization = customization,
+                            tableData = tableData,
+                            rowEmbedded = rowEmbedded,
+                            placeholderRow = placeholderRow,
+                            onRowClick = onRowClick,
+                            onRowLongClick = onRowLongClick,
+                            onContextMenu = onContextMenu,
+                            horizontalState = horizontalState,
+                            requestTableFocus = requestTableFocus,
+                        )
+                    }
+                }
+            } else {
+                context(DefaultTableRowScope) {
+                    TableBodyRow(
+                        index = index,
+                        itemAt = itemAt,
+                        visibleColumns = visibleColumns,
+                        state = state,
+                        colors = colors,
+                        customization = customization,
+                        tableData = tableData,
+                        rowEmbedded = rowEmbedded,
+                        placeholderRow = placeholderRow,
+                        onRowClick = onRowClick,
+                        onRowLongClick = onRowLongClick,
+                        onContextMenu = onContextMenu,
+                        horizontalState = horizontalState,
+                        requestTableFocus = requestTableFocus,
+                    )
+                }
+            }
         }
 
         // Add footer as last item if not pinned
@@ -110,7 +157,7 @@ internal fun <T : Any, C, E> TableBody(
 }
 
 @Composable
-@Suppress("LongParameterList")
+@Suppress("LongParameterList", "UnusedParameter")
 internal fun <T : Any, C, E> TableBodyEmbedded(
     itemsCount: Int,
     itemAt: (Int) -> T?,
@@ -124,6 +171,7 @@ internal fun <T : Any, C, E> TableBodyEmbedded(
     placeholderRow: (@Composable () -> Unit)?,
     onRowClick: ((T) -> Unit)?,
     onRowLongClick: ((T) -> Unit)?,
+    onRowMove: ((fromIndex: Int, toIndex: Int) -> Unit)?,
     onContextMenu: ((T, Offset) -> Unit)?,
     horizontalState: ScrollState,
     requestTableFocus: () -> Unit,
@@ -132,22 +180,24 @@ internal fun <T : Any, C, E> TableBodyEmbedded(
 
     Column {
         for (index in 0 until itemsCount) {
-            TableBodyRow(
-                index = index,
-                itemAt = itemAt,
-                visibleColumns = visibleColumns,
-                state = state,
-                colors = colors,
-                customization = customization,
-                tableData = tableData,
-                rowEmbedded = rowEmbedded,
-                placeholderRow = placeholderRow,
-                onRowClick = onRowClick,
-                onRowLongClick = onRowLongClick,
-                onContextMenu = onContextMenu,
-                horizontalState = horizontalState,
-                requestTableFocus = requestTableFocus,
-            )
+            context(DefaultTableRowScope) {
+                TableBodyRow(
+                    index = index,
+                    itemAt = itemAt,
+                    visibleColumns = visibleColumns,
+                    state = state,
+                    colors = colors,
+                    customization = customization,
+                    tableData = tableData,
+                    rowEmbedded = rowEmbedded,
+                    placeholderRow = placeholderRow,
+                    onRowClick = onRowClick,
+                    onRowLongClick = onRowLongClick,
+                    onContextMenu = onContextMenu,
+                    horizontalState = horizontalState,
+                    requestTableFocus = requestTableFocus,
+                )
+            }
         }
 
         // Add footer for embedded tables (always non-pinned)
@@ -178,6 +228,7 @@ internal fun <T : Any, C, E> TableBodyEmbedded(
 
 @Composable
 @Suppress("LongParameterList")
+context(_: TableRowScope)
 private fun <T : Any, C, E> TableBodyRow(
     index: Int,
     itemAt: (Int) -> T?,

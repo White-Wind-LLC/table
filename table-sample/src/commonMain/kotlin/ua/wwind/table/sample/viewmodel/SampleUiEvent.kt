@@ -55,4 +55,10 @@ sealed class SampleUiEvent {
 
     /** Clear all selections */
     data object ClearSelection : SampleUiEvent()
+
+    /** Move person row in backing list */
+    data class RowMove(
+        val fromIndex: Int,
+        val toIndex: Int,
+    ) : SampleUiEvent()
 }
