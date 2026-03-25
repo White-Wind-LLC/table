@@ -2,12 +2,24 @@ package ua.wwind.table.component.header
 
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.hoverable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DragIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.Dp
@@ -74,40 +86,60 @@ internal fun <T : Any, C, E> TableHeaderRow(
                     contentColor = style.headerContentColor,
                     shadowElevation = elevation,
                     tonalElevation = elevation,
-                    modifier =
-                        Modifier
-                            .draggableHandle(enabled = !pinnedState.isPinned),
                 ) {
                     val width = widthResolver(spec.key)
+                    val headerHoverInteraction = remember(spec.key) { MutableInteractionSource() }
+                    val isHeaderHovered = headerHoverInteraction.collectIsHoveredAsState().value
+                    val showDragHandle = (isHeaderHovered || isDragging) && !pinnedState.isPinned
 
                     ColumnHeaderDropdownMenuBox(
                         spec = spec,
                         state = state,
                     ) {
-                        val dividerThickness =
-                            if (pinnedState.isLastLeftPinned) {
-                                style.dimensions.pinnedColumnDividerThickness
-                            } else {
-                                style.dimensions.dividerThickness
-                            }
+                        Box(
+                            modifier =
+                                Modifier
+                                    .hoverable(interactionSource = headerHoverInteraction)
+                                    .fillMaxSize(),
+                        ) {
+                            val dividerThickness =
+                                if (pinnedState.isLastLeftPinned) {
+                                    style.dimensions.pinnedColumnDividerThickness
+                                } else {
+                                    style.dimensions.dividerThickness
+                                }
 
-                        HeaderCell(
-                            spec = spec,
-                            state = state,
-                            tableData = tableData,
-                            strings = strings,
-                            width = width,
-                            dividerThickness = dividerThickness,
-                            isFilterOpen = filterColumn == spec.key,
-                            onOpenFilter = { onFilterColumnChange(spec.key) },
-                            onDismissFilter = { onFilterColumnChange(null) },
-                            onToggleSort = { state.setSort(spec.key) },
-                            showLeftDivider = pinnedState.isFirstRightPinned,
-                            leftDividerThickness = style.dimensions.pinnedColumnDividerThickness,
-                            showRightDivider =
-                                !pinnedState.isLastBeforeRightPinned &&
-                                    (state.settings.showVerticalDividers || pinnedState.isLastLeftPinned),
-                        )
+                            HeaderCell(
+                                spec = spec,
+                                state = state,
+                                tableData = tableData,
+                                strings = strings,
+                                width = width,
+                                dividerThickness = dividerThickness,
+                                isFilterOpen = filterColumn == spec.key,
+                                onOpenFilter = { onFilterColumnChange(spec.key) },
+                                onDismissFilter = { onFilterColumnChange(null) },
+                                onToggleSort = { state.setSort(spec.key) },
+                                showLeftDivider = pinnedState.isFirstRightPinned,
+                                leftDividerThickness = style.dimensions.pinnedColumnDividerThickness,
+                                showRightDivider =
+                                    !pinnedState.isLastBeforeRightPinned &&
+                                        (state.settings.showVerticalDividers || pinnedState.isLastLeftPinned),
+                            )
+
+                            if (showDragHandle) {
+                                Icon(
+                                    imageVector = Icons.Filled.DragIndicator,
+                                    contentDescription = "Drag column",
+                                    modifier =
+                                        Modifier
+                                            .align(Alignment.TopStart)
+                                            .padding(start = 2.dp, top = 2.dp)
+                                            .size(16.dp)
+                                            .draggableHandle(enabled = true),
+                                )
+                            }
+                        }
                     }
                 }
             }

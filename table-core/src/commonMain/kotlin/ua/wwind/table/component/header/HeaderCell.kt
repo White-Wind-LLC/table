@@ -205,7 +205,7 @@ private fun <C, E> HeaderContent(
             horizontalArrangement = Arrangement.Center,
         ) {
             CompositionLocalProvider(
-                LocalTableHeaderCellInfo provides (info as TableHeaderCellInfo<Any?>),
+                LocalTableHeaderCellInfo provides info,
             ) {
                 // Constrain header text area and attach tooltip only when truncated
                 val titleText = spec.title?.invoke()

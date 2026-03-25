@@ -41,8 +41,8 @@ import kotlinx.datetime.format
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.component.TableCellTextField
 import ua.wwind.table.component.TableCellTextFieldWithTooltipError
-import ua.wwind.table.draggableHandle
 import ua.wwind.table.editableTableColumns
+import ua.wwind.table.longPressDraggableHandle
 import ua.wwind.table.sample.config.CellPadding
 import ua.wwind.table.sample.filter.createSalaryRangeFilter
 import ua.wwind.table.sample.filter.filterTypes
@@ -87,7 +87,7 @@ fun createTableColumns(
                 } else if (enableRowReorder) {
                     Box(
                         contentAlignment = Alignment.Center,
-                        modifier = Modifier.fillMaxSize().draggableHandle(),
+                        modifier = Modifier.fillMaxSize().longPressDraggableHandle(),
                     ) {
                         Icon(
                             imageVector = Icons.Default.DragIndicator,
