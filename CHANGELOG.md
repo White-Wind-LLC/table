@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file.
 
+### 1.8.0 — 2026-03-25
+
+- Added: Public row reordering API for table rows powered by [Reorderable](https://github.com/Calvin-LL/Reorderable).
+    - Added `onRowMove` callback to `Table` and `EditableTable` for handling row position changes.
+    - Added `TableItemScope` and `TableCellScope` to expose item-scoped drag helpers inside cell content.
+    - Added `Modifier.draggableHandle()` and `Modifier.longPressDraggableHandle()` for building custom row drag handles directly in `cell { ... }`.
+    - Row reordering now works for both regular lazy tables and embedded table bodies.
+- Changed: Table cell DSL now uses Kotlin context parameters.
+    - `ColumnSpec.cell` and the `cell { ... }` builder now run with `context(TableCellScope)`.
+    - Existing cell implementations usually continue to work unchanged, while advanced cell content can now access row-scoped helpers without extra parameters.
+- Changed: Row reorder mode now normalizes incompatible interactions more explicitly.
+    - `TableSettings.rowReorderEnabled` is now the primary setting name; deprecated `isDragEnabled` remains supported for compatibility.
+    - When row reorder mode is enabled, `enableDragToScroll` is forced to `false` and `initialSort` is ignored.
+    - Sorting and grouping interactions are disabled while row reorder mode is active to avoid conflicting gestures and state.
+- Fixed: Number filter source text formatting in `NumberFilterState`.
+    - Improves formatting consistency for number filter source values.
+- Updated: Compose Multiplatform and related dependencies.
+    - Compose Multiplatform upgraded from `1.10.2` to `1.10.3`.
+    - AndroidX Lifecycle upgraded from `2.9.6` to `2.10.0`.
+
+Compare: [v1.7.15...v1.8.0](https://github.com/White-Wind-LLC/table/compare/v1.7.15...v1.8.0)
+
 ### 1.7.15 — 2026-03-13
 
 - Fixed: Disabled SelectionContainer during row editing to prevent cross-hierarchy text selection issues.

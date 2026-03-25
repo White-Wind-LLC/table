@@ -24,6 +24,7 @@ formatting add‑on (`table-format`), and paging integration (`table-paging`).
 - [Selection](#selection)
 - [Checkbox selection with tableData](#checkbox-selection-with-tabledata)
 - [Dynamic row height and auto‑width](#dynamic-row-height-and-autowidth)
+- [Row reordering with Reorderable](#row-reordering-with-reorderable)
 - [Drag-to-scroll](#drag-to-scroll)
 - [Custom header icons](#custom-header-icons)
 - [Supported targets](#supported-targets)
@@ -51,6 +52,7 @@ Live demo: [white-wind-llc.github.io/table](https://white-wind-llc.github.io/tab
 - Data grouping by column with customizable group headers and sticky positioning.
 - Footer row with customizable content per column (totals, averages, summaries); supports pinned and scrollable modes.
 - Drag & drop to reorder columns in the header.
+- Row reordering powered by Reorderable with custom drag handles inside cell content.
 - Column resize via drag with per‑column min width.
 - Filters: text, number (int/double, ranges), boolean, date, enum (single/multi; IN/NOT IN/EQUALS) with built‑in
   `FilterPanel`.
@@ -70,10 +72,10 @@ Add repository (usually `mavenCentral`) and include the modules you need:
 
 ```kotlin
 dependencies {
-    implementation("ua.wwind.table-kmp:table-core:1.7.15")
+    implementation("ua.wwind.table-kmp:table-core:1.8.0")
     // optional
-    implementation("ua.wwind.table-kmp:table-format:1.7.15")
-    implementation("ua.wwind.table-kmp:table-paging:1.7.15")
+    implementation("ua.wwind.table-kmp:table-format:1.8.0")
+    implementation("ua.wwind.table-kmp:table-paging:1.8.0")
 }
 ```
 
@@ -101,6 +103,8 @@ The following table lists compatibility information for released library version
 
 | Version | Kotlin | Compose Multiplatform |
 |---------|-------:|----------------------:|
+| 1.8.0   | 2.3.10 |                1.10.3 |
+| 1.7.15  | 2.3.10 |                1.10.2 |
 | 1.7.13  | 2.3.10 |                1.10.1 |
 | 1.7.4   |  2.3.0 |                 1.9.3 |
 | 1.4.0   | 2.2.21 |                 1.9.3 |
@@ -527,7 +531,7 @@ content color, text style, alignment, etc.).
 - **Composable `Table<T, C>`**: renders header and virtualized rows for read-only tables (tableData = Unit).
     - **Required**: `itemsCount`, `itemAt(index)`, `state: TableState<C>`, `columns: List<ColumnSpec<T, C, Unit>>`.
     - **Slots**: `placeholderRow()`.
-    - **UX**: `onRowClick`, `onRowLongClick`, `contextMenu(item, pos, dismiss)`.
+    - **UX**: `onRowClick`, `onRowLongClick`, `onRowMove`, `contextMenu(item, pos, dismiss)`.
     - **Look**: `customization`, `colors = TableDefaults.colors()`, `icons = TableHeaderDefaults.icons()`, `strings`,
       `shape`, `border` (outer border; `null` = theme default, `TableDefaults.NoBorder` = no border).
     - **Scroll**: optional `verticalState`, `horizontalState`.
@@ -538,14 +542,15 @@ content color, text style, alignment, etc.).
       cells.
     - All other parameters same as read-only variant.
 - **Composable `EditableTable<T, C, E>`**: renders header and virtualized rows with editing support.
-    - **Additional parameters**: `tableData: E`, `onRowEditStart`, `onRowEditComplete`, `onEditCancelled`.
+    - **Additional parameters**: `tableData: E`, `onRowMove`, `onRowEditStart`, `onRowEditComplete`, `onEditCancelled`.
     - Columns must use `ColumnSpec<T, C, E>` with `E` matching the tableData type.
 - **Columns DSL**:
     - `tableColumns<T, C, E> { ... }` produces `List<ColumnSpec<T, C, E>>` for read-only tables.
     - `editableTableColumns<T, C, E> { ... }` produces `List<ColumnSpec<T, C, E>>` for editable tables.
     - Column configuration:
         - Cell: `cell { item, tableData -> ... }` for regular cell content with access to table data (use `_` if table
-          data is not needed).
+          data is not needed). Cell content uses `context(TableCellScope)`, enabling helpers such as
+          `Modifier.draggableHandle()` and `Modifier.longPressDraggableHandle()`.
         - Header: `header("Text")` or `header(tableData) { ... }`; optional `title { "Name" }` for active filter chips.
         - Footer: `footer(tableData) { ... }` for custom footer cell content with access to table data.
         - Editing: `editCell { item, tableData, onComplete -> ... }` for custom edit UI.
@@ -853,6 +858,93 @@ fun PeopleScreen(viewModel: MyViewModel) {
   widths once per phase. Double‑click the header resizer to snap a column to its measured max content width.
 - Alternatively, use `state.recalculateAutoWidths()` to manually trigger width recalculation based on
   current content measurements (useful for deferred/paginated data loading scenarios).
+
+### Row reordering with Reorderable
+
+The library now provides a dedicated row reordering flow powered by [Reorderable](https://github.com/Calvin-LL/Reorderable).
+
+- **Enable it**: set `TableSettings(rowReorderEnabled = true)`.
+- **Handle moves**: pass `onRowMove = { fromIndex, toIndex -> ... }` to `Table` or `EditableTable`.
+- **Enable compiler support**: add `-Xcontext-parameters` in the consuming module, because row drag handles are exposed
+  through Kotlin context parameters.
+- **How context is passed**: the `cell { ... }` DSL is backed by `context(TableCellScope)`, so inside a cell you can
+  call `Modifier.draggableHandle()` or `Modifier.longPressDraggableHandle()` directly.
+- **Interaction rules**: while row reorder mode is active, sorting and grouping interactions are disabled, `initialSort`
+  is ignored, and drag-to-scroll is automatically turned off.
+- **Embedded support**: the same API works for embedded table bodies too.
+
+Example:
+
+```kotlin
+data class Person(val id: Int, val name: String)
+
+enum class PersonColumn { Handle, Name }
+
+@Composable
+fun ReorderablePeopleTable() {
+    val people = remember {
+        mutableStateListOf(
+            Person(1, "Alice"),
+            Person(2, "Bob"),
+            Person(3, "Charlie"),
+        )
+    }
+
+    val columns =
+        remember {
+            tableColumns<Person, PersonColumn, Unit> {
+                column(PersonColumn.Handle, valueOf = { it.id }) {
+                    width(48.dp, 48.dp)
+                    resizable(false)
+                    cell { _, _ ->
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier.fillMaxSize(),
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Reorder,
+                                contentDescription = "Drag row",
+                                modifier = Modifier.draggableHandle(),
+                            )
+                        }
+                    }
+                }
+
+                column(PersonColumn.Name, valueOf = { it.name }) {
+                    header("Name")
+                    cell { person, _ -> Text(person.name) }
+                }
+            }
+        }
+
+    // Required in the consuming module:
+    // compilerOptions { freeCompilerArgs.add("-Xcontext-parameters") }
+    //
+    // `cell { ... }` receives `context(TableCellScope)`, which is why
+    // `Modifier.draggableHandle()` is available directly inside the cell lambda.
+    val state =
+        rememberTableState(
+            columns = PersonColumn.entries.toImmutableList(),
+            settings = TableSettings(rowReorderEnabled = true),
+        )
+
+    Table(
+        itemsCount = people.size,
+        itemAt = { index -> people.getOrNull(index) },
+        state = state,
+        columns = columns,
+        onRowMove = { fromIndex, toIndex ->
+            if (fromIndex !in people.indices || people.isEmpty()) return@Table
+
+            val targetIndex = toIndex.coerceIn(0, people.lastIndex)
+            if (fromIndex == targetIndex) return@Table
+
+            val movedItem = people.removeAt(fromIndex)
+            people.add(targetIndex, movedItem)
+        },
+    )
+}
+```
 
 ### Drag-to-scroll
 
