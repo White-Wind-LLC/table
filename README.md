@@ -863,6 +863,8 @@ fun PeopleScreen(viewModel: MyViewModel) {
 The library now provides a dedicated row reordering flow powered
 by [Reorderable](https://github.com/Calvin-LL/Reorderable).
 
+![Row reordering example](docs/images/row-reordering.gif)
+
 - **Enable it**: set `TableSettings(rowReorderEnabled = true)`.
 - **Handle moves**: pass `onRowMove = { fromIndex, toIndex -> ... }` to `Table` or `EditableTable`.
 - **Enable compiler support**: add `-Xcontext-parameters` in the consuming module, because row drag handles are exposed
