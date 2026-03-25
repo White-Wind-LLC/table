@@ -11,6 +11,7 @@ data class PersonMovement(
 
 /** Columns for the embedded movements table. */
 enum class PersonMovementColumn {
+    REORDER,
     DATE,
     FROM_POSITION,
     TO_POSITION,

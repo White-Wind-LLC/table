@@ -342,6 +342,33 @@ class SampleViewModel : ViewModel() {
                     currentSort.value = null
                 }
             }
+
+            is SampleUiEvent.MovementRowMove -> {
+                _people.update { currentPeople ->
+                    val personIndex = currentPeople.indexOfFirst { it.id == event.personId }
+                    if (personIndex < 0) return@update currentPeople
+
+                    val person = currentPeople[personIndex]
+                    val movements = person.movements
+                    if (
+                        movements.size < 2 ||
+                        event.fromIndex !in movements.indices ||
+                        event.toIndex !in movements.indices ||
+                        event.fromIndex == event.toIndex
+                    ) {
+                        return@update currentPeople
+                    }
+
+                    val reorderedMovements =
+                        movements.toMutableList().apply {
+                            add(event.toIndex, removeAt(event.fromIndex))
+                        }
+
+                    currentPeople.toMutableList().apply {
+                        this[personIndex] = person.copy(movements = reorderedMovements)
+                    }
+                }
+            }
         }
     }
 }

@@ -61,4 +61,11 @@ sealed class SampleUiEvent {
         val fromPersonId: Int,
         val toPersonId: Int,
     ) : SampleUiEvent()
+
+    /** Reorder embedded movement rows for a specific person by movement indices. */
+    data class MovementRowMove(
+        val personId: Int,
+        val fromIndex: Int,
+        val toIndex: Int,
+    ) : SampleUiEvent()
 }

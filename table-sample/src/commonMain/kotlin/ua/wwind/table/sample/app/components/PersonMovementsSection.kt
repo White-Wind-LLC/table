@@ -28,16 +28,18 @@ import ua.wwind.table.strings.DefaultStrings
 fun PersonMovementsSection(
     person: Person,
     useCompactMode: Boolean = false,
+    enableRowReorder: Boolean = false,
+    onRowMove: (fromIndex: Int, toIndex: Int) -> Unit = { _, _ -> },
     modifier: Modifier = Modifier,
 ) {
     val columns =
-        remember(useCompactMode) {
-            createMovementColumns(useCompactMode)
+        remember(useCompactMode, enableRowReorder) {
+            createMovementColumns(useCompactMode, enableRowReorder = enableRowReorder)
         }
     val movementSettings =
-        remember {
+        remember(enableRowReorder) {
             TableSettings(
-                rowReorderEnabled = false,
+                rowReorderEnabled = enableRowReorder,
                 autoApplyFilters = false,
                 showFastFilters = false,
                 autoFilterDebounce = 0,
@@ -76,6 +78,7 @@ fun PersonMovementsSection(
             rowKey = { item, index -> item?.date ?: index },
             modifier = Modifier.padding(top = 8.dp),
             embedded = true,
+            onRowMove = onRowMove,
         )
     }
 }

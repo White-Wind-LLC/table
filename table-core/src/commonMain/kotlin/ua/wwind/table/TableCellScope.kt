@@ -10,29 +10,34 @@ import sh.calvin.reorderable.DragGestureDetector
 import sh.calvin.reorderable.ReorderableItem
 
 /**
- * Context passed to cell content.
+ * Scope available inside table body cell content.
  *
- * This scope is intentionally generic to allow adding new cell-level capabilities in future.
+ * Extends [TableItemScope] with a cell-specific receiver used by the `cell { ... }` DSL,
+ * so cell content can access item-level helpers in a more natural way.
  */
 @Stable
-public interface TableCellScope : TableRowScope
+public interface TableCellScope : TableItemScope
 
 @Stable
-internal class TableCellScopeImpl(private val delegate: TableRowScope) : TableCellScope, TableRowScope by delegate
+internal class TableCellScopeImpl(private val delegate: TableItemScope) : TableCellScope, TableItemScope by delegate
 
 @Immutable
-internal object DefaultTableCellScope : TableCellScope, TableRowScope by DefaultTableRowScope
+internal object DefaultTableCellScope : TableCellScope, TableItemScope by DefaultTableItemScope
 
 /**
- * Make the UI element the draggable handle for the reorderable item.
+ * Makes this modifier act as a drag handle for the current table item from cell content.
  *
- * This modifier can only be used on the UI element that is a child of [ReorderableItem].
+ * This is a convenience wrapper around [TableItemScope.applyDraggableHandle] for use inside
+ * a [TableCellScope] context. The modifier only works correctly when applied to a node that
+ * is a descendant of [ReorderableItem].
  *
- * @param enabled Whether or not drag is enabled
- * @param interactionSource [MutableInteractionSource] that will be used to emit [DragInteraction.Start] when this draggable is being dragged.
- * @param onDragStarted The function that is called when the item starts being dragged
- * @param onDragStopped The function that is called when the item stops being dragged
- * @param dragGestureDetector [DragGestureDetector] that will be used to detect drag gestures
+ * @param enabled whether drag gestures are enabled for this handle.
+ * @param interactionSource optional [MutableInteractionSource] used to emit
+ * [DragInteraction.Start] when dragging begins.
+ * @param onDragStarted callback invoked when dragging starts.
+ * @param onDragStopped callback invoked when dragging stops.
+ * @param dragGestureDetector gesture detector that defines how dragging is started.
+ * @return a modifier with drag-handle behavior applied.
  */
 public context(cellScope: TableCellScope)
 fun Modifier.draggableHandle(
@@ -51,14 +56,19 @@ fun Modifier.draggableHandle(
 )
 
 /**
- * Make the UI element the draggable handle for the reorderable item. Drag will start only after a long press.
+ * Makes this modifier act as a long-press drag handle for the current table item from cell
+ * content.
  *
- * This modifier can only be used on the UI element that is a child of [ReorderableItem].
+ * This is a convenience wrapper around [TableItemScope.applyLongPressDraggableHandle] for use
+ * inside a [TableCellScope] context. The modifier only works correctly when applied to a node
+ * that is a descendant of [ReorderableItem]. Dragging starts only after a long press.
  *
- * @param enabled Whether or not drag is enabled
- * @param interactionSource [MutableInteractionSource] that will be used to emit [DragInteraction.Start] when this draggable is being dragged.
- * @param onDragStarted The function that is called when the item starts being dragged
- * @param onDragStopped The function that is called when the item stops being dragged
+ * @param enabled whether drag gestures are enabled for this handle.
+ * @param interactionSource optional [MutableInteractionSource] used to emit
+ * [DragInteraction.Start] when dragging begins.
+ * @param onDragStarted callback invoked when dragging starts.
+ * @param onDragStopped callback invoked when dragging stops.
+ * @return a modifier with long-press drag-handle behavior applied.
  */
 public context(cellScope: TableCellScope)
 fun Modifier.longPressDraggableHandle(

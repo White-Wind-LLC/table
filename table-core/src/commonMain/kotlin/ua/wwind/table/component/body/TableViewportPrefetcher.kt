@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.flow.distinctUntilChanged
 import ua.wwind.table.ColumnSpec
-import ua.wwind.table.DefaultTableRowScope
+import ua.wwind.table.DefaultTableItemScope
 import ua.wwind.table.config.RowHeightMode
 import ua.wwind.table.config.TableColors
 import ua.wwind.table.config.TableCustomization
@@ -95,7 +95,7 @@ internal fun <T : Any, C, E> TableViewportPrefetcher(
                 } else {
                     val measurables =
                         subcompose(slotId = i) {
-                            context(DefaultTableRowScope) {
+                            context(DefaultTableItemScope) {
                                 TableRowItem(
                                     item = itemAt(i),
                                     index = i,

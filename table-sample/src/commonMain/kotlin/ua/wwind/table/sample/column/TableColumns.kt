@@ -465,9 +465,34 @@ fun createTableColumns(
         }
     }
 
-fun createMovementColumns(useCompactMode: Boolean = false): ImmutableList<ColumnSpec<PersonMovement, PersonMovementColumn, Person>> =
+fun createMovementColumns(
+    useCompactMode: Boolean = false,
+    enableRowReorder: Boolean = false,
+): ImmutableList<ColumnSpec<PersonMovement, PersonMovementColumn, Person>> =
     tableColumns {
         val cellPadding = if (useCompactMode) CellPadding.compact else CellPadding.standard
+        val reorderSize = if (useCompactMode) 36.dp else 48.dp
+
+        column(PersonMovementColumn.REORDER, valueOf = { it.date }) {
+            title { "" }
+            width(reorderSize, reorderSize)
+            resizable(false)
+            cell { _, _ ->
+                if (enableRowReorder) {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier.fillMaxSize().draggableHandle(),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Reorder,
+                            contentDescription = "Drag to reorder",
+                            modifier = Modifier.size(20.dp),
+                        )
+                    }
+                }
+            }
+        }
+
         column(PersonMovementColumn.DATE, valueOf = { it.date }) {
             title { "Date" }
             autoWidth()

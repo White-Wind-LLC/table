@@ -8,18 +8,21 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import kotlinx.collections.immutable.ImmutableList
+import sh.calvin.reorderable.ReorderableColumn
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 import ua.wwind.table.ColumnSpec
-import ua.wwind.table.DefaultTableRowScope
-import ua.wwind.table.TableRowDragScope
-import ua.wwind.table.TableRowScope
+import ua.wwind.table.DefaultTableItemScope
+import ua.wwind.table.TableItemDragScope
+import ua.wwind.table.TableItemListDragScope
+import ua.wwind.table.TableItemScope
 import ua.wwind.table.component.footer.TableFooter
 import ua.wwind.table.config.TableColors
 import ua.wwind.table.config.TableCustomization
@@ -70,9 +73,9 @@ internal fun <T : Any, C, E> TableBody(
             val currentReorderState = reorderState
             if (currentReorderState != null) {
                 ReorderableItem(state = currentReorderState, key = key) {
-                    val rowScope: TableRowScope =
+                    val rowScope: TableItemScope =
                         remember(this) {
-                            TableRowDragScope(this)
+                            TableItemDragScope(this)
                         }
                     context(rowScope) {
                         TableBodyRow(
@@ -94,7 +97,7 @@ internal fun <T : Any, C, E> TableBody(
                     }
                 }
             } else {
-                context(DefaultTableRowScope) {
+                context(DefaultTableItemScope) {
                     TableBodyRow(
                         index = index,
                         itemAt = itemAt,
@@ -158,7 +161,7 @@ internal fun <T : Any, C, E> TableBody(
 }
 
 @Composable
-@Suppress("LongParameterList", "UnusedParameter")
+@Suppress("LongParameterList")
 internal fun <T : Any, C, E> TableBodyEmbedded(
     itemsCount: Int,
     itemAt: (Int) -> T?,
@@ -179,25 +182,65 @@ internal fun <T : Any, C, E> TableBodyEmbedded(
 ) {
     if (itemsCount <= 0 && !state.settings.showFooter) return
 
+    val rowMoveCallback = onRowMove
+    val rowReorderEnabled = state.settings.isRowReorderEnabled && rowMoveCallback != null
+    val itemList = remember(itemsCount, itemAt) { IndexedListAdapter(itemsCount, itemAt) }
+
     Column {
-        for (index in 0 until itemsCount) {
-            context(DefaultTableRowScope) {
-                TableBodyRow(
-                    index = index,
-                    itemAt = itemAt,
-                    visibleColumns = visibleColumns,
-                    state = state,
-                    colors = colors,
-                    customization = customization,
-                    tableData = tableData,
-                    rowEmbedded = rowEmbedded,
-                    placeholderRow = placeholderRow,
-                    onRowClick = onRowClick,
-                    onRowLongClick = onRowLongClick,
-                    onContextMenu = onContextMenu,
-                    horizontalState = horizontalState,
-                    requestTableFocus = requestTableFocus,
-                )
+        if (rowReorderEnabled) {
+            ReorderableColumn(
+                list = itemList,
+                onSettle = { fromIndex, toIndex ->
+                    rowMoveCallback.invoke(fromIndex, toIndex)
+                },
+            ) { index, item, _ ->
+                key(rowKey(item, index)) {
+                    ReorderableItem {
+                        val rowScope: TableItemScope =
+                            remember(this) {
+                                TableItemListDragScope(this)
+                            }
+                        context(rowScope) {
+                            TableBodyRow(
+                                index = index,
+                                itemAt = itemAt,
+                                visibleColumns = visibleColumns,
+                                state = state,
+                                colors = colors,
+                                customization = customization,
+                                tableData = tableData,
+                                rowEmbedded = rowEmbedded,
+                                placeholderRow = placeholderRow,
+                                onRowClick = onRowClick,
+                                onRowLongClick = onRowLongClick,
+                                onContextMenu = onContextMenu,
+                                horizontalState = horizontalState,
+                                requestTableFocus = requestTableFocus,
+                            )
+                        }
+                    }
+                }
+            }
+        } else {
+            for (index in 0 until itemsCount) {
+                context(DefaultTableItemScope) {
+                    TableBodyRow(
+                        index = index,
+                        itemAt = itemAt,
+                        visibleColumns = visibleColumns,
+                        state = state,
+                        colors = colors,
+                        customization = customization,
+                        tableData = tableData,
+                        rowEmbedded = rowEmbedded,
+                        placeholderRow = placeholderRow,
+                        onRowClick = onRowClick,
+                        onRowLongClick = onRowLongClick,
+                        onContextMenu = onContextMenu,
+                        horizontalState = horizontalState,
+                        requestTableFocus = requestTableFocus,
+                    )
+                }
             }
         }
 
@@ -227,9 +270,24 @@ internal fun <T : Any, C, E> TableBodyEmbedded(
     }
 }
 
+private class IndexedListAdapter<T>(
+    private val itemsCount: Int,
+    private val itemAt: (Int) -> T
+) : AbstractList<T>() {
+    override val size: Int
+        get() = itemsCount
+
+    override fun get(index: Int): T {
+        require(index in 0 until itemsCount) {
+            "Index $index is out of bounds for list size $itemsCount"
+        }
+        return itemAt(index)
+    }
+}
+
 @Composable
 @Suppress("LongParameterList")
-context(_: TableRowScope)
+context(_: TableItemScope)
 private fun <T : Any, C, E> TableBodyRow(
     index: Int,
     itemAt: (Int) -> T?,

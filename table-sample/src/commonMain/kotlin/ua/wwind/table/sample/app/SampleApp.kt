@@ -223,6 +223,15 @@ fun SampleApp(modifier: Modifier = Modifier) {
                                             )
                                         }
                                     },
+                                    onMovementRowMove = { person, from, to ->
+                                        viewModel.onEvent(
+                                            SampleUiEvent.MovementRowMove(
+                                                personId = person.id,
+                                                fromIndex = from,
+                                                toIndex = to,
+                                            ),
+                                        )
+                                    },
                                     onRowEditStart = { person, rowIndex ->
                                         viewModel.onEvent(
                                             SampleUiEvent.StartEditing(rowIndex, person),
@@ -240,6 +249,7 @@ fun SampleApp(modifier: Modifier = Modifier) {
                                         viewModel.onEvent(SampleUiEvent.CancelEditing)
                                     },
                                     useCompactMode = tableConfig.useCompactMode,
+                                    enableRowReorder = tableConfig.enableRowReorder,
                                     modifier =
                                         Modifier
                                             .padding(16.dp)

@@ -38,74 +38,83 @@ data class Person(
 
             else -> "This is a single-line note."
         },
+    /**
+     * Career movements history for the person.
+     */
+    val movements: List<PersonMovement> =
+        generateMovements(
+            id = id,
+            age = age,
+            salary = salary,
+            hireDate = hireDate,
+            position = position,
+        ),
     val expandedMovement: Boolean = false,
-) {
-    /**
-     * Career movements history for the person. Generated pseudo-randomly based on person immutable
-     * data.
-     */
-    val movements: List<PersonMovement> = generateMovements()
+)
 
-    /**
-     * Generates deterministic pseudo-random movements for the person. First movement is hiring on
-     * [hireDate] to a random position. Then from 2 to 6 movements, where the last movement ends on
-     * [position].
-     */
-    private fun generateMovements(): List<PersonMovement> {
-        // Deterministic seed based on person id to keep data stable between runs
-        val seed = id * 31 + age * 17 + salary
-        val random = kotlin.random.Random(seed)
+/**
+ * Generates deterministic pseudo-random movements for a person.
+ */
+private fun generateMovements(
+    id: Int,
+    age: Int,
+    salary: Int,
+    hireDate: LocalDate,
+    position: Position,
+): List<PersonMovement> {
+    // Deterministic seed based on person id to keep data stable between runs
+    val seed = id * 31 + age * 17 + salary
+    val random = kotlin.random.Random(seed)
 
-        val allPositions = Position.entries
+    val allPositions = Position.entries
 
-        // Hire movement: hireDate to random position
-        val initialPosition = allPositions.random(random)
-        val movements = mutableListOf<PersonMovement>()
+    // Hire movement: hireDate to random position
+    val initialPosition = allPositions.random(random)
+    val movements = mutableListOf<PersonMovement>()
+
+    movements +=
+        PersonMovement(
+            date = hireDate,
+            fromPosition = null,
+            toPosition = initialPosition,
+        )
+
+    // Decide total number of movements: from 2 to 6
+    val totalMovements = random.nextInt(from = 2, until = 7)
+
+    var currentDate = hireDate
+    var currentPosition = initialPosition
+
+    // Generate intermediate movements, reserving the last one for final position
+    for (index in 1 until totalMovements) {
+        val isLastMovement = index == totalMovements - 1
+
+        val nextPosition =
+            if (isLastMovement) {
+                // Ensure the last movement ends at the person final position
+                position
+            } else {
+                // Pick a random position that may differ from current
+                var candidate: Position
+                do {
+                    candidate = allPositions.random(random)
+                } while (candidate == currentPosition && allPositions.size > 1)
+                candidate
+            }
+
+        // Advance date by 90-540 days
+        val daysToAdd = random.nextInt(from = 90, until = 541)
+        currentDate = currentDate.plus(daysToAdd, DateTimeUnit.DAY)
 
         movements +=
             PersonMovement(
-                date = hireDate,
-                fromPosition = null,
-                toPosition = initialPosition,
+                date = currentDate,
+                fromPosition = currentPosition,
+                toPosition = nextPosition,
             )
 
-        // Decide total number of movements: from 2 to 6
-        val totalMovements = random.nextInt(from = 2, until = 7)
-
-        var currentDate = hireDate
-        var currentPosition = initialPosition
-
-        // Generate intermediate movements, reserving the last one for final position
-        for (index in 1 until totalMovements) {
-            val isLastMovement = index == totalMovements - 1
-
-            val nextPosition =
-                if (isLastMovement) {
-                    // Ensure the last movement ends at the person final position
-                    position
-                } else {
-                    // Pick a random position that may differ from current
-                    var candidate: Position
-                    do {
-                        candidate = allPositions.random(random)
-                    } while (candidate == currentPosition && allPositions.size > 1)
-                    candidate
-                }
-
-            // Advance date by 90-540 days
-            val daysToAdd = random.nextInt(from = 90, until = 541)
-            currentDate = currentDate.plus(daysToAdd, DateTimeUnit.DAY)
-
-            movements +=
-                PersonMovement(
-                    date = currentDate,
-                    fromPosition = currentPosition,
-                    toPosition = nextPosition,
-                )
-
-            currentPosition = nextPosition
-        }
-
-        return movements
+        currentPosition = nextPosition
     }
+
+    return movements
 }

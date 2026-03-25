@@ -34,10 +34,12 @@ fun MainTable(
     onFiltersChanged: (Map<PersonColumn, TableFilterState<*>>) -> Unit,
     onSortChanged: (SortState<PersonColumn>?) -> Unit,
     onRowMove: (fromIndex: Int, toIndex: Int) -> Unit,
+    onMovementRowMove: (person: Person, fromIndex: Int, toIndex: Int) -> Unit,
     onRowEditStart: (Person, Int) -> Unit,
     onRowEditComplete: (Int) -> Boolean,
     onEditCancelled: (Int) -> Unit,
     useCompactMode: Boolean = false,
+    enableRowReorder: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     // Observe filters and sort state changes
@@ -69,7 +71,14 @@ fun MainTable(
                 enter = expandVertically() + fadeIn(),
                 exit = shrinkVertically() + fadeOut(),
             ) {
-                PersonMovementsSection(person = person, useCompactMode = useCompactMode)
+                PersonMovementsSection(
+                    person = person,
+                    useCompactMode = useCompactMode,
+                    enableRowReorder = enableRowReorder,
+                    onRowMove = { from, to ->
+                        onMovementRowMove(person, from, to)
+                    },
+                )
             }
         },
         onRowMove = onRowMove,
