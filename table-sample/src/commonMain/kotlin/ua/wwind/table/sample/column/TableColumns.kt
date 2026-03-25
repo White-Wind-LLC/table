@@ -9,9 +9,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DragIndicator
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.Reorder
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenuItem
@@ -41,8 +41,8 @@ import kotlinx.datetime.format
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.component.TableCellTextField
 import ua.wwind.table.component.TableCellTextFieldWithTooltipError
+import ua.wwind.table.draggableHandle
 import ua.wwind.table.editableTableColumns
-import ua.wwind.table.longPressDraggableHandle
 import ua.wwind.table.sample.config.CellPadding
 import ua.wwind.table.sample.filter.createSalaryRangeFilter
 import ua.wwind.table.sample.filter.filterTypes
@@ -87,10 +87,10 @@ fun createTableColumns(
                 } else if (enableRowReorder) {
                     Box(
                         contentAlignment = Alignment.Center,
-                        modifier = Modifier.fillMaxSize().longPressDraggableHandle(),
+                        modifier = Modifier.fillMaxSize().draggableHandle(),
                     ) {
                         Icon(
-                            imageVector = Icons.Default.DragIndicator,
+                            imageVector = Icons.Default.Reorder,
                             contentDescription = "Drag to reorder",
                             modifier = Modifier.size(24.dp),
                         )

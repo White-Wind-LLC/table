@@ -52,6 +52,7 @@ import ua.wwind.table.config.DefaultTableCustomization
 import ua.wwind.table.config.TableColors
 import ua.wwind.table.config.TableCustomization
 import ua.wwind.table.config.TableDefaults
+import ua.wwind.table.config.isInteractionLockByRowReorderEnabled
 import ua.wwind.table.interaction.ApplyAutoWidthEffect
 import ua.wwind.table.interaction.ApplyAutoWidthEmbeddedEffect
 import ua.wwind.table.interaction.ContextMenuState
@@ -644,7 +645,7 @@ private fun <T : Any, C, E> TableBodySection(
                 modifier = Modifier.fillMaxSize(),
             )
         }
-        if (state.groupBy != null) {
+        if (state.groupBy != null && !state.settings.isInteractionLockByRowReorderEnabled) {
             GroupStickyOverlay(
                 itemAt = itemAt,
                 tableData = tableData,

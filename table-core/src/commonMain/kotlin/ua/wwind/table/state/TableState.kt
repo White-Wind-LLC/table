@@ -24,10 +24,12 @@ import ua.wwind.table.config.SelectionMode
 import ua.wwind.table.config.TableDefaults
 import ua.wwind.table.config.TableDimensions
 import ua.wwind.table.config.TableSettings
+import ua.wwind.table.config.isRowReorderEnabled
 import ua.wwind.table.data.SortOrder
 import ua.wwind.table.filter.data.TableFilterState
 
 private val logger = Logger.withTag("TableAutoWidth")
+private val settingsLogger = Logger.withTag("TableSettings")
 
 /** Current sort state: which [column] is sorted and in which [order]. */
 @Immutable
@@ -577,13 +579,53 @@ public fun <C> rememberTableState(
     // These parameters should only be used for initial state, not for triggering state recreation
     // on every reorder/resize/sort. Recreating the state would wipe runtime data such as filters.
     return remember(columns, settings, dimensions) {
+        val normalized = normalizeTableStateInput(settings, initialSort)
+        if (normalized.warnings.isNotEmpty()) {
+            settingsLogger.w { normalized.warnings.joinToString("; ") }
+        }
         TableState(
             initialColumns = columns,
-            initialSort = initialSort,
+            initialSort = normalized.initialSort,
             initialOrder = initialOrder,
             initialWidths = initialWidths,
-            settings = settings,
+            settings = normalized.settings,
             dimensions = dimensions,
         )
     }
+}
+
+private data class NormalizedTableStateInput<C>(
+    val settings: TableSettings,
+    val initialSort: SortState<C>?,
+    val warnings: List<String>,
+)
+
+private fun <C> normalizeTableStateInput(
+    settings: TableSettings,
+    initialSort: SortState<C>?,
+): NormalizedTableStateInput<C> {
+    if (!settings.isRowReorderEnabled) {
+        return NormalizedTableStateInput(settings = settings, initialSort = initialSort, warnings = emptyList())
+    }
+
+    val warnings = mutableListOf<String>()
+    var normalizedSettings = settings
+    var normalizedInitialSort = initialSort
+
+    if (settings.enableDragToScroll) {
+        normalizedSettings = settings.copy(enableDragToScroll = false)
+        warnings +=
+            "rowReorderEnabled is incompatible with enableDragToScroll; enableDragToScroll is forced to false."
+    }
+
+    if (initialSort != null) {
+        normalizedInitialSort = null
+        warnings += "rowReorderEnabled is incompatible with initialSort; initialSort is ignored."
+    }
+
+    return NormalizedTableStateInput(
+        settings = normalizedSettings,
+        initialSort = normalizedInitialSort,
+        warnings = warnings,
+    )
 }

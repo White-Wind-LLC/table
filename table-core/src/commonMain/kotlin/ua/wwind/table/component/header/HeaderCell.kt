@@ -32,6 +32,7 @@ import ua.wwind.table.MeasureCellMinWidth
 import ua.wwind.table.component.LocalTableHeaderCellInfo
 import ua.wwind.table.component.LocalTableHeaderIcons
 import ua.wwind.table.component.TableHeaderCellInfo
+import ua.wwind.table.config.isInteractionLockByRowReorderEnabled
 import ua.wwind.table.data.SortOrder
 import ua.wwind.table.filter.component.main.FilterPanel
 import ua.wwind.table.filter.data.TableFilterState
@@ -56,20 +57,21 @@ internal fun <T : Any, C, E> HeaderCell(
     leftDividerThickness: Dp = dividerThickness,
     showRightDivider: Boolean = true,
 ) {
+    val interactionLocked = state.settings.isInteractionLockByRowReorderEnabled
     val sortOrder: SortOrder? = state.sort?.takeIf { it.column == spec.key }?.order
     val isFilterActive: Boolean = state.filters[spec.key]?.isActive() == true
 
     val info =
         TableHeaderCellInfo(
             columnKey = spec.key as Any?,
-            isSortable = spec.sortable,
+            isSortable = spec.sortable && !interactionLocked,
             sortOrder = sortOrder,
             hasFilter = spec.filter != null,
             isFilterActive = isFilterActive,
             toggleSort = onToggleSort,
             sortIcon = {
                 SortButton(
-                    enabled = spec.sortable,
+                    enabled = spec.sortable && !interactionLocked,
                     order = sortOrder,
                     icons = LocalTableHeaderIcons.current,
                     onToggle = onToggleSort,

@@ -56,9 +56,9 @@ sealed class SampleUiEvent {
     /** Clear all selections */
     data object ClearSelection : SampleUiEvent()
 
-    /** Move person row in backing list */
+    /** Swap two person rows in backing list by IDs resolved from displayed positions */
     data class RowMove(
-        val fromIndex: Int,
-        val toIndex: Int,
+        val fromPersonId: Int,
+        val toPersonId: Int,
     ) : SampleUiEvent()
 }

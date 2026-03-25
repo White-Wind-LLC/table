@@ -321,21 +321,25 @@ class SampleViewModel : ViewModel() {
             }
 
             is SampleUiEvent.RowMove -> {
+                var moved = false
                 _people.update { currentPeople ->
-                    val size = currentPeople.size
-                    if (size < 2) return@update currentPeople
-                    if (event.fromIndex !in 0 until size) return@update currentPeople
+                    if (currentPeople.size < 2) return@update currentPeople
 
-                    var targetIndex = event.toIndex.coerceIn(0, size)
-                    if (event.fromIndex == targetIndex || event.fromIndex == targetIndex - 1) {
+                    val sourceIndex = currentPeople.indexOfFirst { it.id == event.fromPersonId }
+                    val targetIndex = currentPeople.indexOfFirst { it.id == event.toPersonId }
+                    if (sourceIndex < 0 || targetIndex < 0 || sourceIndex == targetIndex) {
                         return@update currentPeople
                     }
 
-                    val moved = currentPeople.toMutableList()
-                    val person = moved.removeAt(event.fromIndex)
-                    if (targetIndex > event.fromIndex) targetIndex--
-                    moved.add(targetIndex, person)
-                    moved
+                    moved = true
+                    currentPeople.toMutableList().apply {
+                        val sourcePerson = this[sourceIndex]
+                        this[sourceIndex] = this[targetIndex]
+                        this[targetIndex] = sourcePerson
+                    }
+                }
+                if (moved) {
+                    currentSort.value = null
                 }
             }
         }

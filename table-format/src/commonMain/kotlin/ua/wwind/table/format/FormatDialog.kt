@@ -378,7 +378,7 @@ public fun <E : Enum<E>, FILTER> FormatDialog(
                                                 contentDescription = null,
                                                 modifier =
                                                     Modifier
-                                                        .pointerInput(Unit) {
+                                                        .pointerInput(rulesState) {
                                                             detectTapGestures(
                                                                 onPress = {
                                                                     draggedItemIndex = rulesState.indexOf(item)

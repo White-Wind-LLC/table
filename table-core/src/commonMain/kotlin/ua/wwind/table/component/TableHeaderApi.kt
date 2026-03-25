@@ -9,6 +9,7 @@ import androidx.compose.material.icons.rounded.FilterAlt
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.ProvidableCompositionLocal
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -44,7 +45,7 @@ public object TableHeaderDefaults {
 }
 
 /** Per-header cell info and helpers provided to the header slot via CompositionLocal. */
-@Immutable
+@Stable
 public data class TableHeaderCellInfo<C>(
     val columnKey: C,
     val isSortable: Boolean,

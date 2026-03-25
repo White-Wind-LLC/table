@@ -349,6 +349,7 @@ By either using `TableCellTextField` or reusing `syncEditCellFocus()` in your ow
 consistent with the default table editing behavior.
 
 Runtime behavior:
+
 - Double‑click on an editable cell to enter **row edit mode**.
 - All editable cells in the row render their `editCell` content.
 - Press **Enter/Done** in a cell to call `onComplete()` and move to the next editable column.
@@ -552,7 +553,7 @@ content color, text style, alignment, etc.).
         - Filters UI: `filter(TableFilterType.*)`.
         - Sizing: `width(min, pref)`, `autoWidth(max)`, `resizable(Boolean)`, `align(Alignment.Horizontal)`.
         - Row height hints: `rowHeight(min, max)` used when `rowHeightMode = Dynamic`.
-          - Decorations: `headerDecorations(Boolean)` to hide built‑ins when fully customizing header.
+        - Decorations: `headerDecorations(Boolean)` to hide built‑ins when fully customizing header.
 - **Header customization**
     - When `headerDecorations = true` (default), the table places sort and filter icons automatically.
     - For a fully custom header, set `headerDecorations(false)` and use helpers inside `header { ... }`:
@@ -573,6 +574,8 @@ column(PersonField.Name, valueOf = { it.name }) {
 ```
 
 - **State**: `rememberTableState(columns, initialSort?, initialOrder?, initialWidths?, settings?, dimensions?)`.
+    - Compatibility normalization: when `settings.rowReorderEnabled = true`,
+      `enableDragToScroll` is forced to `false` and `initialSort` is ignored (warning is logged).
     - Sorting: `state.setSort(column, order?)`; current `state.sort`.
     - Grouping: `state.groupBy(column)` to enable grouping; `state.groupBy(null)` to disable.
     - Column order/size: `state.setColumnOrder(order)`, `state.resizeColumn(column, Set/Reset)`,
@@ -584,16 +587,20 @@ column(PersonField.Name, valueOf = { it.name }) {
     - Selection: `state.toggleSelect(index)`, `state.toggleCheck(index)`, `state.toggleCheckAll(count)`,
       `state.selectCell(row, column)`.
 - **Settings and geometry**
-    - `TableSettings`: `isDragEnabled`, `autoApplyFilters`, `autoFilterDebounce`, `stripedRows`,
+    - `TableSettings`: `rowReorderEnabled` (new name; deprecated alias `isDragEnabled` is still supported),
+      `autoApplyFilters`, `autoFilterDebounce`, `stripedRows`,
       `showActiveFiltersHeader`, `selectionMode: None/Single/Multiple`, `groupContentAlignment`,
       `rowHeightMode: Fixed/Dynamic`, `enableDragToScroll` (controls whether drag-to-scroll is enabled; when disabled,
-      traditional scrollbars are used instead), `editingEnabled` (master switch for cell editing mode), `showFooter`
-      (enable footer row display), `footerPinned` (pin footer at bottom or scroll with content),
+      traditional scrollbars are used instead; forced off in row reorder mode), `editingEnabled` (master switch for cell
+      editing mode), `showFooter` (enable footer row display), `footerPinned` (pin footer at bottom or scroll with
+      content),
       `enableTextSelection` (wrap table body in `SelectionContainer` to allow text selection; defaults to `false`),
       `showVerticalDividers` (show/hide vertical dividers between columns; defaults to `true`),
       `showRowDividers` (show/hide horizontal dividers between rows; defaults to `true`),
       `showHeaderDivider` (show/hide horizontal divider below header; defaults to `true`),
       `showFastFiltersDivider` (show/hide horizontal divider below fast filters row; defaults to `true`).
+    - Row reorder mode notes: while `rowReorderEnabled = true`, sorting and grouping UI is disabled.
+      Filtering stays available; fast filters and active filters header continue to work.
     - `TableDimensions`: `defaultColumnWidth`, `defaultRowHeight`, `footerHeight`, `checkBoxColumnWidth`,
       `verticalDividerThickness`, `verticalDividerPaddingHorizontal`.
     - `TableColors`: via `TableDefaults.colors(...)`.
@@ -1006,12 +1013,12 @@ Public API highlights:
 
 This project uses the following open source libraries:
 
-| Library                                                                                  | License            | Description                                                    |
-|------------------------------------------------------------------------------------------|--------------------|----------------------------------------------------------------|
-| [Reorderable](https://github.com/Calvin-LL/Reorderable)                                  | Apache License 2.0 | Drag and drop functionality for reordering items in Compose    |
-| [Paging for KMP](https://github.com/White-Wind-LLC/paging-kmp)                           | Apache License 2.0 | Kotlin Multiplatform paging library                            |
-| [ColorPicker Compose](https://github.com/skydoves/colorpicker-compose)                   | Apache License 2.0 | Color picker component for Jetpack Compose                     |
-| [Kermit](https://github.com/touchlab/Kermit)                                             | Apache License 2.0 | Kotlin Multiplatform logging library                           |
+| Library                                                                | License            | Description                                                 |
+|------------------------------------------------------------------------|--------------------|-------------------------------------------------------------|
+| [Reorderable](https://github.com/Calvin-LL/Reorderable)                | Apache License 2.0 | Drag and drop functionality for reordering items in Compose |
+| [Paging for KMP](https://github.com/White-Wind-LLC/paging-kmp)         | Apache License 2.0 | Kotlin Multiplatform paging library                         |
+| [ColorPicker Compose](https://github.com/skydoves/colorpicker-compose) | Apache License 2.0 | Color picker component for Jetpack Compose                  |
+| [Kermit](https://github.com/touchlab/Kermit)                           | Apache License 2.0 | Kotlin Multiplatform logging library                        |
 
 All third-party libraries are used in compliance with their respective licenses. For detailed license information, see
 the individual library repositories linked above.

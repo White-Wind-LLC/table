@@ -37,7 +37,7 @@ fun PersonMovementsSection(
     val movementSettings =
         remember {
             TableSettings(
-                isDragEnabled = false,
+                rowReorderEnabled = false,
                 autoApplyFilters = false,
                 showFastFilters = false,
                 autoFilterDebounce = 0,

@@ -23,6 +23,7 @@ import ua.wwind.table.TableRowScope
 import ua.wwind.table.component.footer.TableFooter
 import ua.wwind.table.config.TableColors
 import ua.wwind.table.config.TableCustomization
+import ua.wwind.table.config.isRowReorderEnabled
 import ua.wwind.table.state.TableState
 
 @Composable
@@ -49,7 +50,7 @@ internal fun <T : Any, C, E> TableBody(
     modifier: Modifier = Modifier,
 ) {
     val showFooter = state.settings.showFooter && !state.settings.footerPinned
-    val rowReorderEnabled = state.settings.isDragEnabled && onRowMove != null
+    val rowReorderEnabled = state.settings.isRowReorderEnabled && onRowMove != null
     val reorderState =
         if (rowReorderEnabled) {
             rememberReorderableLazyListState(verticalState) { from, to ->

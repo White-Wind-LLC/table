@@ -65,7 +65,7 @@ fun SampleApp(modifier: Modifier = Modifier) {
     val settings =
         remember(tableConfig) {
             TableSettings(
-                isDragEnabled = tableConfig.enableRowReorder,
+                rowReorderEnabled = tableConfig.enableRowReorder,
                 autoApplyFilters = true,
                 showFastFilters = tableConfig.showFastFilters,
                 autoFilterDebounce = 200,
@@ -205,7 +205,23 @@ fun SampleApp(modifier: Modifier = Modifier) {
                                     onFiltersChanged = viewModel::updateFilters,
                                     onSortChanged = viewModel::updateSort,
                                     onRowMove = { from, to ->
-                                        viewModel.onEvent(SampleUiEvent.RowMove(from, to))
+                                        val displayedPeople = tableData.displayedPeople
+                                        val source = displayedPeople.getOrNull(from) ?: return@MainTable
+                                        val targetIndex =
+                                            if (to >= displayedPeople.size) {
+                                                displayedPeople.lastIndex
+                                            } else {
+                                                to
+                                            }
+                                        val target = displayedPeople.getOrNull(targetIndex) ?: return@MainTable
+                                        if (source.id != target.id) {
+                                            viewModel.onEvent(
+                                                SampleUiEvent.RowMove(
+                                                    fromPersonId = source.id,
+                                                    toPersonId = target.id,
+                                                ),
+                                            )
+                                        }
                                     },
                                     onRowEditStart = { person, rowIndex ->
                                         viewModel.onEvent(

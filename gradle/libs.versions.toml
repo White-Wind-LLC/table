@@ -12,13 +12,13 @@ agp = "8.11.2"
 
 # --- Kotlin Toolchain & Compose ---
 kotlin = "2.3.10"
-compose-multiplatform = "1.10.2"
+compose-multiplatform = "1.10.3"
 
 # --- Core AndroidX ---
 androidx-core = "1.17.0"
 androidx-appcompat = "1.7.1"
 androidx-activityCompose = "1.13.0"
-androidx-lifecycle = "2.9.6"
+androidx-lifecycle = "2.10.0"
 
 # --- KotlinX & Utilities ---
 kotlinx-coroutines = "1.10.2"

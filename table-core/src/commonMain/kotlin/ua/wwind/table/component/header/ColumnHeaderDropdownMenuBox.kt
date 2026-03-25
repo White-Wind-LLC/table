@@ -19,6 +19,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import ua.wwind.table.ColumnSpec
+import ua.wwind.table.config.isInteractionLockByRowReorderEnabled
 import ua.wwind.table.state.TableState
 import ua.wwind.table.strings.UiString
 import ua.wwind.table.strings.currentStrings
@@ -35,6 +36,7 @@ internal fun <T : Any, C, E> ColumnHeaderDropdownMenuBox(
     var menuOffset by remember { mutableStateOf(DpOffset(0.dp, 0.dp)) }
     var anchorHeight by remember { mutableStateOf(0.dp) }
     val strings = currentStrings()
+    val interactionLocked = state.settings.isInteractionLockByRowReorderEnabled
 
     Box(
         modifier =
@@ -44,11 +46,12 @@ internal fun <T : Any, C, E> ColumnHeaderDropdownMenuBox(
                     anchorHeight = with(density) { coordinates.size.height.toDp() }
                 }
                 // Handle right mouse button click to open context menu
-                .pointerInput(Unit) {
+                .pointerInput(state) {
                     awaitPointerEventScope {
                         while (true) {
                             val event = awaitPointerEvent()
                             if (
+                                !interactionLocked &&
                                 event.type == PointerEventType.Press &&
                                 event.buttons.isSecondaryPressed
                             ) {
@@ -68,14 +71,15 @@ internal fun <T : Any, C, E> ColumnHeaderDropdownMenuBox(
                     }
                 }
                 // Handle primary tap and long-press gestures
-                .pointerInput(Unit) {
+                .pointerInput(state) {
                     detectTapGestures(
                         onTap = {
-                            if (spec.sortable && spec.headerClickToSort) {
+                            if (!interactionLocked && spec.sortable && spec.headerClickToSort) {
                                 state.setSort(spec.key)
                             }
                         },
                         onLongPress = { offset ->
+                            if (interactionLocked) return@detectTapGestures
                             menuOffset =
                                 with(density) {
                                     DpOffset(
@@ -95,6 +99,7 @@ internal fun <T : Any, C, E> ColumnHeaderDropdownMenuBox(
             onDismissRequest = { menuExpanded = false },
             offset = menuOffset,
         ) {
+            if (interactionLocked) return@DropdownMenu
             if (state.groupBy == spec.key) {
                 DropdownMenuItem(
                     text = { Text(strings.get(UiString.Ungroup)) },

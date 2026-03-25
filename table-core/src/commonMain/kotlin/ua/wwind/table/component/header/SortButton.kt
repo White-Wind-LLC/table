@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import ua.wwind.table.component.TableHeaderIcons
 import ua.wwind.table.data.SortOrder
@@ -31,7 +32,15 @@ internal fun SortButton(
         modifier =
             Modifier
                 .size(24.dp)
-                .then(if (clickable) Modifier.clickable { onToggle() } else Modifier)
+                .then(
+                    if (clickable) {
+                        Modifier.clickable(role = Role.Button) {
+                            onToggle()
+                        }
+                    } else {
+                        Modifier
+                    }
+                )
                 .padding(start = 4.dp),
     )
 }

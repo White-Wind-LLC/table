@@ -6,8 +6,20 @@ import androidx.compose.ui.Alignment
 /** Table behavior settings */
 @Immutable
 public data class TableSettings(
-    /** Enable drag and drop for rows */
-    val isDragEnabled: Boolean = false,
+    /**
+     * Enable drag and drop row reordering.
+     *
+     * This mode is incompatible with sorting, grouping and drag-to-scroll. Incompatible settings
+     * are normalized in [ua.wwind.table.state.rememberTableState].
+     */
+    val rowReorderEnabled: Boolean = false,
+    /** @deprecated Use [rowReorderEnabled]. */
+    @Deprecated(
+        "Use rowReorderEnabled instead",
+        ReplaceWith("rowReorderEnabled"),
+        level = DeprecationLevel.WARNING,
+    )
+    val isDragEnabled: Boolean = rowReorderEnabled,
     /** Automatically apply filters while typing */
     val autoApplyFilters: Boolean = true,
     /** Show fast filters in the table header */
@@ -26,7 +38,8 @@ public data class TableSettings(
     val groupContentAlignment: Alignment = Alignment.CenterStart,
     /**
      * Enable drag-to-scroll functionality. When disabled, traditional scrollbars are used
-     * instead.
+     * instead. This option is incompatible with row reorder mode and is normalized to `false`
+     * during [ua.wwind.table.state.rememberTableState] when row reorder is enabled.
      */
     val enableDragToScroll: Boolean = true,
     /** Number of pinned columns */
@@ -71,6 +84,19 @@ public data class TableSettings(
     /** Show horizontal divider below the fast filters row */
     val showFastFiltersDivider: Boolean = true,
 )
+
+/** Effective row reorder flag supporting both the new and deprecated setting names. */
+@Suppress("DEPRECATION")
+public val TableSettings.isRowReorderEnabled: Boolean
+    get() = rowReorderEnabled || isDragEnabled
+
+/**
+ * Interaction lock used when row reorder mode is active.
+ *
+ * In this mode sorting and grouping are treated as incompatible.
+ */
+public val TableSettings.isInteractionLockByRowReorderEnabled: Boolean
+    get() = isRowReorderEnabled
 
 /** Row selection behavior. */
 public enum class SelectionMode {
