@@ -1,7 +1,5 @@
 package ua.wwind.convention
 
-import org.jetbrains.compose.ComposeExtension
-
 // Needs to exist before the first usage of 'libs'
 val libs: VersionCatalog = extensions.getByType<VersionCatalogsExtension>().named("libs")
 
@@ -11,26 +9,24 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
-val composeDeps = extensions.getByType<ComposeExtension>().dependencies
-
 kotlin {
 
     sourceSets {
         commonMain {
             dependencies {
-                implementation(composeDeps.runtime)
-                implementation(composeDeps.foundation)
-                implementation(composeDeps.material3)
-                implementation(composeDeps.materialIconsExtended)
-                implementation(composeDeps.components.uiToolingPreview)
+                implementation(libs.findLibrary("compose-runtime").get())
+                implementation(libs.findLibrary("compose-foundation").get())
+                implementation(libs.findLibrary("compose-material3").get())
+                implementation(libs.findLibrary("compose-material-icons-extended").get())
+                implementation(libs.findLibrary("compose-ui-tooling-preview").get())
                 implementation(libs.findLibrary("collections-immutable").get())
             }
         }
 
         androidMain {
             dependencies {
-                implementation(libs.findLibrary("androidx.activity.compose").get())
-                implementation(composeDeps.preview)
+                implementation(libs.findLibrary("androidx-activity-compose").get())
+                implementation(libs.findLibrary("compose-ui-tooling").get())
             }
         }
     }

@@ -1,6 +1,5 @@
 @file:OptIn(ExperimentalWasmDsl::class)
 
-import org.jetbrains.compose.ExperimentalComposeLibrary
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
@@ -110,9 +109,7 @@ kotlin {
             implementation(libs.assertk)
             implementation(libs.coroutines.test)
             implementation(libs.turbine.turbine)
-
-            @OptIn(ExperimentalComposeLibrary::class)
-            implementation(compose.uiTest)
+            implementation(libs.compose.ui.test)
         }
 
         androidMain.dependencies {
@@ -121,11 +118,12 @@ kotlin {
 
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
+            implementation(libs.compose.desktop.jvm)
             implementation(libs.kotlinx.coroutines.swing)
         }
 
         jsMain.dependencies {
-            implementation(compose.html.core)
+            implementation(libs.compose.html.core)
         }
 
         iosMain.dependencies {
