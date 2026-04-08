@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+### 1.8.2 — 2026-04-08
+
+- Fixed: Header content state and tooltip behavior for truncated titles.
+    - `TruncationTooltipBox` now accepts a composable title provider for better content flexibility.
+    - Header content renders via `movableContentOf` to prevent state loss on recomposition.
+    - Updated tooltip position provider usage for consistent tooltip placement.
+- Updated: Kotlin to 2.3.20.
+    - Kotlin version bumped from 2.3.10 to 2.3.20.
+- Refactored: Compose dependencies migration to version catalog.
+    - Replaced direct Compose extension dependencies with `libs.versions.toml` aliases.
+    - Aligned module usage across convention and sample Gradle scripts.
+- Updated: Gradle wrapper to 9.4.0 version.
+
+Compare: [v1.8.1...v1.8.2](https://github.com/White-Wind-LLC/table/compare/v1.8.1...v1.8.2)
+
 ### 1.8.1 — 2026-03-25
 
 - Added: Improved mobile platform interactions for column headers.
