@@ -10,6 +10,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Text
+import androidx.compose.material3.TooltipAnchorPosition
 import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.VerticalDivider
@@ -17,6 +18,7 @@ import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.movableContentOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -152,22 +154,23 @@ private fun DefaultFilterIcon(info: TableHeaderCellInfo<Any?>) {
 @OptIn(ExperimentalTextApi::class, ExperimentalMaterial3Api::class)
 @Composable
 private fun TruncationTooltipBox(
-    title: String?,
+    title: (@Composable () -> String)?,
     content: @Composable () -> Unit,
 ) {
-    if (title == null) {
-        content()
+    val movableContent = remember(content) { movableContentOf { content() } }
+    val titleText = title?.invoke()
+    if (titleText == null) {
+        movableContent()
         return
     }
-
     val textMeasurer = rememberTextMeasurer()
     val textStyle = LocalTextStyle.current
     var availableWidthPx by remember { mutableIntStateOf(0) }
-    val measuredTitleWidthPx = textMeasurer.measure(text = title, style = textStyle, maxLines = 1).size.width
+    val measuredTitleWidthPx = textMeasurer.measure(text = titleText, style = textStyle, maxLines = 1).size.width
     val isTruncated = availableWidthPx in 1 until measuredTitleWidthPx
 
     val tooltipState = rememberTooltipState(isPersistent = false)
-    val positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider()
+    val positionProvider = TooltipDefaults.rememberTooltipPositionProvider(TooltipAnchorPosition.Above)
 
     if (isTruncated) {
         TooltipBox(
@@ -175,15 +178,15 @@ private fun TruncationTooltipBox(
             state = tooltipState,
             focusable = false,
             enableUserInput = true,
-            tooltip = { PlainTooltip { Text(title) } },
+            tooltip = { PlainTooltip { Text(titleText) } },
         ) {
             Box(modifier = Modifier.onSizeChanged { availableWidthPx = it.width }) {
-                content()
+                movableContent()
             }
         }
     } else {
         Box(modifier = Modifier.onSizeChanged { availableWidthPx = it.width }) {
-            content()
+            movableContent()
         }
     }
 }
@@ -210,8 +213,7 @@ private fun <C, E> HeaderContent(
                 LocalTableHeaderCellInfo provides info,
             ) {
                 // Constrain header text area and attach tooltip only when truncated
-                val titleText = spec.title?.invoke()
-                TruncationTooltipBox(title = titleText) {
+                TruncationTooltipBox(title = spec.title) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         spec.header(tableData)
                         if (spec.headerDecorations) {
