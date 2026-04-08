@@ -11,7 +11,7 @@ android-targetSdk = "36"
 agp = "8.13.2"
 
 # --- Kotlin Toolchain & Compose ---
-kotlin = "2.3.10"
+kotlin = "2.3.20"
 compose-multiplatform = "1.10.3"
 compose-material3 = "1.10.0-alpha05"
 compose-material-icons = "1.7.3"
@@ -49,7 +49,7 @@ ktlint-gradle = "14.2.0"
 kover = "0.9.8"
 dokka = "2.1.0"
 mavenPublish = "0.35.0"
-stability-analyzer = "0.7.1"
+stability-analyzer = "0.7.2"
 
 [libraries]
 # --- AndroidX Core & Lifecycle ---
