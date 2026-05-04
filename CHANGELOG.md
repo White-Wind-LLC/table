@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+### 1.8.3 — 2026-05-05
+
+- Updated: Kotlin to 2.3.21 (from 2.3.20).
+- Updated: Build tooling dependencies.
+    - Compose Hot Reload upgraded from `1.0.0` to `1.1.0`.
+    - BuildKonfig upgraded from `0.17.1` to `0.19.0`.
+    - Dokka upgraded from `2.1.0` to `2.2.0`.
+    - Maven Publish plugin upgraded from `0.35.0` to `0.36.0`.
+    - Compose Stability Analyzer upgraded from `0.7.2` to `0.7.4`.
+- Updated: UI library dependencies.
+    - Reorderable upgraded from `3.0.0` to `3.1.0`.
+    - Color Picker upgraded from `1.1.3` to `1.1.4`.
+
+Compare: [v1.8.2...v1.8.3](https://github.com/White-Wind-LLC/table/compare/v1.8.2...v1.8.3)
+
 ### 1.8.2 — 2026-04-08
 
 - Fixed: Header content state and tooltip behavior for truncated titles.
