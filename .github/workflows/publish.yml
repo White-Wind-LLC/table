@@ -29,7 +29,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v6
 
       - name: Upgrade Kotlin Yarn lockfiles
-        run: ./gradlew --no-daemon -PexcludeSamples=true kotlinUpgradeYarnLock
+        run: ./gradlew --no-daemon --stacktrace --info -PexcludeSamples=true kotlinUpgradeYarnLock
         env:
           CI: true
 
@@ -45,7 +45,7 @@ jobs:
           SIGNING_IN_MEMORY_KEY_BASE64: ${{ secrets.SIGNING_IN_MEMORY_KEY_BASE64 }}
 
       - name: Publish and Release to Maven Central
-        run: ./gradlew --no-daemon --no-parallel -PexcludeSamples=true -PLOG_LEVEL=Info publishAndReleaseToMavenCentral
+        run: ./gradlew --no-daemon --no-parallel --stacktrace --info -PexcludeSamples=true -PLOG_LEVEL=Info publishAndReleaseToMavenCentral
         env:
           CI: true
           ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
