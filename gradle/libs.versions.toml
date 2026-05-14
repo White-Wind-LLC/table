@@ -1,19 +1,19 @@
 [versions]
 # --- Project metadata ---
-version-name = "1.8.3"
-version-date = "05.05.2026"
-android-version-code = "40"
+version-name = "1.9.0"
+version-date = "14.05.2026"
+android-version-code = "41"
 
 # --- Android SDK & AGP ---
-android-compileSdk = "36"
+android-compileSdk = "37"
 android-minSdk = "24"
-android-targetSdk = "36"
+android-targetSdk = "37"
 agp = "8.13.2"
 
 # --- Kotlin Toolchain & Compose ---
 kotlin = "2.3.21"
-compose-multiplatform = "1.10.3"
-compose-material3 = "1.10.0-alpha05"
+compose-multiplatform = "1.11.0"
+compose-material3 = "1.11.0-alpha07"
 compose-material-icons = "1.7.3"
 
 # --- Core AndroidX ---
@@ -23,9 +23,9 @@ androidx-activityCompose = "1.13.0"
 androidx-lifecycle = "2.10.0"
 
 # --- KotlinX & Utilities ---
-kotlinx-coroutines = "1.10.2"
-coroutines-test-ver = "1.10.2"
-kotlinx-datetime = "0.7.1"
+kotlinx-coroutines = "1.11.0"
+coroutines-test-ver = "1.11.0"
+kotlinx-datetime = "0.8.0"
 collections-immutable = "0.4.0"
 
 # --- Logging & Monitoring ---
@@ -42,8 +42,8 @@ fastscroller = "0.3.2"
 # --- Testing & Tooling ---
 assertk = "0.28.1"
 turbine = "1.2.1"
-hotReload = "1.1.0"
-buildKonfig = "0.19.0"
+hotReload = "1.1.1"
+buildKonfig = "0.20.0"
 detekt = "1.23.8"
 ktlint-gradle = "14.2.0"
 kover = "0.9.8"

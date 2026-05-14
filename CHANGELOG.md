@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+### 1.9.0 — 2026-05-14
+
+- Updated: Compose Multiplatform to 1.11.0 (from 1.10.3).
+    - Compose Material3 upgraded from `1.10.0-alpha05` to `1.11.0-alpha07`.
+- Updated: KotlinX dependencies.
+    - Coroutines upgraded from `1.10.2` to `1.11.0`.
+    - Datetime upgraded from `0.7.1` to `0.8.0`.
+- Updated: Android SDK targets.
+    - `compileSdk` and `targetSdk` bumped from `36` to `37`.
+- Updated: Build tooling dependencies.
+    - Gradle wrapper upgraded from `9.4.0` to `9.5.0`.
+    - Compose Hot Reload upgraded from `1.1.0` to `1.1.1`.
+    - BuildKonfig upgraded from `0.19.0` to `0.20.0`.
+
+Compare: [v1.8.3...v1.9.0](https://github.com/White-Wind-LLC/table/compare/v1.8.3...v1.9.0)
+
 ### 1.8.3 — 2026-05-05
 
 - Updated: Kotlin to 2.3.21 (from 2.3.20).
