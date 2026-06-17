@@ -20,3 +20,10 @@ node_modules/
 /.tasks/
 
 .firebender/plans
+
+# Superpowers implementation plans (specs are committed, plans are not)
+docs/superpowers/plans/
+
+# MkDocs local build
+/.venv-docs/
+/site/

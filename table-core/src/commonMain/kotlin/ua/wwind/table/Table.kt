@@ -100,6 +100,10 @@ import ua.wwind.table.strings.StringProvider
  * @param icons header icons used for sort and filter affordances
  * @param shape surface shape of the table
  * @param border outer border stroke; `null` uses theme default, [TableDefaults.NoBorder] disables border
+ * @param embedded When `true`, the table renders at its full intrinsic height with no internal
+ * vertical scrolling — every row is laid out at once. Use this when embedding the table inside an
+ * already-scrollable container (e.g. a row of another table). When `false` (default), the table
+ * occupies a bounded area and scrolls its rows internally.
  */
 @Suppress("LongParameterList")
 @ExperimentalTableApi
@@ -340,6 +344,10 @@ public fun <T : Any, C, E> EditableTable(
  * @param icons header icons used for sort and filter affordances
  * @param shape surface shape of the table
  * @param border outer border stroke; `null` uses theme default, [TableDefaults.NoBorder] disables border
+ * @param embedded When `true`, the table renders at its full intrinsic height with no internal
+ * vertical scrolling — every row is laid out at once. Use this when embedding the table inside an
+ * already-scrollable container (e.g. a row of another table). When `false` (default), the table
+ * occupies a bounded area and scrolls its rows internally.
  */
 @Suppress("LongParameterList")
 @ExperimentalTableApi
@@ -429,6 +437,10 @@ public fun <T : Any, C> Table(
  * @param icons header icons used for sort and filter affordances
  * @param shape surface shape of the table
  * @param border outer border stroke; `null` uses theme default, [TableDefaults.NoBorder] disables border
+ * @param embedded When `true`, the table renders at its full intrinsic height with no internal
+ * vertical scrolling — every row is laid out at once. Use this when embedding the table inside an
+ * already-scrollable container (e.g. a row of another table). When `false` (default), the table
+ * occupies a bounded area and scrolls its rows internally.
  */
 @Suppress("LongParameterList")
 @ExperimentalTableApi

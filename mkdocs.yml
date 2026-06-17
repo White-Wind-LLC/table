@@ -1,0 +1,74 @@
+site_name: WWind Data Table
+site_description: Data Table for Compose Multiplatform (Material 3)
+site_url: https://white-wind-llc.github.io/table/
+repo_url: https://github.com/White-Wind-LLC/table
+repo_name: White-Wind-LLC/table
+docs_dir: docs/content
+edit_uri: edit/main/docs/content/
+
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - navigation.top
+    - navigation.tracking
+    - content.code.copy
+    - search.suggest
+    - toc.follow
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - toc:
+      permalink: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - pymdownx.inlinehilite
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.snippets:
+      base_path:
+        - .
+
+nav:
+  - Home: index.md
+  - Getting Started:
+      - Installation: getting-started/installation.md
+      - Compatibility: getting-started/compatibility.md
+      - Quick start: getting-started/quick-start.md
+  - Guides:
+      - Cell editing: guides/cell-editing.md
+      - Data grouping: guides/grouping.md
+      - Footer row: guides/footer.md
+      - Filters: guides/filters.md
+      - Fast Filters: guides/fast-filters.md
+      - Selection: guides/selection.md
+      - Checkbox selection: guides/checkbox-selection.md
+      - Row height & auto-width: guides/row-height-auto-width.md
+      - Row reordering: guides/row-reordering.md
+      - Drag-to-scroll: guides/drag-to-scroll.md
+      - Custom header icons: guides/custom-header-icons.md
+  - Modules:
+      - table-core: modules/table-core.md
+      - table-paging: modules/table-paging.md
+      - table-format: modules/table-format.md
+  - Reference:
+      - Core API: reference/core-api.md
+      - API Reference (Dokka): https://white-wind-llc.github.io/table/api/
+  - Changelog: changelog.md
+  - Live Demo: https://white-wind-llc.github.io/table/demo/

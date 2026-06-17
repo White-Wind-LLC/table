@@ -1,8 +1,10 @@
-name: Deploy table-sample to GitHub Pages
+name: Deploy documentation site to GitHub Pages
 
 on:
   workflow_dispatch:
   push:
+    branches:
+      - main
     tags:
       - 'v*'
 
@@ -31,19 +33,39 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
       - name: Make gradlew executable
         run: chmod +x ./gradlew
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6
 
-      - name: Build table-sample WASM distribution
+      - name: Install MkDocs dependencies
+        run: pip install -r docs/requirements.txt
+
+      - name: Build guides (MkDocs)
+        run: mkdocs build --strict
+
+      - name: Build API reference (Dokka)
+        run: ./gradlew --no-daemon dokkaGenerateHtml
+
+      - name: Build WASM demo
         run: ./gradlew --no-daemon --no-configuration-cache :table-sample:wasmJsBrowserDistribution
 
-      - name: Upload Pages artifact (wasmJs)
+      - name: Assemble site (api + demo)
+        run: |
+          rm -rf site/api site/demo
+          cp -r build/dokka/html site/api
+          cp -r table-sample/build/dist/wasmJs/productionExecutable site/demo
+
+      - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: table-sample/build/dist/wasmJs/productionExecutable
+          path: site
 
       - id: deploy
         name: Deploy to GitHub Pages
