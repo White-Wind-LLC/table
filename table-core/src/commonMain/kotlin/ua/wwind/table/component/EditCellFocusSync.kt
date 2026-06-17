@@ -19,7 +19,7 @@ import ua.wwind.table.state.LocalTableState
  * This modifier performs two key functions:
  * 1. Applies the table's [LocalEditCellFocusRequester] to enable programmatic focus control
  *    (e.g., when navigating between cells with Tab/Enter or when starting edit mode)
- * 2. Synchronizes the component's focused state with [TableState.selectedCell], so clicking
+ * 2. Synchronizes the component's focused state with [ua.wwind.table.state.TableState.selectedCell], so clicking
  *    on the field updates the table's selection state and triggers cell visibility/scrolling
  *
  * This ensures seamless integration with the table's cell selection and keyboard navigation system.

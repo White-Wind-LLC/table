@@ -86,7 +86,7 @@ public class TableState<C>
          * Resolution priority:
          * 1. User-resized width from [columnWidths]
          * 2. Spec-defined width from [spec]
-         * 3. Default width from [dimensions.defaultColumnWidth]
+         * 3. Default width from [TableDimensions.defaultColumnWidth]
          *
          * @param key column key
          * @param spec optional column spec; if null, only [columnWidths] and default are considered
@@ -285,7 +285,7 @@ public class TableState<C>
             }
         }
 
-        /** Toggle row selection for [index] according to [settings.selectionMode]. */
+        /** Toggle row selection for [index] according to [TableSettings.selectionMode]. */
         public fun toggleSelect(index: Int) {
             when (settings.selectionMode) {
                 SelectionMode.None -> {
@@ -345,7 +345,7 @@ public class TableState<C>
 
         /**
          * Internal helper for selecting a cell from contexts where the column type is erased. Used by
-         * [TableCellTextField] when updating selectedCell on focus change.
+         * [ua.wwind.table.component.TableCellTextField] when updating selectedCell on focus change.
          */
         @Suppress("UNCHECKED_CAST")
         internal fun selectCellUnchecked(
