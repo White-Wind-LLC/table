@@ -19,7 +19,9 @@ concurrency:
 
 jobs:
   build-and-deploy:
-    runs-on: ubuntu-latest
+    # macOS runner: Dokka aggregation resolves the modules' Apple/native (iOS)
+    # klib dependencies, which fail to resolve on Linux. Matches publish.yml.
+    runs-on: macos-latest
     environment:
       name: github-pages
       url: ${{ steps.deploy.outputs.page_url }}
