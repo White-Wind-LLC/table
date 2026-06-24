@@ -1,8 +1,8 @@
 [versions]
 # --- Project metadata ---
-version-name = "1.9.0"
-version-date = "14.05.2026"
-android-version-code = "41"
+version-name = "1.10.0"
+version-date = "24.06.2026"
+android-version-code = "42"
 
 # --- Android SDK & AGP ---
 android-compileSdk = "37"
@@ -11,8 +11,8 @@ android-targetSdk = "37"
 agp = "8.13.2"
 
 # --- Kotlin Toolchain & Compose ---
-kotlin = "2.3.21"
-compose-multiplatform = "1.11.0"
+kotlin = "2.4.0"
+compose-multiplatform = "1.11.1"
 compose-material3 = "1.11.0-alpha07"
 compose-material-icons = "1.7.3"
 
@@ -26,16 +26,16 @@ androidx-lifecycle = "2.10.0"
 kotlinx-coroutines = "1.11.0"
 coroutines-test-ver = "1.11.0"
 kotlinx-datetime = "0.8.0"
-collections-immutable = "0.4.0"
+collections-immutable = "0.5.0"
 
 # --- Logging & Monitoring ---
 kermit = "2.1.0"
-slf4j = "2.0.17"
+slf4j = "2.0.18"
 
 # --- UI & UX ---
 reorderable = "3.1.0"
 paging = "2.2.7"
-colorpicker = "1.1.4"
+colorpicker = "1.2.0"
 liquid = "1.1.1"
 fastscroller = "0.3.2"
 
@@ -43,13 +43,13 @@ fastscroller = "0.3.2"
 assertk = "0.28.1"
 turbine = "1.2.1"
 hotReload = "1.1.1"
-buildKonfig = "0.20.0"
+buildKonfig = "0.21.2"
 detekt = "1.23.8"
 ktlint-gradle = "14.2.0"
 kover = "0.9.8"
 dokka = "2.2.0"
-mavenPublish = "0.36.0"
-stability-analyzer = "0.7.4"
+mavenPublish = "0.37.0"
+stability-analyzer = "0.10.0"
 
 [libraries]
 # --- AndroidX Core & Lifecycle ---

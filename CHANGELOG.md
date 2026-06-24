@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+### 1.10.0 — 2026-06-24
+
+- Updated: Kotlin to 2.4.0 (from 2.3.21).
+- Updated: Compose Multiplatform to 1.11.1 (from 1.11.0).
+- Updated: KotlinX dependencies.
+    - Collections Immutable upgraded from `0.4.0` to `0.5.0`.
+- Updated: Logging dependencies.
+    - SLF4J upgraded from `2.0.17` to `2.0.18`.
+- Updated: UI library dependencies.
+    - Color Picker upgraded from `1.1.4` to `1.2.0`.
+- Updated: Build tooling dependencies.
+    - BuildKonfig upgraded from `0.20.0` to `0.21.2`.
+    - Maven Publish plugin upgraded from `0.36.0` to `0.37.0`.
+    - Compose Stability Analyzer upgraded from `0.7.4` to `0.10.0`.
+
+Compare: [v1.9.0...v1.10.0](https://github.com/White-Wind-LLC/table/compare/v1.9.0...v1.10.0)
+
 ### 1.9.0 — 2026-05-14
 
 - Updated: Compose Multiplatform to 1.11.0 (from 1.10.3).
