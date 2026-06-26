@@ -28,8 +28,6 @@ kotlin {
     val warningsAsErrors: String? by project
     compilerOptions {
         allWarningsAsErrors.set(warningsAsErrors.toBoolean())
-        // Enable Kotlin context parameters for DSL APIs like ColumnSpec.cell context(CellScope).
-        freeCompilerArgs.add("-Xcontext-parameters")
     }
 }
 

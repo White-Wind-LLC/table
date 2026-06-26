@@ -13,9 +13,6 @@ plugins {
 
 kotlin {
     androidTarget()
-    compilerOptions {
-        freeCompilerArgs.add("-Xcontext-parameters")
-    }
 }
 
 val androidApplicationId: String by project

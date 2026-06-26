@@ -24,10 +24,6 @@ val iosFrameworkBaseName: String by project
 val buildKonfigPackage: String by project
 
 kotlin {
-    compilerOptions {
-        freeCompilerArgs.add("-Xcontext-parameters")
-    }
-    
     androidTarget()
 
     jvm()
