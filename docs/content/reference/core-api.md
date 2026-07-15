@@ -3,7 +3,7 @@
 - **Composable `Table<T, C>`**: renders header and virtualized rows for read-only tables (tableData = Unit).
     - **Required**: `itemsCount`, `itemAt(index)`, `state: TableState<C>`, `columns: List<ColumnSpec<T, C, Unit>>`.
     - **Slots**: `placeholderRow()`.
-    - **UX**: `onRowClick`, `onRowLongClick`, `onRowMove`, `contextMenu(item, pos, dismiss)`.
+    - **UX**: `onRowClick`, `onRowLongClick`, `onRowMove`, `rowGroups`, `contextMenu(item, pos, dismiss)`.
     - **Look**: `customization`, `colors = TableDefaults.colors()`, `icons = TableHeaderDefaults.icons()`, `strings`,
       `shape`, `border` (outer border; `null` = theme default, `TableDefaults.NoBorder` = no border).
     - **Scroll**: optional `verticalState`, `horizontalState`.
@@ -14,7 +14,8 @@
       cells.
     - All other parameters same as read-only variant.
 - **Composable `EditableTable<T, C, E>`**: renders header and virtualized rows with editing support.
-    - **Additional parameters**: `tableData: E`, `onRowMove`, `onRowEditStart`, `onRowEditComplete`, `onEditCancelled`.
+    - **Additional parameters**: `tableData: E`, `onRowMove`, `rowGroups`, `onRowEditStart`, `onRowEditComplete`,
+      `onEditCancelled`.
     - Columns must use `ColumnSpec<T, C, E>` with `E` matching the tableData type.
 - **Columns DSL**:
     - `tableColumns<T, C, E> { ... }` produces `List<ColumnSpec<T, C, E>>` for read-only tables.
@@ -78,7 +79,15 @@ column(PersonField.Name, valueOf = { it.name }) {
     - Row reorder mode notes: while `rowReorderEnabled = true`, sorting and grouping UI is disabled.
       Filtering stays available; fast filters and active filters header continue to work.
     - `TableDimensions`: `defaultColumnWidth`, `defaultRowHeight`, `footerHeight`, `checkBoxColumnWidth`,
-      `verticalDividerThickness`, `verticalDividerPaddingHorizontal`.
+      `verticalDividerThickness`, `verticalDividerPaddingHorizontal`, `rowGroupSpacing`.
     - `TableColors`: via `TableDefaults.colors(...)`.
+- **Row groups**: `rowGroups = TableRowGroups(ranges, onMove, header)` makes a range of adjacent rows drag as one
+  unit — see [Row reordering](../guides/row-reordering.md#dragging-a-group-of-rows).
+    - `ranges`: sorted, non-overlapping `IntRange`s over row indices; derive them with
+      `List<T>.rowGroupsOf { it.groupId }` and hold the whole `TableRowGroups` in `remember`.
+    - `onMove(from: IntRange, to: IntRange)`: required when `rowReorderEnabled` and `ranges` is non-empty. Apply the
+      move to your list with `MutableList<T>.moveRowGroup(from, to)`; never collapse `to` to a single index.
+    - `header`: optional content drawn in the band above the block, pinned to the viewport.
+    - Ignored while `groupBy` is active; `TableColors.rowGroupContainerColor` tints the band.
 
 For the full generated API, see the [API Reference](../api/).

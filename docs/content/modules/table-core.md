@@ -18,6 +18,7 @@ row selection, i18n, styling/customization, and dynamic or fixed row height.
 - Footer row with customizable content per column (totals, averages, summaries); supports pinned and scrollable modes.
 - Drag & drop to reorder columns in the header.
 - Row reordering powered by Reorderable with custom drag handles inside cell content.
+- Dragging a declared range of adjacent rows as a single unit, with an optional header above the block.
 - Column resize via drag with per‑column min width.
 - Filters: text, number (int/double, ranges), boolean, date, enum (single/multi; IN/NOT IN/EQUALS) with built‑in
   `FilterPanel`.

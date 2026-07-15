@@ -153,6 +153,12 @@ fun SettingsSidebar(
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                     SettingSwitch(
+                        label = "Row groups",
+                        checked = config.enableRowGroups,
+                        onCheckedChange = { onConfigChange(config.copy(enableRowGroups = it)) },
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    SettingSwitch(
                         label = "Cell editing",
                         checked = config.enableEditing,
                         onCheckedChange = { onConfigChange(config.copy(enableEditing = it)) },

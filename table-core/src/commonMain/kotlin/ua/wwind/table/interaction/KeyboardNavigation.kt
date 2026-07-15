@@ -112,7 +112,18 @@ internal fun <T : Any, C> Modifier.tableKeyboardNavigation(
                                     val bottom = item.offset + item.size
                                     top >= 0 && bottom <= viewportHeight
                                 }.coerceAtLeast(1)
-                        val target = currentRow + fullyVisible
+                        // `fullyVisible` counts lazy items (units), so page by units and land on the
+                        // target unit's first row. Without groups this reduces to currentRow + fullyVisible.
+                        val units = state.rowUnits
+                        val target =
+                            if (units.unitCount <= 0) {
+                                currentRow
+                            } else {
+                                val targetUnit =
+                                    (units.unitOf(currentRow) + fullyVisible)
+                                        .coerceAtMost(units.unitCount - 1)
+                                units.rowsOf(targetUnit).first
+                            }
                         ensureFocus(target, currentColIndex)
                         true
                     }
@@ -128,7 +139,15 @@ internal fun <T : Any, C> Modifier.tableKeyboardNavigation(
                                     val bottom = item.offset + item.size
                                     top >= 0 && bottom <= viewportHeight
                                 }.coerceAtLeast(1)
-                        val target = currentRow - fullyVisible
+                        // See PageDown: page by units, then land on the target unit's first row.
+                        val units = state.rowUnits
+                        val target =
+                            if (units.unitCount <= 0) {
+                                currentRow
+                            } else {
+                                val targetUnit = (units.unitOf(currentRow) - fullyVisible).coerceAtLeast(0)
+                                units.rowsOf(targetUnit).first
+                            }
                         ensureFocus(target, currentColIndex)
                         true
                     }

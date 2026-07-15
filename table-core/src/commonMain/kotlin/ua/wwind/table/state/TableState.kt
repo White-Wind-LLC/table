@@ -73,6 +73,20 @@ public class TableState<C>
         internal var visibleColumns: List<ColumnSpec<*, C, *>> = emptyList()
 
         /**
+         * Row-to-unit mapping for the current data set. Identity unless the consumer passed
+         * `rowGroups`. Assigned by `Table` during composition, read by scroll/keyboard effects.
+         *
+         * Snapshot state, because the prefetcher reads it inside a `snapshotFlow`, which re-evaluates
+         * only on a tracked read. As a plain field it would be carried along by the `layoutInfo` read
+         * next to it — correct only for as long as something else keeps scrolling.
+         *
+         * `Table` holds the index in `remember`, and [RowUnitIndex] compares by identity, so
+         * re-assigning the same instance each recomposition is a no-op and only a genuine rebuild
+         * notifies.
+         */
+        internal var rowUnits: RowUnitIndex by mutableStateOf(RowUnitIndex.identity(0))
+
+        /**
          * Current table width computed from visible columns and their widths.
          * Automatically recalculates when columnOrder, columnWidths, or visibleColumns change.
          */

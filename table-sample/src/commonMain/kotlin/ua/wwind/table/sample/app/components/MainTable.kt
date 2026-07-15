@@ -30,6 +30,7 @@ import kotlinx.coroutines.delay
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.EditableTable
 import ua.wwind.table.ExperimentalTableApi
+import ua.wwind.table.TableRowGroups
 import ua.wwind.table.config.TableCustomization
 import ua.wwind.table.filter.data.TableFilterState
 import ua.wwind.table.sample.column.PersonColumn
@@ -54,6 +55,7 @@ fun MainTable(
     onRowEditStart: (Person, Int) -> Unit,
     onRowEditComplete: (Int) -> Boolean,
     onEditCancelled: (Int) -> Unit,
+    rowGroups: TableRowGroups? = null,
     useCompactMode: Boolean = false,
     enableRowReorder: Boolean = false,
     modifier: Modifier = Modifier,
@@ -126,6 +128,7 @@ fun MainTable(
                     )
                 }
             },
+            rowGroups = rowGroups,
             onRowMove = onRowMove,
             onRowEditStart = onRowEditStart,
             onRowEditComplete = onRowEditComplete,

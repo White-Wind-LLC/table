@@ -53,6 +53,7 @@ import ua.wwind.table.config.TableColors
 import ua.wwind.table.config.TableCustomization
 import ua.wwind.table.config.TableDefaults
 import ua.wwind.table.config.isInteractionLockByRowReorderEnabled
+import ua.wwind.table.config.isRowReorderEnabled
 import ua.wwind.table.interaction.ApplyAutoWidthEffect
 import ua.wwind.table.interaction.ApplyAutoWidthEmbeddedEffect
 import ua.wwind.table.interaction.ContextMenuState
@@ -62,8 +63,10 @@ import ua.wwind.table.interaction.tableKeyboardNavigation
 import ua.wwind.table.platform.getPlatform
 import ua.wwind.table.platform.isMobile
 import ua.wwind.table.state.LocalTableState
+import ua.wwind.table.state.RowUnitIndex
 import ua.wwind.table.state.SortState
 import ua.wwind.table.state.TableState
+import ua.wwind.table.state.buildRowUnitIndex
 import ua.wwind.table.state.mapNotNullToImmutable
 import ua.wwind.table.strings.DefaultStrings
 import ua.wwind.table.strings.LocalStringProvider
@@ -120,6 +123,11 @@ public fun <T : Any, C, E> EditableTable(
     onRowClick: ((T) -> Unit)? = null,
     onRowLongClick: ((T) -> Unit)? = null,
     onRowMove: ((fromIndex: Int, toIndex: Int) -> Unit)? = null,
+    /**
+     * Row grouping: the ranges of adjacent rows that drag as one unit, the move callback and an
+     * optional per-block header. Hold it in `remember` — see [TableRowGroups].
+     */
+    rowGroups: TableRowGroups? = null,
     contextMenu: (@Composable (item: T, pos: Offset, dismiss: () -> Unit) -> Unit)? = null,
     customization: TableCustomization<T, C> = DefaultTableCustomization(),
     colors: TableColors = TableDefaults.colors(),
@@ -151,6 +159,24 @@ public fun <T : Any, C, E> EditableTable(
     }
 
     state.visibleColumns = visibleColumns
+
+    require(
+        rowGroups?.onMove != null ||
+            rowGroups?.ranges.isNullOrEmpty() ||
+            !state.settings.isRowReorderEnabled,
+    ) {
+        "TableRowGroups.ranges requires TableRowGroups.onMove when row reorder is enabled"
+    }
+
+    // Library grouping and row groups describe two different structures over one list.
+    // groupBy wins: fall back to identity instead of throwing from a menu click.
+    val groupByActive = state.groupBy != null && !rowGroups?.ranges.isNullOrEmpty()
+    val effectiveGroups: ImmutableList<IntRange>? = if (groupByActive) null else rowGroups?.ranges
+    LaunchedEffect(groupByActive) {
+        if (groupByActive) Logger.w { "rowGroups ignored while groupBy is active" }
+    }
+    val rowUnits = remember(itemsCount, effectiveGroups) { buildRowUnitIndex(itemsCount, effectiveGroups) }
+    state.rowUnits = rowUnits
 
     var contextMenuState by remember { mutableStateOf(ContextMenuState<T>()) }
     val tableFocusRequester = remember { FocusRequester() }
@@ -267,7 +293,10 @@ public fun <T : Any, C, E> EditableTable(
                             onRowClick = onRowClick,
                             onRowLongClick = onRowLongClick,
                             onRowMove = onRowMove,
+                            onRowsMove = rowGroups?.onMove,
+                            rowGroupHeader = rowGroups?.header,
                             onContextMenu = onContextMenuHandler,
+                            rowUnits = rowUnits,
                             verticalState = verticalState,
                             horizontalState = horizontalState,
                             requestTableFocus = { tableFocusRequester.requestFocus() },
@@ -363,6 +392,11 @@ public fun <T : Any, C> Table(
     onRowClick: ((T) -> Unit)? = null,
     onRowLongClick: ((T) -> Unit)? = null,
     onRowMove: ((fromIndex: Int, toIndex: Int) -> Unit)? = null,
+    /**
+     * Row grouping: the ranges of adjacent rows that drag as one unit, the move callback and an
+     * optional per-block header. Hold it in `remember` — see [TableRowGroups].
+     */
+    rowGroups: TableRowGroups? = null,
     contextMenu: (@Composable (item: T, pos: Offset, dismiss: () -> Unit) -> Unit)? = null,
     customization: TableCustomization<T, C> = DefaultTableCustomization(),
     colors: TableColors = TableDefaults.colors(),
@@ -387,6 +421,7 @@ public fun <T : Any, C> Table(
         onRowClick = onRowClick,
         onRowLongClick = onRowLongClick,
         onRowMove = onRowMove,
+        rowGroups = rowGroups,
         contextMenu = contextMenu,
         customization = customization,
         colors = colors,
@@ -457,6 +492,11 @@ public fun <T : Any, C, E> Table(
     onRowClick: ((T) -> Unit)? = null,
     onRowLongClick: ((T) -> Unit)? = null,
     onRowMove: ((fromIndex: Int, toIndex: Int) -> Unit)? = null,
+    /**
+     * Row grouping: the ranges of adjacent rows that drag as one unit, the move callback and an
+     * optional per-block header. Hold it in `remember` — see [TableRowGroups].
+     */
+    rowGroups: TableRowGroups? = null,
     contextMenu: (@Composable (item: T, pos: Offset, dismiss: () -> Unit) -> Unit)? = null,
     customization: TableCustomization<T, C> = DefaultTableCustomization(),
     colors: TableColors = TableDefaults.colors(),
@@ -481,6 +521,7 @@ public fun <T : Any, C, E> Table(
         onRowClick = onRowClick,
         onRowLongClick = onRowLongClick,
         onRowMove = onRowMove,
+        rowGroups = rowGroups,
         contextMenu = contextMenu,
         customization = customization,
         colors = colors,
@@ -605,7 +646,10 @@ private fun <T : Any, C, E> TableBodySection(
     onRowClick: ((T) -> Unit)?,
     onRowLongClick: ((T) -> Unit)?,
     onRowMove: ((fromIndex: Int, toIndex: Int) -> Unit)?,
+    onRowsMove: ((from: IntRange, to: IntRange) -> Unit)?,
+    rowGroupHeader: (@Composable (rows: IntRange) -> Unit)?,
     onContextMenu: ((item: T, pos: Offset) -> Unit)?,
+    rowUnits: RowUnitIndex,
     verticalState: LazyListState,
     horizontalState: ScrollState,
     requestTableFocus: () -> Unit,
@@ -630,7 +674,10 @@ private fun <T : Any, C, E> TableBodySection(
                 onRowClick = onRowClick,
                 onRowLongClick = onRowLongClick,
                 onRowMove = onRowMove,
+                onRowsMove = onRowsMove,
+                rowGroupHeader = rowGroupHeader,
                 onContextMenu = onContextMenu,
+                rowUnits = rowUnits,
                 horizontalState = horizontalState,
                 requestTableFocus = requestTableFocus,
             )
@@ -648,7 +695,10 @@ private fun <T : Any, C, E> TableBodySection(
                 onRowClick = onRowClick,
                 onRowLongClick = onRowLongClick,
                 onRowMove = onRowMove,
+                onRowsMove = onRowsMove,
+                rowGroupHeader = rowGroupHeader,
                 onContextMenu = onContextMenu,
+                rowUnits = rowUnits,
                 rowEmbedded = rowEmbedded,
                 verticalState = verticalState,
                 horizontalState = horizontalState,

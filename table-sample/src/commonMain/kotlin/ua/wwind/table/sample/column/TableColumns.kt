@@ -61,6 +61,7 @@ fun createTableColumns(
     onEvent: (SampleUiEvent) -> Unit,
     useCompactMode: Boolean = false,
     enableRowReorder: Boolean = false,
+    enableRowGroups: Boolean = false,
 ): ImmutableList<ColumnSpec<Person, PersonColumn, PersonTableData>> =
     editableTableColumns {
         val cellPadding = if (useCompactMode) CellPadding.compact else CellPadding.standard
@@ -85,15 +86,28 @@ fun createTableColumns(
                         )
                     }
                 } else if (enableRowReorder) {
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier.fillMaxSize().draggableHandle(),
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Reorder,
-                            contentDescription = "Drag to reorder",
-                            modifier = Modifier.size(24.dp),
-                        )
+                    val people = tableData.displayedPeople
+                    val rowIndex = people.indexOfFirst { it.id == item.id }
+                    // Leader = ungrouped row, or the first row of an adjacent same-group run.
+                    // Mirrors rowGroupsOf's adjacency rule, so it stays correct when a filter
+                    // splits one group into two runs. With groups off every row is its own
+                    // drag unit, so every row keeps its handle.
+                    val isLeader =
+                        !enableRowGroups ||
+                            item.groupId == null ||
+                            rowIndex <= 0 ||
+                            people[rowIndex - 1].groupId != item.groupId
+                    if (isLeader) {
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier.fillMaxSize().draggableHandle(),
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Reorder,
+                                contentDescription = "Drag to reorder",
+                                modifier = Modifier.size(24.dp),
+                            )
+                        }
                     }
                 }
             }
@@ -152,7 +166,11 @@ fun createTableColumns(
             autoWidth(500.dp)
             sortable()
             filterTypes[PersonColumn.NAME]?.let { filter(it) }
-            cell { item, _ -> Text(item.name, modifier = Modifier.padding(cellPadding)) }
+            cell { item, _ ->
+                // Group metadata belongs in the row group's header band, not in a row cell — see
+                // the `header` slot of the `TableRowGroups` built in SampleApp.
+                Text(item.name, modifier = Modifier.padding(cellPadding))
+            }
 
             // Editing configuration - table will manage when to show this
             editCell { person, tableData, onComplete ->

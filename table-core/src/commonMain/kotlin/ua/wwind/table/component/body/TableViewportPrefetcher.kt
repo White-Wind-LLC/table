@@ -58,8 +58,17 @@ internal fun <T : Any, C, E> TableViewportPrefetcher(
         snapshotFlow<Pair<Int, Int>> {
             val li = verticalState.layoutInfo
             val viewport = (li.viewportEndOffset - li.viewportStartOffset).coerceAtLeast(0)
-            val lastVisible = li.visibleItemsInfo.maxByOrNull { it.index }?.index ?: -1
-            Pair(viewport, (lastVisible + 1).coerceAtMost(itemsCount))
+            // Lazy items are units; the prefetch loop below walks rows, so translate back to rows.
+            val lastVisibleUnit = li.visibleItemsInfo.maxByOrNull { it.index }?.index ?: -1
+            val units = state.rowUnits
+            val nextRow =
+                when {
+                    lastVisibleUnit < 0 -> 0
+                    // The footer is an extra lazy item at index == unitCount; it has no rows.
+                    lastVisibleUnit >= units.unitCount -> itemsCount
+                    else -> units.rowsOf(lastVisibleUnit).last + 1
+                }
+            Pair(viewport, nextRow.coerceAtMost(itemsCount))
         }.distinctUntilChanged()
             .collect { pair ->
                 val (vp, start) = pair

@@ -13,6 +13,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Link
+import androidx.compose.material.icons.filled.LinkOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -37,6 +39,10 @@ import io.github.fletchmckee.liquid.liquid
  * @param onClearSelection Callback when clear selection button is clicked
  * @param liquidState State for the Liquid Glass effect (must be shared with liquefiable content)
  * @param modifier Modifier for the composable
+ * @param canGroup Whether the selection can be pulled together into a group
+ * @param onGroupClick Callback when the group button is clicked
+ * @param canUngroup Whether the selection contains at least one grouped row
+ * @param onUngroupClick Callback when the ungroup button is clicked
  */
 @Composable
 fun SelectionActionBar(
@@ -45,6 +51,10 @@ fun SelectionActionBar(
     onClearSelection: () -> Unit,
     liquidState: LiquidState,
     modifier: Modifier = Modifier,
+    canGroup: Boolean = false,
+    onGroupClick: () -> Unit = {},
+    canUngroup: Boolean = false,
+    onUngroupClick: () -> Unit = {},
 ) {
     AnimatedVisibility(
         visible = selectedCount > 0,
@@ -81,6 +91,44 @@ fun SelectionActionBar(
                     color = MaterialTheme.colorScheme.onSurface,
                 )
                 Spacer(modifier = Modifier.width(8.dp))
+                if (canGroup) {
+                    Button(
+                        onClick = onGroupClick,
+                        colors =
+                            ButtonDefaults.buttonColors(
+                                containerColor =
+                                    MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.9f),
+                                contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                            ),
+                        shape = RoundedCornerShape(16.dp),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Link,
+                            contentDescription = null,
+                            modifier = Modifier.padding(end = 8.dp),
+                        )
+                        Text("Group")
+                    }
+                }
+                if (canUngroup) {
+                    Button(
+                        onClick = onUngroupClick,
+                        colors =
+                            ButtonDefaults.buttonColors(
+                                containerColor =
+                                    MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.9f),
+                                contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                            ),
+                        shape = RoundedCornerShape(16.dp),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.LinkOff,
+                            contentDescription = null,
+                            modifier = Modifier.padding(end = 8.dp),
+                        )
+                        Text("Ungroup")
+                    }
+                }
                 Button(
                     onClick = onDeleteClick,
                     colors =

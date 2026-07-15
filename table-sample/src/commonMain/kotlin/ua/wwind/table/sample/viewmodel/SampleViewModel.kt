@@ -17,6 +17,7 @@ import ua.wwind.table.ExperimentalTableApi
 import ua.wwind.table.filter.data.TableFilterState
 import ua.wwind.table.format.FormatFilterData
 import ua.wwind.table.format.data.TableFormatRule
+import ua.wwind.table.moveRowGroup
 import ua.wwind.table.sample.column.PersonColumn
 import ua.wwind.table.sample.data.createDemoData
 import ua.wwind.table.sample.filter.filterTypes
@@ -87,6 +88,11 @@ class SampleViewModel : ViewModel() {
     var showFormatDialog by mutableStateOf(false)
         private set
 
+    // Group whose name is being edited; null while the rename dialog is closed. The id doubles as
+    // the dialog's payload, so there is no "open but no target" state to get wrong.
+    var renamingGroupId by mutableStateOf<String?>(null)
+        private set
+
     // Editing state as StateFlow for reactive composition
     private val editingRowState = MutableStateFlow(PersonEditState())
 
@@ -115,6 +121,11 @@ class SampleViewModel : ViewModel() {
     /** Toggle dialog visibility */
     fun toggleFormatDialog(show: Boolean) {
         showFormatDialog = show
+    }
+
+    /** Open the rename dialog for [groupId], or close it when null. */
+    fun setRenamingGroup(groupId: String?) {
+        renamingGroupId = groupId
     }
 
     /** Update formatting rules */
@@ -316,6 +327,128 @@ class SampleViewModel : ViewModel() {
                 selectedIds.value = emptySet()
             }
 
+            is SampleUiEvent.GroupSelected -> {
+                val ids = selectedIds.value
+                if (ids.size < 2) return
+                var grouped = false
+                _people.update { currentPeople ->
+                    val anchor = currentPeople.indexOfFirst { it.id in ids }
+                    if (anchor < 0) return@update currentPeople
+
+                    // The id IS the name, so the block is named after its leader - the topmost
+                    // selected row - and group ids are kept unique: a duplicate would make two
+                    // blocks one identity, renamed together yet still separate drag units unless
+                    // adjacent. A leader's name can collide, so it is suffixed until free.
+                    // Only rows staying OUTSIDE the new block can hold a name against it; the
+                    // selected ones are all about to take the new id, which is what lets two whole
+                    // groups merge back under the leader's plain name.
+                    // Derived from `currentPeople` alone, so a retried CAS attempt is harmless.
+                    val takenGroupIds =
+                        currentPeople.filterNot { it.id in ids }.mapNotNull { it.groupId }.toSet()
+                    val groupId = uniqueGroupId(currentPeople[anchor].name, takenGroupIds)
+
+                    // A drag unit must be contiguous: rowGroupsOf only collapses adjacent rows,
+                    // so the rows are pulled together first and only then share an id.
+                    val block =
+                        currentPeople.filter { it.id in ids }.map { it.copy(groupId = groupId) }
+                    val rest = currentPeople.filterNot { it.id in ids }
+
+                    // The anchor is the FIRST selected index, so every row before it is unselected
+                    // and survives in `rest` - the insertion point is still the anchor after the
+                    // removal. Do not "fix" this by shifting it. Removing the selected rows is safe
+                    // on its own: it can only bring same-id rows closer, never split a run.
+                    // Never cut another group in half: if the insertion point lands between two rows
+                    // of the same group, push it past that group's last row. Splitting a run would
+                    // leave two blocks sharing one id - one logical group torn in two, which renames
+                    // together but drags apart.
+                    var insertAt = anchor.coerceAtMost(rest.size)
+                    while (
+                        insertAt > 0 && insertAt < rest.size &&
+                        rest[insertAt - 1].groupId != null &&
+                        rest[insertAt - 1].groupId == rest[insertAt].groupId
+                    ) {
+                        insertAt++
+                    }
+
+                    grouped = true
+                    rest.toMutableList().apply { addAll(insertAt, block) }
+                }
+                if (grouped) {
+                    // Grouping reorders rows, so a stale sort would fight the new order.
+                    currentSort.value = null
+                }
+            }
+
+            is SampleUiEvent.UngroupSelected -> {
+                val ids = selectedIds.value
+                if (ids.isEmpty()) return
+                var ungrouped = false
+                _people.update { currentPeople ->
+                    // Only a row that is IN a group can leave one: a selected row without a group
+                    // keeps both its null id and its place.
+                    val touchedGroupIds =
+                        currentPeople.filter { it.id in ids }.mapNotNull { it.groupId }.toSet()
+                    if (touchedGroupIds.isEmpty()) return@update currentPeople
+
+                    // A row leaving a group must leave the block as well. rowGroupsOf only collapses
+                    // ADJACENT rows, so merely clearing the id of a row in the middle of the run
+                    // tears the block into two halves that BOTH keep the group's id - one name, two
+                    // drag units, exactly the duplicate the uniqueness invariant forbids. Dropping
+                    // the leavers just past the group's last row keeps the rows that stay
+                    // contiguous, so the group survives whole under its own id.
+                    val lastIndexOfGroup =
+                        touchedGroupIds.associateWith { groupId ->
+                            currentPeople.indexOfLast { it.groupId == groupId }
+                        }
+                    val leavers = mutableMapOf<String, MutableList<Person>>()
+
+                    ungrouped = true
+                    buildList {
+                        currentPeople.forEachIndexed { index, person ->
+                            val groupId = person.groupId
+                            if (groupId != null && person.id in ids) {
+                                leavers.getOrPut(groupId) { mutableListOf() } +=
+                                    person.copy(groupId = null)
+                            } else {
+                                add(person)
+                            }
+                            // Flushed once the run is over, so the leavers land right under what is
+                            // left of the block - and back in their own place when the whole group
+                            // left and there is no block any more. Relative order is preserved
+                            // because they were collected in list order.
+                            if (groupId != null && lastIndexOfGroup[groupId] == index) {
+                                leavers.remove(groupId)?.let { addAll(it) }
+                            }
+                        }
+                    }
+                }
+                if (ungrouped) {
+                    // Ungrouping reorders rows, so a stale sort would fight the new order.
+                    currentSort.value = null
+                }
+            }
+
+            is SampleUiEvent.RenameGroup -> {
+                val newGroupId = event.newGroupId
+                // A blank id still groups - rowGroupsOf only skips nulls - so it would not ungroup
+                // the block, just leave it with a nameless band. Checked ahead of the uniqueness
+                // guard below, which would only catch the SECOND blank name, not the first.
+                // A no-op rename would rewrite every row for nothing.
+                if (newGroupId.isBlank() || newGroupId == event.groupId) return
+                // Rows keep their position: renaming must never reorder, so no sort reset either.
+                _people.update { currentPeople ->
+                    // The id IS the name, so a taken name would fuse two groups into one identity:
+                    // both would rename together yet stay separate drag units unless adjacent.
+                    // The dialog already refuses taken names; this is the last line of defence, and
+                    // it bails out rather than half-applying. Any row already carrying `newGroupId`
+                    // is outside the renamed group - the equal-id case returned above.
+                    if (currentPeople.any { it.groupId == newGroupId }) return@update currentPeople
+                    currentPeople.map {
+                        if (it.groupId == event.groupId) it.copy(groupId = newGroupId) else it
+                    }
+                }
+            }
+
             is SampleUiEvent.ClearSelection -> {
                 selectedIds.value = emptySet()
             }
@@ -336,6 +469,42 @@ class SampleViewModel : ViewModel() {
                         val sourcePerson = this[sourceIndex]
                         this[sourceIndex] = this[targetIndex]
                         this[targetIndex] = sourcePerson
+                    }
+                }
+                if (moved) {
+                    currentSort.value = null
+                }
+            }
+
+            is SampleUiEvent.RowsMove -> {
+                var moved = false
+                _people.update { currentPeople ->
+                    fun indicesOf(ids: List<Int>): List<Int> =
+                        ids
+                            .mapNotNull { id ->
+                                currentPeople.indexOfFirst { it.id == id }.takeIf { it >= 0 }
+                            }.sorted()
+
+                    fun contiguousRangeOrNull(indices: List<Int>): IntRange? =
+                        when {
+                            indices.isEmpty() -> null
+                            indices.last() - indices.first() + 1 != indices.size -> null
+                            else -> indices.first()..indices.last()
+                        }
+
+                    // Blocks are contiguous on screen but may not be in the unfiltered master list;
+                    // moving a split block would scramble it, so skip instead.
+                    val from =
+                        contiguousRangeOrNull(indicesOf(event.fromPersonIds))
+                            ?: return@update currentPeople
+                    val to =
+                        contiguousRangeOrNull(indicesOf(event.toPersonIds))
+                            ?: return@update currentPeople
+                    if (to.first in from) return@update currentPeople
+
+                    moved = true
+                    currentPeople.toMutableList().apply {
+                        moveRowGroup(from = from, to = to)
                     }
                 }
                 if (moved) {
@@ -370,5 +539,20 @@ class SampleViewModel : ViewModel() {
                 }
             }
         }
+    }
+
+    /**
+     * First free name in the sequence [base], "[base] 2", "[base] 3"... Deterministic on purpose:
+     * the id doubles as the label, so a random or timestamped suffix would be unique but unreadable.
+     * Comparison is exact, matching `rowGroupsOf`'s `==` identity rule.
+     */
+    private fun uniqueGroupId(
+        base: String,
+        takenGroupIds: Set<String>,
+    ): String {
+        if (base !in takenGroupIds) return base
+        var suffix = 2
+        while ("$base $suffix" in takenGroupIds) suffix++
+        return "$base $suffix"
     }
 }

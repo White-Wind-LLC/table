@@ -2,6 +2,33 @@
 
 All notable changes to this project will be documented in this file.
 
+### 1.11.0 — 2026-07-15
+
+- Added: `rowGroups` parameter on `Table`/`EditableTable`, taking `TableRowGroups(ranges, onMove, header)`.
+    - A range of adjacent rows can be dragged as a single unit, with the drag handle typically placed on the group's
+      first row and an optional header rendered above the block.
+    - `onMove` reports moves as row ranges (`from: IntRange`, `to: IntRange`) rather than single indices; it is
+      required when row reorder is enabled and `ranges` is non-empty.
+    - When `onMove` is set it supersedes `onRowMove`, which is then no longer invoked.
+    - `TableRowGroups` is `@Stable` and compares by identity — hold it in `remember` to keep `Table` skippable.
+    - Ignored while `state.groupBy` is active: the two describe different structures over one list, so `groupBy` wins
+      and a warning is logged.
+    - Works for both regular lazy tables and embedded table bodies; in a lazy table `onMove` fires during the drag,
+      in an embedded table once on drop.
+- Added: `List.rowGroupsOf` and `MutableList.moveRowGroup` helpers.
+    - `rowGroupsOf` derives drag-unit ranges from a flat row list, collapsing runs of adjacent rows that share a
+      non-null group id.
+    - `moveRowGroup` applies a range move to a `MutableList` with the same semantics as the `onMove` callback.
+- Added: `TableDimensions.rowGroupSpacing` and `TableColors.rowGroupContainerColor` for row group visuals.
+    - `rowGroupSpacing` (default `8.dp`) is the vertical band around a group block; `rowGroupContainerColor` tints it.
+- Changed: `TableColors` gained a required `rowGroupContainerColor` constructor parameter.
+    - Direct constructor calls must supply the new parameter.
+    - `TableDefaults.colors()` takes it as a trailing optional parameter, so existing calls keep compiling and binding
+      as before, positional ones included.
+    - `TableDimensions.rowGroupSpacing` defaults to `8.dp`, so existing `TableDimensions` construction is unaffected.
+
+Compare: [v1.10.0...v1.11.0](https://github.com/White-Wind-LLC/table/compare/v1.10.0...v1.11.0)
+
 ### 1.10.0 — 2026-06-24
 
 - Updated: Kotlin to 2.4.0 (from 2.3.21).

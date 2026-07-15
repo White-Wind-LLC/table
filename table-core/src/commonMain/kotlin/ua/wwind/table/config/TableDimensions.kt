@@ -21,9 +21,12 @@ public data class TableDimensions(
         level = DeprecationLevel.WARNING,
     )
     val fixedColumnDividerThickness: Dp = pinnedColumnDividerThickness,
+    /** Vertical gap rendered above and below a row group declared via `rowGroups`. */
+    val rowGroupSpacing: Dp = 8.dp,
 ) {
     init {
         require(dividerThickness >= 1.dp) { "dividerThickness must be at least 1.dp" }
         require(pinnedColumnDividerThickness >= 1.dp) { "pinnedColumnDividerThickness must be at least 1.dp" }
+        require(rowGroupSpacing >= 0.dp) { "rowGroupSpacing must not be negative" }
     }
 }

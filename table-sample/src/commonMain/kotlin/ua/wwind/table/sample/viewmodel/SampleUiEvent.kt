@@ -53,6 +53,18 @@ sealed class SampleUiEvent {
     /** Delete all selected persons */
     data object DeleteSelected : SampleUiEvent()
 
+    /** Pull the selected rows together and give them a shared group id. */
+    data object GroupSelected : SampleUiEvent()
+
+    /** Move the selected rows out of their groups, dropping them just below the block they left. */
+    data object UngroupSelected : SampleUiEvent()
+
+    /** Rename a group: every row carrying [groupId] gets [newGroupId] instead. */
+    data class RenameGroup(
+        val groupId: String,
+        val newGroupId: String,
+    ) : SampleUiEvent()
+
     /** Clear all selections */
     data object ClearSelection : SampleUiEvent()
 
@@ -60,6 +72,12 @@ sealed class SampleUiEvent {
     data class RowMove(
         val fromPersonId: Int,
         val toPersonId: Int,
+    ) : SampleUiEvent()
+
+    /** Move a block of people (a group) so that it swaps with the block of [toPersonIds]. */
+    data class RowsMove(
+        val fromPersonIds: List<Int>,
+        val toPersonIds: List<Int>,
     ) : SampleUiEvent()
 
     /** Reorder embedded movement rows for a specific person by movement indices. */

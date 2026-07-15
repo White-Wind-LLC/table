@@ -15,6 +15,7 @@ data class SampleTableConfig(
     val showFastFilters: Boolean = true,
     val enableDragToScroll: Boolean = getPlatform().isMobile(),
     val enableRowReorder: Boolean = false,
+    val enableRowGroups: Boolean = false,
     val pinnedColumnsCount: Int = 0,
     val pinnedColumnsSide: PinnedSide = PinnedSide.Left,
     val enableEditing: Boolean = false,

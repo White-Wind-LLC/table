@@ -10,6 +10,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
@@ -27,6 +28,7 @@ import ua.wwind.table.component.footer.TableFooter
 import ua.wwind.table.config.TableColors
 import ua.wwind.table.config.TableCustomization
 import ua.wwind.table.config.isRowReorderEnabled
+import ua.wwind.table.state.RowUnitIndex
 import ua.wwind.table.state.TableState
 
 @Composable
@@ -45,7 +47,10 @@ internal fun <T : Any, C, E> TableBody(
     onRowClick: ((T) -> Unit)?,
     onRowLongClick: ((T) -> Unit)?,
     onRowMove: ((fromIndex: Int, toIndex: Int) -> Unit)?,
+    onRowsMove: ((from: IntRange, to: IntRange) -> Unit)?,
+    rowGroupHeader: (@Composable (rows: IntRange) -> Unit)?,
     onContextMenu: ((T, Offset) -> Unit)?,
+    rowUnits: RowUnitIndex,
     verticalState: LazyListState,
     horizontalState: ScrollState,
     requestTableFocus: () -> Unit,
@@ -53,11 +58,17 @@ internal fun <T : Any, C, E> TableBody(
     modifier: Modifier = Modifier,
 ) {
     val showFooter = state.settings.showFooter && !state.settings.footerPinned
-    val rowReorderEnabled = state.settings.isRowReorderEnabled && onRowMove != null
+    val rowReorderEnabled = state.settings.isRowReorderEnabled && (onRowsMove != null || onRowMove != null)
     val reorderState =
         if (rowReorderEnabled) {
             rememberReorderableLazyListState(verticalState) { from, to ->
-                onRowMove.invoke(from.index, to.index)
+                val fromRows = rowUnits.rowsOf(from.index)
+                val toRows = rowUnits.rowsOf(to.index)
+                if (onRowsMove != null) {
+                    onRowsMove.invoke(fromRows, toRows)
+                } else {
+                    onRowMove?.invoke(fromRows.first, toRows.first)
+                }
             }
         } else {
             null
@@ -68,8 +79,19 @@ internal fun <T : Any, C, E> TableBody(
         state = verticalState,
         userScrollEnabled = enableScrolling,
     ) {
-        items(count = itemsCount, key = { index -> rowKey(itemAt(index), index) }) { index ->
-            val key = rowKey(itemAt(index), index)
+        items(
+            count = rowUnits.unitCount,
+            key = { unit ->
+                val leader = rowUnits.rowsOf(unit).first
+                rowKey(itemAt(leader), leader)
+            },
+        ) { unit ->
+            val rows = rowUnits.rowsOf(unit)
+            val isGroup = rowUnits.isGroup(unit)
+            // Units only; the footer is a separate lazy item and never a group, so the bound keeps
+            // the lookup in range and a trailing block still draws its closing gap above the footer.
+            val nextIsGroup = unit < rowUnits.unitCount - 1 && rowUnits.isGroup(unit + 1)
+            val key = rowKey(itemAt(rows.first), rows.first)
             val currentReorderState = reorderState
             if (currentReorderState != null) {
                 ReorderableItem(state = currentReorderState, key = key) {
@@ -78,8 +100,11 @@ internal fun <T : Any, C, E> TableBody(
                             TableItemDragScope(this)
                         }
                     context(rowScope) {
-                        TableBodyRow(
-                            index = index,
+                        RowUnit(
+                            rows = rows,
+                            isGroup = isGroup,
+                            nextIsGroup = nextIsGroup,
+                            rowGroupHeader = rowGroupHeader,
                             itemAt = itemAt,
                             visibleColumns = visibleColumns,
                             state = state,
@@ -98,8 +123,11 @@ internal fun <T : Any, C, E> TableBody(
                 }
             } else {
                 context(DefaultTableItemScope) {
-                    TableBodyRow(
-                        index = index,
+                    RowUnit(
+                        rows = rows,
+                        isGroup = isGroup,
+                        nextIsGroup = nextIsGroup,
+                        rowGroupHeader = rowGroupHeader,
                         itemAt = itemAt,
                         visibleColumns = visibleColumns,
                         state = state,
@@ -176,33 +204,65 @@ internal fun <T : Any, C, E> TableBodyEmbedded(
     onRowClick: ((T) -> Unit)?,
     onRowLongClick: ((T) -> Unit)?,
     onRowMove: ((fromIndex: Int, toIndex: Int) -> Unit)?,
+    onRowsMove: ((from: IntRange, to: IntRange) -> Unit)?,
+    rowGroupHeader: (@Composable (rows: IntRange) -> Unit)?,
     onContextMenu: ((T, Offset) -> Unit)?,
+    rowUnits: RowUnitIndex,
     horizontalState: ScrollState,
     requestTableFocus: () -> Unit,
 ) {
     if (itemsCount <= 0 && !state.settings.showFooter) return
 
-    val rowMoveCallback = onRowMove
-    val rowReorderEnabled = state.settings.isRowReorderEnabled && rowMoveCallback != null
-    val itemList = remember(itemsCount, itemAt) { IndexedListAdapter(itemsCount, itemAt) }
+    val rowReorderEnabled =
+        state.settings.isRowReorderEnabled && (onRowsMove != null || onRowMove != null)
+
+    // One element per drag unit, holding that unit's leading item. `ReorderableColumn` keys its
+    // internal drag state on this list *by equality*, and only rebuilds it — clearing the drag
+    // offsets left over from a drop — when the contents change. Elements must therefore track the
+    // items, not the unit indices: `0..unitCount-1` never changes and would strand those offsets.
+    val unitList =
+        remember(rowUnits, itemAt) {
+            IndexedListAdapter(rowUnits.unitCount) { unit -> itemAt(rowUnits.rowsOf(unit).first) }
+        }
+
+    // `ReorderableColumn` captures `onSettle` once, when it builds that state, and never refreshes it
+    // — unlike the lazy path, whose `rememberReorderableLazyListState` wraps the callback in
+    // `rememberUpdatedState`. Leaders do not distinguish every layout this callback reads: inserting a
+    // row *into* a group changes `rowUnits` while leaving the leaders — and so the list — equal, so a
+    // captured callback would keep translating units against a stale index and report rows that no
+    // longer match the data. Route through the state, so the callback that runs is the current one.
+    val settleUnits: (Int, Int) -> Unit = { fromUnit, toUnit ->
+        val fromRows = rowUnits.rowsOf(fromUnit)
+        val toRows = rowUnits.rowsOf(toUnit)
+        if (onRowsMove != null) {
+            onRowsMove.invoke(fromRows, toRows)
+        } else {
+            onRowMove?.invoke(fromRows.first, toRows.first)
+        }
+    }
+    val currentSettleUnits = rememberUpdatedState(settleUnits)
 
     Column {
         if (rowReorderEnabled) {
             ReorderableColumn(
-                list = itemList,
-                onSettle = { fromIndex, toIndex ->
-                    rowMoveCallback.invoke(fromIndex, toIndex)
-                },
-            ) { index, item, _ ->
-                key(rowKey(item, index)) {
+                list = unitList,
+                onSettle = { fromUnit, toUnit -> currentSettleUnits.value(fromUnit, toUnit) },
+            ) { unitIndex, leadingItem, _ ->
+                val rows = rowUnits.rowsOf(unitIndex)
+                key(rowKey(leadingItem, rows.first)) {
                     ReorderableItem {
                         val rowScope: TableItemScope =
                             remember(this) {
                                 TableItemListDragScope(this)
                             }
                         context(rowScope) {
-                            TableBodyRow(
-                                index = index,
+                            RowUnit(
+                                rows = rows,
+                                isGroup = rowUnits.isGroup(unitIndex),
+                                nextIsGroup =
+                                    unitIndex < rowUnits.unitCount - 1 &&
+                                        rowUnits.isGroup(unitIndex + 1),
+                                rowGroupHeader = rowGroupHeader,
                                 itemAt = itemAt,
                                 visibleColumns = visibleColumns,
                                 state = state,
@@ -222,10 +282,15 @@ internal fun <T : Any, C, E> TableBodyEmbedded(
                 }
             }
         } else {
-            for (index in 0 until itemsCount) {
+            for (unitIndex in 0 until rowUnits.unitCount) {
                 context(DefaultTableItemScope) {
-                    TableBodyRow(
-                        index = index,
+                    RowUnit(
+                        rows = rowUnits.rowsOf(unitIndex),
+                        isGroup = rowUnits.isGroup(unitIndex),
+                        nextIsGroup =
+                            unitIndex < rowUnits.unitCount - 1 &&
+                                rowUnits.isGroup(unitIndex + 1),
+                        rowGroupHeader = rowGroupHeader,
                         itemAt = itemAt,
                         visibleColumns = visibleColumns,
                         state = state,
@@ -288,7 +353,7 @@ private class IndexedListAdapter<T>(
 @Composable
 @Suppress("LongParameterList")
 context(_: TableItemScope)
-private fun <T : Any, C, E> TableBodyRow(
+internal fun <T : Any, C, E> TableBodyRow(
     index: Int,
     itemAt: (Int) -> T?,
     visibleColumns: ImmutableList<ColumnSpec<T, C, E>>,

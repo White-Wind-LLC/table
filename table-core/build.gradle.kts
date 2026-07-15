@@ -4,6 +4,7 @@ plugins {
     id("ua.wwind.convention.compose")
     id("ua.wwind.convention.publishing")
     id("ua.wwind.convention.logging")
+    id("ua.wwind.convention.test")
 }
 
 kotlin {

@@ -12,6 +12,8 @@ public data class TableColors(
     val rowSelectedContainerColor: Color,
     val stripedRowContainerColor: Color,
     val groupContainerColor: Color,
+    /** Container color painted behind a row group block declared via `rowGroups`. */
+    val rowGroupContainerColor: Color,
     val footerContainerColor: Color,
     val footerContentColor: Color,
 )
