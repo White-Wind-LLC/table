@@ -2,6 +2,44 @@
 
 All notable changes to this project will be documented in this file.
 
+### 1.11.0 — 2026-07-16
+
+- Added: `rowGroups` parameter on `Table`/`EditableTable`, taking `TableRowGroups(ranges, onMove, header)`.
+    - A range of adjacent rows can be dragged as a single unit, with the drag handle typically placed on the group's
+      first row and an optional header rendered above the block.
+    - `onMove` reports moves as row ranges (`from: IntRange`, `to: IntRange`) rather than single indices; it is
+      required when row reorder is enabled and `ranges` is non-empty.
+    - When `onMove` is set it supersedes `onRowMove`, which is then no longer invoked.
+    - `TableRowGroups` is `@Stable` and compares by identity — hold it in `remember` to keep `Table` skippable.
+    - Ignored while `state.groupBy` is active: the two describe different structures over one list, so `groupBy` wins
+      and a warning is logged.
+    - Works for both regular lazy tables and embedded table bodies; in a lazy table `onMove` fires during the drag,
+      in an embedded table once on drop.
+- Added: `List.rowGroupsOf` and `MutableList.moveRowGroup` helpers.
+    - `rowGroupsOf` derives drag-unit ranges from a flat row list, collapsing runs of adjacent rows that share a
+      non-null group id.
+    - `moveRowGroup` applies a range move to a `MutableList` with the same semantics as the `onMove` callback.
+- Added: `TableDimensions.rowGroupSpacing` and `TableColors.rowGroupContainerColor` for row group visuals.
+    - `rowGroupSpacing` (default `8.dp`) is the vertical band around a group block; `rowGroupContainerColor` tints it.
+- Changed: `TableColors` gained a required `rowGroupContainerColor` constructor parameter.
+    - Direct constructor calls must supply the new parameter.
+    - `TableDefaults.colors()` takes it as a trailing optional parameter, so existing calls keep compiling and binding
+      as before, positional ones included.
+    - `TableDimensions.rowGroupSpacing` defaults to `8.dp`, so existing `TableDimensions` construction is unaffected.
+- Fixed: table width no longer freezes when `ColumnSpec.visible` changes after the first render.
+    - `TableState.tableWidth` derives from the visible column list, but that list was a plain field, so
+      Compose never saw it change and served a cached width instead. Columns shown again stayed off
+      screen and out of horizontal scroll range, while the header — which measures independently —
+      laid them out, leaving header and rows misaligned.
+    - The stale width was only flushed by an unrelated write to `columnWidths`, so the symptom
+      disappeared as soon as a column was resized, and never appeared at all where `autoWidth` writes
+      those widths on every column change.
+- Added: the module's first tests, covering row groups, the row-to-unit index, the table width across
+  column hide, show and resize, and a composition-level cover that flips `ColumnSpec.visible` on a
+  live `Table` and asserts the revealed column's cell reaches the screen.
+
+Compare: [v1.10.0...v1.11.0](https://github.com/White-Wind-LLC/table/compare/v1.10.0...v1.11.0)
+
 ### 1.10.0 — 2026-06-24
 
 - Updated: Kotlin to 2.4.0 (from 2.3.21).
