@@ -13,5 +13,11 @@ kotlin {
             implementation(libs.reorderable)
             implementation(libs.kotlinx.datetime)
         }
+        commonTest.dependencies {
+            implementation(libs.compose.ui.test)
+        }
+        jvmTest.dependencies {
+            implementation(compose.desktop.currentOs)
+        }
     }
 }

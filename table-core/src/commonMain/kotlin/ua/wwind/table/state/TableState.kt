@@ -69,8 +69,12 @@ public class TableState<C>
 
         /**
          * Current visible columns list. Must be set externally before tableWidth is accessed.
+         *
+         * Snapshot state, because [tableWidth] derives from it: a plain field would be an untracked
+         * read, leaving the derived width frozen at whatever the first composition computed until
+         * some *other* tracked read — a [columnWidths] write — happened to invalidate it.
          */
-        internal var visibleColumns: List<ColumnSpec<*, C, *>> = emptyList()
+        internal var visibleColumns: List<ColumnSpec<*, C, *>> by mutableStateOf(emptyList())
 
         /**
          * Row-to-unit mapping for the current data set. Identity unless the consumer passed

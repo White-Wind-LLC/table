@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-### 1.11.0 — 2026-07-15
+### 1.11.0 — 2026-07-16
 
 - Added: `rowGroups` parameter on `Table`/`EditableTable`, taking `TableRowGroups(ranges, onMove, header)`.
     - A range of adjacent rows can be dragged as a single unit, with the drag handle typically placed on the group's
@@ -26,6 +26,17 @@ All notable changes to this project will be documented in this file.
     - `TableDefaults.colors()` takes it as a trailing optional parameter, so existing calls keep compiling and binding
       as before, positional ones included.
     - `TableDimensions.rowGroupSpacing` defaults to `8.dp`, so existing `TableDimensions` construction is unaffected.
+- Fixed: table width no longer freezes when `ColumnSpec.visible` changes after the first render.
+    - `TableState.tableWidth` derives from the visible column list, but that list was a plain field, so
+      Compose never saw it change and served a cached width instead. Columns shown again stayed off
+      screen and out of horizontal scroll range, while the header — which measures independently —
+      laid them out, leaving header and rows misaligned.
+    - The stale width was only flushed by an unrelated write to `columnWidths`, so the symptom
+      disappeared as soon as a column was resized, and never appeared at all where `autoWidth` writes
+      those widths on every column change.
+- Added: the module's first tests, covering row groups, the row-to-unit index, the table width across
+  column hide, show and resize, and a composition-level cover that flips `ColumnSpec.visible` on a
+  live `Table` and asserts the revealed column's cell reaches the screen.
 
 Compare: [v1.10.0...v1.11.0](https://github.com/White-Wind-LLC/table/compare/v1.10.0...v1.11.0)
 
