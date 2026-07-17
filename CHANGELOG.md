@@ -2,30 +2,60 @@
 
 All notable changes to this project will be documented in this file.
 
-### 1.11.0 — 2026-07-16
+### 1.11.0 — 2026-07-17
 
-- Added: `rowGroups` parameter on `Table`/`EditableTable`, taking `TableRowGroups(ranges, onMove, header)`.
-    - A range of adjacent rows can be dragged as a single unit, with the drag handle typically placed on the group's
-      first row and an optional header rendered above the block.
-    - `onMove` reports moves as row ranges (`from: IntRange`, `to: IntRange`) rather than single indices; it is
-      required when row reorder is enabled and `ranges` is non-empty.
-    - When `onMove` is set it supersedes `onRowMove`, which is then no longer invoked.
-    - `TableRowGroups` is `@Stable` and compares by identity — hold it in `remember` to keep `Table` skippable.
-    - Ignored while `state.groupBy` is active: the two describe different structures over one list, so `groupBy` wins
-      and a warning is logged.
-    - Works for both regular lazy tables and embedded table bodies; in a lazy table `onMove` fires during the drag,
-      in an embedded table once on drop.
-- Added: `List.rowGroupsOf` and `MutableList.moveRowGroup` helpers.
-    - `rowGroupsOf` derives drag-unit ranges from a flat row list, collapsing runs of adjacent rows that share a
-      non-null group id.
-    - `moveRowGroup` applies a range move to a `MutableList` with the same semantics as the `onMove` callback.
-- Added: `TableDimensions.rowGroupSpacing` and `TableColors.rowGroupContainerColor` for row group visuals.
-    - `rowGroupSpacing` (default `8.dp`) is the vertical band around a group block; `rowGroupContainerColor` tints it.
-- Changed: `TableColors` gained a required `rowGroupContainerColor` constructor parameter.
-    - Direct constructor calls must supply the new parameter.
-    - `TableDefaults.colors()` takes it as a trailing optional parameter, so existing calls keep compiling and binding
-      as before, positional ones included.
-    - `TableDimensions.rowGroupSpacing` defaults to `8.dp`, so existing `TableDimensions` construction is unaffected.
+- Added: row blocks — a `rowBlocks` parameter on `Table`, `EditableTable` and the `table-paging` adapter, taking
+  `RowBlocks(blockOf, onCommit, blockHeader)`.
+    - Blocks are declared by identity: adjacent rows whose `blockOf` returns the same non-null id render and drag
+      as one unit, with an optional header band above the block. The table derives block extents itself from the
+      same snapshot it renders — there are no index ranges to compute or keep in sync with an asynchronous
+      pipeline.
+    - The drag is managed: during a gesture the table permutes its own internal view and the consumer's data does
+      not change; on drop `onCommit` receives exactly one `RowBlockMove(blockId, movedKeys, afterKey, beforeKey)`
+      expressed in stable row keys — identical semantics in lazy and embedded tables. `rowBlocks` supersedes
+      `onRowMove`, which is then no longer invoked: standalone rows report through `onCommit` too, with a null
+      `blockId`. Without `onCommit` blocks are display-only and row drag is disabled entirely. If the rendered
+      list changes mid-gesture, the gesture is cancelled.
+    - Positional runtime state — selection, checked rows, the row being edited, cached row heights — is remapped
+      through the move at commit, so it keeps pointing at the same rows.
+    - Blocks require a stable `rowKey`: move anchors are row keys, and passing `rowBlocks` with the default
+      positional key logs a warning.
+    - `TableCellScope.isRowBlockLeader` (also exposed as a context accessor inside `cell { ... }`) marks the rows
+      that may carry a drag handle: the first visible row of each block and every standalone row.
+    - Filtering composes: blocks derive from the rendered list, a partially hidden block drags as its visible
+      rows, and the commit still describes the whole block.
+    - Mutually exclusive with `state.groupBy`: while grouping is active, blocks are suppressed with a warning and
+      row drag is disabled entirely — `onCommit` is not invoked and `onRowMove` stays superseded rather than
+      taking over. The read-only `TableState.rowBlocksSuppressedByGroupBy` flag surfaces the
+      conflict, and the column menu's group-by item is disabled while blocks are present.
+- Added: block-preserving data helpers.
+    - `MutableList.applyRowBlockMove(move, keyOf, blockOf)` applies a commit to the source list: it relocates
+      every member of the moved block — including rows hidden by the current filter — preserving relative order,
+      and expands the insertion point to whole-block boundaries so no other block is ever split. When neither
+      anchor resolves, the list is left untouched.
+    - `List.sortedWithinRowBlocks(blockOf, comparator)` sorts rows within each block; units order by their
+      minimal member, so blocks never fragment. The sort is stable.
+    - `List.filteredWholeRowBlocks(blockOf, predicate)` filters at block granularity: a block survives whole when
+      any member matches.
+- Added: row blocks in `table-paging`.
+    - Bands derive over loaded adjacent runs; an unloaded placeholder breaks a run, and a partially loaded block
+      extends as its pages arrive.
+    - Paged drop policy: a drop commits only when its landing neighbours are loaded; against a placeholder the
+      gesture snaps back and nothing is emitted. Pages loading under the held pointer do not cancel the gesture.
+    - A paged consumer applies commits in its data layer by `RowBlockMove.blockId` — it holds no materialized
+      list for `applyRowBlockMove`, and the data layer knows full block membership, including rows the client
+      never loaded.
+- Added: row block theming — `TableDimensions.rowBlockSpacing` (default `8.dp`) and
+  `TableColors.rowBlockContainerColor` (default `Color.Unspecified`, resolved to `surfaceContainerHighest` at
+  draw time). Both are trailing optional parameters, so existing construction keeps compiling, positional calls
+  included.
+- Changed: `state.setSort()` is now a warning no-op while row reorder is enabled, matching the existing
+  `initialSort` normalization — under an active sort the rendered order is a function of row values, so a reorder
+  would be unobservable; the two features cannot both apply.
+- Deprecated: `TableRowContext.isGroup`, renamed to `isInRowBlock` — "group" is the column-value grouping
+  (`groupBy`) vocabulary, which never set this flag. A read-only forwarder keeps existing customizations
+  compiling, and the flag is now actually set: it is true for rows rendered inside a row block, so
+  `TableCustomization` can style block members (previously it was always `false`).
 - Fixed: table width no longer freezes when `ColumnSpec.visible` changes after the first render.
     - `TableState.tableWidth` derives from the visible column list, but that list was a plain field, so
       Compose never saw it change and served a cached width instead. Columns shown again stayed off
@@ -34,9 +64,11 @@ All notable changes to this project will be documented in this file.
     - The stale width was only flushed by an unrelated write to `columnWidths`, so the symptom
       disappeared as soon as a column was resized, and never appeared at all where `autoWidth` writes
       those widths on every column change.
-- Added: the module's first tests, covering row groups, the row-to-unit index, the table width across
-  column hide, show and resize, and a composition-level cover that flips `ColumnSpec.visible` on a
-  live `Table` and asserts the revealed column's cell reaches the screen.
+- Added: the module's first tests, covering row blocks end to end (block derivation, the managed drag and its
+  commit event, the data helpers under seeded property harnesses, paged sources, groupBy suppression, selection
+  and editing remap), the row-to-unit index, the table width across column hide, show and resize, and a
+  composition-level cover that flips `ColumnSpec.visible` on a live `Table` and asserts the revealed column's
+  cell reaches the screen.
 
 Compare: [v1.10.0...v1.11.0](https://github.com/White-Wind-LLC/table/compare/v1.10.0...v1.11.0)
 

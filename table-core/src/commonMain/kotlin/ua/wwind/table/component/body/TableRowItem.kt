@@ -79,6 +79,13 @@ context(rowScope: TableItemScope)
 internal fun <T : Any, C, E> TableRowItem(
     item: T?,
     index: Int,
+    /** Whether [index] falls inside a row block; supplied by the caller from the same unit snapshot
+     *  that produced [index], so it can never disagree with the rendered position. */
+    isInRowBlock: Boolean,
+    /** Whether [index] is the leader (first) row of its unit — every standalone row, or a block's
+     *  first row. Gates the drag handle, so it MUST track [index]'s own snapshot, not the separately
+     *  published state.rowUnits, which lags by a frame under a fast drag and would drop the handle. */
+    isRowBlockLeader: Boolean,
     visibleColumns: ImmutableList<ColumnSpec<T, C, E>>,
     state: TableState<C>,
     colors: ua.wwind.table.config.TableColors,
@@ -97,6 +104,10 @@ internal fun <T : Any, C, E> TableRowItem(
     val isDynamicRowHeight = state.settings.rowHeightMode == RowHeightMode.Dynamic
     val settings = state.settings
 
+    // isInRowBlock / isRowBlockLeader are passed in from the caller (RowUnit), derived from the same
+    // unit snapshot as [index]. Recomputing them here from state.rowUnits reopened a frame-lag split
+    // that dropped the drag handle mid-gesture on a fast drag.
+
     val defaultRowBackgroundColor =
         when {
             isSelected -> colors.rowSelectedContainerColor
@@ -112,7 +123,7 @@ internal fun <T : Any, C, E> TableRowItem(
                     index = index,
                     isSelected = isSelected,
                     isStriped = state.settings.stripedRows && (index % 2 != 0),
-                    isGroup = false,
+                    isInRowBlock = isInRowBlock,
                     isDeleted = false,
                 )
             customization.resolveRowStyle(ctx)
@@ -171,6 +182,8 @@ internal fun <T : Any, C, E> TableRowItem(
                         item = item,
                         tableData = tableData,
                         isSelected = isSelected,
+                        isInRowBlock = isInRowBlock,
+                        isRowBlockLeader = isRowBlockLeader,
                         settings = settings,
                         horizontalState = horizontalState,
                         finalRowColor = finalRowColor,
@@ -209,6 +222,8 @@ private fun <C, T : Any, E> RenderTableRowItem(
     item: T,
     tableData: E,
     isSelected: Boolean,
+    isInRowBlock: Boolean,
+    isRowBlockLeader: Boolean,
     settings: TableSettings,
     horizontalState: ScrollState,
     finalRowColor: Color,
@@ -238,7 +253,7 @@ private fun <C, T : Any, E> RenderTableRowItem(
                                 isStriped =
                                     state.settings.stripedRows &&
                                         (index % 2 != 0),
-                                isGroup = false,
+                                isInRowBlock = isInRowBlock,
                                 isDeleted = false,
                             ),
                         column = spec.key,
@@ -396,7 +411,10 @@ private fun <C, T : Any, E> RenderTableRowItem(
                         }
                     }
                 } else {
-                    val cellScope = remember(rowScope) { TableCellScopeImpl(rowScope) }
+                    val cellScope =
+                        remember(rowScope, isRowBlockLeader) {
+                            TableCellScopeImpl(rowScope, isRowBlockLeader)
+                        }
                     context(cellScope) {
                         spec.cell(this@TableCell, item, tableData)
                     }

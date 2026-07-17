@@ -4,6 +4,7 @@ import androidx.compose.runtime.Immutable
 import ua.wwind.table.config.PinnedSide
 import ua.wwind.table.platform.getPlatform
 import ua.wwind.table.platform.isMobile
+import ua.wwind.table.sample.column.PersonColumn
 
 /**
  * Configuration data class for sample table settings.
@@ -15,6 +16,7 @@ data class SampleTableConfig(
     val showFastFilters: Boolean = true,
     val enableDragToScroll: Boolean = getPlatform().isMobile(),
     val enableRowReorder: Boolean = false,
+    val enableRowBlocks: Boolean = false,
     val pinnedColumnsCount: Int = 0,
     val pinnedColumnsSide: PinnedSide = PinnedSide.Left,
     val enableEditing: Boolean = false,
@@ -25,4 +27,6 @@ data class SampleTableConfig(
     val showRowDividers: Boolean = true,
     val showHeaderDivider: Boolean = true,
     val showFastFiltersDivider: Boolean = true,
+    /** Columns hidden via the sidebar toggle; specs rebuild with `visible = false` for these. */
+    val hiddenColumns: Set<PersonColumn> = emptySet(),
 )

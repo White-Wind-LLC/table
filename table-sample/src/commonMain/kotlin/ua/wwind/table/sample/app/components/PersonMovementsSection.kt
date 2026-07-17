@@ -7,11 +7,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.toImmutableList
 import ua.wwind.table.ExperimentalTableApi
+import ua.wwind.table.RowBlockMove
+import ua.wwind.table.RowBlocks
 import ua.wwind.table.Table
 import ua.wwind.table.config.RowHeightMode
 import ua.wwind.table.config.SelectionMode
@@ -19,7 +22,9 @@ import ua.wwind.table.config.TableDefaults
 import ua.wwind.table.config.TableSettings
 import ua.wwind.table.sample.column.createMovementColumns
 import ua.wwind.table.sample.model.Person
+import ua.wwind.table.sample.model.PersonMovement
 import ua.wwind.table.sample.model.PersonMovementColumn
+import ua.wwind.table.sample.model.movementBlockId
 import ua.wwind.table.state.rememberTableState
 import ua.wwind.table.strings.DefaultStrings
 
@@ -29,7 +34,9 @@ fun PersonMovementsSection(
     person: Person,
     useCompactMode: Boolean = false,
     enableRowReorder: Boolean = false,
+    enableRowBlocks: Boolean = false,
     onRowMove: (fromIndex: Int, toIndex: Int) -> Unit = { _, _ -> },
+    onBlockMove: (RowBlockMove) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val columns =
@@ -58,6 +65,32 @@ fun PersonMovementsSection(
             dimensions = TableDefaults.compactDimensions(),
         )
 
+    // The block declaration must stay one instance (identity equality) while the commit callback
+    // tracks recompositions — each pass captures the current person — so the remembered config
+    // reads the callback through rememberUpdatedState instead of being rebuilt around it.
+    val currentOnBlockMove = rememberUpdatedState(onBlockMove)
+    // Embedded blocks demo: adjacent same-year movements band and drag as one unit, driving the
+    // no-LazyColumn path of the managed drag.
+    val movementBlocks =
+        remember(enableRowBlocks) {
+            if (!enableRowBlocks) {
+                null
+            } else {
+                RowBlocks<PersonMovement>(
+                    blockOf = { it.movementBlockId },
+                    onCommit = { move -> currentOnBlockMove.value(move) },
+                    blockHeader = { blockId, _ ->
+                        Text(
+                            text = "Year $blockId",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                        )
+                    },
+                )
+            }
+        }
+
     Column(
         modifier = modifier.padding(top = 8.dp, bottom = 8.dp).padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp),
@@ -79,6 +112,7 @@ fun PersonMovementsSection(
             modifier = Modifier.padding(top = 8.dp),
             embedded = true,
             onRowMove = onRowMove,
+            rowBlocks = movementBlocks,
         )
     }
 }

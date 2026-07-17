@@ -23,6 +23,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -53,6 +54,7 @@ import ua.wwind.table.config.TableColors
 import ua.wwind.table.config.TableCustomization
 import ua.wwind.table.config.TableDefaults
 import ua.wwind.table.config.isInteractionLockByRowReorderEnabled
+import ua.wwind.table.config.isRowReorderEnabled
 import ua.wwind.table.interaction.ApplyAutoWidthEffect
 import ua.wwind.table.interaction.ApplyAutoWidthEmbeddedEffect
 import ua.wwind.table.interaction.ContextMenuState
@@ -62,12 +64,21 @@ import ua.wwind.table.interaction.tableKeyboardNavigation
 import ua.wwind.table.platform.getPlatform
 import ua.wwind.table.platform.isMobile
 import ua.wwind.table.state.LocalTableState
+import ua.wwind.table.state.RowBlocksState
+import ua.wwind.table.state.RowUnitIndex
 import ua.wwind.table.state.SortState
 import ua.wwind.table.state.TableState
+import ua.wwind.table.state.buildRowUnitIndex
 import ua.wwind.table.state.mapNotNullToImmutable
 import ua.wwind.table.strings.DefaultStrings
 import ua.wwind.table.strings.LocalStringProvider
 import ua.wwind.table.strings.StringProvider
+
+/**
+ * Shared default for `rowKey` across every table entry point, so a block table can recognize it:
+ * [RowBlockMove] anchors are row keys, and a positional key cannot survive the move it describes.
+ */
+internal val DefaultRowKey: (Any?, Int) -> Any = { _, index -> index }
 
 /**
  * Composable editable data table that renders a header and a virtualized list of rows.
@@ -116,10 +127,16 @@ public fun <T : Any, C, E> EditableTable(
     tableData: E,
     modifier: Modifier = Modifier,
     placeholderRow: (@Composable () -> Unit)? = null,
-    rowKey: (item: T?, index: Int) -> Any = { _, i -> i },
+    rowKey: (item: T?, index: Int) -> Any = DefaultRowKey,
     onRowClick: ((T) -> Unit)? = null,
     onRowLongClick: ((T) -> Unit)? = null,
     onRowMove: ((fromIndex: Int, toIndex: Int) -> Unit)? = null,
+    /**
+     * Row blocks declared by identity: adjacent rows with equal [RowBlocks.blockOf] ids render and
+     * drag as one unit. Supersedes [onRowMove], which is never invoked while blocks are declared.
+     * Requires a stable [rowKey]; hold the instance in `remember` — see [RowBlocks].
+     */
+    rowBlocks: RowBlocks<T>? = null,
     contextMenu: (@Composable (item: T, pos: Offset, dismiss: () -> Unit) -> Unit)? = null,
     customization: TableCustomization<T, C> = DefaultTableCustomization(),
     colors: TableColors = TableDefaults.colors(),
@@ -152,6 +169,53 @@ public fun <T : Any, C, E> EditableTable(
 
     state.visibleColumns = visibleColumns
 
+    val blocksState =
+        rowBlocks?.let { blocks -> remember(blocks, rowKey) { RowBlocksState(blocks, rowKey) } }
+    // Feed the state the same snapshot this composition renders: block extents are derived here,
+    // never declared, so they cannot lag behind an asynchronously filtered list.
+    blocksState?.reconcile(itemsCount, itemAt)
+
+    // groupBy and row blocks describe two incompatible structures over one list. groupBy wins:
+    // blocks are suppressed rather than both rendered, and the conflict is surfaced through
+    // TableState instead of thrown from a menu click.
+    val rowBlocksSuppressed = blocksState != null && state.groupBy != null
+    val activeBlocks = if (rowBlocksSuppressed) null else blocksState
+    // Gate on blocksState, not activeBlocks: declaring rowBlocks retires onRowMove outright, and
+    // the groupBy suppression must not resurrect it — per-row drag appearing under a grouped view
+    // would silently swap move semantics. Suppressed blocks mean no row drag at all.
+    val effectiveOnRowMove = if (blocksState == null) onRowMove else null
+    state.rowBlocksSuppressedByGroupBy = rowBlocksSuppressed
+    state.rowBlocksNonEmpty = blocksState != null && blocksState.hasBlocks
+    LaunchedEffect(rowBlocksSuppressed) {
+        if (rowBlocksSuppressed) Logger.w { "rowBlocks ignored while groupBy is active" }
+    }
+    LaunchedEffect(rowBlocks, rowKey) {
+        if (rowBlocks != null && rowKey === DefaultRowKey) {
+            Logger.w {
+                "rowBlocks requires a stable rowKey: RowBlockMove anchors are row keys, " +
+                    "and the default positional key cannot survive a move"
+            }
+        }
+    }
+
+    // The rendered list is the blocks state's (possibly permuted) view while a gesture or an
+    // optimistic post-drop hold is in flight; it is the consumer's list otherwise.
+    val effectiveItemAt: (Int) -> T? =
+        remember(activeBlocks, itemAt) {
+            if (activeBlocks != null) activeBlocks::itemAt else itemAt
+        }
+    val effectiveRowKey: (item: T?, index: Int) -> Any =
+        remember(activeBlocks, rowKey) {
+            if (activeBlocks == null) {
+                rowKey
+            } else {
+                { item, viewIndex -> rowKey(item, activeBlocks.upstreamIndexOf(viewIndex)) }
+            }
+        }
+
+    val rowUnits = activeBlocks?.units ?: remember(itemsCount) { buildRowUnitIndex(itemsCount, null) }
+    state.rowUnits = rowUnits
+
     var contextMenuState by remember { mutableStateOf(ContextMenuState<T>()) }
     val tableFocusRequester = remember { FocusRequester() }
     val coroutineScope = rememberCoroutineScope()
@@ -170,13 +234,17 @@ public fun <T : Any, C, E> EditableTable(
         }
     }
 
-    // Set edit mode callbacks
+    // Set edit mode callbacks. The registered wrapper outlives this composition's resolver —
+    // effectiveItemAt is rebuilt whenever activeBlocks or itemAt changes — so read it through
+    // rememberUpdatedState instead of re-registering (same trampoline as the embedded settle path).
+    val currentEffectiveItemAt = rememberUpdatedState(effectiveItemAt)
     LaunchedEffect(state, onRowEditStart, onRowEditComplete, onEditCancelled) {
         state.setEditCallbacks(
             onStart =
                 onRowEditStart?.let { callback ->
                     { rowIndex: Int ->
-                        val item = itemAt(rowIndex)
+                        // Edit indices are view positions, so resolve through the rendered order.
+                        val item = currentEffectiveItemAt.value(rowIndex)
                         if (item != null) callback(item, rowIndex)
                     }
                 },
@@ -255,8 +323,8 @@ public fun <T : Any, C, E> EditableTable(
                         TableBodySection(
                             embedded = embedded,
                             itemsCount = itemsCount,
-                            itemAt = itemAt,
-                            rowKey = rowKey,
+                            itemAt = effectiveItemAt,
+                            rowKey = effectiveRowKey,
                             visibleColumns = visibleColumns,
                             state = state,
                             colors = colors,
@@ -266,8 +334,10 @@ public fun <T : Any, C, E> EditableTable(
                             placeholderRow = placeholderRow,
                             onRowClick = onRowClick,
                             onRowLongClick = onRowLongClick,
-                            onRowMove = onRowMove,
+                            onRowMove = effectiveOnRowMove,
+                            blocks = activeBlocks,
                             onContextMenu = onContextMenuHandler,
+                            rowUnits = rowUnits,
                             verticalState = verticalState,
                             horizontalState = horizontalState,
                             requestTableFocus = { tableFocusRequester.requestFocus() },
@@ -359,10 +429,16 @@ public fun <T : Any, C> Table(
     columns: ImmutableList<ColumnSpec<T, C, Unit>>,
     modifier: Modifier = Modifier,
     placeholderRow: (@Composable () -> Unit)? = null,
-    rowKey: (item: T?, index: Int) -> Any = { _, i -> i },
+    rowKey: (item: T?, index: Int) -> Any = DefaultRowKey,
     onRowClick: ((T) -> Unit)? = null,
     onRowLongClick: ((T) -> Unit)? = null,
     onRowMove: ((fromIndex: Int, toIndex: Int) -> Unit)? = null,
+    /**
+     * Row blocks declared by identity: adjacent rows with equal [RowBlocks.blockOf] ids render and
+     * drag as one unit. Supersedes [onRowMove], which is never invoked while blocks are declared.
+     * Requires a stable [rowKey]; hold the instance in `remember` — see [RowBlocks].
+     */
+    rowBlocks: RowBlocks<T>? = null,
     contextMenu: (@Composable (item: T, pos: Offset, dismiss: () -> Unit) -> Unit)? = null,
     customization: TableCustomization<T, C> = DefaultTableCustomization(),
     colors: TableColors = TableDefaults.colors(),
@@ -387,6 +463,7 @@ public fun <T : Any, C> Table(
         onRowClick = onRowClick,
         onRowLongClick = onRowLongClick,
         onRowMove = onRowMove,
+        rowBlocks = rowBlocks,
         contextMenu = contextMenu,
         customization = customization,
         colors = colors,
@@ -453,10 +530,16 @@ public fun <T : Any, C, E> Table(
     tableData: E,
     modifier: Modifier = Modifier,
     placeholderRow: (@Composable () -> Unit)? = null,
-    rowKey: (item: T?, index: Int) -> Any = { _, i -> i },
+    rowKey: (item: T?, index: Int) -> Any = DefaultRowKey,
     onRowClick: ((T) -> Unit)? = null,
     onRowLongClick: ((T) -> Unit)? = null,
     onRowMove: ((fromIndex: Int, toIndex: Int) -> Unit)? = null,
+    /**
+     * Row blocks declared by identity: adjacent rows with equal [RowBlocks.blockOf] ids render and
+     * drag as one unit. Supersedes [onRowMove], which is never invoked while blocks are declared.
+     * Requires a stable [rowKey]; hold the instance in `remember` — see [RowBlocks].
+     */
+    rowBlocks: RowBlocks<T>? = null,
     contextMenu: (@Composable (item: T, pos: Offset, dismiss: () -> Unit) -> Unit)? = null,
     customization: TableCustomization<T, C> = DefaultTableCustomization(),
     colors: TableColors = TableDefaults.colors(),
@@ -481,6 +564,7 @@ public fun <T : Any, C, E> Table(
         onRowClick = onRowClick,
         onRowLongClick = onRowLongClick,
         onRowMove = onRowMove,
+        rowBlocks = rowBlocks,
         contextMenu = contextMenu,
         customization = customization,
         colors = colors,
@@ -605,7 +689,9 @@ private fun <T : Any, C, E> TableBodySection(
     onRowClick: ((T) -> Unit)?,
     onRowLongClick: ((T) -> Unit)?,
     onRowMove: ((fromIndex: Int, toIndex: Int) -> Unit)?,
+    blocks: RowBlocksState<T>?,
     onContextMenu: ((item: T, pos: Offset) -> Unit)?,
+    rowUnits: RowUnitIndex,
     verticalState: LazyListState,
     horizontalState: ScrollState,
     requestTableFocus: () -> Unit,
@@ -630,7 +716,9 @@ private fun <T : Any, C, E> TableBodySection(
                 onRowClick = onRowClick,
                 onRowLongClick = onRowLongClick,
                 onRowMove = onRowMove,
+                blocks = blocks,
                 onContextMenu = onContextMenu,
+                rowUnits = rowUnits,
                 horizontalState = horizontalState,
                 requestTableFocus = requestTableFocus,
             )
@@ -648,7 +736,9 @@ private fun <T : Any, C, E> TableBodySection(
                 onRowClick = onRowClick,
                 onRowLongClick = onRowLongClick,
                 onRowMove = onRowMove,
+                blocks = blocks,
                 onContextMenu = onContextMenu,
+                rowUnits = rowUnits,
                 rowEmbedded = rowEmbedded,
                 verticalState = verticalState,
                 horizontalState = horizontalState,

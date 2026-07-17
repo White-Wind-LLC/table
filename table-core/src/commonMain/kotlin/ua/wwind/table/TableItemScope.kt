@@ -89,9 +89,17 @@ internal object DefaultTableItemScope : TableItemScope {
     ): Modifier = modifier
 }
 
+/**
+ * Lazy-path drag scope. The optional hooks are the library's half of the managed-drag contract:
+ * the block commit must fire exactly once per completed gesture, and only the handle that started
+ * the gesture observes its end — so the hooks wrap the consumer's handle callbacks here instead of
+ * asking every consumer to call the commit themselves.
+ */
 @Stable
 internal class TableItemDragScope(
-    private val delegate: ReorderableCollectionItemScope
+    private val delegate: ReorderableCollectionItemScope,
+    private val onDragStartedHook: (() -> Unit)? = null,
+    private val onDragStoppedHook: (() -> Unit)? = null,
 ) : TableItemScope, ReorderableCollectionItemScope by delegate {
     override fun applyDraggableHandle(
         modifier: Modifier,
@@ -105,8 +113,14 @@ internal class TableItemDragScope(
             modifier.draggableHandle(
                 enabled = enabled,
                 interactionSource = interactionSource,
-                onDragStarted = onDragStarted,
-                onDragStopped = onDragStopped,
+                onDragStarted = { startedPosition ->
+                    onDragStartedHook?.invoke()
+                    onDragStarted(startedPosition)
+                },
+                onDragStopped = {
+                    onDragStoppedHook?.invoke()
+                    onDragStopped()
+                },
                 dragGestureDetector = dragGestureDetector
             )
         }
@@ -123,16 +137,30 @@ internal class TableItemDragScope(
             modifier.longPressDraggableHandle(
                 enabled = enabled,
                 interactionSource = interactionSource,
-                onDragStarted = onDragStarted,
-                onDragStopped = onDragStopped,
+                onDragStarted = { startedPosition ->
+                    onDragStartedHook?.invoke()
+                    onDragStarted(startedPosition)
+                },
+                onDragStopped = {
+                    onDragStoppedHook?.invoke()
+                    onDragStopped()
+                },
             )
         }
     }
 }
 
+/**
+ * Embedded-path drag scope. The optional start hook is the library's half of the managed-drag
+ * contract on this path: an edit in flight must complete or cancel before the gesture shifts row
+ * positions, and only the handle that starts the gesture observes its start. No stop hook exists
+ * here — the embedded engine reports the gesture's net result through its settle callback, which
+ * is where the commit rides instead.
+ */
 @Stable
 internal class TableItemListDragScope(
-    private val delegate: ReorderableListItemScope
+    private val delegate: ReorderableListItemScope,
+    private val onDragStartedHook: (() -> Unit)? = null,
 ) : TableItemScope, ReorderableListItemScope by delegate {
     override fun applyDraggableHandle(
         modifier: Modifier,
@@ -146,7 +174,10 @@ internal class TableItemListDragScope(
             modifier.draggableHandle(
                 enabled = enabled,
                 interactionSource = interactionSource,
-                onDragStarted = onDragStarted,
+                onDragStarted = { startedPosition ->
+                    onDragStartedHook?.invoke()
+                    onDragStarted(startedPosition)
+                },
                 onDragStopped = { onDragStopped() },
                 dragGestureDetector = dragGestureDetector
             )
@@ -164,7 +195,10 @@ internal class TableItemListDragScope(
             modifier.longPressDraggableHandle(
                 enabled = enabled,
                 interactionSource = interactionSource,
-                onDragStarted = onDragStarted,
+                onDragStarted = { startedPosition ->
+                    onDragStartedHook?.invoke()
+                    onDragStarted(startedPosition)
+                },
                 onDragStopped = { onDragStopped() },
             )
         }

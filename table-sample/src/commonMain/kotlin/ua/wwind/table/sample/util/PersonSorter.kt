@@ -10,89 +10,44 @@ import ua.wwind.table.state.SortState
  */
 object PersonSorter {
     /**
-     * Apply sorting to a list of persons based on the sort state.
+     * The ordering rule as a comparator rather than a sorted list, because the within-blocks sort
+     * demo feeds it to `sortedWithinRowBlocks` while the free-sort path plain-sorts with it.
+     * Returns null when [sort] is absent or the column has no ordering.
      */
-    fun sortPeople(
-        people: List<Person>,
-        sort: SortState<PersonColumn>?,
-    ): List<Person> {
-        if (sort == null) {
-            return people
-        }
+    fun comparatorFor(sort: SortState<PersonColumn>?): Comparator<Person>? {
+        if (sort == null) return null
 
-        val sortedList =
+        val comparator: Comparator<Person> =
             when (sort.column) {
-                PersonColumn.NAME -> {
-                    people.sortedBy { it.name.lowercase() }
-                }
-
-                PersonColumn.AGE -> {
-                    people.sortedBy { it.age }
-                }
-
-                PersonColumn.ACTIVE -> {
-                    people.sortedBy { it.active }
-                }
-
-                PersonColumn.ID -> {
-                    people.sortedBy { it.id }
-                }
-
-                PersonColumn.EMAIL -> {
-                    people.sortedBy { it.email.orEmpty().lowercase() }
-                }
-
-                PersonColumn.CITY -> {
-                    people.sortedBy { it.city.lowercase() }
-                }
-
-                PersonColumn.COUNTRY -> {
-                    people.sortedBy { it.country.lowercase() }
-                }
-
-                PersonColumn.DEPARTMENT -> {
-                    people.sortedBy { it.department.lowercase() }
-                }
-
-                PersonColumn.POSITION -> {
-                    people.sortedBy { it.position.name }
-                }
-
-                PersonColumn.SALARY -> {
-                    people.sortedBy { it.salary }
-                }
-
-                PersonColumn.RATING -> {
-                    people.sortedBy { it.rating }
-                }
-
-                PersonColumn.HIRE_DATE -> {
-                    people.sortedBy { it.hireDate }
-                }
-
-                PersonColumn.NOTES -> {
-                    people.sortedBy { it.notes.lowercase() }
-                }
-
-                PersonColumn.AGE_GROUP -> {
-                    people.sortedBy {
+                PersonColumn.NAME -> compareBy { it.name.lowercase() }
+                PersonColumn.AGE -> compareBy { it.age }
+                PersonColumn.ACTIVE -> compareBy { it.active }
+                PersonColumn.ID -> compareBy { it.id }
+                PersonColumn.EMAIL -> compareBy { it.email.orEmpty().lowercase() }
+                PersonColumn.CITY -> compareBy { it.city.lowercase() }
+                PersonColumn.COUNTRY -> compareBy { it.country.lowercase() }
+                PersonColumn.DEPARTMENT -> compareBy { it.department.lowercase() }
+                PersonColumn.POSITION -> compareBy { it.position.name }
+                PersonColumn.SALARY -> compareBy { it.salary }
+                PersonColumn.RATING -> compareBy { it.rating }
+                PersonColumn.HIRE_DATE -> compareBy { it.hireDate }
+                PersonColumn.NOTES -> compareBy { it.notes.lowercase() }
+                PersonColumn.AGE_GROUP ->
+                    compareBy {
                         when {
                             it.age < 25 -> 0
                             it.age < 35 -> 1
                             else -> 2
                         }
                     }
-                }
 
-                else -> {
-                    people
-                }
+                else -> return null
             }
 
         return if (sort.order == SortOrder.DESCENDING) {
-            sortedList.asReversed()
+            comparator.reversed()
         } else {
-            sortedList
+            comparator
         }
     }
 }

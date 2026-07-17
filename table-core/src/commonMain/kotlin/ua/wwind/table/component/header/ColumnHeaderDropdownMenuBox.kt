@@ -111,6 +111,10 @@ internal fun <T : Any, C, E> ColumnHeaderDropdownMenuBox(
             } else {
                 DropdownMenuItem(
                     text = { Text(strings.get(UiString.GroupBy)) },
+                    // Activating groupBy would silently suppress visible row blocks (the two are
+                    // mutually exclusive); disabling the item surfaces that instead of letting the
+                    // blocks vanish on a menu click.
+                    enabled = !state.rowBlocksNonEmpty,
                     onClick = {
                         state.groupBy(spec.key)
                         if (spec.sortable && state.sort?.column != spec.key) {

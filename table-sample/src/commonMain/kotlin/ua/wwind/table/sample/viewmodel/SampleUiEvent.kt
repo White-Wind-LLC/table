@@ -1,5 +1,6 @@
 package ua.wwind.table.sample.viewmodel
 
+import ua.wwind.table.RowBlockMove
 import ua.wwind.table.sample.model.Person
 import ua.wwind.table.sample.model.Position
 
@@ -53,6 +54,18 @@ sealed class SampleUiEvent {
     /** Delete all selected persons */
     data object DeleteSelected : SampleUiEvent()
 
+    /** Pull the selected rows together and give them a shared group id. */
+    data object GroupSelected : SampleUiEvent()
+
+    /** Move the selected rows out of their groups, dropping them just below the block they left. */
+    data object UngroupSelected : SampleUiEvent()
+
+    /** Rename a group: every row carrying [groupId] gets [newGroupId] instead. */
+    data class RenameGroup(
+        val groupId: String,
+        val newGroupId: String,
+    ) : SampleUiEvent()
+
     /** Clear all selections */
     data object ClearSelection : SampleUiEvent()
 
@@ -60,6 +73,17 @@ sealed class SampleUiEvent {
     data class RowMove(
         val fromPersonId: Int,
         val toPersonId: Int,
+    ) : SampleUiEvent()
+
+    /** Apply a completed block-drag gesture to the master people list. */
+    data class BlockMove(
+        val move: RowBlockMove,
+    ) : SampleUiEvent()
+
+    /** Apply a completed block-drag gesture inside one person's embedded movements table. */
+    data class MovementBlockMove(
+        val personId: Int,
+        val move: RowBlockMove,
     ) : SampleUiEvent()
 
     /** Reorder embedded movement rows for a specific person by movement indices. */
