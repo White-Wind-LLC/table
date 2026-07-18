@@ -1,13 +1,21 @@
 package ua.wwind.table.sample.app.components
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DragIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -15,6 +23,8 @@ import kotlinx.collections.immutable.toImmutableList
 import ua.wwind.table.ExperimentalTableApi
 import ua.wwind.table.RowBlockMove
 import ua.wwind.table.RowBlocks
+import ua.wwind.table.RowWithinBlockMove
+import ua.wwind.table.draggableHandle
 import ua.wwind.table.Table
 import ua.wwind.table.config.RowHeightMode
 import ua.wwind.table.config.SelectionMode
@@ -37,6 +47,7 @@ fun PersonMovementsSection(
     enableRowBlocks: Boolean = false,
     onRowMove: (fromIndex: Int, toIndex: Int) -> Unit = { _, _ -> },
     onBlockMove: (RowBlockMove) -> Unit = {},
+    onRowWithinBlockMove: (RowWithinBlockMove) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val columns =
@@ -69,23 +80,45 @@ fun PersonMovementsSection(
     // tracks recompositions — each pass captures the current person — so the remembered config
     // reads the callback through rememberUpdatedState instead of being rebuilt around it.
     val currentOnBlockMove = rememberUpdatedState(onBlockMove)
-    // Embedded blocks demo: adjacent same-year movements band and drag as one unit, driving the
-    // no-LazyColumn path of the managed drag.
+    val currentOnRowWithinBlockMove = rememberUpdatedState(onRowWithinBlockMove)
+    // Mirrors the reorder column in createMovementColumns.
+    val handleColumnWidth = if (useCompactMode) 36.dp else 48.dp
+    // Embedded blocks demo: adjacent same-year movements band and drag as one unit (from the header
+    // handle), while each row reorders within its year block — driving the no-LazyColumn path of the
+    // managed drag and its nested within-block column.
     val movementBlocks =
-        remember(enableRowBlocks) {
+        remember(enableRowBlocks, handleColumnWidth) {
             if (!enableRowBlocks) {
                 null
             } else {
                 RowBlocks<PersonMovement>(
                     blockOf = { it.movementBlockId },
                     onCommit = { move -> currentOnBlockMove.value(move) },
+                    onRowReorderWithinBlock = { move -> currentOnRowWithinBlockMove.value(move) },
                     blockHeader = { blockId, _ ->
-                        Text(
-                            text = "Year $blockId",
-                            style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            modifier = Modifier.padding(vertical = 6.dp),
+                        ) {
+                            // Same width as the row-handle column, so the handles line up.
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier.width(handleColumnWidth),
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.DragIndicator,
+                                    contentDescription = "Drag year $blockId",
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(18.dp).draggableHandle(),
+                                )
+                            }
+                            Text(
+                                text = "Year $blockId",
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.onSurface,
+                            )
+                        }
                     },
                 )
             }

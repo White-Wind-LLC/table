@@ -7,26 +7,18 @@ import androidx.compose.runtime.setValue
 import co.touchlab.kermit.Logger
 import ua.wwind.table.RowBlockMove
 import ua.wwind.table.RowBlocks
+import ua.wwind.table.RowWithinBlockMove
 
-/** A maximal run of adjacent rows sharing one non-null block id; [rows] is in view (rendered) space. */
+/** A maximal run of adjacent rows sharing one non-null block id; [rows] is in view space. */
 internal class RowBlockRun(
     val id: Any,
     val rows: IntRange,
 )
 
 /**
- * The managed side of [RowBlocks]: owns the view permutation a drag gesture mutates, so the reorder
- * engine's synchronous-layout expectation is satisfied inside the library instead of being imposed
- * on the consumer (whose pipeline is typically asynchronous and cannot apply moves mid-gesture).
- *
- * The upstream list is what the consumer renders; the view order is a permutation over it that is
- * identity except between a drag's first swap and the moment the consumer's applied move flows back
- * through [reconcile]. Block runs are re-derived from the permuted order on every change, so unit
- * boundaries can never disagree with what is on screen.
- *
- * Backed by snapshot state throughout — the order and the gesture fields alike — so composition
- * that reads [runs], [units], [itemAt] or [isDragActive] recomposes on change, and a rolled-back
- * snapshot cannot leave a gesture half-cancelled.
+ * Owns the view permutation a drag mutates, so the reorder engine's synchronous-layout expectation
+ * is met inside the library rather than imposed on the consumer's asynchronous pipeline.
+ * Snapshot-backed throughout, so a rolled-back snapshot cannot leave a gesture half-cancelled.
  */
 internal class RowBlocksState<T : Any>(
     val config: RowBlocks<T>,
@@ -42,24 +34,20 @@ internal class RowBlocksState<T : Any>(
     /** Upstream indices of the dragged unit; non-null exactly while a gesture is in progress. */
     private var draggedRows: List<Int>? by mutableStateOf(null)
 
-    /** [viewOrder] at gesture start; [settle] emits nothing when the gesture ends back on it. */
+    /** [viewOrder] at gesture start; a gesture ending back on it emits nothing. */
     private var preGestureOrder: List<Int>? by mutableStateOf(null)
 
-    /** Set when [reconcile] cancels an in-flight gesture; the engine's late swaps for that dead
-     *  gesture are dropped until the pointer goes up and [settle] releases the latch. */
+    /** Drops the engine's late swaps for a gesture [reconcile] already cancelled. */
     private var cancelledUntilSettle: Boolean by mutableStateOf(false)
 
     /**
-     * Bumps once per refused drop (paged policy in [settle]). A refusal restores [viewOrder], so
-     * over any list derived from it the whole gesture nets to zero — invisible to the embedded
-     * engine, which clears the drag offsets left over from a drop only when its input list
-     * compares unequal. Folding this count into that list's equality is what turns a refusal into
-     * the rebuild that snaps the view back with the model.
+     * Folded into the embedded engine's list equality: a refused drop nets to zero over that list,
+     * so only this count forces the rebuild that clears its leftover drag offsets.
      */
     var refusedDropCount: Int by mutableStateOf(0)
         private set
 
-    /** Ids already reported as fragmented — the warning names each offender once, not per snapshot. */
+    /** Each offending id warns once, not per snapshot. */
     private val warnedFragmentedIds = mutableSetOf<Any>()
 
     private val derived: Derived by derivedStateOf { derive() }
@@ -68,42 +56,27 @@ internal class RowBlocksState<T : Any>(
 
     val isDragActive: Boolean get() = draggedRows != null
 
-    /** Block runs over the current view order, for band rendering and leader detection. */
     val runs: List<RowBlockRun> get() = derived.runs
 
-    /** Unit index over the current view order; drives the lazy items and the engine's unit space. */
     val units: RowUnitIndex get() = derived.units
 
-    /**
-     * The current derived view as one atomic object. A drag's lazy items must read their unit
-     * boundaries, item, block id and key all from this single value; mixing it with the live
-     * [itemAt]/[units] getters reintroduces the mid-gesture key churn it exists to prevent.
-     */
+    /** The derived view as one atomic value; a drag reads unit, item, block id and key from it. */
     val snapshot: Derived get() = derived
 
-    /**
-     * Whether the current order holds at least one block. Derived separately from [runs] so a
-     * reader that only cares about presence (the column menu's group-by lock) invalidates when
-     * presence flips, not on every permutation that rebuilds the run list.
-     */
+    /** Separate from [runs] so presence-only readers invalidate on flips, not on every permutation. */
     val hasBlocks: Boolean by derivedStateOf { derived.runs.isNotEmpty() }
 
-    /**
-     * Out-of-range probes answer with a placeholder instead of throwing: effects and prefetchers
-     * can run one frame behind a reconcile that shrank the list, and crashing on that lag is the
-     * v1 failure mode this design exists to close.
-     */
+    /** Null for stale probes: effects can run a frame behind a reconcile that shrank the list. */
     fun itemAt(viewIndex: Int): T? {
         val order = viewOrder
         if (viewIndex !in order.indices) return null
         return upstream[order[viewIndex]]
     }
 
-    /** Upstream index rendered at [viewIndex]; stale probes fall back to the raw index — the same
-     *  argument the consumer's rowKey would receive from a table without blocks. */
+    /** Stale probes fall back to the raw index — what a table without blocks would pass to rowKey. */
     fun upstreamIndexOf(viewIndex: Int): Int = viewOrder.getOrElse(viewIndex) { viewIndex }
 
-    /** Block id of the row at [viewIndex]; null for standalone rows, placeholders and stale probes. */
+    /** Null for standalone rows, placeholders and stale probes. */
     fun blockIdAt(viewIndex: Int): Any? {
         val order = viewOrder
         if (viewIndex !in order.indices) return null
@@ -111,14 +84,9 @@ internal class RowBlocksState<T : Any>(
     }
 
     /**
-     * How the active gesture has displaced view positions so far: pre-gesture position -> current
-     * position; null when no gesture is active or nothing moved. Must be read BEFORE [settle] —
-     * settling forgets the pre-gesture order — and applied only when the settle actually commits:
-     * a refused drop snaps the view back, so the displacement read here no longer describes it.
-     *
-     * This is what lets positional runtime state (selection, editing, cached row heights) follow
-     * the rows it pointed at across the drop. Total over any [Int]: stale positions that survived
-     * from an older list pass through unmapped rather than crash the commit.
+     * Pre-gesture position -> current position, so positional state (selection, editing, cached row
+     * heights) follows its rows across the drop. Read BEFORE settling, and apply only on a commit:
+     * a refused drop snaps the view back and this no longer describes it.
      */
     fun gestureRemap(): ((Int) -> Int)? {
         val before = preGestureOrder ?: return null
@@ -133,19 +101,10 @@ internal class RowBlocksState<T : Any>(
     }
 
     /**
-     * Feeds the current snapshot of the consumer's data. A changed list resets the permutation to
-     * identity — cancelling an in-flight gesture, because swap geometry computed against the old
-     * list is meaningless over the new one; the engine's remaining swaps for that gesture are then
-     * dropped until [settle] — while an unchanged list keeps the optimistic post-drop order until
-     * the consumer's applied move (or any other change) arrives.
-     *
-     * One change survives a gesture: a placeholder fill-in (rows appear where nulls sat, nothing
-     * else touched). That is a paged source loading pages under the held pointer — positions do not
-     * move, so the permutation and the engine's swap geometry stay exactly as valid as before, and
-     * cancelling would make every drop near an unloaded region impossible: the anchors there only
-     * resolve BECAUSE the hold lets their page arrive. An eviction (a loaded row turning back into
-     * a placeholder) is not symmetric — the row's key and block membership vanish under the engine
-     * — so it cancels like any other change.
+     * Feeds the consumer's current data. A changed list resets the permutation and cancels an
+     * in-flight gesture — swap geometry computed against the old list is meaningless over the new
+     * one. A placeholder fill-in is the exception: it moves nothing, and cancelling on it would make
+     * every drop near an unloaded region impossible.
      */
     fun reconcile(
         itemsCount: Int,
@@ -166,8 +125,7 @@ internal class RowBlocksState<T : Any>(
         warnAboutFragmentedIds(newUpstream)
     }
 
-    /** True when [newUpstream] only fills previously unloaded positions: same size, and every row
-     *  that was already loaded is unchanged — the one list change that moves nothing. */
+    /** Same size and every already-loaded row unchanged — the one list change that moves nothing. */
     private fun isPlaceholderFillIn(newUpstream: List<T?>): Boolean {
         val old = upstream
         if (newUpstream.size != old.size) return false
@@ -179,15 +137,9 @@ internal class RowBlocksState<T : Any>(
     }
 
     /**
-     * Applies one engine swap to the view permutation, synchronously — by the time the engine
-     * re-reads layout the order already matches its prediction. [fromUnit] is always the dragged
-     * unit: the engine moves nothing else, so the first call pins down what [settle] will report.
-     *
-     * Swaps that cannot apply are dropped, not rejected: after [reconcile] cancels a gesture, the
-     * engine — whose geometry was computed against the previous frame's layout — can still deliver
-     * swaps for it, out of bounds over the new order or in bounds but belonging to the dead
-     * gesture. Throwing here would crash mid-drag on any consumer whose pipeline updates the list
-     * asynchronously; dropping is what the documented cancel-on-external-change policy means.
+     * Applies one engine swap synchronously, so the order already matches the engine's prediction by
+     * the time it re-reads layout. Swaps that cannot apply are dropped rather than thrown: a
+     * cancelled gesture can still deliver swaps computed against the previous frame.
      */
     fun applyUnitMove(
         fromUnit: Int,
@@ -206,15 +158,9 @@ internal class RowBlocksState<T : Any>(
     }
 
     /**
-     * Ends the gesture and emits its net result — at most one [RowBlockMove] per gesture, none when
-     * the unit ended where it started. After a commit the permuted order is kept (no snap-back):
-     * the consumer's applied move arrives through [reconcile] and takes over seamlessly.
-     *
-     * Paged drop policy: a placeholder cannot anchor a move — its key does not exist yet, and a
-     * made-up key would place the block against a row the user never saw. When a needed landing
-     * neighbour is still unloaded the gesture cancels and the view snaps back to its pre-gesture
-     * order; nothing is emitted. Holding the drag over the landing spot is the natural retry —
-     * rendering the placeholders there is what makes their page load.
+     * Ends the gesture and emits at most one [RowBlockMove]; the permuted order is kept so the
+     * consumer's applied move takes over seamlessly. A placeholder cannot anchor a move, so a drop
+     * whose landing neighbour is unloaded is refused and the view snaps back.
      */
     fun settle(): RowBlockMove? {
         val dragged = draggedRows
@@ -224,9 +170,8 @@ internal class RowBlocksState<T : Any>(
         preGestureOrder = null
         if (dragged == null || before == null || viewOrder == before) return null
         val order = viewOrder
-        // The dragged unit's extent NOW, not at gesture start: a page loaded mid-gesture can
-        // reveal members that merged into the dragged run and landed with it — reporting the
-        // stale extent would anchor the move on a row inside its own block.
+        // The extent NOW, not at gesture start: a page loaded mid-gesture can merge members into the
+        // dragged run, and the stale extent would anchor the move inside the block itself.
         val leaderView = order.indexOf(dragged.first())
         if (leaderView < 0) return null
         val units = derived.units
@@ -251,13 +196,74 @@ internal class RowBlocksState<T : Any>(
         return move
     }
 
+    /**
+     * Moves the dragged row between two view positions inside the SAME run. Endpoints outside one
+     * run are dropped — a defensive guard, since the nested engine cannot generate them. The moved
+     * row keeps its block id, so [derive] recomputes an identical run and the block never fragments.
+     */
+    fun applyRowMoveWithinBlock(
+        fromView: Int,
+        toView: Int,
+    ) {
+        if (cancelledUntilSettle) return
+        val order = viewOrder
+        if (fromView !in order.indices || toView !in order.indices) return
+        val units = derived.units
+        val fromUnit = units.unitOf(fromView)
+        if (!units.isGroup(fromUnit) || units.unitOf(toView) != fromUnit) return
+        if (draggedRows == null) {
+            preGestureOrder = viewOrder
+            draggedRows = listOf(order[fromView])
+        }
+        viewOrder = viewOrder.toMutableList().also { it.moveRowGroup(fromView..fromView, toView..toView) }
+    }
+
+    /**
+     * Ends a within-block gesture and emits at most one [RowWithinBlockMove], anchored on the moved
+     * row's neighbours inside its run. Same paged refusal as [settle].
+     */
+    fun settleWithinBlock(): RowWithinBlockMove? {
+        val dragged = draggedRows
+        val before = preGestureOrder
+        cancelledUntilSettle = false
+        draggedRows = null
+        preGestureOrder = null
+        if (dragged == null || before == null || viewOrder == before) return null
+        val order = viewOrder
+        val movedUpstream = dragged.first()
+        val movedView = order.indexOf(movedUpstream)
+        if (movedView < 0) return null
+        val units = derived.units
+        val unit = units.unitOf(movedView)
+        if (!units.isGroup(unit)) return null
+        val runRows = units.rowsOf(unit)
+        val afterView = if (movedView > runRows.first) movedView - 1 else null
+        val beforeView = if (movedView < runRows.last) movedView + 1 else null
+        val afterLoaded = afterView == null || upstream[order[afterView]] != null
+        val beforeLoaded = beforeView == null || upstream[order[beforeView]] != null
+        if (!afterLoaded || !beforeLoaded) {
+            viewOrder = before
+            refusedDropCount++
+            return null
+        }
+        val blockId = upstream[movedUpstream]?.let(config.blockOf) ?: return null
+        val move =
+            RowWithinBlockMove(
+                blockId = blockId,
+                movedKey = keyAt(movedUpstream),
+                afterKey = afterView?.let { keyAt(order[it]) },
+                beforeKey = beforeView?.let { keyAt(order[it]) },
+            )
+        config.onRowReorderWithinBlock?.invoke(move)
+        return move
+    }
+
     private fun keyAt(upstreamIndex: Int): Any = rowKey(upstream[upstreamIndex], upstreamIndex)
 
     private fun derive(): Derived {
         val order = viewOrder
-        // Freeze the item at every view position from the SAME order/upstream read the runs and
-        // units are built over. This list is what makes [Derived] one atomic snapshot: a lazy item's
-        // key, item and unit all resolve against it, never against a viewOrder that moved on.
+        // Frozen from the same order/upstream read as the runs below — that is what makes [Derived]
+        // one atomic snapshot.
         val items = List(order.size) { upstream[order[it]] }
         val runs = mutableListOf<RowBlockRun>()
         var runStart = -1
@@ -279,19 +285,9 @@ internal class RowBlocksState<T : Any>(
     }
 
     /**
-     * A block id split across disjoint runs means something upstream reordered block members apart —
-     * a foreign sort or a member-splitting filter. Detection only: the library cannot see the source
-     * list to prevent it.
-     *
-     * Checked at [reconcile], not inside [derive]: the derived computation must stay free of side
-     * effects (it can run speculatively in a snapshot that is never applied, or concurrently from
-     * several readers), and a unit move can only merge runs — never split them — so the consumer's
-     * own order is the only place fragmentation can appear.
-     *
-     * Placeholders (null items) are skipped, unlike in [derive]: a not-yet-loaded row breaks the
-     * rendered band but proves nothing about the upstream order — it may well be an unloaded member
-     * of the surrounding block, a state paging reaches routinely — so it neither continues nor
-     * finishes a run here. Once the row loads, a real foreign member warns on the next reconcile.
+     * Warns when one block id occupies disjoint runs — evidence of a foreign sort or a
+     * member-splitting filter. Runs at [reconcile], not in [derive], which must stay side-effect
+     * free; placeholders are skipped because an unloaded row proves nothing about upstream order.
      */
     private fun warnAboutFragmentedIds(items: List<T?>) {
         val finishedRuns = mutableSetOf<Any>()
@@ -312,17 +308,13 @@ internal class RowBlocksState<T : Any>(
     }
 
     /**
-     * One atomic snapshot of the permuted view: [runs] and [units] for the layout, plus the per-view-
-     * position [items] frozen from the same [viewOrder]/[upstream] read. Every lookup a lazy item
-     * needs — its item, block id and key — resolves against this one object, so a reader holding a
-     * [snapshot] can never see [units] from one permutation and an item from the next. That temporal
-     * split is what tore the dragged block's key — and the drag handle inside it — out of composition
-     * mid-gesture, which the reorder engine reads as the drag ending.
+     * One atomic snapshot of the permuted view. Every lookup a lazy item needs resolves against this
+     * object, so no reader can mix units from one permutation with an item from the next — the split
+     * that used to tear the dragged block's key out of composition mid-gesture.
      */
     internal inner class Derived(
         val runs: List<RowBlockRun>,
         val units: RowUnitIndex,
-        /** Item at each view position, frozen from the order this was derived over. */
         val items: List<T?>,
         /** View position -> upstream index, frozen — supplies the key's index argument. */
         private val order: List<Int>,
@@ -331,24 +323,15 @@ internal class RowBlocksState<T : Any>(
 
         fun blockIdAt(viewIndex: Int): Any? = items.getOrNull(viewIndex)?.let(config.blockOf)
 
-        /**
-         * The same key [Table]'s effectiveRowKey produces — rowKey(item, upstreamIndex) — but read
-         * off this frozen snapshot instead of live state, so a unit's boundary and its key are always
-         * drawn from one permutation. Out-of-range probes fall back to the raw index, matching the
-         * consumer's rowKey contract for a table without blocks.
-         */
+        /** The same key the table's effectiveRowKey produces, but read off this frozen snapshot. */
         fun keyAt(viewIndex: Int): Any =
             rowKey(items.getOrNull(viewIndex), order.getOrElse(viewIndex) { viewIndex })
     }
 }
 
 /**
- * Moves the rows in [from] so that the block swaps with [to]: moving down lands the block after
- * [to], moving up lands it before [to] — mirroring the reorder engine's swap semantics so a unit
- * move translates to one call.
- *
- * Both ranges are interpreted against the list's current contents. Overlapping ranges have no
- * meaningful swap semantics and are rejected; identical ranges are a no-op.
+ * Moves [from] so the block swaps with [to]: down lands it after [to], up lands it before — the
+ * reorder engine's own swap semantics. Overlapping ranges are rejected; identical ranges are a no-op.
  */
 internal fun <T> MutableList<T>.moveRowGroup(
     from: IntRange,

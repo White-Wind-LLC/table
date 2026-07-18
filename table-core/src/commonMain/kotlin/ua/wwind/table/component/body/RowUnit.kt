@@ -8,13 +8,21 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.ImmutableList
+import sh.calvin.reorderable.ReorderableColumn
+import sh.calvin.reorderable.ReorderableItem
 import ua.wwind.table.ColumnSpec
+import ua.wwind.table.DefaultTableItemScope
+import ua.wwind.table.RowBlockHeaderScope
+import ua.wwind.table.RowBlockHeaderScopeImpl
+import ua.wwind.table.TableItemListDragScope
 import ua.wwind.table.TableItemScope
 import ua.wwind.table.config.TableColors
 import ua.wwind.table.config.TableCustomization
@@ -22,41 +30,22 @@ import ua.wwind.table.config.resolveRowBlockContainerColor
 import ua.wwind.table.state.TableState
 
 /**
- * Renders one drag unit: either a single row (identical to the pre-blocks layout) or a block —
- * its rows stacked and divided exactly like standalone rows, over a
- * [TableColors.rowBlockContainerColor] background that also spans the vertical gap around them, so
- * the block reads as one card.
+ * Renders one drag unit: a single row, or a block drawn as one card over a
+ * [TableColors.rowBlockContainerColor] background that also spans the gap around its rows.
  *
- * Every row keeps its own divider, the last one included, and the block adds none: each rule sits
- * directly under the row it closes, inside the padded content, so the divider rhythm is the same
- * inside a block as anywhere else in the table. The tinted band is therefore pure margin around the
- * block, never crossed or trailed by a rule.
- *
- * A block **always opens with a top band**: the [blockHeader] when there is one, otherwise a
- * `rowBlockSpacing` gap. It **closes with a bottom gap only when [nextIsGroup] is false** — a
- * following block opens with a band of its own, so drawing this one's bottom gap too would stack two
- * tinted regions between them and merge the pair into a single fat slab, erasing the very boundary
- * the band exists to draw. Suppressing the *bottom* gap rather than the next block's top band is
- * what keeps that band a header when one is configured: suppressing the top instead would leave the
- * second of two adjacent blocks nameless.
- *
- * The rule leaves exactly one band between any two units, and still gives a block at either end of
- * the list its own outer band.
- *
- * The header wraps its own content rather than being pinned to `rowBlockSpacing`, but is floored at
- * it: [nextIsGroup] drops a block's bottom gap on the promise that the next block opens with a band,
- * and a header free to measure zero could quietly break that promise — a slot that renders nothing
- * while its leader is still loading would butt two blocks together with no boundary at all. The
- * floor makes a header that draws nothing collapse to exactly the gap it replaced. The header is
- * also offset by the horizontal scroll so it stays in the viewport while the table scrolls sideways
- * — the same technique the `groupBy` header cell uses.
- *
- * The wrapper adds **no horizontal insets**: any horizontal padding here would shift block rows
+ * A block opens with a band — the [blockHeader] or a `rowBlockSpacing` gap — and closes with a
+ * bottom gap only when [nextIsGroup] is false, so two adjacent blocks never stack two tinted
+ * regions into one slab. The header is floored at `rowBlockSpacing` for the same reason: one that
+ * measures zero would butt two blocks together. No horizontal insets — they would shift the rows
  * relative to the header and break column alignment.
+ *
+ * Drag has two levels: the header renders under the ambient outer scope (its handle drags the whole
+ * block), while a non-null [onRowMoveWithinBlock] wraps the rows in a nested [ReorderableColumn]
+ * holding only this block's rows — so a row handle reorders within the block and can never leave it.
  */
 @Composable
 @Suppress("LongParameterList")
-context(_: TableItemScope)
+context(itemScope: TableItemScope)
 internal fun <T : Any, C, E> RowUnit(
     rows: IntRange,
     isGroup: Boolean,
@@ -64,8 +53,19 @@ internal fun <T : Any, C, E> RowUnit(
     nextIsGroup: Boolean,
     /** Identity of the block this unit renders; null for single-row units. */
     blockId: Any?,
-    /** Optional content for the band above a block; replaces the block's top gap. */
-    blockHeader: (@Composable (blockId: Any, rows: IntRange) -> Unit)?,
+    /** Optional content for the band above a block; replaces the block's top gap. Its
+     *  [RowBlockHeaderScope] receiver carries the whole-block drag handle. */
+    blockHeader: (@Composable context(RowBlockHeaderScope) (blockId: Any, rows: IntRange) -> Unit)?,
+    /** View-space within-block move `(fromView, toView)`. Null disables within-block reorder — the
+     *  block's rows render without an inner drag engine. */
+    onRowMoveWithinBlock: ((fromView: Int, toView: Int) -> Unit)?,
+    /** Fires once when a within-block gesture starts (edit cancellation). */
+    onWithinBlockDragStarted: (() -> Unit)?,
+    /** Stable key for the row at a view index — feeds the nested column's Compose node identity. */
+    rowKeyAt: (Int) -> Any,
+    /** Bumped on every refused drop; folded into the nested column's list equality so a refusal
+     *  rebuilds the inner engine and clears its leftover drag offsets. */
+    withinBlockRefusalCount: Int,
     itemAt: (Int) -> T?,
     visibleColumns: ImmutableList<ColumnSpec<T, C, E>>,
     state: TableState<C>,
@@ -81,11 +81,11 @@ internal fun <T : Any, C, E> RowUnit(
     requestTableFocus: () -> Unit,
 ) {
     if (!isGroup) {
+        // A standalone unit is a single row rendered under the ambient outer scope; its cell handle
+        // drives the outer (unit) engine.
         TableBodyRow(
             index = rows.first,
-            // A standalone unit is a single row, and it is its own leader — it carries a drag handle.
             isInRowBlock = false,
-            isRowBlockLeader = true,
             itemAt = itemAt,
             visibleColumns = visibleColumns,
             state = state,
@@ -132,6 +132,9 @@ internal fun <T : Any, C, E> RowUnit(
             val viewportWidth =
                 with(LocalDensity.current) { horizontalState.viewportSize.takeIf { it > 0 }?.toDp() }
                     ?: state.tableWidth
+            // Rendered under the ambient outer scope so the header's drag handle drives the whole
+            // block through the outer engine.
+            val headerScope = remember(itemScope) { RowBlockHeaderScopeImpl(itemScope) }
             Box(
                 modifier =
                     Modifier
@@ -141,31 +144,76 @@ internal fun <T : Any, C, E> RowUnit(
                         },
             ) {
                 Box(modifier = Modifier.width(viewportWidth)) {
-                    header(blockId, rows)
+                    context(headerScope) { header(blockId, rows) }
                 }
             }
         }
-        rows.forEach { row ->
-            TableBodyRow(
-                index = row,
-                // Leader is the block's first row; both flags come from this same [rows] range, so the
-                // handle's gate tracks the row's own position and cannot lag a fast drag.
-                isInRowBlock = true,
-                isRowBlockLeader = row == rows.first,
-                itemAt = itemAt,
-                visibleColumns = visibleColumns,
-                state = state,
-                colors = colors,
-                customization = customization,
-                tableData = tableData,
-                rowEmbedded = rowEmbedded,
-                placeholderRow = placeholderRow,
-                onRowClick = onRowClick,
-                onRowLongClick = onRowLongClick,
-                onContextMenu = onContextMenu,
-                horizontalState = horizontalState,
-                requestTableFocus = requestTableFocus,
-            )
+
+        if (onRowMoveWithinBlock != null) {
+            // Embedded-style: onSettle reports the net move at drop, so the settle applies once.
+            val blockItems = EmbeddedUnitList(rows.map { itemAt(it) }, withinBlockRefusalCount)
+            ReorderableColumn(
+                list = blockItems,
+                onSettle = { fromLocal, toLocal ->
+                    onRowMoveWithinBlock(rows.first + fromLocal, rows.first + toLocal)
+                },
+            ) { localIndex, _, _ ->
+                val rowIndex = rows.first + localIndex
+                key(rowKeyAt(rowIndex)) {
+                    ReorderableItem {
+                        val innerScope: TableItemScope =
+                            remember(this) {
+                                TableItemListDragScope(
+                                    this,
+                                    onDragStartedHook = { onWithinBlockDragStarted?.invoke() },
+                                )
+                            }
+                        context(innerScope) {
+                            TableBodyRow(
+                                index = rowIndex,
+                                isInRowBlock = true,
+                                itemAt = itemAt,
+                                visibleColumns = visibleColumns,
+                                state = state,
+                                colors = colors,
+                                customization = customization,
+                                tableData = tableData,
+                                rowEmbedded = rowEmbedded,
+                                placeholderRow = placeholderRow,
+                                onRowClick = onRowClick,
+                                onRowLongClick = onRowLongClick,
+                                onContextMenu = onContextMenu,
+                                horizontalState = horizontalState,
+                                requestTableFocus = requestTableFocus,
+                            )
+                        }
+                    }
+                }
+            }
+        } else {
+            // Within-block reorder disabled: rows are inert (no handle binds anywhere), the block
+            // still drags whole from its header.
+            rows.forEach { row ->
+                context(DefaultTableItemScope) {
+                    TableBodyRow(
+                        index = row,
+                        isInRowBlock = true,
+                        itemAt = itemAt,
+                        visibleColumns = visibleColumns,
+                        state = state,
+                        colors = colors,
+                        customization = customization,
+                        tableData = tableData,
+                        rowEmbedded = rowEmbedded,
+                        placeholderRow = placeholderRow,
+                        onRowClick = onRowClick,
+                        onRowLongClick = onRowLongClick,
+                        onContextMenu = onContextMenu,
+                        horizontalState = horizontalState,
+                        requestTableFocus = requestTableFocus,
+                    )
+                }
+            }
         }
     }
 }

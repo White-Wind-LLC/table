@@ -3,6 +3,7 @@ package ua.wwind.table
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,16 +40,12 @@ private fun pagedColumns() =
             width(48.dp, 48.dp)
             resizable(false)
             cell { item, _ ->
-                if (isRowBlockLeader) {
-                    Box(
-                        Modifier
-                            .size(24.dp)
-                            .testTag("handle-${item.id}")
-                            .draggableHandle(),
-                    )
-                } else {
-                    Box(Modifier.size(24.dp).testTag("member-${item.id}"))
-                }
+                Box(
+                    Modifier
+                        .size(24.dp)
+                        .testTag("handle-${item.id}")
+                        .draggableHandle(),
+                )
             }
         }
         column("name", valueOf = { it.name }) {
@@ -56,6 +53,19 @@ private fun pagedColumns() =
             width(120.dp, 120.dp)
             resizable(false)
             cell { item, _ -> Text(item.name) }
+        }
+    }
+
+/** Block header carrying the whole-block drag handle tagged `block-handle-<blockId>`. */
+private val pagedBlockDragHeader: @Composable context(RowBlockHeaderScope) (blockId: Any, rows: IntRange) -> Unit =
+    { blockId, _ ->
+        Box(
+            Modifier
+                .size(24.dp)
+                .testTag("block-handle-$blockId")
+                .draggableHandle(),
+        ) {
+            Text("band-$blockId")
         }
     }
 
@@ -134,7 +144,13 @@ class RowBlocksPagedTableTest {
                         dimensions = TableDefaults.compactDimensions(),
                     )
                 val blocks =
-                    remember { RowBlocks<PagedRow>(blockOf = { it.block }, onCommit = { moves += it }) }
+                    remember {
+                        RowBlocks<PagedRow>(
+                            blockOf = { it.block },
+                            onCommit = { moves += it },
+                            blockHeader = pagedBlockDragHeader,
+                        )
+                    }
                 Box(Modifier.size(400.dp, 640.dp)) {
                     Table(
                         itemsCount = 4,
@@ -150,7 +166,7 @@ class RowBlocksPagedTableTest {
 
             // Overshoot past the end: the block lands last, directly after the unloaded row 3 —
             // an anchor whose key does not exist yet. The gesture must snap back and emit nothing.
-            onNodeWithTag("handle-0", useUnmergedTree = true).performTouchInput {
+            onNodeWithTag("block-handle-a", useUnmergedTree = true).performTouchInput {
                 down(center)
                 repeat(10) { moveBy(Offset(0f, 60f)) }
                 up()
@@ -164,7 +180,7 @@ class RowBlocksPagedTableTest {
             // The page arrives; the same drop now has a loaded anchor and commits normally.
             loaded = loaded + mapOf(3 to PagedRow(3, null))
             waitForIdle()
-            onNodeWithTag("handle-0", useUnmergedTree = true).performTouchInput {
+            onNodeWithTag("block-handle-a", useUnmergedTree = true).performTouchInput {
                 down(center)
                 repeat(10) { moveBy(Offset(0f, 60f)) }
                 up()
@@ -202,7 +218,13 @@ class RowBlocksPagedTableTest {
                         dimensions = TableDefaults.compactDimensions(),
                     )
                 val blocks =
-                    remember { RowBlocks<PagedRow>(blockOf = { it.block }, onCommit = { moves += it }) }
+                    remember {
+                        RowBlocks<PagedRow>(
+                            blockOf = { it.block },
+                            onCommit = { moves += it },
+                            blockHeader = pagedBlockDragHeader,
+                        )
+                    }
                 Box(Modifier.size(400.dp, 640.dp)) {
                     Table(
                         itemsCount = 4,
@@ -220,7 +242,7 @@ class RowBlocksPagedTableTest {
             // Overshoot past the end: the block lands after the unloaded row 3, whose key does
             // not exist yet. Nothing may be emitted — and the VIEW, not just the model, must
             // show the restored order.
-            onNodeWithTag("handle-0", useUnmergedTree = true).performTouchInput {
+            onNodeWithTag("block-handle-a", useUnmergedTree = true).performTouchInput {
                 down(center)
                 repeat(10) { moveBy(Offset(0f, 60f)) }
                 up()
@@ -235,7 +257,7 @@ class RowBlocksPagedTableTest {
             // the refusal must deliver it as one normal commit.
             loaded = loaded + mapOf(3 to PagedRow(3, null))
             waitForIdle()
-            onNodeWithTag("handle-0", useUnmergedTree = true).performTouchInput {
+            onNodeWithTag("block-handle-a", useUnmergedTree = true).performTouchInput {
                 down(center)
                 repeat(10) { moveBy(Offset(0f, 60f)) }
                 up()
@@ -268,7 +290,13 @@ class RowBlocksPagedTableTest {
                         dimensions = TableDefaults.compactDimensions(),
                     )
                 val blocks =
-                    remember { RowBlocks<PagedRow>(blockOf = { it.block }, onCommit = { moves += it }) }
+                    remember {
+                        RowBlocks<PagedRow>(
+                            blockOf = { it.block },
+                            onCommit = { moves += it },
+                            blockHeader = pagedBlockDragHeader,
+                        )
+                    }
                 Box(Modifier.size(400.dp, 640.dp)) {
                     Table(
                         itemsCount = 4,
@@ -284,7 +312,7 @@ class RowBlocksPagedTableTest {
 
             // The drag swaps past the placeholder unit at row 2 and lands last, after loaded
             // row 3: crossing a placeholder is fine, only the landing anchors must be loaded.
-            onNodeWithTag("handle-0", useUnmergedTree = true).performTouchInput {
+            onNodeWithTag("block-handle-a", useUnmergedTree = true).performTouchInput {
                 down(center)
                 repeat(10) { moveBy(Offset(0f, 60f)) }
                 up()
@@ -322,7 +350,13 @@ class RowBlocksPagedTableTest {
                         dimensions = TableDefaults.compactDimensions(),
                     )
                 val blocks =
-                    remember { RowBlocks<PagedRow>(blockOf = { it.block }, onCommit = { moves += it }) }
+                    remember {
+                        RowBlocks<PagedRow>(
+                            blockOf = { it.block },
+                            onCommit = { moves += it },
+                            blockHeader = pagedBlockDragHeader,
+                        )
+                    }
                 Box(Modifier.size(400.dp, 640.dp)) {
                     Table(
                         itemsCount = 6,
@@ -340,7 +374,7 @@ class RowBlocksPagedTableTest {
             // height (36dp compact): the engine swaps with the item whose CENTER the dragged
             // rect covers, one per event, so a coarser step can pass two centers and drop a swap
             // — that would blur what the landing assertion below is allowed to prove.
-            onNodeWithTag("handle-0", useUnmergedTree = true).performTouchInput {
+            onNodeWithTag("block-handle-a", useUnmergedTree = true).performTouchInput {
                 down(center)
                 repeat(2) { moveBy(Offset(0f, 40f)) }
             }
@@ -359,7 +393,7 @@ class RowBlocksPagedTableTest {
             // The same gesture continues over the fresh rows to the end of the list. Landing
             // last requires swaps that can only happen AFTER the load, so the final anchor is
             // itself the proof that the churn did not kill or corrupt the gesture.
-            onNodeWithTag("handle-0", useUnmergedTree = true).performTouchInput {
+            onNodeWithTag("block-handle-a", useUnmergedTree = true).performTouchInput {
                 repeat(2) { moveBy(Offset(0f, 40f)) }
                 repeat(4) { moveBy(Offset(0f, 10f)) }
                 up()

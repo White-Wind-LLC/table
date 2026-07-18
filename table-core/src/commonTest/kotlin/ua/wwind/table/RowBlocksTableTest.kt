@@ -55,9 +55,9 @@ private data class BlockRow(val id: Int, val block: String?) {
 }
 
 /**
- * A handle column exercising the public leader flag plus a plain content column. Leaders carry a
- * draggable handle tagged `handle-<id>`; members are tagged `member-<id>` so both outcomes of the
- * flag are observable.
+ * A handle column plus a plain content column. Every row carries a drag handle tagged `handle-<id>`:
+ * a standalone row's handle drives the outer (unit) engine, a block row's handle drives the nested
+ * within-block engine. The whole block is dragged from its header handle (see [blockDragHeader]).
  */
 private fun blockColumns() =
     tableColumns<BlockRow, String, Unit> {
@@ -66,16 +66,12 @@ private fun blockColumns() =
             width(48.dp, 48.dp)
             resizable(false)
             cell { item, _ ->
-                if (isRowBlockLeader) {
-                    Box(
-                        Modifier
-                            .size(24.dp)
-                            .testTag("handle-${item.id}")
-                            .draggableHandle(),
-                    )
-                } else {
-                    Box(Modifier.size(24.dp).testTag("member-${item.id}"))
-                }
+                Box(
+                    Modifier
+                        .size(24.dp)
+                        .testTag("handle-${item.id}")
+                        .draggableHandle(),
+                )
             }
         }
         column("name", valueOf = { it.name }) {
@@ -83,6 +79,22 @@ private fun blockColumns() =
             width(120.dp, 120.dp)
             resizable(false)
             cell { item, _ -> Text(item.name) }
+        }
+    }
+
+/**
+ * A block header carrying the whole-block drag handle tagged `block-handle-<blockId>`, plus a
+ * `band-<blockId>` label. Dragging the handle drags the entire block through the outer engine.
+ */
+private val blockDragHeader: @Composable context(RowBlockHeaderScope) (blockId: Any, rows: IntRange) -> Unit =
+    { blockId, _ ->
+        Box(
+            Modifier
+                .size(24.dp)
+                .testTag("block-handle-$blockId")
+                .draggableHandle(),
+        ) {
+            Text("band-$blockId")
         }
     }
 
@@ -143,10 +155,10 @@ class RowBlocksTableTest {
         }
 
     @Test
-    fun `leader flag marks the first row of every run and standalone rows`() =
+    fun `every row carries a drag handle`() =
         runComposeUiTest {
-            // The same id in non-adjacent runs models a filter that split a block: each visible run
-            // gets its own leader, exactly like the band derivation.
+            // Handles are per-row now — block members included, not just a leader — because a block
+            // row drives the nested within-block engine.
             val items =
                 listOf(
                     BlockRow(0, "a"),
@@ -171,7 +183,7 @@ class RowBlocksTableTest {
             }
             waitForIdle()
             onNodeWithTag("handle-0", useUnmergedTree = true).assertExists()
-            onNodeWithTag("member-1", useUnmergedTree = true).assertExists()
+            onNodeWithTag("handle-1", useUnmergedTree = true).assertExists()
             onNodeWithTag("handle-2", useUnmergedTree = true).assertExists()
             onNodeWithTag("handle-3", useUnmergedTree = true).assertExists()
         }
@@ -245,7 +257,13 @@ class RowBlocksTableTest {
                         dimensions = TableDefaults.compactDimensions(),
                     )
                 val blocks =
-                    remember { RowBlocks<BlockRow>(blockOf = { it.block }, onCommit = { moves += it }) }
+                    remember {
+                        RowBlocks<BlockRow>(
+                            blockOf = { it.block },
+                            onCommit = { moves += it },
+                            blockHeader = blockDragHeader,
+                        )
+                    }
                 Box(Modifier.size(400.dp, 640.dp)) {
                     Table(
                         itemsCount = items.size,
@@ -264,9 +282,10 @@ class RowBlocksTableTest {
             }
             waitForIdle()
 
-            // Drag block "a" from the top far past the end of the short list: the overshoot makes
-            // the landing position deterministic (last), however many intermediate swaps fire.
-            onNodeWithTag("handle-0", useUnmergedTree = true).performTouchInput {
+            // Drag block "a" by its header handle from the top far past the end of the short list:
+            // the overshoot makes the landing position deterministic (last), however many
+            // intermediate swaps fire.
+            onNodeWithTag("block-handle-a", useUnmergedTree = true).performTouchInput {
                 down(center)
                 repeat(10) { moveBy(Offset(0f, 60f)) }
                 up()
@@ -306,7 +325,14 @@ class RowBlocksTableTest {
                             TableSettings(rowReorderEnabled = true, editingEnabled = true),
                         dimensions = TableDefaults.compactDimensions(),
                     )
-                val blocks = remember { RowBlocks<BlockRow>(blockOf = { it.block }, onCommit = {}) }
+                val blocks =
+                    remember {
+                        RowBlocks<BlockRow>(
+                            blockOf = { it.block },
+                            onCommit = {},
+                            blockHeader = blockDragHeader,
+                        )
+                    }
                 Box(Modifier.size(400.dp, 640.dp)) {
                     EditableTable(
                         itemsCount = items.size,
@@ -327,7 +353,8 @@ class RowBlocksTableTest {
             waitForIdle()
             assertThat(state.editingRow).isEqualTo(2)
 
-            onNodeWithTag("handle-0", useUnmergedTree = true).performTouchInput {
+            // Whole-block drag starts from the header handle; its start hook cancels the edit.
+            onNodeWithTag("block-handle-a", useUnmergedTree = true).performTouchInput {
                 down(center)
                 moveBy(Offset(0f, 60f))
                 up()
@@ -533,7 +560,13 @@ class RowBlocksTableTest {
                         dimensions = dimensions,
                     )
                 val blocks =
-                    remember { RowBlocks<BlockRow>(blockOf = { it.block }, onCommit = { moves += it }) }
+                    remember {
+                        RowBlocks<BlockRow>(
+                            blockOf = { it.block },
+                            onCommit = { moves += it },
+                            blockHeader = blockDragHeader,
+                        )
+                    }
                 Box(Modifier.size(400.dp, 640.dp)) {
                     Table(
                         itemsCount = items.size,
@@ -557,7 +590,7 @@ class RowBlocksTableTest {
             }
             waitForIdle()
 
-            onNodeWithTag("handle-0", useUnmergedTree = true).performTouchInput {
+            onNodeWithTag("block-handle-a", useUnmergedTree = true).performTouchInput {
                 down(center)
                 repeat(10) { moveBy(Offset(0f, 60f)) }
                 up()
@@ -599,7 +632,13 @@ class RowBlocksTableTest {
                         dimensions = TableDefaults.compactDimensions(),
                     )
                 val blocks =
-                    remember { RowBlocks<BlockRow>(blockOf = { it.block }, onCommit = { moves += it }) }
+                    remember {
+                        RowBlocks<BlockRow>(
+                            blockOf = { it.block },
+                            onCommit = { moves += it },
+                            blockHeader = blockDragHeader,
+                        )
+                    }
                 Box(Modifier.size(400.dp, 640.dp)) {
                     Table(
                         itemsCount = items.size,
@@ -619,9 +658,10 @@ class RowBlocksTableTest {
             }
             waitForIdle()
 
-            // Drag block "a" from the top far past the end of the short list: the overshoot makes
-            // the landing position deterministic (last), whatever the intermediate geometry.
-            onNodeWithTag("handle-0", useUnmergedTree = true).performTouchInput {
+            // Drag block "a" by its header handle from the top far past the end of the short list:
+            // the overshoot makes the landing position deterministic (last), whatever the
+            // intermediate geometry.
+            onNodeWithTag("block-handle-a", useUnmergedTree = true).performTouchInput {
                 down(center)
                 repeat(10) { moveBy(Offset(0f, 60f)) }
                 up()
@@ -673,7 +713,13 @@ class RowBlocksTableTest {
                         dimensions = TableDefaults.compactDimensions(),
                     )
                 val blocks =
-                    remember { RowBlocks<BlockRow>(blockOf = { it.block }, onCommit = { moves += it }) }
+                    remember {
+                        RowBlocks<BlockRow>(
+                            blockOf = { it.block },
+                            onCommit = { moves += it },
+                            blockHeader = blockDragHeader,
+                        )
+                    }
                 Box(Modifier.size(400.dp, 640.dp)) {
                     Table(
                         itemsCount = items.size,
@@ -688,8 +734,9 @@ class RowBlocksTableTest {
             }
             waitForIdle()
 
-            // Drag block "a" well past other units and hold it there — no release yet.
-            onNodeWithTag("handle-0", useUnmergedTree = true).performTouchInput {
+            // Drag block "a" by its header handle well past other units and hold it there — no
+            // release yet.
+            onNodeWithTag("block-handle-a", useUnmergedTree = true).performTouchInput {
                 down(center)
                 repeat(10) { moveBy(Offset(0f, 60f)) }
             }
@@ -698,13 +745,13 @@ class RowBlocksTableTest {
             // External update mid-gesture: a new standalone leader on top shifts every unit index.
             items = listOf(BlockRow(9, null)) + items
             waitForIdle()
-            onNodeWithTag("handle-0", useUnmergedTree = true).performTouchInput { up() }
+            onNodeWithTag("block-handle-a", useUnmergedTree = true).performTouchInput { up() }
             waitForIdle()
 
             assertThat(moves).isEqualTo(emptyList<RowBlockMove>())
 
             // The dead gesture must not poison the next one.
-            onNodeWithTag("handle-0", useUnmergedTree = true).performTouchInput {
+            onNodeWithTag("block-handle-a", useUnmergedTree = true).performTouchInput {
                 down(center)
                 repeat(12) { moveBy(Offset(0f, 60f)) }
                 up()
@@ -893,7 +940,14 @@ class RowBlocksTableTest {
                             TableSettings(rowReorderEnabled = true, editingEnabled = true),
                         dimensions = TableDefaults.compactDimensions(),
                     )
-                val blocks = remember { RowBlocks<BlockRow>(blockOf = { it.block }, onCommit = {}) }
+                val blocks =
+                    remember {
+                        RowBlocks<BlockRow>(
+                            blockOf = { it.block },
+                            onCommit = {},
+                            blockHeader = blockDragHeader,
+                        )
+                    }
                 Box(Modifier.size(400.dp, 640.dp)) {
                     EditableTable(
                         itemsCount = items.size,
@@ -915,7 +969,8 @@ class RowBlocksTableTest {
             waitForIdle()
             assertThat(state.editingRow).isEqualTo(2)
 
-            onNodeWithTag("handle-0", useUnmergedTree = true).performTouchInput {
+            // Whole-block drag starts from the header handle; its start hook cancels the edit.
+            onNodeWithTag("block-handle-a", useUnmergedTree = true).performTouchInput {
                 down(center)
                 moveBy(Offset(0f, 60f))
                 up()

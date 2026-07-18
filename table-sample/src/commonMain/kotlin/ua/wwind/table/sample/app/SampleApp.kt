@@ -10,9 +10,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DragIndicator
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.HorizontalDivider
@@ -44,6 +46,7 @@ import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.launch
 import ua.wwind.table.ExperimentalTableApi
 import ua.wwind.table.RowBlocks
+import ua.wwind.table.draggableHandle
 import ua.wwind.table.config.RowHeightMode
 import ua.wwind.table.config.SelectionMode
 import ua.wwind.table.config.TableDefaults
@@ -117,11 +120,14 @@ fun SampleApp(modifier: Modifier = Modifier) {
             )
         }
 
+    // Mirrors the row-handle column in createTableColumns.
+    val handleColumnWidth = if (tableConfig.useCompactMode) 36.dp else 48.dp
+
     // Declared by identity, so nothing here depends on the displayed list: the table derives block
     // extents itself from the snapshot it renders. One instance per toggle flip — RowBlocks
     // compares by identity, and a fresh instance each recomposition would defeat skipping.
     val rowBlocks =
-        remember(tableConfig.enableRowBlocks) {
+        remember(tableConfig.enableRowBlocks, handleColumnWidth) {
             if (!tableConfig.enableRowBlocks) {
                 null
             } else {
@@ -130,24 +136,41 @@ fun SampleApp(modifier: Modifier = Modifier) {
                     // Exactly one event per completed gesture; the lift to the master list is one
                     // applyRowBlockMove call in the ViewModel.
                     onCommit = { move -> viewModel.onEvent(SampleUiEvent.BlockMove(move)) },
-                    // Names the block in the band above it — where the group chip used to sit
-                    // inside the Name cell. The id IS the name, so tapping it edits the id.
+                    // Reordering a row within its block: one applyRowReorderWithinBlock call.
+                    onRowReorderWithinBlock = { move ->
+                        viewModel.onEvent(SampleUiEvent.RowWithinBlockMove(move))
+                    },
+                    // The band above the block: a drag handle that moves the whole block, the group
+                    // name (tap to rename), and an edit affordance.
                     blockHeader = { blockId, _ ->
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(6.dp),
-                            // clickable before padding: the padding is inside the touch target,
-                            // not dead space around it.
-                            modifier =
-                                Modifier
-                                    .clickable {
-                                        viewModel.setRenamingGroup(blockId.toString())
-                                    }.padding(horizontal = 12.dp, vertical = 6.dp),
+                            modifier = Modifier.padding(vertical = 6.dp),
                         ) {
+                            // Same width as the row-handle column, so every drag handle in the table
+                            // lines up in one vertical run.
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier.width(handleColumnWidth),
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.DragIndicator,
+                                    contentDescription = "Drag group $blockId",
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(18.dp).draggableHandle(),
+                                )
+                            }
                             Text(
                                 text = blockId.toString(),
                                 style = MaterialTheme.typography.labelLarge,
                                 color = MaterialTheme.colorScheme.onSurface,
+                                // clickable inside the label so the handle drag and the rename tap
+                                // do not fight over the same node.
+                                modifier =
+                                    Modifier.clickable {
+                                        viewModel.setRenamingGroup(blockId.toString())
+                                    },
                             )
                             Icon(
                                 imageVector = Icons.Default.Edit,
@@ -294,6 +317,14 @@ fun SampleApp(modifier: Modifier = Modifier) {
                                     onMovementBlockMove = { person, move ->
                                         viewModel.onEvent(
                                             SampleUiEvent.MovementBlockMove(
+                                                personId = person.id,
+                                                move = move,
+                                            ),
+                                        )
+                                    },
+                                    onMovementRowWithinBlockMove = { person, move ->
+                                        viewModel.onEvent(
+                                            SampleUiEvent.MovementRowWithinBlockMove(
                                                 personId = person.id,
                                                 move = move,
                                             ),

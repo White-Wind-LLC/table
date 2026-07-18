@@ -69,6 +69,39 @@ public interface TableItemScope {
     ): Modifier
 }
 
+/**
+ * Scope for a row block's header band. Distinct from [TableCellScope] (not a supertype of it) so a
+ * [Modifier.draggableHandle] call here binds unambiguously to the whole-block (outer unit) engine,
+ * while the same call inside a cell binds to whatever engine that row is rendered under.
+ */
+@Stable
+public interface RowBlockHeaderScope : TableItemScope
+
+@Stable
+internal class RowBlockHeaderScopeImpl(
+    delegate: TableItemScope,
+) : RowBlockHeaderScope, TableItemScope by delegate
+
+/**
+ * Makes this modifier the drag handle for the whole block, from its header band. The node must be a
+ * descendant of the block's [ReorderableItem].
+ */
+public context(scope: RowBlockHeaderScope)
+fun Modifier.draggableHandle(
+    enabled: Boolean = true,
+    interactionSource: MutableInteractionSource? = null,
+    onDragStarted: (startedPosition: Offset) -> Unit = {},
+    onDragStopped: () -> Unit = {},
+    dragGestureDetector: DragGestureDetector = DragGestureDetector.Press,
+): Modifier = scope.applyDraggableHandle(
+    modifier = this,
+    enabled = enabled,
+    interactionSource = interactionSource,
+    onDragStarted = onDragStarted,
+    onDragStopped = onDragStopped,
+    dragGestureDetector = dragGestureDetector,
+)
+
 @Immutable
 internal object DefaultTableItemScope : TableItemScope {
     override fun applyDraggableHandle(
@@ -90,10 +123,8 @@ internal object DefaultTableItemScope : TableItemScope {
 }
 
 /**
- * Lazy-path drag scope. The optional hooks are the library's half of the managed-drag contract:
- * the block commit must fire exactly once per completed gesture, and only the handle that started
- * the gesture observes its end — so the hooks wrap the consumer's handle callbacks here instead of
- * asking every consumer to call the commit themselves.
+ * Lazy-path drag scope. The hooks wrap the consumer's handle callbacks so the block commit fires
+ * exactly once per gesture, observed by the handle that started it.
  */
 @Stable
 internal class TableItemDragScope(
@@ -151,11 +182,8 @@ internal class TableItemDragScope(
 }
 
 /**
- * Embedded-path drag scope. The optional start hook is the library's half of the managed-drag
- * contract on this path: an edit in flight must complete or cancel before the gesture shifts row
- * positions, and only the handle that starts the gesture observes its start. No stop hook exists
- * here — the embedded engine reports the gesture's net result through its settle callback, which
- * is where the commit rides instead.
+ * Embedded-path drag scope. Only a start hook: the embedded engine reports the gesture's net result
+ * through its settle callback, which is where the commit rides instead.
  */
 @Stable
 internal class TableItemListDragScope(

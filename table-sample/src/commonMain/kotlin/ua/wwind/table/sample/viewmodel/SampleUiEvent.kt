@@ -80,10 +80,21 @@ sealed class SampleUiEvent {
         val move: RowBlockMove,
     ) : SampleUiEvent()
 
+    /** Apply a completed within-block row-reorder gesture to the master people list. */
+    data class RowWithinBlockMove(
+        val move: ua.wwind.table.RowWithinBlockMove,
+    ) : SampleUiEvent()
+
     /** Apply a completed block-drag gesture inside one person's embedded movements table. */
     data class MovementBlockMove(
         val personId: Int,
         val move: RowBlockMove,
+    ) : SampleUiEvent()
+
+    /** Apply a within-block row-reorder inside one person's embedded movements table. */
+    data class MovementRowWithinBlockMove(
+        val personId: Int,
+        val move: ua.wwind.table.RowWithinBlockMove,
     ) : SampleUiEvent()
 
     /** Reorder embedded movement rows for a specific person by movement indices. */

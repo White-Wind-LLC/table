@@ -197,6 +197,15 @@ public fun <T : Any, C, E> EditableTable(
             }
         }
     }
+    LaunchedEffect(rowBlocks) {
+        if (rowBlocks != null && rowBlocks.onCommit != null && rowBlocks.blockHeader == null) {
+            Logger.w {
+                "RowBlocks.onCommit is set but blockHeader is null: a block's whole-block drag " +
+                    "handle lives in its header, so blocks cannot be dragged as a unit without one. " +
+                    "Provide a blockHeader, or set onCommit = null for within-block-only reordering"
+            }
+        }
+    }
 
     // The rendered list is the blocks state's (possibly permuted) view while a gesture or an
     // optimistic post-drop hold is in flight; it is the consumer's list otherwise.

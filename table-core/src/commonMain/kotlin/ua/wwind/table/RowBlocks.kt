@@ -5,33 +5,31 @@ import androidx.compose.runtime.Stable
 
 /**
  * Row blocks: runs of adjacent rows that render and drag as one unit, declared by identity rather
- * than by position.
+ * than by position — the library derives block extents from the same snapshot it renders, so they
+ * cannot go stale against an asynchronously filtered list. The consumer's data stays untouched
+ * during a gesture; the move arrives as one event at drop.
  *
- * The library derives block extents itself, from the same snapshot it renders — the consumer never
- * supplies index ranges, so the ranges can never go stale against an asynchronously filtered list.
- * During a drag the library permutes its own internal view; the consumer's data is untouched until
- * [onCommit] delivers exactly one [RowBlockMove] for the completed gesture.
+ * Passing a `RowBlocks` supersedes the per-row `onRowMove`: drag units are blocks, so every unit
+ * gesture reports through [onCommit] instead (a standalone move carries a null
+ * [RowBlockMove.blockId]). Dragging is split in two — the whole block moves from a handle in
+ * [blockHeader], while each row moves within its own block from its cell handle.
  *
- * Passing a `RowBlocks` supersedes the per-row `onRowMove` callback: drag units are blocks, so
- * per-row move semantics cannot apply. Every gesture — standalone rows included — reports through
- * [onCommit] (a standalone move carries a null [RowBlockMove.blockId]), `onRowMove` is never
- * invoked, and a null [onCommit] disables row drag entirely rather than falling back to it.
- *
- * Hold the instance in `remember`: it compares by identity — carrying a `@Composable` slot, it has
- * no meaningful structural equality — so a fresh instance per recomposition makes the `rowBlocks`
- * argument look changed and stops the table from skipping.
- *
- * Block tables require a stable `rowKey`: [RowBlockMove] anchors are keys, and the default
- * positional key cannot survive a move.
+ * Hold the instance in `remember`: it compares by identity, so a fresh instance per recomposition
+ * stops the table from skipping. A stable `rowKey` is required — move anchors are row keys.
  */
 @Stable
 public class RowBlocks<T : Any>(
     /** Block identity; null = standalone row. Adjacent equal ids form one block. */
     public val blockOf: (T) -> Any?,
-    /** Exactly one event per completed drag gesture; null = display-only blocks (no drag). */
+    /** One event per completed whole-block drag; null disables whole-block and standalone drag. */
     public val onCommit: ((RowBlockMove) -> Unit)? = null,
-    /** Band content above a block. */
-    public val blockHeader: (@Composable (blockId: Any, rows: IntRange) -> Unit)? = null,
+    /** Band content above a block; a `draggableHandle()` in its [RowBlockHeaderScope] drags the
+     *  whole block. A block with no header cannot be dragged as a whole. */
+    public val blockHeader: (
+        @Composable context(RowBlockHeaderScope) (blockId: Any, rows: IntRange) -> Unit
+    )? = null,
+    /** One event per within-block row reorder; null disables it. The row never leaves its block. */
+    public val onRowReorderWithinBlock: ((RowWithinBlockMove) -> Unit)? = null,
 )
 
 /**
@@ -54,20 +52,30 @@ public class RowBlockMove(
 )
 
 /**
- * Applies [move] to the SOURCE list — the lift from the rendered, possibly filtered view back to
- * the consumer's single source of truth.
+ * The result of one completed within-block drag gesture: a single row moved among its block-mates,
+ * expressed in stable keys. Anchors are the moved row's visible neighbours inside the same block; a
+ * null anchor means the block's edge (first/last visible row).
+ */
+public class RowWithinBlockMove(
+    /** Block the row belongs to (unchanged by the move). */
+    public val blockId: Any,
+    /** Key of the moved row. */
+    public val movedKey: Any,
+    /** Key of the visible block-mate the row now sits after; null = block start. */
+    public val afterKey: Any?,
+    /** Key of the visible block-mate the row now sits before; null = block end. Redundant anchor. */
+    public val beforeKey: Any?,
+)
+
+/**
+ * Applies [move] to the SOURCE list — the lift from the rendered, possibly filtered view back to the
+ * consumer's source of truth.
  *
- * Relocates ALL rows whose [blockOf] equals [RowBlockMove.blockId] — including rows hidden by the
- * current filter, which [RowBlockMove.movedKeys] cannot name — preserving their relative order.
- * The insertion point is expanded to the nearest whole-block boundary in the source, so no other
- * block is ever split: where hidden rows land relative to hidden neighbours of the anchor is
- * unobservable in the view, and block-boundary insertion is the one placement that keeps every
- * block contiguous. Standalone moves ([RowBlockMove.blockId] == null) relocate just the moved keys.
- *
- * [RowBlockMove.afterKey] is the primary anchor; when its row is gone from the list by the time
- * the move is applied, [RowBlockMove.beforeKey] pins the destination instead. When neither anchor
- * resolves the destination is unknowable, and the list is deliberately left untouched — guessing a
- * position would reorder data the user never dragged.
+ * Relocates ALL rows whose [blockOf] equals [RowBlockMove.blockId], including rows the filter hides
+ * and [RowBlockMove.movedKeys] cannot name, preserving their relative order; the insertion point
+ * expands to whole-block boundaries so no other block is split. Standalone moves relocate just the
+ * moved keys. [RowBlockMove.afterKey] is the primary anchor and [RowBlockMove.beforeKey] the
+ * fallback; with neither resolvable the list is left untouched rather than guessing a position.
  */
 public fun <T> MutableList<T>.applyRowBlockMove(
     move: RowBlockMove,
@@ -93,14 +101,9 @@ public fun <T> MutableList<T>.applyRowBlockMove(
 }
 
 /**
- * Destination in [rest] (the source minus the moved rows), or null when neither anchor resolves.
- *
- * The expansion direction follows each anchor's role in the view. [RowBlockMove.afterKey] is the
- * last visible row of the unit the drag landed behind, so hidden members of its block can only sit
- * further down in the source — the insertion walks forward past them. [RowBlockMove.beforeKey] is
- * the first visible row of the following unit, so its hidden block-mates can only sit above — the
- * insertion walks backward. Either way the filtered projection shows the moved unit exactly where
- * the drag put it.
+ * Destination in [rest], or null when neither anchor resolves. Each anchor expands over its own
+ * hidden block-mates — forward past `afterKey`'s, backward before `beforeKey`'s — so the filtered
+ * projection shows the unit exactly where the drag put it.
  */
 private fun <T> rowBlockInsertionIndex(
     rest: List<T>,
@@ -127,4 +130,57 @@ private fun <T> rowBlockInsertionIndex(
         while (start > 0 && blockOf(rest[start - 1]) == anchorBlock) start--
     }
     return start
+}
+
+/**
+ * Lifts a [RowWithinBlockMove] to the SOURCE list: relocates the single moved row among its
+ * block-mates, using [RowWithinBlockMove.afterKey] as the primary anchor and [beforeKey] as the
+ * fallback. Block members hidden by the current filter keep their relative order; the moved row
+ * lands immediately adjacent to the resolved visible anchor. The list is left untouched when the
+ * moved row is gone, its block id no longer matches, or neither anchor resolves.
+ */
+public fun <T> MutableList<T>.applyRowReorderWithinBlock(
+    move: RowWithinBlockMove,
+    keyOf: (T) -> Any,
+    blockOf: (T) -> Any?,
+) {
+    val movedIndex = indexOfFirst { keyOf(it) == move.movedKey }
+    if (movedIndex < 0) return
+    if (blockOf(this[movedIndex]) != move.blockId) return
+    val moving = removeAt(movedIndex)
+    val insertAt = withinBlockInsertionIndex(this, move, keyOf, blockOf)
+    if (insertAt == null) {
+        add(movedIndex, moving)
+        return
+    }
+    add(insertAt.coerceIn(0, size), moving)
+}
+
+/**
+ * Destination in [rest] for a within-block move, or null when neither anchor resolves. A null
+ * anchor means the block's edge, so the row lands at its first / after its last source member.
+ */
+private fun <T> withinBlockInsertionIndex(
+    rest: List<T>,
+    move: RowWithinBlockMove,
+    keyOf: (T) -> Any,
+    blockOf: (T) -> Any?,
+): Int? {
+    val afterKey = move.afterKey
+    if (afterKey != null) {
+        val i = rest.indexOfFirst { keyOf(it) == afterKey }
+        if (i >= 0) return i + 1
+    } else {
+        val first = rest.indexOfFirst { blockOf(it) == move.blockId }
+        if (first >= 0) return first
+    }
+    val beforeKey = move.beforeKey
+    if (beforeKey != null) {
+        val i = rest.indexOfFirst { keyOf(it) == beforeKey }
+        if (i >= 0) return i
+    } else {
+        val last = rest.indexOfLast { blockOf(it) == move.blockId }
+        if (last >= 0) return last + 1
+    }
+    return null
 }

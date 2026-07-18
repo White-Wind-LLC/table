@@ -44,7 +44,6 @@ import ua.wwind.table.component.TableCellTextField
 import ua.wwind.table.component.TableCellTextFieldWithTooltipError
 import ua.wwind.table.draggableHandle
 import ua.wwind.table.editableTableColumns
-import ua.wwind.table.isRowBlockLeader
 import ua.wwind.table.sample.config.CellPadding
 import ua.wwind.table.sample.filter.createSalaryRangeFilter
 import ua.wwind.table.sample.filter.filterTypes
@@ -88,20 +87,17 @@ fun createTableColumns(
                         )
                     }
                 } else if (enableRowReorder) {
-                    // The table already knows its unit boundaries: leaders (first visible row of
-                    // a block, every standalone row) carry the handle. Replaces the v1 O(n)
-                    // per-cell leader search over the displayed list.
-                    if (isRowBlockLeader) {
-                        Box(
-                            contentAlignment = Alignment.Center,
-                            modifier = Modifier.fillMaxSize().draggableHandle(),
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Reorder,
-                                contentDescription = "Drag to reorder",
-                                modifier = Modifier.size(24.dp),
-                            )
-                        }
+                    // Every row carries a handle: a standalone row reorders among units, a block row
+                    // reorders within its block. The whole block is dragged from its header handle.
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier.fillMaxSize().draggableHandle(),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Reorder,
+                            contentDescription = "Drag to reorder",
+                            modifier = Modifier.size(24.dp),
+                        )
                     }
                 }
             }
@@ -499,9 +495,9 @@ fun createMovementColumns(
             width(reorderSize, reorderSize)
             resizable(false)
             cell { _, _ ->
-                // Same leader rule as the main table: with year blocks on, only the first row of
-                // a block carries the handle; without blocks every row is its own drag unit.
-                if (enableRowReorder && isRowBlockLeader) {
+                // Same model as the main table: every row carries a handle. A block row reorders
+                // within its block; the whole block moves from its header handle.
+                if (enableRowReorder) {
                     Box(
                         contentAlignment = Alignment.Center,
                         modifier = Modifier.fillMaxSize().draggableHandle(),

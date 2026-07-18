@@ -86,20 +86,25 @@ column(PersonField.Name, valueOf = { it.name }) {
     - `TableDimensions`: `defaultColumnWidth`, `defaultRowHeight`, `footerHeight`, `checkBoxColumnWidth`,
       `verticalDividerThickness`, `verticalDividerPaddingHorizontal`, `rowBlockSpacing`.
     - `TableColors`: via `TableDefaults.colors(...)`.
-- **Row blocks**: `rowBlocks = RowBlocks(blockOf, onCommit, blockHeader)` makes adjacent rows sharing a non-null
-  `blockOf` id render and drag as one unit — see
+- **Row blocks**: `rowBlocks = RowBlocks(blockOf, onCommit, blockHeader, onRowReorderWithinBlock)` makes adjacent
+  rows sharing a non-null `blockOf` id render and drag as one unit — see
   [Row reordering](../guides/row-reordering.md#row-blocks-dragging-adjacent-rows-as-one-unit).
     - Declared by identity: the table derives block extents itself from the snapshot it renders; there are no
       index ranges to maintain. Hold the `RowBlocks` in `remember` (identity equality); a stable `rowKey` is
       required (the default positional key triggers a warning).
-    - `onCommit(move: RowBlockMove)`: exactly one event per completed drag gesture, expressed in stable row keys
-      (`blockId`, `movedKeys`, `afterKey`, `beforeKey`); `null` makes blocks display-only — bands render and row
-      drag is disabled entirely, standalone rows included. Apply the event to an in-memory list with
-      `MutableList<T>.applyRowBlockMove(move, keyOf, blockOf)` — it relocates the whole block, hidden members
-      included, and never splits another block.
-    - Supersedes `onRowMove`: while `rowBlocks` is passed, every gesture — standalone rows included — reports
-      through `onCommit` (a standalone move carries `blockId == null`), and `onRowMove` is never invoked.
-    - `blockHeader(blockId, rows)`: optional content drawn in the band above the block, pinned to the viewport.
+    - `onCommit(move: RowBlockMove)`: one event per completed **whole-block** drag, expressed in stable row keys
+      (`blockId`, `movedKeys`, `afterKey`, `beforeKey`); `null` disables whole-block drag (standalone rows do not
+      drag either). Apply the event to an in-memory list with `MutableList<T>.applyRowBlockMove(move, keyOf,
+      blockOf)` — it relocates the whole block, hidden members included, and never splits another block.
+    - `onRowReorderWithinBlock(move: RowWithinBlockMove)`: one event per **within-block** row reorder
+      (`blockId`, `movedKey`, `afterKey`, `beforeKey`); every row carries a handle and reorders only within its
+      block. `null` disables within-block reorder. Apply with `MutableList<T>.applyRowReorderWithinBlock(move,
+      keyOf, blockOf)`.
+    - Supersedes `onRowMove`: while `rowBlocks` is passed, every whole-block/unit gesture reports through
+      `onCommit` (a standalone move carries `blockId == null`), and `onRowMove` is never invoked.
+    - `blockHeader(blockId, rows)`: optional band content above the block, pinned to the viewport. It runs in a
+      `RowBlockHeaderScope`, so a `Modifier.draggableHandle()` there is the **whole-block** drag handle — a block
+      needs one to be draggable as a whole.
     - Ordering helpers over consumer data: `List<T>.sortedWithinRowBlocks(blockOf, comparator)` (blocks never
       fragment) and `List<T>.filteredWholeRowBlocks(blockOf, predicate)` (a block survives whole when any member
       matches).
@@ -107,7 +112,7 @@ column(PersonField.Name, valueOf = { it.name }) {
       invoked and `onRowMove` stays superseded); the read-only flag
       `TableState.rowBlocksSuppressedByGroupBy` surfaces the conflict, and the column menu's group-by item is
       disabled while blocks are present.
-    - `TableCellScope.isRowBlockLeader` marks the rows that may carry a drag handle;
+    - A cell `Modifier.draggableHandle()` reorders a block row within its block (or a standalone row among units);
       `TableRowContext.isInRowBlock` lets `TableCustomization` style block members;
       `TableColors.rowBlockContainerColor` tints the band.
 

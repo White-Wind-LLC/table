@@ -16,34 +16,15 @@ import sh.calvin.reorderable.ReorderableItem
  * so cell content can access item-level helpers in a more natural way.
  */
 @Stable
-public interface TableCellScope : TableItemScope {
-    /**
-     * True on the first visible row of a row block and on standalone rows — exactly the rows that
-     * may carry a drag handle. The table already knows its unit boundaries, so a handle cell reads
-     * this instead of re-deriving block extents from the consumer's data on every row.
-     */
-    public val isRowBlockLeader: Boolean
-}
+public interface TableCellScope : TableItemScope
 
 @Stable
 internal class TableCellScopeImpl(
-    private val delegate: TableItemScope,
-    override val isRowBlockLeader: Boolean,
+    delegate: TableItemScope,
 ) : TableCellScope, TableItemScope by delegate
 
 @Immutable
-internal object DefaultTableCellScope : TableCellScope, TableItemScope by DefaultTableItemScope {
-    /** Contexts without units (measurement, group headers) treat every row as standalone. */
-    override val isRowBlockLeader: Boolean get() = true
-}
-
-/**
- * Convenience accessor for [TableCellScope.isRowBlockLeader] inside the `cell { ... }` DSL, whose
- * context parameter is anonymous and therefore has no name to qualify the member with.
- */
-public context(cellScope: TableCellScope)
-val isRowBlockLeader: Boolean
-    get() = cellScope.isRowBlockLeader
+internal object DefaultTableCellScope : TableCellScope, TableItemScope by DefaultTableItemScope
 
 /**
  * Makes this modifier act as a drag handle for the current table item from cell content.

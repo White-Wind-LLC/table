@@ -104,10 +104,15 @@ the table which rows belong together, never where they are — with a `RowBlocks
 public class RowBlocks<T : Any>(
     /** Block identity; null = standalone row. Adjacent equal ids form one block. */
     public val blockOf: (T) -> Any?,
-    /** Exactly one event per completed drag gesture; null = display-only blocks (no drag). */
+    /** One event per completed whole-block drag; null = a block cannot be dragged as a unit. */
     public val onCommit: ((RowBlockMove) -> Unit)? = null,
-    /** Band content above a block. */
-    public val blockHeader: (@Composable (blockId: Any, rows: IntRange) -> Unit)? = null,
+    /** Band above a block. Its `RowBlockHeaderScope` receiver carries the whole-block drag handle:
+     *  a `draggableHandle()` here drags the entire block. A block with no header is not draggable whole. */
+    public val blockHeader: (
+        @Composable context(RowBlockHeaderScope) (blockId: Any, rows: IntRange) -> Unit
+    )? = null,
+    /** One event per within-block row reorder; null = within-block reorder disabled. */
+    public val onRowReorderWithinBlock: ((RowWithinBlockMove) -> Unit)? = null,
 )
 ```
 
@@ -135,8 +140,10 @@ in the source. The contract between them has three parts:
    your code. At the drop the table also remaps its positional runtime state — selection, checked
    rows, the row being edited, cached row heights — so they keep pointing at the rows they pointed
    at.
-3. **You get one event per gesture.** On drop, `onCommit` receives a single `RowBlockMove`
-   describing the result in **stable row keys** — identical semantics in lazy and embedded tables:
+3. **You get one event per gesture.** On drop, a whole-block drag reports a single `RowBlockMove`
+   via `onCommit`; a within-block row reorder reports a single `RowWithinBlockMove` via
+   `onRowReorderWithinBlock`. Both describe the result in **stable row keys** — identical semantics
+   in lazy and embedded tables:
 
 ```kotlin
 public class RowBlockMove(
@@ -149,9 +156,21 @@ public class RowBlockMove(
     /** Key of the row the unit now sits before; null = end. Redundant anchor for edge cases. */
     public val beforeKey: Any?,
 )
+
+public class RowWithinBlockMove(
+    /** Block the row belongs to (unchanged by the move). */
+    public val blockId: Any,
+    /** Key of the moved row. */
+    public val movedKey: Any,
+    /** Key of the visible block-mate it now sits after; null = block start. */
+    public val afterKey: Any?,
+    /** Key of the visible block-mate it now sits before; null = block end. Redundant anchor. */
+    public val beforeKey: Any?,
+)
 ```
 
-Applying that event to the source list is one call to `applyRowBlockMove` — see below.
+Applying either event to the source list is one call — `applyRowBlockMove` /
+`applyRowReorderWithinBlock` — see below.
 
 ### Declaring blocks
 
@@ -167,30 +186,48 @@ Applying that event to the source list is one call to `applyRowBlockMove` — se
 - **`rowBlocks` supersedes `onRowMove`.** Drag units are blocks, so per-row move semantics cannot
   apply: while `rowBlocks` is passed, every gesture — standalone rows included — reports through
   `onCommit` (a standalone move carries `blockId == null`), and `onRowMove` is never invoked.
-- **`onCommit == null` means display-only blocks**: bands render and row drag is disabled
-  entirely — standalone rows do not drag either, even when `onRowMove` is set.
+- **`onCommit == null` disables whole-block drag**: a block cannot be dragged as a unit (standalone
+  rows do not drag either, even when `onRowMove` is set). Within-block row reorder is independent —
+  enable it via `onRowReorderWithinBlock`; a block with neither is display-only.
 
-### Putting the handle on the leader row
+### Drag handles: the whole block from its header, rows within a block
 
-The table already knows its unit boundaries, so cell content reads
-`TableCellScope.isRowBlockLeader` — true on the first visible row of a block and on every
-standalone row, exactly the rows that may carry a drag handle:
+Dragging is split across two levels:
+
+- **The whole block** is dragged from a handle in its **header**. The `blockHeader` slot runs in a
+  `RowBlockHeaderScope`, so a `draggableHandle()` there moves the entire block:
 
 ```kotlin
-cell { _, _ ->
-    if (isRowBlockLeader) {
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier.fillMaxSize().draggableHandle(),
-        ) {
-            Icon(Icons.Default.Reorder, contentDescription = "Drag block")
-        }
+blockHeader = { blockId, _ ->
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Icon(
+            Icons.Default.DragIndicator,
+            contentDescription = "Drag block",
+            modifier = Modifier.draggableHandle(),
+        )
+        Text(blockId.toString())
     }
 }
 ```
 
-Any handle inside the block drags the whole block; the leader is just the conventional place for
-it.
+- **A row within a block** is dragged from a handle in its own cell. Every row carries one; the
+  drag is constrained to its block — a row can never leave it, and the move reports through
+  `onRowReorderWithinBlock`. The same cell handle drives a standalone row's move among units:
+
+```kotlin
+cell { _, _ ->
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier.fillMaxSize().draggableHandle(),
+    ) {
+        Icon(Icons.Default.Reorder, contentDescription = "Drag row")
+    }
+}
+```
+
+The table wires each `draggableHandle()` to the right engine automatically — the header to the
+whole-block drag, a block row's cell to the within-block drag, a standalone row's cell to the
+unit drag. A block needs a header handle to be movable as a whole.
 
 ### Applying the commit: `applyRowBlockMove`
 
@@ -222,6 +259,24 @@ Its semantics are deliberately stronger than "move the visible rows":
 Consumers with exotic placement needs can implement their own lift from the `RowBlockMove` keys —
 the event carries everything the library knows.
 
+For a within-block reorder, the matching lift is `applyRowReorderWithinBlock`:
+
+```kotlin
+onRowReorderWithinBlock = { move ->
+    people = people.toMutableList().apply {
+        applyRowReorderWithinBlock(
+            move = move,
+            keyOf = { it.id },        // must mirror the table's rowKey
+            blockOf = { it.groupId }, // must mirror RowBlocks.blockOf
+        )
+    }
+}
+```
+
+It relocates the single moved row among its block-mates using `afterKey` (primary) / `beforeKey`
+(fallback); hidden block members keep their relative order, and the list is left untouched when
+neither anchor resolves.
+
 ### Example
 
 ```kotlin
@@ -250,16 +305,16 @@ fun BlockedPeopleTable() {
                     width(48.dp, 48.dp)
                     resizable(false)
                     cell { _, _ ->
-                        if (isRowBlockLeader) {
-                            Box(
-                                contentAlignment = Alignment.Center,
-                                modifier = Modifier.fillMaxSize().draggableHandle(),
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Reorder,
-                                    contentDescription = "Drag to reorder",
-                                )
-                            }
+                        // Every row carries a handle: a block row reorders within its block, a
+                        // standalone row reorders among units.
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier.fillMaxSize().draggableHandle(),
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Reorder,
+                                contentDescription = "Drag to reorder",
+                            )
                         }
                     }
                 }
@@ -292,12 +347,29 @@ fun BlockedPeopleTable() {
                         )
                     }
                 },
+                onRowReorderWithinBlock = { move ->
+                    people = people.toMutableList().apply {
+                        applyRowReorderWithinBlock(
+                            move = move,
+                            keyOf = { it.id },
+                            blockOf = { it.groupId },
+                        )
+                    }
+                },
+                // The header carries the whole-block drag handle.
                 blockHeader = { blockId, _ ->
-                    Text(
-                        text = blockId.toString(),
-                        style = MaterialTheme.typography.labelLarge,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.DragIndicator,
+                            contentDescription = "Drag block",
+                            modifier = Modifier.draggableHandle(),
+                        )
+                        Text(
+                            text = blockId.toString(),
+                            style = MaterialTheme.typography.labelLarge,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                        )
+                    }
                 },
             )
         }
@@ -417,8 +489,9 @@ fun PagedBlockedPeopleTable(
 
 `blockHeader` renders in the band above each block. It receives the block id and the block's
 current row range, and is offset by the horizontal scroll so it stays in the viewport while the
-table scrolls sideways. The library adds **no click handling** of its own — attach your own
-`Modifier.clickable` inside the slot for renaming, dissolving, or anything else:
+table scrolls sideways. The slot runs in a `RowBlockHeaderScope`, so a `Modifier.draggableHandle()`
+inside it is the whole block's drag handle. The library adds **no click handling** of its own —
+attach your own `Modifier.clickable` inside the slot for renaming, dissolving, or anything else:
 
 ```kotlin
 blockHeader = { blockId, _ ->
@@ -472,14 +545,16 @@ list is meaningless over the new one. After a drop, the table keeps the moved or
 
 ### Checklist
 
-- `TableSettings(rowReorderEnabled = true)`; the handle rendered on `isRowBlockLeader` rows.
+- `TableSettings(rowReorderEnabled = true)`; a cell `draggableHandle()` on every row (within-block /
+  unit drag) and a `draggableHandle()` in `blockHeader` for whole-block drag.
 - A **stable `rowKey`** — move anchors are row keys; the default positional key triggers a
   warning and cannot survive a move.
 - `RowBlocks` held in `remember` — it compares by identity.
 - Block members contiguous in the source list; the library warns on fragmented ids but cannot
   repair them.
-- `onCommit` applies the move to the source with `applyRowBlockMove` — with `keyOf`/`blockOf`
-  mirroring the table's `rowKey`/`RowBlocks.blockOf` — or, for paged tables, forwards the event to
-  the data layer to apply by `blockId`.
+- `onCommit` applies the whole-block move to the source with `applyRowBlockMove`, and
+  `onRowReorderWithinBlock` applies the within-block move with `applyRowReorderWithinBlock` — both
+  with `keyOf`/`blockOf` mirroring the table's `rowKey`/`RowBlocks.blockOf`, or, for paged tables,
+  forwarded to the data layer to apply by `blockId`.
 - No free sort over blocked data: `sortedWithinRowBlocks` one-shot on the source when needed.
 - `groupBy` off — blocks are suppressed while it is active.

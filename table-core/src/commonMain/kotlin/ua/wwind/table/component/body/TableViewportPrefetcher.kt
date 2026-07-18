@@ -102,8 +102,8 @@ internal fun <T : Any, C, E> TableViewportPrefetcher(
                 if (known != null) {
                     known
                 } else {
-                    // Leader / in-block flags from the same units this row is measured against.
-                    // Offscreen measurement, no live gesture, so state.rowUnits is the right source.
+                    // In-block flag from the same units this row is measured against. Offscreen
+                    // measurement, no live gesture, so state.rowUnits is the right source.
                     val pfUnits = state.rowUnits
                     val pfUnit = pfUnits.unitOf(i)
                     val measurables =
@@ -113,7 +113,6 @@ internal fun <T : Any, C, E> TableViewportPrefetcher(
                                     item = itemAt(i),
                                     index = i,
                                     isInRowBlock = pfUnits.isGroup(pfUnit),
-                                    isRowBlockLeader = pfUnits.rowsOf(pfUnit).first == i,
                                     visibleColumns = visibleColumns,
                                     state = state,
                                     colors = colors,

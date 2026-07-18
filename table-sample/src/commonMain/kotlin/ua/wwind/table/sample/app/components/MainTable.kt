@@ -31,6 +31,7 @@ import ua.wwind.table.ColumnSpec
 import ua.wwind.table.EditableTable
 import ua.wwind.table.ExperimentalTableApi
 import ua.wwind.table.RowBlockMove
+import ua.wwind.table.RowWithinBlockMove
 import ua.wwind.table.RowBlocks
 import ua.wwind.table.config.TableCustomization
 import ua.wwind.table.filter.data.TableFilterState
@@ -54,6 +55,7 @@ fun MainTable(
     onRowMove: (fromIndex: Int, toIndex: Int) -> Unit,
     onMovementRowMove: (person: Person, fromIndex: Int, toIndex: Int) -> Unit,
     onMovementBlockMove: (person: Person, move: RowBlockMove) -> Unit,
+    onMovementRowWithinBlockMove: (person: Person, move: RowWithinBlockMove) -> Unit,
     onRowEditStart: (Person, Int) -> Unit,
     onRowEditComplete: (Int) -> Boolean,
     onEditCancelled: (Int) -> Unit,
@@ -131,6 +133,9 @@ fun MainTable(
                         },
                         onBlockMove = { move ->
                             onMovementBlockMove(person, move)
+                        },
+                        onRowWithinBlockMove = { move ->
+                            onMovementRowWithinBlockMove(person, move)
                         },
                     )
                 }

@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import ua.wwind.table.ExperimentalTableApi
 import ua.wwind.table.applyRowBlockMove
+import ua.wwind.table.applyRowReorderWithinBlock
 import ua.wwind.table.filter.data.TableFilterState
 import ua.wwind.table.format.FormatFilterData
 import ua.wwind.table.format.data.TableFormatRule
@@ -73,12 +74,9 @@ class SampleViewModel : ViewModel() {
             val comparator = PersonSorter.comparatorFor(sort)
             when {
                 comparator == null -> filtered
-                // A persistent render-time projection — the shape sortedWithinRowBlocks' KDoc
-                // forbids with drag enabled, because a live projection re-pins unit order after
-                // every committed move, making the move invisible. It is safe here ONLY because
-                // every move handler in onEvent clears currentSort once a move commits, which
-                // turns this branch back into the identity. Copying this projection without
-                // that sort-clear reintroduces the invisible-move bug.
+                // A live projection re-pins unit order after every committed move, hiding it. Safe
+                // ONLY because every move handler clears currentSort on commit — copy this without
+                // that clear and moves become invisible.
                 withinBlocks -> filtered.sortedWithinRowBlocks({ it.groupId }, comparator)
                 else -> filtered.sortedWith(comparator)
             }
@@ -363,14 +361,9 @@ class SampleViewModel : ViewModel() {
                     val anchor = currentPeople.indexOfFirst { it.id in ids }
                     if (anchor < 0) return@update currentPeople
 
-                    // The id IS the name, so the block is named after its leader - the topmost
-                    // selected row - and group ids are kept unique: a duplicate would make two
-                    // blocks one identity, renamed together yet still separate drag units unless
-                    // adjacent. A leader's name can collide, so it is suffixed until free.
-                    // Only rows staying OUTSIDE the new block can hold a name against it; the
-                    // selected ones are all about to take the new id, which is what lets two whole
-                    // groups merge back under the leader's plain name.
-                    // Derived from `currentPeople` alone, so a retried CAS attempt is harmless.
+                    // The id IS the name and must stay unique: a duplicate would fuse two blocks
+                    // into one identity. Only rows staying OUTSIDE the new block can hold a name
+                    // against it, which is what lets two whole groups merge under the leader's name.
                     val takenGroupIds =
                         currentPeople.filterNot { it.id in ids }.mapNotNull { it.groupId }.toSet()
                     val groupId = uniqueGroupId(currentPeople[anchor].name, takenGroupIds)
@@ -381,14 +374,10 @@ class SampleViewModel : ViewModel() {
                         currentPeople.filter { it.id in ids }.map { it.copy(groupId = groupId) }
                     val rest = currentPeople.filterNot { it.id in ids }
 
-                    // The anchor is the FIRST selected index, so every row before it is unselected
-                    // and survives in `rest` - the insertion point is still the anchor after the
-                    // removal. Do not "fix" this by shifting it. Removing the selected rows is safe
-                    // on its own: it can only bring same-id rows closer, never split a run.
-                    // Never cut another group in half: if the insertion point lands between two rows
-                    // of the same group, push it past that group's last row. Splitting a run would
-                    // leave two blocks sharing one id - one logical group torn in two, which renames
-                    // together but drags apart.
+                    // The anchor is the FIRST selected index, so rows before it survive in `rest` and
+                    // it still points at the right slot after the removal — do not "fix" it by
+                    // shifting. Push past a group it would cut: a split run leaves two blocks sharing
+                    // one id.
                     var insertAt = anchor.coerceAtMost(rest.size)
                     while (
                         insertAt > 0 && insertAt < rest.size &&
@@ -418,12 +407,9 @@ class SampleViewModel : ViewModel() {
                         currentPeople.filter { it.id in ids }.mapNotNull { it.groupId }.toSet()
                     if (touchedGroupIds.isEmpty()) return@update currentPeople
 
-                    // A row leaving a group must leave the block as well. Blocks form only over
-                    // ADJACENT rows, so merely clearing the id of a row in the middle of the run
-                    // tears the block into two halves that BOTH keep the group's id - one name, two
-                    // drag units, exactly the duplicate the uniqueness invariant forbids. Dropping
-                    // the leavers just past the group's last row keeps the rows that stay
-                    // contiguous, so the group survives whole under its own id.
+                    // Clearing the id of a row mid-run would tear the block into two halves that both
+                    // keep the group's id. Dropping leavers past the group's last row keeps the rows
+                    // that stay contiguous.
                     val lastIndexOfGroup =
                         touchedGroupIds.associateWith { groupId ->
                             currentPeople.indexOfLast { it.groupId == groupId }
@@ -440,10 +426,8 @@ class SampleViewModel : ViewModel() {
                             } else {
                                 add(person)
                             }
-                            // Flushed once the run is over, so the leavers land right under what is
-                            // left of the block - and back in their own place when the whole group
-                            // left and there is no block any more. Relative order is preserved
-                            // because they were collected in list order.
+                            // Flushed once the run is over, so leavers land under what is left of the
+                            // block, keeping their relative order.
                             if (groupId != null && lastIndexOfGroup[groupId] == index) {
                                 leavers.remove(groupId)?.let { addAll(it) }
                             }
@@ -458,18 +442,13 @@ class SampleViewModel : ViewModel() {
 
             is SampleUiEvent.RenameGroup -> {
                 val newGroupId = event.newGroupId
-                // A blank id still groups - block derivation only skips nulls - so it would not
-                // ungroup the block, just leave it with a nameless band. Checked ahead of the uniqueness
-                // guard below, which would only catch the SECOND blank name, not the first.
-                // A no-op rename would rewrite every row for nothing.
+                // A blank id still groups (derivation only skips nulls), so it would leave a nameless
+                // band rather than ungroup.
                 if (newGroupId.isBlank() || newGroupId == event.groupId) return
                 // Rows keep their position: renaming must never reorder, so no sort reset either.
                 _people.update { currentPeople ->
-                    // The id IS the name, so a taken name would fuse two groups into one identity:
-                    // both would rename together yet stay separate drag units unless adjacent.
-                    // The dialog already refuses taken names; this is the last line of defence, and
-                    // it bails out rather than half-applying. Any row already carrying `newGroupId`
-                    // is outside the renamed group - the equal-id case returned above.
+                    // Last line of defence behind the dialog: a taken name would fuse two groups into
+                    // one identity, so bail out rather than half-apply.
                     if (currentPeople.any { it.groupId == newGroupId }) return@update currentPeople
                     currentPeople.map {
                         if (it.groupId == event.groupId) it.copy(groupId = newGroupId) else it
@@ -510,10 +489,7 @@ class SampleViewModel : ViewModel() {
             is SampleUiEvent.BlockMove -> {
                 var moved = false
                 _people.update { currentPeople ->
-                    // The whole lift from the rendered view to the master list is the library
-                    // helper: it relocates every member of the dragged block — including rows a
-                    // filter hides — and never splits another block. keyOf mirrors the table's
-                    // rowKey, because the move's anchors are row keys.
+                    // keyOf must mirror the table's rowKey — the move's anchors are row keys.
                     val updated = currentPeople.toMutableList()
                     updated.applyRowBlockMove(
                         move = event.move,
@@ -525,10 +501,28 @@ class SampleViewModel : ViewModel() {
                     updated
                 }
                 if (moved) {
-                    // Load-bearing, not tidiness: displayedPeople keeps sortedWithinRowBlocks as
-                    // a live projection, which its KDoc allows only if drag history dissolves it.
-                    // This clear is that dissolution — without it the projection re-pins unit
-                    // order on the next emission and the move just committed becomes invisible.
+                    // Load-bearing, not tidiness: without this clear the live sort projection
+                    // re-pins unit order and the committed move becomes invisible.
+                    currentSort.value = null
+                }
+            }
+
+            is SampleUiEvent.RowWithinBlockMove -> {
+                var moved = false
+                _people.update { currentPeople ->
+                    // keyOf must mirror the table's rowKey — the move's anchors are row keys.
+                    val updated = currentPeople.toMutableList()
+                    updated.applyRowReorderWithinBlock(
+                        move = event.move,
+                        keyOf = { it.id.toString() },
+                        blockOf = { it.groupId },
+                    )
+                    moved = updated != currentPeople
+                    updated
+                }
+                if (moved) {
+                    // Same dissolution as BlockMove: drop the live within-block sort projection so
+                    // the order just committed is not re-pinned on the next emission.
                     currentSort.value = null
                 }
             }
@@ -543,6 +537,26 @@ class SampleViewModel : ViewModel() {
                     movements.applyRowBlockMove(
                         move = event.move,
                         // Mirrors the embedded table's rowKey and blockOf — see movementBlockId.
+                        keyOf = { it.date },
+                        blockOf = { it.movementBlockId },
+                    )
+                    if (movements == person.movements) return@update currentPeople
+
+                    currentPeople.toMutableList().apply {
+                        this[personIndex] = person.copy(movements = movements)
+                    }
+                }
+            }
+
+            is SampleUiEvent.MovementRowWithinBlockMove -> {
+                _people.update { currentPeople ->
+                    val personIndex = currentPeople.indexOfFirst { it.id == event.personId }
+                    if (personIndex < 0) return@update currentPeople
+
+                    val person = currentPeople[personIndex]
+                    val movements = person.movements.toMutableList()
+                    movements.applyRowReorderWithinBlock(
+                        move = event.move,
                         keyOf = { it.date },
                         blockOf = { it.movementBlockId },
                     )
@@ -584,9 +598,8 @@ class SampleViewModel : ViewModel() {
     }
 
     /**
-     * First free name in the sequence [base], "[base] 2", "[base] 3"... Deterministic on purpose:
-     * the id doubles as the label, so a random or timestamped suffix would be unique but unreadable.
-     * Comparison is exact, matching the block identity rule (`blockOf` values compare with `==`).
+     * First free name in the sequence [base], "[base] 2", "[base] 3"… Deterministic on purpose: the
+     * id doubles as the label, so a random suffix would be unique but unreadable.
      */
     private fun uniqueGroupId(
         base: String,
