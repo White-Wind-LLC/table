@@ -8,7 +8,7 @@ android-version-code = "43"
 android-compileSdk = "37"
 android-minSdk = "24"
 android-targetSdk = "37"
-agp = "8.13.2"
+agp = "9.2.1"
 
 # --- Kotlin Toolchain & Compose ---
 kotlin = "2.4.0"
@@ -44,7 +44,7 @@ assertk = "0.28.1"
 turbine = "1.2.1"
 hotReload = "1.1.1"
 buildKonfig = "0.21.2"
-detekt = "1.23.8"
+detekt = "2.0.0-alpha.5"
 ktlint-gradle = "14.2.0"
 kover = "0.9.8"
 dokka = "2.2.0"
@@ -97,7 +97,7 @@ turbine-turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine"
 # External Gradle plugin artifacts for buildscript/pluginManagement classpaths
 # AGP
 gradle-android = { module = "com.android.tools.build:gradle", version.ref = "agp" }
-gradle-android-library = { module = "com.android.library:com.android.library.gradle.plugin", version.ref = "agp" }
+gradle-android-kotlin-multiplatform-library = { module = "com.android.kotlin.multiplatform.library:com.android.kotlin.multiplatform.library.gradle.plugin", version.ref = "agp" }
 
 # Kotlin (core plugin)
 gradle-kotlin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
@@ -117,7 +117,7 @@ gradle-stability-analyzer = { module = "com.github.skydoves.compose.stability.an
 
 # Resources & Multiplatform tooling
 gradle-buildkonfig = { module = "com.codingfeline.buildkonfig:com.codingfeline.buildkonfig.gradle.plugin", version.ref = "buildKonfig" }
-gradle-detekt = { module = "io.gitlab.arturbosch.detekt:io.gitlab.arturbosch.detekt.gradle.plugin", version.ref = "detekt" }
+gradle-detekt = { module = "dev.detekt:detekt-gradle-plugin", version.ref = "detekt" }
 gradle-ktlint = { module = "org.jlleitschuh.gradle:ktlint-gradle", version.ref = "ktlint-gradle" }
 gradle-kover = { module = "org.jetbrains.kotlinx:kover-gradle-plugin", version.ref = "kover" }
 gradle-dokka = { module = "org.jetbrains.dokka:org.jetbrains.dokka.gradle.plugin", version.ref = "dokka" }
@@ -126,7 +126,6 @@ gradle-maven-publish = { module = "com.vanniktech.maven.publish:com.vanniktech.m
 [plugins]
 # --- Kotlin Toolchain ---
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-parcelize = { id = "org.jetbrains.kotlin.plugin.parcelize", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 kotlin-cocoapods = { id = "org.jetbrains.kotlin.native.cocoapods", version.ref = "kotlin" }
@@ -139,13 +138,13 @@ hot-reload = { id = "org.jetbrains.compose.hot-reload", version.ref = "hotReload
 
 # --- Android (AGP) ---
 android-application = { id = "com.android.application", version.ref = "agp" }
-android-library = { id = "com.android.library", version.ref = "agp" }
+android-kotlin-multiplatform-library = { id = "com.android.kotlin.multiplatform.library", version.ref = "agp" }
 
 # --- Resources & Multiplatform tooling ---
 buildKonfig = { id = "com.codingfeline.buildkonfig", version.ref = "buildKonfig" }
 
 # --- Testing utilities ---
-detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
+detekt = { id = "dev.detekt", version.ref = "detekt" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint-gradle" }
 kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }

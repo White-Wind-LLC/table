@@ -45,4 +45,5 @@ include("table-paging")
 val excludeSamples: Boolean = gradle.startParameter.projectProperties["excludeSamples"]?.toBoolean() ?: false
 if (!excludeSamples) {
     include("table-sample")
+    include("table-sample-android")
 }

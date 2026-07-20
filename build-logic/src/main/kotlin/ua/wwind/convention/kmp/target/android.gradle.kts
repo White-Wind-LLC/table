@@ -1,40 +1,33 @@
 package ua.wwind.convention.kmp.target
 
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import ua.wwind.convention.util.computeValidatedNamespace
 
 val libs: VersionCatalog = extensions.getByType<VersionCatalogsExtension>().named("libs")
 
 plugins {
-    id("com.android.library")
     kotlin("multiplatform")
+    // AGP 9 dropped KMP support from com.android.library; this is its multiplatform replacement.
+    id("com.android.kotlin.multiplatform.library")
 }
 
 kotlin {
-    androidTarget()
-}
-
-android {
-    compileSdk = libs.findVersion("android-compileSdk").get().requiredVersion.toInt()
-    val androidNamespace: String = project.computeValidatedNamespace(
-        explicitPropertyNames = listOf("androidNamespace"),
-        basePropertyName = "baseNamespace",
-        subjectLabel = "Android namespace",
-    )
-    namespace = androidNamespace
-
-    defaultConfig {
+    android {
+        namespace = project.computeValidatedNamespace(
+            explicitPropertyNames = listOf("androidNamespace"),
+            basePropertyName = "baseNamespace",
+            subjectLabel = "Android namespace",
+        )
+        compileSdk = libs.findVersion("android-compileSdk").get().requiredVersion.toInt()
         minSdk = libs.findVersion("android-minSdk").get().requiredVersion.toInt()
-    }
 
-    sourceSets.getByName("main").apply {
-        manifest.srcFile("src/androidMain/AndroidManifest.xml")
-        res.srcDirs("src/androidMain/res")
-        resources.srcDirs("src/commonMain/composeResources")
-        res.srcDirs("src/commonMain/composeResources", "src/androidMain/res")
-    }
+        // Required so Compose composeResources keep packaging into consumers' APKs (CMP-9547)
+        androidResources {
+            enable = true
+        }
 
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_17)
+        }
     }
 }

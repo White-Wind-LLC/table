@@ -5,7 +5,7 @@ import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
 
 plugins {
-    id("ua.wwind.convention.kmp.android-app")
+    id("ua.wwind.convention.kmp.target.android")
     id("ua.wwind.convention.kmp.desktop-app")
     id("ua.wwind.convention.compose")
     id("ua.wwind.convention.coroutines")
@@ -24,8 +24,6 @@ val iosFrameworkBaseName: String by project
 val buildKonfigPackage: String by project
 
 kotlin {
-    androidTarget()
-
     jvm()
 
     js {

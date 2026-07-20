@@ -19,7 +19,7 @@ dependencies {
 
     implementation(libs.gradle.kotlin.multiplatform)
     implementation(libs.gradle.android)
-    implementation(libs.gradle.android.library)
+    implementation(libs.gradle.android.kotlin.multiplatform.library)
     implementation(libs.gradle.compose)
     implementation(libs.gradle.kotlin.compose.compiler)
     implementation(libs.gradle.stability.analyzer)

@@ -6,13 +6,12 @@ import ua.wwind.convention.util.computeValidatedNamespace
 // Access to version catalog
 val libs: VersionCatalog = extensions.getByType<VersionCatalogsExtension>().named("libs")
 
+// Pure Android application module. AGP 9 removed Kotlin Multiplatform compatibility from
+// com.android.application, so the shared multiplatform code lives in a separate module applying
+// 'ua.wwind.convention.kmp.target.android' and is consumed from here as a regular dependency.
+// Kotlin support is built into AGP 9, so no Kotlin plugin is applied.
 plugins {
-    kotlin("multiplatform")
     id("com.android.application")
-}
-
-kotlin {
-    androidTarget()
 }
 
 val androidApplicationId: String by project
@@ -42,12 +41,10 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
-    // Align source sets with MPP layout
+    // Standard Android layout (the MPP layout belongs to the multiplatform module)
     sourceSets.getByName("main").apply {
-        manifest.srcFile("src/androidMain/AndroidManifest.xml")
-        res.srcDirs("src/androidMain/res")
-        resources.srcDirs("src/commonMain/composeResources")
-        res.srcDirs("src/commonMain/composeResources", "src/androidMain/res")
+        manifest.srcFile("src/main/AndroidManifest.xml")
+        res.srcDirs("src/main/res")
     }
 
     buildTypes {
@@ -78,11 +75,6 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
-    }
-
-    // Enable Compose build features for Android app modules
-    buildFeatures {
-        compose = true
     }
 
     // Avoid language split in bundles by default
