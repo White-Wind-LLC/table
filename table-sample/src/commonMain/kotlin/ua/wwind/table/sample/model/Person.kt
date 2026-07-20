@@ -20,6 +20,8 @@ data class Person(
     val salary: Int,
     val rating: Int,
     val hireDate: LocalDate,
+    /** Demo grouping: adjacent people sharing a non-null id drag as one unit. */
+    val groupId: String? = null,
     /** Multiline notes to demonstrate dynamic row height in table. */
     val notes: String =
         when {

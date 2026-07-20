@@ -33,6 +33,7 @@ fun createDemoData(): List<Person> =
             salary = 68000,
             rating = 4,
             hireDate = LocalDate(2018, 7, 20),
+            groupId = "team-alpha",
         ),
         Person(
             name = "Carol",
@@ -47,6 +48,7 @@ fun createDemoData(): List<Person> =
             salary = 82000,
             rating = 5,
             hireDate = LocalDate(2020, 1, 10),
+            groupId = "team-alpha",
         ),
         Person(
             name = "Dave",
@@ -61,6 +63,7 @@ fun createDemoData(): List<Person> =
             salary = 95000,
             rating = 4,
             hireDate = LocalDate(2015, 9, 5),
+            groupId = "team-alpha",
         ),
         Person(
             name = "Eve",
@@ -103,6 +106,7 @@ fun createDemoData(): List<Person> =
             salary = 72000,
             rating = 4,
             hireDate = LocalDate(2021, 2, 14),
+            groupId = "team-beta",
         ),
         Person(
             name = "Henry",
@@ -117,6 +121,7 @@ fun createDemoData(): List<Person> =
             salary = 79000,
             rating = 3,
             hireDate = LocalDate(2019, 11, 8),
+            groupId = "team-beta",
         ),
         Person(
             name = "Ivy",

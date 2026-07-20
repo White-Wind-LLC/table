@@ -36,6 +36,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.format
 import ua.wwind.table.ColumnSpec
@@ -61,8 +62,9 @@ fun createTableColumns(
     onEvent: (SampleUiEvent) -> Unit,
     useCompactMode: Boolean = false,
     enableRowReorder: Boolean = false,
-): ImmutableList<ColumnSpec<Person, PersonColumn, PersonTableData>> =
-    editableTableColumns {
+    hiddenColumns: Set<PersonColumn> = emptySet(),
+): ImmutableList<ColumnSpec<Person, PersonColumn, PersonTableData>> {
+    val specs: ImmutableList<ColumnSpec<Person, PersonColumn, PersonTableData>> = editableTableColumns {
         val cellPadding = if (useCompactMode) CellPadding.compact else CellPadding.standard
         val checkboxSize = if (useCompactMode) 36.dp else 48.dp
 
@@ -85,6 +87,8 @@ fun createTableColumns(
                         )
                     }
                 } else if (enableRowReorder) {
+                    // Every row carries a handle: a standalone row reorders among units, a block row
+                    // reorders within its block. The whole block is dragged from its header handle.
                     Box(
                         contentAlignment = Alignment.Center,
                         modifier = Modifier.fillMaxSize().draggableHandle(),
@@ -152,7 +156,11 @@ fun createTableColumns(
             autoWidth(500.dp)
             sortable()
             filterTypes[PersonColumn.NAME]?.let { filter(it) }
-            cell { item, _ -> Text(item.name, modifier = Modifier.padding(cellPadding)) }
+            cell { item, _ ->
+                // Group metadata belongs in the block's header band, not in a row cell — see
+                // the `blockHeader` slot of the `RowBlocks` built in SampleApp.
+                Text(item.name, modifier = Modifier.padding(cellPadding))
+            }
 
             // Editing configuration - table will manage when to show this
             editCell { person, tableData, onComplete ->
@@ -465,6 +473,15 @@ fun createTableColumns(
         }
     }
 
+    // Visibility is a ColumnSpec property, so the sidebar toggle rebuilds the spec list instead of
+    // mutating table state — exercising ColumnSpec.visible end to end.
+    return if (hiddenColumns.isEmpty()) {
+        specs
+    } else {
+        specs.map { spec -> spec.copy(visible = spec.key !in hiddenColumns) }.toImmutableList()
+    }
+}
+
 fun createMovementColumns(
     useCompactMode: Boolean = false,
     enableRowReorder: Boolean = false,
@@ -478,6 +495,8 @@ fun createMovementColumns(
             width(reorderSize, reorderSize)
             resizable(false)
             cell { _, _ ->
+                // Same model as the main table: every row carries a handle. A block row reorders
+                // within its block; the whole block moves from its header handle.
                 if (enableRowReorder) {
                     Box(
                         contentAlignment = Alignment.Center,
