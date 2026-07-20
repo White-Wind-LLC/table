@@ -34,6 +34,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import ua.wwind.table.config.PinnedSide
+import ua.wwind.table.sample.column.PersonColumn
 
 /**
  * Settings sidebar that displays all table configuration options. Designed to be used as drawer
@@ -48,6 +49,8 @@ fun SettingsSidebar(
     onConfigChange: (SampleTableConfig) -> Unit,
     enableSelectionMode: Boolean,
     onEnableSelectionModeChange: (Boolean) -> Unit,
+    sortWithinBlocks: Boolean,
+    onSortWithinBlocksChange: (Boolean) -> Unit,
     onConditionalFormattingClick: () -> Unit,
     onRecalculateAutoWidthsClick: () -> Unit,
     onClose: () -> Unit,
@@ -153,6 +156,20 @@ fun SettingsSidebar(
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                     SettingSwitch(
+                        label = "Row blocks",
+                        checked = config.enableRowBlocks,
+                        onCheckedChange = { onConfigChange(config.copy(enableRowBlocks = it)) },
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    // A free sort fragments blocks into duplicate bands; this routes the active
+                    // sort through sortedWithinRowBlocks, which keeps every block whole.
+                    SettingSwitch(
+                        label = "Sort within blocks",
+                        checked = sortWithinBlocks,
+                        onCheckedChange = onSortWithinBlocksChange,
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    SettingSwitch(
                         label = "Cell editing",
                         checked = config.enableEditing,
                         onCheckedChange = { onConfigChange(config.copy(enableEditing = it)) },
@@ -239,6 +256,33 @@ fun SettingsSidebar(
                         onClick = onRecalculateAutoWidthsClick,
                         modifier = Modifier.fillMaxWidth(),
                     ) { Text("Fit columns") }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Column visibility: rebuilds the ColumnSpec list with `visible = false` for
+                    // unchecked columns. Utility columns (selection, expand) stay out of the list —
+                    // their visibility is driven by selection/reorder modes, not by the user.
+                    Text(
+                        text = "Visible columns",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    hideablePersonColumns.forEach { column ->
+                        Spacer(modifier = Modifier.height(12.dp))
+                        SettingSwitch(
+                            label = columnLabel(column),
+                            checked = column !in config.hiddenColumns,
+                            onCheckedChange = { visible ->
+                                val hidden =
+                                    if (visible) {
+                                        config.hiddenColumns - column
+                                    } else {
+                                        config.hiddenColumns + column
+                                    }
+                                onConfigChange(config.copy(hiddenColumns = hidden))
+                            },
+                        )
+                    }
                 }
 
                 // Advanced Section
@@ -252,6 +296,19 @@ fun SettingsSidebar(
         }
     }
 }
+
+/** Data columns the user may hide; utility columns are excluded on purpose. */
+private val hideablePersonColumns =
+    PersonColumn.entries.filterNot {
+        it == PersonColumn.SELECTION || it == PersonColumn.EXPAND
+    }
+
+/** "HIRE_DATE" -> "Hire date": enum names are already the labels, just not dressed for UI. */
+private fun columnLabel(column: PersonColumn): String =
+    column.name
+        .lowercase()
+        .replace('_', ' ')
+        .replaceFirstChar { it.titlecase() }
 
 /** A switch control for settings with label. */
 @Composable

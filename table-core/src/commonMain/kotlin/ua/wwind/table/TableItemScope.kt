@@ -69,6 +69,39 @@ public interface TableItemScope {
     ): Modifier
 }
 
+/**
+ * Scope for a row block's header band. Distinct from [TableCellScope] (not a supertype of it) so a
+ * [Modifier.draggableHandle] call here binds unambiguously to the whole-block (outer unit) engine,
+ * while the same call inside a cell binds to whatever engine that row is rendered under.
+ */
+@Stable
+public interface RowBlockHeaderScope : TableItemScope
+
+@Stable
+internal class RowBlockHeaderScopeImpl(
+    delegate: TableItemScope,
+) : RowBlockHeaderScope, TableItemScope by delegate
+
+/**
+ * Makes this modifier the drag handle for the whole block, from its header band. The node must be a
+ * descendant of the block's [ReorderableItem].
+ */
+public context(scope: RowBlockHeaderScope)
+fun Modifier.draggableHandle(
+    enabled: Boolean = true,
+    interactionSource: MutableInteractionSource? = null,
+    onDragStarted: (startedPosition: Offset) -> Unit = {},
+    onDragStopped: () -> Unit = {},
+    dragGestureDetector: DragGestureDetector = DragGestureDetector.Press,
+): Modifier = scope.applyDraggableHandle(
+    modifier = this,
+    enabled = enabled,
+    interactionSource = interactionSource,
+    onDragStarted = onDragStarted,
+    onDragStopped = onDragStopped,
+    dragGestureDetector = dragGestureDetector,
+)
+
 @Immutable
 internal object DefaultTableItemScope : TableItemScope {
     override fun applyDraggableHandle(
@@ -89,9 +122,15 @@ internal object DefaultTableItemScope : TableItemScope {
     ): Modifier = modifier
 }
 
+/**
+ * Lazy-path drag scope. The hooks wrap the consumer's handle callbacks so the block commit fires
+ * exactly once per gesture, observed by the handle that started it.
+ */
 @Stable
 internal class TableItemDragScope(
-    private val delegate: ReorderableCollectionItemScope
+    private val delegate: ReorderableCollectionItemScope,
+    private val onDragStartedHook: (() -> Unit)? = null,
+    private val onDragStoppedHook: (() -> Unit)? = null,
 ) : TableItemScope, ReorderableCollectionItemScope by delegate {
     override fun applyDraggableHandle(
         modifier: Modifier,
@@ -105,8 +144,14 @@ internal class TableItemDragScope(
             modifier.draggableHandle(
                 enabled = enabled,
                 interactionSource = interactionSource,
-                onDragStarted = onDragStarted,
-                onDragStopped = onDragStopped,
+                onDragStarted = { startedPosition ->
+                    onDragStartedHook?.invoke()
+                    onDragStarted(startedPosition)
+                },
+                onDragStopped = {
+                    onDragStoppedHook?.invoke()
+                    onDragStopped()
+                },
                 dragGestureDetector = dragGestureDetector
             )
         }
@@ -123,16 +168,27 @@ internal class TableItemDragScope(
             modifier.longPressDraggableHandle(
                 enabled = enabled,
                 interactionSource = interactionSource,
-                onDragStarted = onDragStarted,
-                onDragStopped = onDragStopped,
+                onDragStarted = { startedPosition ->
+                    onDragStartedHook?.invoke()
+                    onDragStarted(startedPosition)
+                },
+                onDragStopped = {
+                    onDragStoppedHook?.invoke()
+                    onDragStopped()
+                },
             )
         }
     }
 }
 
+/**
+ * Embedded-path drag scope. Only a start hook: the embedded engine reports the gesture's net result
+ * through its settle callback, which is where the commit rides instead.
+ */
 @Stable
 internal class TableItemListDragScope(
-    private val delegate: ReorderableListItemScope
+    private val delegate: ReorderableListItemScope,
+    private val onDragStartedHook: (() -> Unit)? = null,
 ) : TableItemScope, ReorderableListItemScope by delegate {
     override fun applyDraggableHandle(
         modifier: Modifier,
@@ -146,7 +202,10 @@ internal class TableItemListDragScope(
             modifier.draggableHandle(
                 enabled = enabled,
                 interactionSource = interactionSource,
-                onDragStarted = onDragStarted,
+                onDragStarted = { startedPosition ->
+                    onDragStartedHook?.invoke()
+                    onDragStarted(startedPosition)
+                },
                 onDragStopped = { onDragStopped() },
                 dragGestureDetector = dragGestureDetector
             )
@@ -164,7 +223,10 @@ internal class TableItemListDragScope(
             modifier.longPressDraggableHandle(
                 enabled = enabled,
                 interactionSource = interactionSource,
-                onDragStarted = onDragStarted,
+                onDragStarted = { startedPosition ->
+                    onDragStartedHook?.invoke()
+                    onDragStarted(startedPosition)
+                },
                 onDragStopped = { onDragStopped() },
             )
         }

@@ -10,6 +10,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
@@ -27,6 +28,8 @@ import ua.wwind.table.component.footer.TableFooter
 import ua.wwind.table.config.TableColors
 import ua.wwind.table.config.TableCustomization
 import ua.wwind.table.config.isRowReorderEnabled
+import ua.wwind.table.state.RowBlocksState
+import ua.wwind.table.state.RowUnitIndex
 import ua.wwind.table.state.TableState
 
 @Composable
@@ -45,7 +48,9 @@ internal fun <T : Any, C, E> TableBody(
     onRowClick: ((T) -> Unit)?,
     onRowLongClick: ((T) -> Unit)?,
     onRowMove: ((fromIndex: Int, toIndex: Int) -> Unit)?,
+    blocks: RowBlocksState<T>?,
     onContextMenu: ((T, Offset) -> Unit)?,
+    rowUnits: RowUnitIndex,
     verticalState: LazyListState,
     horizontalState: ScrollState,
     requestTableFocus: () -> Unit,
@@ -53,34 +58,142 @@ internal fun <T : Any, C, E> TableBody(
     modifier: Modifier = Modifier,
 ) {
     val showFooter = state.settings.showFooter && !state.settings.footerPinned
-    val rowReorderEnabled = state.settings.isRowReorderEnabled && onRowMove != null
+    // With blocks the drag is managed: units are blocks, so per-row onRowMove cannot apply. A block
+    // table drags when it can move whole blocks or reorder rows within one; neither = display-only.
+    val rowReorderEnabled =
+        state.settings.isRowReorderEnabled &&
+            (
+                if (blocks != null) {
+                    blocks.config.onCommit != null || blocks.config.onRowReorderWithinBlock != null
+                } else {
+                    onRowMove != null
+                }
+            )
+    val withinBlockEnabled =
+        rowReorderEnabled && blocks != null && blocks.config.onRowReorderWithinBlock != null
     val reorderState =
         if (rowReorderEnabled) {
             rememberReorderableLazyListState(verticalState) { from, to ->
-                onRowMove.invoke(from.index, to.index)
+                if (blocks != null) {
+                    // Synchronous by design: the engine re-reads layout right after this call.
+                    blocks.applyUnitMove(from.index, to.index)
+                } else {
+                    onRowMove?.invoke(rowUnits.rowsOf(from.index).first, rowUnits.rowsOf(to.index).first)
+                }
             }
         } else {
             null
         }
+
+    // Commit side effects ride the drag lifecycle of the handle that owns the gesture, so the
+    // event fires exactly once per completed drag no matter how many items recomposed meanwhile.
+    val onBlockDragStarted: (() -> Unit)? =
+        if (blocks != null) {
+            {
+                // An edit in flight validates against row positions that are about to shift.
+                if (!state.tryCompleteEditing()) state.cancelEditing()
+            }
+        } else {
+            null
+        }
+    val onBlockDragStopped: (() -> Unit)? =
+        if (blocks != null) {
+            {
+                // Read the displacement before settle() — settling forgets the pre-gesture order.
+                val remap = blocks.gestureRemap()
+                val move = blocks.settle()
+                // A refused drop snaps the view back; remapping positional state through the dead
+                // gesture's displacement would corrupt it.
+                if (move != null && remap != null) {
+                    // Cached heights describe other rows now; re-measuring is the cheapest fix.
+                    for (viewIndex in 0 until blocks.itemsCount) {
+                        if (remap(viewIndex) != viewIndex) state.rowHeightsPx.remove(viewIndex)
+                    }
+                    state.remapRowPositions(remap)
+                }
+            }
+        } else {
+            null
+        }
+    // The nested within-block column reports its gesture once, at drop: apply the row move then
+    // settle it, with the same remap and paged-refusal handling as the whole-block hook.
+    val onRowMoveWithinBlock: ((fromView: Int, toView: Int) -> Unit)? =
+        if (withinBlockEnabled) {
+            { fromView, toView ->
+                blocks.applyRowMoveWithinBlock(fromView, toView)
+                val remap = blocks.gestureRemap()
+                val move = blocks.settleWithinBlock()
+                if (move != null && remap != null) {
+                    for (viewIndex in 0 until blocks.itemsCount) {
+                        if (remap(viewIndex) != viewIndex) state.rowHeightsPx.remove(viewIndex)
+                    }
+                    state.remapRowPositions(remap)
+                }
+            }
+        } else {
+            null
+        }
+    // The engine keeps a per-item scope longer than any composition of this body — and across a
+    // TableState swap — so the scope gets stable lambdas that read the current hooks at gesture time.
+    val currentOnBlockDragStarted = rememberUpdatedState(onBlockDragStarted)
+    val currentOnBlockDragStopped = rememberUpdatedState(onBlockDragStopped)
+    val currentOnRowMoveWithinBlock = rememberUpdatedState(onRowMoveWithinBlock)
 
     LazyColumn(
         modifier = modifier,
         state = verticalState,
         userScrollEnabled = enableScrolling,
     ) {
-        items(count = itemsCount, key = { index -> rowKey(itemAt(index), index) }) { index ->
-            val key = rowKey(itemAt(index), index)
+        // Everything the drag reads about the permutation — unit boundaries, item, block id, key —
+        // must come from ONE snapshot read; state.rowUnits can lag it by a frame under a fast drag.
+        val snap = blocks?.snapshot
+        val units = snap?.units ?: rowUnits
+        val unitItemAt: (Int) -> T? = if (snap != null) snap::itemAt else itemAt
+        items(
+            count = units.unitCount,
+            key = { unit ->
+                val leader = units.rowsOf(unit).first
+                if (snap != null) snap.keyAt(leader) else rowKey(itemAt(leader), leader)
+            },
+        ) { unit ->
+            val rows = units.rowsOf(unit)
+            val isGroup = units.isGroup(unit)
+            // Units only; the footer is a separate lazy item and never a group, so the bound keeps
+            // the lookup in range and a trailing block still draws its closing gap above the footer.
+            val nextIsGroup = unit < units.unitCount - 1 && units.isGroup(unit + 1)
+            val blockId = if (isGroup) snap?.blockIdAt(rows.first) else null
+            val key = if (snap != null) snap.keyAt(rows.first) else rowKey(itemAt(rows.first), rows.first)
+            // Stable per-row key for the nested within-block column's node identity — drawn from the
+            // same snapshot as everything else the drag reads.
+            val rowKeyAt: (Int) -> Any = { i -> if (snap != null) snap.keyAt(i) else rowKey(itemAt(i), i) }
             val currentReorderState = reorderState
             if (currentReorderState != null) {
                 ReorderableItem(state = currentReorderState, key = key) {
                     val rowScope: TableItemScope =
                         remember(this) {
-                            TableItemDragScope(this)
+                            TableItemDragScope(
+                                this,
+                                onDragStartedHook = { currentOnBlockDragStarted.value?.invoke() },
+                                onDragStoppedHook = { currentOnBlockDragStopped.value?.invoke() },
+                            )
                         }
                     context(rowScope) {
-                        TableBodyRow(
-                            index = index,
-                            itemAt = itemAt,
+                        RowUnit(
+                            rows = rows,
+                            isGroup = isGroup,
+                            nextIsGroup = nextIsGroup,
+                            blockId = blockId,
+                            blockHeader = blocks?.config?.blockHeader,
+                            onRowMoveWithinBlock =
+                                if (withinBlockEnabled) {
+                                    { fromView, toView -> currentOnRowMoveWithinBlock.value?.invoke(fromView, toView) }
+                                } else {
+                                    null
+                                },
+                            onWithinBlockDragStarted = { currentOnBlockDragStarted.value?.invoke() },
+                            rowKeyAt = rowKeyAt,
+                            withinBlockRefusalCount = blocks?.refusedDropCount ?: 0,
+                            itemAt = unitItemAt,
                             visibleColumns = visibleColumns,
                             state = state,
                             colors = colors,
@@ -98,9 +211,17 @@ internal fun <T : Any, C, E> TableBody(
                 }
             } else {
                 context(DefaultTableItemScope) {
-                    TableBodyRow(
-                        index = index,
-                        itemAt = itemAt,
+                    RowUnit(
+                        rows = rows,
+                        isGroup = isGroup,
+                        nextIsGroup = nextIsGroup,
+                        blockId = blockId,
+                        blockHeader = blocks?.config?.blockHeader,
+                        onRowMoveWithinBlock = null,
+                        onWithinBlockDragStarted = null,
+                        rowKeyAt = rowKeyAt,
+                        withinBlockRefusalCount = blocks?.refusedDropCount ?: 0,
+                        itemAt = unitItemAt,
                         visibleColumns = visibleColumns,
                         state = state,
                         colors = colors,
@@ -176,33 +297,137 @@ internal fun <T : Any, C, E> TableBodyEmbedded(
     onRowClick: ((T) -> Unit)?,
     onRowLongClick: ((T) -> Unit)?,
     onRowMove: ((fromIndex: Int, toIndex: Int) -> Unit)?,
+    blocks: RowBlocksState<T>?,
     onContextMenu: ((T, Offset) -> Unit)?,
+    rowUnits: RowUnitIndex,
     horizontalState: ScrollState,
     requestTableFocus: () -> Unit,
 ) {
     if (itemsCount <= 0 && !state.settings.showFooter) return
 
-    val rowMoveCallback = onRowMove
-    val rowReorderEnabled = state.settings.isRowReorderEnabled && rowMoveCallback != null
-    val itemList = remember(itemsCount, itemAt) { IndexedListAdapter(itemsCount, itemAt) }
+    // With blocks the drag is managed: units are blocks, so per-row onRowMove cannot apply. A block
+    // table drags when it can move whole blocks or reorder rows within one; neither = display-only.
+    val rowReorderEnabled =
+        state.settings.isRowReorderEnabled &&
+            (
+                if (blocks != null) {
+                    blocks.config.onCommit != null || blocks.config.onRowReorderWithinBlock != null
+                } else {
+                    onRowMove != null
+                }
+            )
+    val withinBlockEnabled =
+        rowReorderEnabled && blocks != null && blocks.config.onRowReorderWithinBlock != null
+
+    // One element per drag unit, holding that unit's leading item. `ReorderableColumn` keys its drag
+    // state on this list by equality, so elements must track items (not unit indices, which never
+    // change) and must never be memoized (a stale snapshot would mask rebuilds the engine needs).
+    val unitList: List<T?> =
+        EmbeddedUnitList(
+            List(rowUnits.unitCount) { unit -> itemAt(rowUnits.rowsOf(unit).first) },
+            blocks?.refusedDropCount ?: 0,
+        )
+
+    // `ReorderableColumn` captures `onSettle` once and never refreshes it, so route through the
+    // state: equal leaders can hide a changed `rowUnits`, and a captured callback would then
+    // translate units against a stale index.
+    val settleUnits: (List<T?>, Int, Int) -> Unit = settle@{ engineUnits, fromUnit, toUnit ->
+        // Unit indices mean nothing outside the list the engine laid out: a rebuilt engine can still
+        // deliver the dead gesture's settle, and applying it would commit a move nobody made.
+        if (engineUnits != unitList) return@settle
+        if (blocks != null) {
+            // The embedded engine reports the gesture's net result once, at drop, so the commit
+            // settles in this same callback.
+            blocks.applyUnitMove(fromUnit, toUnit)
+            // Read the displacement before settle() — settling forgets the pre-gesture order.
+            val remap = blocks.gestureRemap()
+            val move = blocks.settle()
+            // A refused drop snaps the model back; remapping positional state through the dead
+            // gesture's displacement would corrupt it.
+            if (move != null && remap != null) {
+                // Cached heights describe other rows now; re-measuring is the cheapest fix.
+                for (viewIndex in 0 until blocks.itemsCount) {
+                    if (remap(viewIndex) != viewIndex) state.rowHeightsPx.remove(viewIndex)
+                }
+                state.remapRowPositions(remap)
+            }
+        } else {
+            onRowMove?.invoke(rowUnits.rowsOf(fromUnit).first, rowUnits.rowsOf(toUnit).first)
+        }
+    }
+    val currentSettleUnits = rememberUpdatedState(settleUnits)
+
+    // An edit in flight validates against row positions that are about to shift.
+    val onBlockDragStarted: (() -> Unit)? =
+        if (blocks != null) {
+            {
+                if (!state.tryCompleteEditing()) state.cancelEditing()
+            }
+        } else {
+            null
+        }
+    val currentOnBlockDragStarted = rememberUpdatedState(onBlockDragStarted)
+
+    // The nested within-block column reports its gesture once, at drop: apply the row move then
+    // settle it, with the same remap and paged-refusal handling as the whole-block path.
+    val onRowMoveWithinBlock: ((fromView: Int, toView: Int) -> Unit)? =
+        if (withinBlockEnabled) {
+            { fromView, toView ->
+                blocks.applyRowMoveWithinBlock(fromView, toView)
+                val remap = blocks.gestureRemap()
+                val move = blocks.settleWithinBlock()
+                if (move != null && remap != null) {
+                    for (viewIndex in 0 until blocks.itemsCount) {
+                        if (remap(viewIndex) != viewIndex) state.rowHeightsPx.remove(viewIndex)
+                    }
+                    state.remapRowPositions(remap)
+                }
+            }
+        } else {
+            null
+        }
+    val currentOnRowMoveWithinBlock = rememberUpdatedState(onRowMoveWithinBlock)
+
+    // Stable per-row key for the nested within-block column's node identity.
+    val rowKeyAt: (Int) -> Any = { i -> rowKey(itemAt(i), i) }
 
     Column {
         if (rowReorderEnabled) {
             ReorderableColumn(
-                list = itemList,
-                onSettle = { fromIndex, toIndex ->
-                    rowMoveCallback.invoke(fromIndex, toIndex)
-                },
-            ) { index, item, _ ->
-                key(rowKey(item, index)) {
+                list = unitList,
+                // `unitList` is captured alongside the callback: the guard in settleUnits needs to
+                // know which list THIS engine laid out, and the engine keeps the capture for life.
+                onSettle = { fromUnit, toUnit -> currentSettleUnits.value(unitList, fromUnit, toUnit) },
+            ) { unitIndex, leadingItem, _ ->
+                val rows = rowUnits.rowsOf(unitIndex)
+                val isGroup = rowUnits.isGroup(unitIndex)
+                key(rowKey(leadingItem, rows.first)) {
                     ReorderableItem {
                         val rowScope: TableItemScope =
                             remember(this) {
-                                TableItemListDragScope(this)
+                                TableItemListDragScope(
+                                    this,
+                                    onDragStartedHook = { currentOnBlockDragStarted.value?.invoke() },
+                                )
                             }
                         context(rowScope) {
-                            TableBodyRow(
-                                index = index,
+                            RowUnit(
+                                rows = rows,
+                                isGroup = isGroup,
+                                nextIsGroup =
+                                    unitIndex < rowUnits.unitCount - 1 &&
+                                        rowUnits.isGroup(unitIndex + 1),
+                                blockId = if (isGroup) blocks?.blockIdAt(rows.first) else null,
+                                blockHeader = blocks?.config?.blockHeader,
+                                onRowMoveWithinBlock =
+                                    if (withinBlockEnabled) {
+                                        { fromView, toView -> currentOnRowMoveWithinBlock.value?.invoke(fromView, toView) }
+                                    } else {
+                                        null
+                                    },
+                                onWithinBlockDragStarted = { currentOnBlockDragStarted.value?.invoke() },
+                                rowKeyAt = rowKeyAt,
+                                withinBlockRefusalCount = blocks?.refusedDropCount ?: 0,
                                 itemAt = itemAt,
                                 visibleColumns = visibleColumns,
                                 state = state,
@@ -222,10 +447,22 @@ internal fun <T : Any, C, E> TableBodyEmbedded(
                 }
             }
         } else {
-            for (index in 0 until itemsCount) {
+            for (unitIndex in 0 until rowUnits.unitCount) {
+                val rows = rowUnits.rowsOf(unitIndex)
+                val isGroup = rowUnits.isGroup(unitIndex)
                 context(DefaultTableItemScope) {
-                    TableBodyRow(
-                        index = index,
+                    RowUnit(
+                        rows = rows,
+                        isGroup = isGroup,
+                        nextIsGroup =
+                            unitIndex < rowUnits.unitCount - 1 &&
+                                rowUnits.isGroup(unitIndex + 1),
+                        blockId = if (isGroup) blocks?.blockIdAt(rows.first) else null,
+                        blockHeader = blocks?.config?.blockHeader,
+                        onRowMoveWithinBlock = null,
+                        onWithinBlockDragStarted = null,
+                        rowKeyAt = rowKeyAt,
+                        withinBlockRefusalCount = blocks?.refusedDropCount ?: 0,
                         itemAt = itemAt,
                         visibleColumns = visibleColumns,
                         state = state,
@@ -270,26 +507,14 @@ internal fun <T : Any, C, E> TableBodyEmbedded(
     }
 }
 
-private class IndexedListAdapter<T>(
-    private val itemsCount: Int,
-    private val itemAt: (Int) -> T
-) : AbstractList<T>() {
-    override val size: Int
-        get() = itemsCount
-
-    override fun get(index: Int): T {
-        require(index in 0 until itemsCount) {
-            "Index $index is out of bounds for list size $itemsCount"
-        }
-        return itemAt(index)
-    }
-}
-
 @Composable
 @Suppress("LongParameterList")
 context(_: TableItemScope)
-private fun <T : Any, C, E> TableBodyRow(
+internal fun <T : Any, C, E> TableBodyRow(
     index: Int,
+    /** Passed through to [TableRowItem]; derived by [RowUnit] from the unit snapshot that produced
+     *  [index], so row styling stays in step with the rendered position. */
+    isInRowBlock: Boolean,
     itemAt: (Int) -> T?,
     visibleColumns: ImmutableList<ColumnSpec<T, C, E>>,
     state: TableState<C>,
@@ -347,6 +572,7 @@ private fun <T : Any, C, E> TableBodyRow(
     TableRowItem(
         item = item,
         index = index,
+        isInRowBlock = isInRowBlock,
         visibleColumns = visibleColumns,
         state = state,
         colors = colors,
@@ -367,4 +593,19 @@ private fun <T : Any, C, E> TableBodyRow(
             thickness = state.dimensions.dividerThickness,
         )
     }
+}
+
+/**
+ * The embedded engine's input list. A refused drop restores the view order, so the elements alone
+ * compare equal while the engine's drag offsets still show the dropped order; folding the refusal
+ * count into equality is what forces the rebuild that clears them.
+ */
+internal class EmbeddedUnitList<E>(
+    private val elements: List<E>,
+    private val refusedDrops: Int,
+) : List<E> by elements {
+    override fun equals(other: Any?): Boolean =
+        other is EmbeddedUnitList<*> && refusedDrops == other.refusedDrops && elements == other.elements
+
+    override fun hashCode(): Int = 31 * elements.hashCode() + refusedDrops
 }

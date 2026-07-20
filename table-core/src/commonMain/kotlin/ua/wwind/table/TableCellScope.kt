@@ -19,7 +19,9 @@ import sh.calvin.reorderable.ReorderableItem
 public interface TableCellScope : TableItemScope
 
 @Stable
-internal class TableCellScopeImpl(private val delegate: TableItemScope) : TableCellScope, TableItemScope by delegate
+internal class TableCellScopeImpl(
+    delegate: TableItemScope,
+) : TableCellScope, TableItemScope by delegate
 
 @Immutable
 internal object DefaultTableCellScope : TableCellScope, TableItemScope by DefaultTableItemScope

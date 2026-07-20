@@ -14,7 +14,12 @@ public object TableDefaults {
      */
     public val NoBorder: BorderStroke = BorderStroke(0.dp, Color.Transparent)
 
-    /** Convenience factory for default [TableColors] derived from [androidx.compose.material3.MaterialTheme]. */
+    /**
+     * Convenience factory for default [TableColors] derived from [androidx.compose.material3.MaterialTheme].
+     *
+     * New parameters are appended, never inserted: every parameter here is a [Color], so inserting one
+     * would leave positional calls compiling while silently binding to the wrong colors.
+     */
     @Composable
     public fun colors(
         headerContainerColor: Color = MaterialTheme.colorScheme.surfaceContainer,
@@ -27,6 +32,8 @@ public object TableDefaults {
         footerContainerColor: Color = MaterialTheme.colorScheme.surfaceContainer,
         footerContentColor: Color =
             MaterialTheme.colorScheme.contentColorFor(footerContainerColor),
+        /** Kept [Color.Unspecified] here too: the band color resolves at draw for every construction path. */
+        rowBlockContainerColor: Color = Color.Unspecified,
     ): TableColors =
         TableColors(
             headerContainerColor = headerContainerColor,
@@ -35,6 +42,7 @@ public object TableDefaults {
             rowSelectedContainerColor = rowSelectedContainerColor,
             stripedRowContainerColor = stripedRowContainerColor,
             groupContainerColor = groupContainerColor,
+            rowBlockContainerColor = rowBlockContainerColor,
             footerContainerColor = footerContainerColor,
             footerContentColor = footerContentColor,
         )

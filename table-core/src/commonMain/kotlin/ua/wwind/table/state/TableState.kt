@@ -69,8 +69,42 @@ public class TableState<C>
 
         /**
          * Current visible columns list. Must be set externally before tableWidth is accessed.
+         *
+         * Snapshot state, because [tableWidth] derives from it: a plain field would be an untracked
+         * read, leaving the derived width frozen at whatever the first composition computed until
+         * some *other* tracked read — a [columnWidths] write — happened to invalidate it.
          */
-        internal var visibleColumns: List<ColumnSpec<*, C, *>> = emptyList()
+        internal var visibleColumns: List<ColumnSpec<*, C, *>> by mutableStateOf(emptyList())
+
+        /**
+         * Row-to-unit mapping for the current data set. Identity unless the consumer passed
+         * `rowBlocks`. Assigned by `Table` during composition, read by scroll/keyboard effects.
+         *
+         * Snapshot state, because the prefetcher reads it inside a `snapshotFlow`, which re-evaluates
+         * only on a tracked read. As a plain field it would be carried along by the `layoutInfo` read
+         * next to it — correct only for as long as something else keeps scrolling.
+         *
+         * `Table` holds the index in `remember`, and [RowUnitIndex] compares by identity, so
+         * re-assigning the same instance each recomposition is a no-op and only a genuine rebuild
+         * notifies.
+         */
+        internal var rowUnits: RowUnitIndex by mutableStateOf(RowUnitIndex.identity(0))
+
+        /**
+         * True while a non-null `rowBlocks` declaration is being ignored because [groupBy] is
+         * active. The two features describe incompatible structures over the same rows, so the
+         * library suppresses blocks instead of rendering both; this flag exists so consumers can
+         * surface that conflict in their own UI rather than have blocks vanish unexplained.
+         */
+        public var rowBlocksSuppressedByGroupBy: Boolean by mutableStateOf(false)
+            internal set
+
+        /**
+         * True while the table derives at least one row block. The column menu reads it to disable
+         * the group-by action: activating `groupBy` would silently suppress visible blocks, and a
+         * disabled item surfaces that instead of letting the feature disappear on a menu click.
+         */
+        internal var rowBlocksNonEmpty: Boolean by mutableStateOf(false)
 
         /**
          * Current table width computed from visible columns and their widths.
@@ -246,11 +280,21 @@ public class TableState<C>
             }
         }
 
-        /** Toggle or set sorting for a [column]. If [order] is null, cycles ASC -> DESC -> none. */
+        /**
+         * Toggle or set sorting for a [column]. If [order] is null, cycles ASC -> DESC -> none.
+         *
+         * A no-op while row reorder is enabled, mirroring the `initialSort` normalization in
+         * [rememberTableState]: under an active sort the view is invariant to source permutations,
+         * so drag history would be unobservable — the two features cannot both apply.
+         */
         public fun setSort(
             column: C,
             order: SortOrder? = null,
         ) {
+            if (settings.isRowReorderEnabled) {
+                settingsLogger.w { "rowReorderEnabled is incompatible with sorting; setSort is ignored." }
+                return
+            }
             sort =
                 if (order != null) {
                     SortState(column, order)
@@ -540,6 +584,22 @@ public class TableState<C>
             } else {
                 // No more editable columns - try to complete row
                 tryCompleteEditing()
+            }
+        }
+
+        /**
+         * Follows a committed block drag: positional runtime state must keep pointing at the rows
+         * it pointed at before the permutation, or selection and editing silently jump to whichever
+         * rows landed on the old positions.
+         */
+        internal fun remapRowPositions(remap: (Int) -> Int) {
+            selectedIndex = selectedIndex?.let(remap)
+            selectedCell = selectedCell?.let { it.copy(rowIndex = remap(it.rowIndex)) }
+            editingRow = editingRow?.let(remap)
+            if (checkedIndices.isNotEmpty()) {
+                val remapped = checkedIndices.map(remap)
+                checkedIndices.clear()
+                checkedIndices.addAll(remapped)
             }
         }
 

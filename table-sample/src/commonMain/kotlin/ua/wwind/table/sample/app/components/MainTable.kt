@@ -30,6 +30,9 @@ import kotlinx.coroutines.delay
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.EditableTable
 import ua.wwind.table.ExperimentalTableApi
+import ua.wwind.table.RowBlockMove
+import ua.wwind.table.RowWithinBlockMove
+import ua.wwind.table.RowBlocks
 import ua.wwind.table.config.TableCustomization
 import ua.wwind.table.filter.data.TableFilterState
 import ua.wwind.table.sample.column.PersonColumn
@@ -51,9 +54,12 @@ fun MainTable(
     onSortChanged: (SortState<PersonColumn>?) -> Unit,
     onRowMove: (fromIndex: Int, toIndex: Int) -> Unit,
     onMovementRowMove: (person: Person, fromIndex: Int, toIndex: Int) -> Unit,
+    onMovementBlockMove: (person: Person, move: RowBlockMove) -> Unit,
+    onMovementRowWithinBlockMove: (person: Person, move: RowWithinBlockMove) -> Unit,
     onRowEditStart: (Person, Int) -> Unit,
     onRowEditComplete: (Int) -> Boolean,
     onEditCancelled: (Int) -> Unit,
+    rowBlocks: RowBlocks<Person>? = null,
     useCompactMode: Boolean = false,
     enableRowReorder: Boolean = false,
     modifier: Modifier = Modifier,
@@ -120,12 +126,21 @@ fun MainTable(
                         person = person,
                         useCompactMode = useCompactMode,
                         enableRowReorder = enableRowReorder,
+                        // The embedded year-blocks demo follows the same toggle as the main table.
+                        enableRowBlocks = rowBlocks != null,
                         onRowMove = { from, to ->
                             onMovementRowMove(person, from, to)
+                        },
+                        onBlockMove = { move ->
+                            onMovementBlockMove(person, move)
+                        },
+                        onRowWithinBlockMove = { move ->
+                            onMovementRowWithinBlockMove(person, move)
                         },
                     )
                 }
             },
+            rowBlocks = rowBlocks,
             onRowMove = onRowMove,
             onRowEditStart = onRowEditStart,
             onRowEditComplete = onRowEditComplete,

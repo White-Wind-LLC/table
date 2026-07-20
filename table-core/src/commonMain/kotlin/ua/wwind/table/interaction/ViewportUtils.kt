@@ -8,7 +8,15 @@ import androidx.compose.ui.unit.dp
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.state.TableState
 
-/** Ensure that the given [index] row becomes fully visible in the viewport (supports dynamic row heights). */
+/**
+ * Ensure that the given [index] row becomes fully visible in the viewport (supports dynamic row heights).
+ *
+ * [index] is a row index; the backing `LazyColumn` is indexed by *units* (a unit is a single row or a
+ * declared group of adjacent rows), so it is translated once via [TableState.rowUnits] and the unit
+ * index is used for every `layoutInfo` lookup and scroll call. Height estimates stay keyed by row
+ * (`state.rowHeightsPx`): they under-count a group's internal gap, which is acceptable because every
+ * branch fine-tunes the final scroll from the measured `info.offset` once the target unit is visible.
+ */
 public suspend fun <C> ensureRowFullyVisible(
     index: Int,
     verticalState: LazyListState,
@@ -16,16 +24,17 @@ public suspend fun <C> ensureRowFullyVisible(
     density: Density,
     movement: Int = 0,
 ) {
+    val unitIndex = state.rowUnits.unitOf(index)
     val layout = verticalState.layoutInfo
     val visible = layout.visibleItemsInfo
     if (visible.isEmpty()) {
-        verticalState.animateScrollToItem(index)
+        verticalState.animateScrollToItem(unitIndex)
         return
     }
 
     val firstVisibleIndex = visible.first().index
     val lastVisibleIndex = visible.last().index
-    val targetInfo = visible.firstOrNull { it.index == index }
+    val targetInfo = visible.firstOrNull { it.index == unitIndex }
     val viewportHeight = (layout.viewportEndOffset - layout.viewportStartOffset).coerceAtLeast(0)
 
     if (targetInfo != null) {
@@ -39,29 +48,29 @@ public suspend fun <C> ensureRowFullyVisible(
         return
     }
 
-    if (index < firstVisibleIndex) {
+    if (unitIndex < firstVisibleIndex) {
         // If moving upward and the target is immediately above, scroll just enough to reveal it at the top.
         val prevIndex = firstVisibleIndex - 1
-        if (movement < 0 && index == prevIndex) {
+        if (movement < 0 && unitIndex == prevIndex) {
             val estimatedHeight =
                 state.rowHeightsPx[index] ?: with(density) { state.dimensions.rowHeight.toPx() }.toInt()
             val firstTop = visible.first().offset
             val delta = (firstTop - estimatedHeight)
             if (delta != 0) verticalState.animateScrollBy(delta.toFloat())
             // Fine-tune once it becomes visible
-            val info = verticalState.layoutInfo.visibleItemsInfo.firstOrNull { it.index == index }
+            val info = verticalState.layoutInfo.visibleItemsInfo.firstOrNull { it.index == unitIndex }
             if (info != null && info.offset < 0) verticalState.animateScrollBy(info.offset.toFloat())
         } else {
             // Fallback: align to top
-            verticalState.animateScrollToItem(index)
+            verticalState.animateScrollToItem(unitIndex)
         }
         return
     }
 
-    if (index > lastVisibleIndex) {
-        // If moving downward and the target is the next row after the last visible, reveal just one row.
+    if (unitIndex > lastVisibleIndex) {
+        // If moving downward and the target is the next unit after the last visible, reveal just one unit.
         val nextIndex = lastVisibleIndex + 1
-        if (movement > 0 && index == nextIndex) {
+        if (movement > 0 && unitIndex == nextIndex) {
             val estimatedHeight =
                 state.rowHeightsPx[index] ?: with(density) { state.dimensions.rowHeight.toPx() }.toInt()
             val last = visible.last()
@@ -70,7 +79,7 @@ public suspend fun <C> ensureRowFullyVisible(
             val delta = (lastBottom - desiredTop).coerceAtLeast(0)
             if (delta != 0) verticalState.animateScrollBy(delta.toFloat())
             // Fine-tune now that it's visible
-            val info = verticalState.layoutInfo.visibleItemsInfo.firstOrNull { it.index == index }
+            val info = verticalState.layoutInfo.visibleItemsInfo.firstOrNull { it.index == unitIndex }
             if (info != null) {
                 val bottom = info.offset + info.size
                 val overflow = bottom - viewportHeight
@@ -83,9 +92,11 @@ public suspend fun <C> ensureRowFullyVisible(
 
             fun heightOf(i: Int): Int = state.rowHeightsPx[i] ?: defaultHeight
 
-            // Sum heights between the last visible row and the target (excluding the target)
+            // Sum heights between the last visible row and the target (excluding the target).
+            // `lastVisibleIndex` is a unit index, so translate it back to the last row it renders
+            // before walking rows; with no groups this is exactly `lastVisibleIndex + 1`.
             var betweenSum = 0
-            var i = lastVisibleIndex + 1
+            var i = state.rowUnits.rowsOf(lastVisibleIndex).last + 1
             while (i < index) {
                 betweenSum += heightOf(i)
                 i++
@@ -99,7 +110,7 @@ public suspend fun <C> ensureRowFullyVisible(
             if (delta != 0) verticalState.animateScrollBy(delta.toFloat())
 
             // Fine-tune once it becomes visible (avoid off-by-one and dynamic height adjustments)
-            val info = verticalState.layoutInfo.visibleItemsInfo.firstOrNull { it.index == index }
+            val info = verticalState.layoutInfo.visibleItemsInfo.firstOrNull { it.index == unitIndex }
             if (info != null) {
                 val bottom = info.offset + info.size
                 val overflow = bottom - viewportHeight

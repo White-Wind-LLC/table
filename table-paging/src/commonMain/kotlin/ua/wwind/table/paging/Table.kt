@@ -7,16 +7,19 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
+import co.touchlab.kermit.Logger
 import kotlinx.collections.immutable.ImmutableList
 import ua.wwind.paging.core.PagingData
 import ua.wwind.paging.core.getOrNull
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.ExperimentalTableApi
+import ua.wwind.table.RowBlocks
 import ua.wwind.table.Table
 import ua.wwind.table.component.TableHeaderDefaults
 import ua.wwind.table.component.TableHeaderIcons
@@ -27,6 +30,33 @@ import ua.wwind.table.config.TableDefaults
 import ua.wwind.table.state.TableState
 import ua.wwind.table.strings.DefaultStrings
 import ua.wwind.table.strings.StringProvider
+
+/**
+ * Shared default for `rowKey` across both paged entry points. The core table warns when a block
+ * table runs on the default positional key, but it can only recognize its OWN default instance —
+ * internal to another module — so the adapter must recognize its default and warn itself.
+ */
+private val DefaultPagedRowKey: (Any?, Int) -> Any = { _, index -> index }
+
+/**
+ * Mirrors the core table's rowKey guard on the paged surface: `RowBlockMove` anchors are row keys,
+ * and a positional key cannot survive the move it describes — see [DefaultPagedRowKey] for why the
+ * core guard cannot fire here.
+ */
+@Composable
+private fun WarnOnDefaultRowKeyWithBlocks(
+    rowBlocks: RowBlocks<*>?,
+    rowKey: Any,
+) {
+    LaunchedEffect(rowBlocks, rowKey) {
+        if (rowBlocks != null && rowKey === DefaultPagedRowKey) {
+            Logger.w {
+                "rowBlocks requires a stable rowKey: RowBlockMove anchors are row keys, " +
+                    "and the default positional key cannot survive a move"
+            }
+        }
+    }
+}
 
 /**
  * Composable data table with paging support.
@@ -51,6 +81,13 @@ import ua.wwind.table.strings.StringProvider
  * @param rowKey stable key for rows; defaults to index
  * @param onRowClick row primary action handler
  * @param onRowLongClick optional long-press handler
+ * @param rowBlocks row blocks declared by identity ([RowBlocks.blockOf]); requires a stable
+ * [rowKey]. Bands derive over loaded adjacent runs, so a placeholder breaks a band and a partially
+ * loaded block extends as its pages arrive. Without [RowBlocks.onCommit] blocks are display-only;
+ * with it a drop commits only when its landing neighbours are loaded — against a placeholder the
+ * gesture snaps back and nothing is emitted. Apply commits in your data layer by
+ * `RowBlockMove.blockId`: a paged consumer holds no materialized list for `applyRowBlockMove`,
+ * and the data layer is what knows full block membership, including rows never loaded here.
  * @param contextMenu optional context menu host, invoked with item and absolute position
  * @param customization styling hooks for rows and cells
  * @param colors container/content colors
@@ -71,9 +108,10 @@ public fun <T : Any, C, E> Table(
     tableData: E,
     modifier: Modifier = Modifier,
     placeholderRow: (@Composable () -> Unit)? = null,
-    rowKey: (item: T?, index: Int) -> Any = { _, i -> i },
+    rowKey: (item: T?, index: Int) -> Any = DefaultPagedRowKey,
     onRowClick: ((T) -> Unit)? = null,
     onRowLongClick: ((T) -> Unit)? = null,
+    rowBlocks: RowBlocks<T>? = null,
     contextMenu: (@Composable (item: T, pos: Offset, dismiss: () -> Unit) -> Unit)? = null,
     customization: TableCustomization<T, C> = DefaultTableCustomization(),
     colors: TableColors = TableDefaults.colors(),
@@ -84,6 +122,7 @@ public fun <T : Any, C, E> Table(
     shape: Shape = RoundedCornerShape(4.dp),
     border: BorderStroke? = null,
 ) {
+    WarnOnDefaultRowKeyWithBlocks(rowBlocks, rowKey)
     val itemsCount = remember(items) { items?.data?.size ?: 0 }
     val itemAt = remember(items) { { index: Int -> items?.data?.get(index)?.getOrNull() } }
 
@@ -98,6 +137,7 @@ public fun <T : Any, C, E> Table(
         rowKey = rowKey,
         onRowClick = onRowClick,
         onRowLongClick = onRowLongClick,
+        rowBlocks = rowBlocks,
         contextMenu = contextMenu,
         customization = customization,
         colors = colors,
@@ -131,6 +171,13 @@ public fun <T : Any, C, E> Table(
  * @param rowKey stable key for rows; defaults to index
  * @param onRowClick row primary action handler
  * @param onRowLongClick optional long-press handler
+ * @param rowBlocks row blocks declared by identity ([RowBlocks.blockOf]); requires a stable
+ * [rowKey]. Bands derive over loaded adjacent runs, so a placeholder breaks a band and a partially
+ * loaded block extends as its pages arrive. Without [RowBlocks.onCommit] blocks are display-only;
+ * with it a drop commits only when its landing neighbours are loaded — against a placeholder the
+ * gesture snaps back and nothing is emitted. Apply commits in your data layer by
+ * `RowBlockMove.blockId`: a paged consumer holds no materialized list for `applyRowBlockMove`,
+ * and the data layer is what knows full block membership, including rows never loaded here.
  * @param contextMenu optional context menu host, invoked with item and absolute position
  * @param customization styling hooks for rows and cells
  * @param colors container/content colors
@@ -150,9 +197,10 @@ public fun <T : Any, C> Table(
     columns: ImmutableList<ColumnSpec<T, C, Unit>>,
     modifier: Modifier = Modifier,
     placeholderRow: (@Composable () -> Unit)? = null,
-    rowKey: (item: T?, index: Int) -> Any = { _, i -> i },
+    rowKey: (item: T?, index: Int) -> Any = DefaultPagedRowKey,
     onRowClick: ((T) -> Unit)? = null,
     onRowLongClick: ((T) -> Unit)? = null,
+    rowBlocks: RowBlocks<T>? = null,
     contextMenu: (@Composable (item: T, pos: Offset, dismiss: () -> Unit) -> Unit)? = null,
     customization: TableCustomization<T, C> = DefaultTableCustomization(),
     colors: TableColors = TableDefaults.colors(),
@@ -163,6 +211,7 @@ public fun <T : Any, C> Table(
     shape: Shape = RoundedCornerShape(4.dp),
     border: BorderStroke? = null,
 ) {
+    WarnOnDefaultRowKeyWithBlocks(rowBlocks, rowKey)
     val itemsCount = remember(items) { items?.data?.size ?: 0 }
     val itemAt = remember(items) { { index: Int -> items?.data?.get(index)?.getOrNull() } }
 
@@ -176,6 +225,7 @@ public fun <T : Any, C> Table(
         rowKey = rowKey,
         onRowClick = onRowClick,
         onRowLongClick = onRowLongClick,
+        rowBlocks = rowBlocks,
         contextMenu = contextMenu,
         customization = customization,
         colors = colors,
