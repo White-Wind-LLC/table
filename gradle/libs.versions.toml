@@ -8,7 +8,7 @@ android-version-code = "43"
 android-compileSdk = "37"
 android-minSdk = "24"
 android-targetSdk = "37"
-agp = "9.2.1"
+agp = "9.3.0"
 
 # --- Kotlin Toolchain & Compose ---
 kotlin = "2.4.10"
