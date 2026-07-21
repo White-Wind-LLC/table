@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -54,8 +55,8 @@ internal fun <T : Any, C, E> TableViewportPrefetcher(
     val density = LocalDensity.current
 
     // Viewport metrics updated via snapshotFlow to avoid reading layoutInfo in composition
-    var viewportHeightPx by remember { mutableStateOf(0) }
-    var startIndex by remember { mutableStateOf(0) }
+    var viewportHeightPx by remember { mutableIntStateOf(0) }
+    var startIndex by remember { mutableIntStateOf(0) }
 
     LaunchedEffect(verticalState, itemsCount) {
         snapshotFlow<Pair<Int, Int>> {

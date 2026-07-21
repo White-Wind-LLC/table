@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -57,7 +58,7 @@ internal fun <T : Any, C, E> ColumnResizersOverlay(
             if (spec.resizable) {
                 // Resize handle at absolute position cumulativeX
                 var dragStartWidth by remember(spec.key) { mutableStateOf<Dp?>(null) }
-                var accumulatedDeltaPx by remember(spec.key) { mutableStateOf(0f) }
+                var accumulatedDeltaPx by remember(spec.key) { mutableFloatStateOf(0f) }
 
                 val interaction = remember(spec.key) { MutableInteractionSource() }
                 val isHovered = interaction.collectIsHoveredAsState().value

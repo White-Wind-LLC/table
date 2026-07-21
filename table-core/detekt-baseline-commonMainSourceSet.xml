@@ -11,10 +11,6 @@
     <ID>ModifierNaming:TableRowItem.kt:rowModifier: Modifier</ID>
     <ID>ModifierWithoutDefault:TableRowItem.kt:rowModifier: Modifier</ID>
     <ID>MultipleEmitters:ActiveFiltersHeader.kt:@Composable internal fun &lt;T : Any, C, E> ActiveFiltersHeader</ID>
-    <ID>MutableStateAutoboxing:ColumnResizersOverlay.kt:mutableStateOf(0f)</ID>
-    <ID>MutableStateAutoboxing:GroupStickyOverlay.kt:mutableStateOf(0)</ID>
-    <ID>MutableStateAutoboxing:RowBlocksState.kt:RowBlocksState$mutableStateOf(0)</ID>
-    <ID>MutableStateAutoboxing:TableViewportPrefetcher.kt:mutableStateOf(0)</ID>
     <ID>TooManyFunctions:RowBlocksState.kt:RowBlocksState&lt;T : Any></ID>
     <ID>TooManyFunctions:TableState.kt:TableState&lt;C></ID>
     <ID>UnusedParameter:FastBooleanFilter.kt:strings: StringProvider</ID>

@@ -2,6 +2,7 @@ package ua.wwind.table.state
 
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import co.touchlab.kermit.Logger
@@ -44,7 +45,7 @@ internal class RowBlocksState<T : Any>(
      * Folded into the embedded engine's list equality: a refused drop nets to zero over that list,
      * so only this count forces the rebuild that clears its leftover drag offsets.
      */
-    var refusedDropCount: Int by mutableStateOf(0)
+    var refusedDropCount: Int by mutableIntStateOf(0)
         private set
 
     /** Each offending id warns once, not per snapshot. */

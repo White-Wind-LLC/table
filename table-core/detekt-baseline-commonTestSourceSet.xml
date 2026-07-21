@@ -6,6 +6,5 @@
     <ID>InvalidRange:RowUnitIndexTest.kt:RowUnitIndexTest$3..2</ID>
     <ID>LargeClass:RowBlocksTableTest.kt:RowBlocksTableTest</ID>
     <ID>LoopWithTooManyJumpStatements:ApplyRowBlockMoveTest.kt:ApplyRowBlockMoveTest$while</ID>
-    <ID>MutableStateAutoboxing:RowBlocksTableTest.kt:RowBlocksTableTest$mutableStateOf(0)</ID>
   </CurrentIssues>
 </SmellBaseline>

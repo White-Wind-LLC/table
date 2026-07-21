@@ -8,6 +8,7 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -1036,7 +1037,7 @@ class RowBlocksTableTest {
             Logger.addLogWriter(writer)
             try {
                 val items = listOf(BlockRow(0, "a"), BlockRow(1, "a"))
-                var tick by mutableStateOf(0)
+                var tick by mutableIntStateOf(0)
                 setContent {
                     val columns = remember { blockColumns() }
                     val state = rememberTableState(columns = persistentListOf("handle", "name"))
