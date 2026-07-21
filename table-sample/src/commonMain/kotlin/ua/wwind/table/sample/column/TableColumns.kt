@@ -59,10 +59,11 @@ import ua.wwind.table.tableColumns
  * Create column definitions with titles, cells and optional filters for header UI.
  *
  * One `column { … }` block per column of the demo table. The `editableTableColumns` DSL is
- * declarative, so the length here is the size of the table being described, not branching logic —
- * hence the `LongMethod` suppression.
+ * declarative, so both the length and the complexity count here are the size of the table being
+ * described rather than branching logic — hence both suppressions. What conditionals there are pick
+ * compact-mode dimensions and optional per-column slots.
  */
-@Suppress("LongMethod")
+@Suppress("LongMethod", "CyclomaticComplexMethod")
 @OptIn(ExperimentalMaterial3Api::class)
 fun createTableColumns(
     onToggleMovementExpanded: (personId: Int) -> Unit,

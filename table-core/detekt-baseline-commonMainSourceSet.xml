@@ -4,7 +4,7 @@
   <CurrentIssues>
     <ID>ComposableNaming:TableFilterType.kt:CustomFilterRenderer$@Composable public fun RenderPanel: TableFilterType.CustomFilterActions</ID>
     <ID>ComposableParamOrder:DateFilter.kt:@OptIn(ExperimentalMaterial3Api::class, ExperimentalTime::class) @Composable internal fun DateField</ID>
-    <ID>ComposableParamOrder:FastFiltersRow.kt:@Composable internal fun &lt;T : Any, C, E> FastFiltersRow</ID>
+    <ID>ComposableParamOrder:FastFiltersRow.kt:@Suppress("CyclomaticComplexMethod") @Composable internal fun &lt;T : Any, C, E> FastFiltersRow</ID>
     <ID>ComposableParamOrder:FilterDropdownAnyField.kt:@OptIn(ExperimentalMaterial3Api::class) @Suppress("LongParameterList") @Composable public fun FilterDropdownAnyField</ID>
     <ID>ComposableParamOrder:FilterDropdownField.kt:@OptIn(ExperimentalMaterial3Api::class) @Suppress("LongParameterList") @Composable public fun &lt;E : Enum&lt;E>> FilterDropdownField</ID>
     <ID>ComposableParamOrder:FilterPanelActions.kt:@Composable internal fun FilterPanelActions</ID>
@@ -12,22 +12,6 @@
     <ID>ComposableParamOrder:TableCell.kt:@Composable internal fun TableCell</ID>
     <ID>ContentSlotReused:TableCell.kt:content: @Composable BoxScope.() -> Unit</ID>
     <ID>ContentTrailingLambda:MeasureUtils.kt:content: @Composable context(TableCellScope) BoxScope.(T, E) -> Unit</ID>
-    <ID>CyclomaticComplexMethod:ColumnHeaderDropdownMenuBox.kt:@Composable internal fun &lt;T : Any, C, E> ColumnHeaderDropdownMenuBox</ID>
-    <ID>CyclomaticComplexMethod:DateFilterState.kt:@OptIn(FlowPreview::class) @Composable internal fun rememberDateFilterState: DateFilterState</ID>
-    <ID>CyclomaticComplexMethod:EnumFilterState.kt:@OptIn(FlowPreview::class) @Composable internal fun &lt;T : Enum&lt;T>> rememberEnumFilterState: EnumFilterState&lt;T></ID>
-    <ID>CyclomaticComplexMethod:FastFiltersRow.kt:@Composable internal fun &lt;T : Any, C, E> FastFiltersRow</ID>
-    <ID>CyclomaticComplexMethod:FilterConstraint.kt:FilterConstraint$public fun toUiString: UiString</ID>
-    <ID>CyclomaticComplexMethod:GroupStickyOverlay.kt:@Composable @Suppress("LongParameterList") @ExperimentalTableApi internal fun &lt;T : Any, C, E> GroupStickyOverlay</ID>
-    <ID>CyclomaticComplexMethod:KeyboardNavigation.kt:private fun &lt;T : Any, C> handleNavigationKey: Boolean</ID>
-    <ID>CyclomaticComplexMethod:NumberFilterState.kt:@OptIn(FlowPreview::class) @Composable internal fun &lt;T : Number> rememberNumberFilterState: NumberFilterState&lt;T></ID>
-    <ID>CyclomaticComplexMethod:PinnedColumnState.kt:internal fun calculatePinnedColumnState: PinnedColumnState</ID>
-    <ID>CyclomaticComplexMethod:RowBlocksState.kt:RowBlocksState$fun settleWithinBlock: RowWithinBlockMove?</ID>
-    <ID>CyclomaticComplexMethod:Table.kt:@Suppress("LongParameterList") @ExperimentalTableApi @Composable public fun &lt;T : Any, C, E> EditableTable</ID>
-    <ID>CyclomaticComplexMethod:TableBody.kt:@Composable @Suppress("LongParameterList") internal fun &lt;T : Any, C, E> TableBody</ID>
-    <ID>CyclomaticComplexMethod:TableBody.kt:@Composable @Suppress("LongParameterList") internal fun &lt;T : Any, C, E> TableBodyEmbedded</ID>
-    <ID>CyclomaticComplexMethod:TableRowItem.kt:@Composable context(rowScope: TableItemScope) private fun &lt;C, T : Any, E> RenderTableRowItem</ID>
-    <ID>CyclomaticComplexMethod:TableViewportPrefetcher.kt:@Composable @Suppress("LongParameterList") internal fun &lt;T : Any, C, E> TableViewportPrefetcher</ID>
-    <ID>CyclomaticComplexMethod:UiString.kt:DefaultStrings$@Composable public override fun get: String</ID>
     <ID>LambdaParameterEventTrailing:TableRowItem.kt:onContextMenu: ((T, Offset) -> Unit)?</ID>
     <ID>LambdaParameterInRestartableEffect:BooleanFilterState.kt:onStateChange: (TableFilterState&lt;Boolean>?) -> Unit</ID>
     <ID>LambdaParameterInRestartableEffect:DateFilterState.kt:onStateChange: (TableFilterState&lt;LocalDate>?) -> Unit</ID>

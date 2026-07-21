@@ -169,98 +169,31 @@ public fun <T : Any, C, E> EditableTable(
 
     state.visibleColumns = visibleColumns
 
-    val blocksState =
-        rowBlocks?.let { blocks -> remember(blocks, rowKey) { RowBlocksState(blocks, rowKey) } }
-    // Feed the state the same snapshot this composition renders: block extents are derived here,
-    // never declared, so they cannot lag behind an asynchronously filtered list.
-    blocksState?.reconcile(itemsCount, itemAt)
-
-    // groupBy and row blocks describe two incompatible structures over one list. groupBy wins:
-    // blocks are suppressed rather than both rendered, and the conflict is surfaced through
-    // TableState instead of thrown from a menu click.
-    val rowBlocksSuppressed = blocksState != null && state.groupBy != null
-    val activeBlocks = if (rowBlocksSuppressed) null else blocksState
-    // Gate on blocksState, not activeBlocks: declaring rowBlocks retires onRowMove outright, and
-    // the groupBy suppression must not resurrect it — per-row drag appearing under a grouped view
-    // would silently swap move semantics. Suppressed blocks mean no row drag at all.
-    val effectiveOnRowMove = if (blocksState == null) onRowMove else null
-    state.rowBlocksSuppressedByGroupBy = rowBlocksSuppressed
-    state.rowBlocksNonEmpty = blocksState != null && blocksState.hasBlocks
-    LaunchedEffect(rowBlocksSuppressed) {
-        if (rowBlocksSuppressed) Logger.w { "rowBlocks ignored while groupBy is active" }
-    }
-    LaunchedEffect(rowBlocks, rowKey) {
-        if (rowBlocks != null && rowKey === DefaultRowKey) {
-            Logger.w {
-                "rowBlocks requires a stable rowKey: RowBlockMove anchors are row keys, " +
-                    "and the default positional key cannot survive a move"
-            }
-        }
-    }
-    LaunchedEffect(rowBlocks) {
-        if (rowBlocks != null && rowBlocks.onCommit != null && rowBlocks.blockHeader == null) {
-            Logger.w {
-                "RowBlocks.onCommit is set but blockHeader is null: a block's whole-block drag " +
-                    "handle lives in its header, so blocks cannot be dragged as a unit without one. " +
-                    "Provide a blockHeader, or set onCommit = null for within-block-only reordering"
-            }
-        }
-    }
-
-    // The rendered list is the blocks state's (possibly permuted) view while a gesture or an
-    // optimistic post-drop hold is in flight; it is the consumer's list otherwise.
-    val effectiveItemAt: (Int) -> T? =
-        remember(activeBlocks, itemAt) {
-            if (activeBlocks != null) activeBlocks::itemAt else itemAt
-        }
-    val effectiveRowKey: (item: T?, index: Int) -> Any =
-        remember(activeBlocks, rowKey) {
-            if (activeBlocks == null) {
-                rowKey
-            } else {
-                { item, viewIndex -> rowKey(item, activeBlocks.upstreamIndexOf(viewIndex)) }
-            }
-        }
+    val source = rememberEffectiveRowSource(state, rowBlocks, rowKey, onRowMove, itemsCount, itemAt)
+    val activeBlocks = source.blocks
+    val effectiveOnRowMove = source.onRowMove
+    val effectiveItemAt = source.itemAt
+    val effectiveRowKey = source.rowKey
+    WarnRowBlocksMisuse(rowBlocks, rowKey, source.suppressedByGroupBy)
 
     val rowUnits = activeBlocks?.units ?: remember(itemsCount) { buildRowUnitIndex(itemsCount, null) }
     state.rowUnits = rowUnits
+
+    // An embedded table has no bounded area to pin a footer against, so it always scrolls with the
+    // rows instead. Read once — the header and the body both need the same answer.
+    val showPinnedFooter = !embedded && state.settings.footerPinned && state.settings.showFooter
 
     var contextMenuState by remember { mutableStateOf(ContextMenuState<T>()) }
     val tableFocusRequester = remember { FocusRequester() }
     val coroutineScope = rememberCoroutineScope()
     val blockParentScrollConnection = rememberBlockParentScrollConnection()
     val nestedScrollDispatcher = remember { NestedScrollDispatcher() }
-    var rememberedSort by rememberSaveable { mutableStateOf<SortState<C>?>(null) }
 
     // Reset cached row heights when dataset size changes
     LaunchedEffect(itemsCount) { state.rowHeightsPx.clear() }
-    LaunchedEffect(state.sort) {
-        if (state.sort == rememberedSort) return@LaunchedEffect
-        rememberedSort = state.sort
-        if (verticalState.canScrollBackward) {
-            Logger.d { "state.sort performs scroll to top" }
-            verticalState.scrollToItem(0)
-        }
-    }
+    ScrollToTopOnSortChange(state, verticalState)
 
-    // Set edit mode callbacks. The registered wrapper outlives this composition's resolver —
-    // effectiveItemAt is rebuilt whenever activeBlocks or itemAt changes — so read it through
-    // rememberUpdatedState instead of re-registering (same trampoline as the embedded settle path).
-    val currentEffectiveItemAt = rememberUpdatedState(effectiveItemAt)
-    LaunchedEffect(state, onRowEditStart, onRowEditComplete, onEditCancelled) {
-        state.setEditCallbacks(
-            onStart =
-                onRowEditStart?.let { callback ->
-                    { rowIndex: Int ->
-                        // Edit indices are view positions, so resolve through the rendered order.
-                        val item = currentEffectiveItemAt.value(rowIndex)
-                        if (item != null) callback(item, rowIndex)
-                    }
-                },
-            onComplete = onRowEditComplete,
-            onCancel = onEditCancelled,
-        )
-    }
+    RegisterEditCallbacks(state, effectiveItemAt, onRowEditStart, onRowEditComplete, onEditCancelled)
 
     CompositionLocalProvider(
         LocalTableState provides state,
@@ -294,7 +227,7 @@ public fun <T : Any, C, E> EditableTable(
                     ).clipToBounds()
 
             val pinnedFooterHeight =
-                if (!embedded && state.settings.footerPinned && state.settings.showFooter) {
+                if (showPinnedFooter) {
                     dimensions.footerHeight + (
                         if (state.settings.showRowDividers) dimensions.dividerThickness else 0.dp
                     )
@@ -364,7 +297,7 @@ public fun <T : Any, C, E> EditableTable(
                     }
                 }
 
-                if (!embedded && state.settings.footerPinned && state.settings.showFooter) {
+                if (showPinnedFooter) {
                     PinnedFooterOverlay(
                         state = state,
                         visibleColumns = visibleColumns,

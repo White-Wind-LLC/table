@@ -8,7 +8,6 @@
     <ID>ComposableParamOrder:FormatDialogConditionTab.kt:@OptIn(ExperimentalMaterial3Api::class, ExperimentalTime::class) @Composable private fun DateField</ID>
     <ID>ComposableParamOrder:FormatDialogTabRow.kt:@Composable @Suppress("LongParameterList") public fun &lt;E, T> FormatDialogTabRow</ID>
     <ID>ComposableParamOrder:FormatDropdownField.kt:@OptIn(ExperimentalMaterial3Api::class) @Suppress("LongParameterList", "LongMethod") @Composable internal fun &lt;E : Enum&lt;E>> FormatDropdownField</ID>
-    <ID>CyclomaticComplexMethod:FormatDialog.kt:@OptIn(FlowPreview::class) @Composable public fun &lt;E : Enum&lt;E>, FILTER> FormatDialog</ID>
     <ID>ExplicitItLambdaMultipleParameters:FormatDialog.kt:{ _, it -> it.id }</ID>
     <ID>LambdaParameterInRestartableEffect:FormatDialog.kt:onRulesChanged: (ImmutableList&lt;TableFormatRule&lt;E, FILTER>>) -> Unit</ID>
     <ID>LambdaParameterInRestartableEffect:FormatDialogConditionTab.kt:onChange: (TableFilterState&lt;*>) -> Unit</ID>

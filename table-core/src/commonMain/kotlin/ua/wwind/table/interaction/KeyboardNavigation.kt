@@ -71,63 +71,61 @@ private fun <T : Any, C> handleNavigationKey(
 ): Boolean {
     val colKeys = visibleColumns.map { it.key }
     val cell = state.selectedCell
-    val currentRow = cell?.rowIndex ?: 0
-    val currentColIndex = cell?.let { colKeys.indexOf(it.column) }?.takeIf { it >= 0 } ?: 0
-    val jumpToEdge = event.isCtrlPressed || event.isMetaPressed
+    val (targetRow, targetColIndex) =
+        navigationTarget(
+            event = event,
+            itemsCount = itemsCount,
+            currentRow = cell?.rowIndex ?: 0,
+            currentColIndex = cell?.let { colKeys.indexOf(it.column) }?.takeIf { it >= 0 } ?: 0,
+            lastColIndex = colKeys.lastIndex,
+            // Ctrl/Cmd turns a step into a jump to the far edge.
+            jumpToEdge = event.isCtrlPressed || event.isMetaPressed,
+            pagedRow = { forward -> state.pagedRow(verticalState, cell?.rowIndex ?: 0, forward) },
+        ) ?: return false
+    state.moveSelectionTo(targetRow, targetColIndex, itemsCount, colKeys)
+    return true
+}
 
-    fun ensureFocus(
-        row: Int,
-        colIndex: Int,
-    ) {
-        val targetRow = row.coerceIn(0, itemsCount.coerceAtLeast(1) - 1)
-        val targetColIndex = colIndex.coerceIn(0, (colKeys.size - 1).coerceAtLeast(0))
-        val targetColKey = colKeys.getOrNull(targetColIndex) ?: return
-        state.selectCell(targetRow, targetColKey)
-        // If selection is enabled, keep selected row in sync with focused row
-        state.focusRow(targetRow)
+/**
+ * The (row, column index) the selection moves to, or null when [event] is not a navigation key.
+ *
+ * Both coordinates are unclamped — [moveSelectionTo] owns the bounds.
+ */
+@Suppress("LongParameterList")
+private fun navigationTarget(
+    event: KeyEvent,
+    itemsCount: Int,
+    currentRow: Int,
+    currentColIndex: Int,
+    lastColIndex: Int,
+    jumpToEdge: Boolean,
+    pagedRow: (forward: Boolean) -> Int,
+): Pair<Int, Int>? =
+    when (event.key) {
+        Key.DirectionRight -> currentRow to currentColIndex + 1
+        Key.DirectionLeft -> currentRow to currentColIndex - 1
+        Key.DirectionDown -> (if (jumpToEdge) itemsCount - 1 else currentRow + 1) to currentColIndex
+        Key.DirectionUp -> (if (jumpToEdge) 0 else currentRow - 1) to currentColIndex
+        Key.PageDown -> pagedRow(true) to currentColIndex
+        Key.PageUp -> pagedRow(false) to currentColIndex
+        Key.MoveHome -> if (jumpToEdge) 0 to currentColIndex else currentRow to 0
+        Key.MoveEnd -> if (jumpToEdge) itemsCount - 1 to currentColIndex else currentRow to lastColIndex
+        else -> null
     }
 
-    // Every navigation key resolves to the (row, column) the selection moves to.
-    val (targetRow, targetColIndex) =
-        when (event.key) {
-            Key.DirectionRight -> {
-                currentRow to currentColIndex + 1
-            }
-
-            Key.DirectionLeft -> {
-                currentRow to currentColIndex - 1
-            }
-
-            Key.DirectionDown -> {
-                (if (jumpToEdge) itemsCount - 1 else currentRow + 1) to currentColIndex
-            }
-
-            Key.DirectionUp -> {
-                (if (jumpToEdge) 0 else currentRow - 1) to currentColIndex
-            }
-
-            Key.PageDown -> {
-                state.pagedRow(verticalState, currentRow, forward = true) to currentColIndex
-            }
-
-            Key.PageUp -> {
-                state.pagedRow(verticalState, currentRow, forward = false) to currentColIndex
-            }
-
-            Key.MoveHome -> {
-                if (jumpToEdge) 0 to currentColIndex else currentRow to 0
-            }
-
-            Key.MoveEnd -> {
-                if (jumpToEdge) itemsCount - 1 to currentColIndex else currentRow to colKeys.lastIndex
-            }
-
-            else -> {
-                return false
-            }
-        }
-    ensureFocus(targetRow, targetColIndex)
-    return true
+/** Clamps [row]/[colIndex] into range and moves both the selected cell and the focused row there. */
+private fun <C> TableState<C>.moveSelectionTo(
+    row: Int,
+    colIndex: Int,
+    itemsCount: Int,
+    colKeys: List<C>,
+) {
+    val targetRow = row.coerceIn(0, itemsCount.coerceAtLeast(1) - 1)
+    val targetColIndex = colIndex.coerceIn(0, (colKeys.size - 1).coerceAtLeast(0))
+    val targetColKey = colKeys.getOrNull(targetColIndex) ?: return
+    selectCell(targetRow, targetColKey)
+    // If selection is enabled, keep selected row in sync with focused row
+    focusRow(targetRow)
 }
 
 /**

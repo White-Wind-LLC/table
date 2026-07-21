@@ -140,6 +140,13 @@ public interface StringProvider {
  * Default English strings for the table UI.
  */
 public object DefaultStrings : StringProvider {
+    /**
+     * One exhaustive arm per [UiString] key, each a string literal. The arms do not interact, so
+     * the complexity count is the number of strings the table has rather than branching a reader
+     * has to follow — `CyclomaticComplexMethod` is suppressed rather than fixed. Splitting the
+     * table by category would only hide which keys are covered from the compiler.
+     */
+    @Suppress("CyclomaticComplexMethod")
     @Composable
     public override fun get(key: UiString): String =
         when (key) {

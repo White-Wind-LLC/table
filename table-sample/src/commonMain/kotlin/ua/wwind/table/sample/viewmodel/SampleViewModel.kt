@@ -14,6 +14,8 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import ua.wwind.table.ExperimentalTableApi
+import ua.wwind.table.RowBlockMove
+import ua.wwind.table.RowWithinBlockMove
 import ua.wwind.table.applyRowBlockMove
 import ua.wwind.table.applyRowReorderWithinBlock
 import ua.wwind.table.filter.data.TableFilterState
@@ -24,6 +26,7 @@ import ua.wwind.table.sample.data.createDemoData
 import ua.wwind.table.sample.filter.filterTypes
 import ua.wwind.table.sample.model.Person
 import ua.wwind.table.sample.model.PersonEditState
+import ua.wwind.table.sample.model.PersonMovement
 import ua.wwind.table.sample.model.PersonTableData
 import ua.wwind.table.sample.model.movementBlockId
 import ua.wwind.table.sample.util.DefaultFormatRulesProvider
@@ -253,11 +256,13 @@ class SampleViewModel : ViewModel() {
     /**
      * Handle UI events, including editing events from table columns.
      *
-     * The single exhaustive dispatch over [SampleUiEvent]; each branch is a few lines of state
-     * update. Keeping them together is what makes the event contract readable at a glance, so
-     * `LongMethod` is suppressed rather than fixed.
+     * The single exhaustive dispatch over [SampleUiEvent]. Every branch is either a field update on
+     * the row being edited or a one-line delegation to the private handler below it, so both the
+     * length and the complexity count track the number of events in the sealed type rather than
+     * anything a reader has to follow — both rules are suppressed rather than fixed. Keeping the
+     * dispatch in one place is what makes the event contract readable at a glance.
      */
-    @Suppress("LongMethod")
+    @Suppress("LongMethod", "CyclomaticComplexMethod")
     fun onEvent(event: SampleUiEvent) {
         when (event) {
             is SampleUiEvent.StartEditing -> {
@@ -363,106 +368,15 @@ class SampleViewModel : ViewModel() {
             }
 
             is SampleUiEvent.GroupSelected -> {
-                val ids = selectedIds.value
-                if (ids.size < 2) return
-                var grouped = false
-                _people.update { currentPeople ->
-                    val anchor = currentPeople.indexOfFirst { it.id in ids }
-                    if (anchor < 0) return@update currentPeople
-
-                    // The id IS the name and must stay unique: a duplicate would fuse two blocks
-                    // into one identity. Only rows staying OUTSIDE the new block can hold a name
-                    // against it, which is what lets two whole groups merge under the leader's name.
-                    val takenGroupIds =
-                        currentPeople.filterNot { it.id in ids }.mapNotNull { it.groupId }.toSet()
-                    val groupId = uniqueGroupId(currentPeople[anchor].name, takenGroupIds)
-
-                    // A drag unit must be contiguous: blocks form over ADJACENT rows with equal
-                    // blockOf ids, so the rows are pulled together first and only then share an id.
-                    val block =
-                        currentPeople.filter { it.id in ids }.map { it.copy(groupId = groupId) }
-                    val rest = currentPeople.filterNot { it.id in ids }
-
-                    // The anchor is the FIRST selected index, so rows before it survive in `rest` and
-                    // it still points at the right slot after the removal — do not "fix" it by
-                    // shifting. Push past a group it would cut: a split run leaves two blocks sharing
-                    // one id.
-                    var insertAt = anchor.coerceAtMost(rest.size)
-                    while (
-                        insertAt > 0 && insertAt < rest.size &&
-                        rest[insertAt - 1].groupId != null &&
-                        rest[insertAt - 1].groupId == rest[insertAt].groupId
-                    ) {
-                        insertAt++
-                    }
-
-                    grouped = true
-                    rest.toMutableList().apply { addAll(insertAt, block) }
-                }
-                if (grouped) {
-                    // Grouping reorders rows, so a stale sort would fight the new order.
-                    currentSort.value = null
-                }
+                groupSelected()
             }
 
             is SampleUiEvent.UngroupSelected -> {
-                val ids = selectedIds.value
-                if (ids.isEmpty()) return
-                var ungrouped = false
-                _people.update { currentPeople ->
-                    // Only a row that is IN a group can leave one: a selected row without a group
-                    // keeps both its null id and its place.
-                    val touchedGroupIds =
-                        currentPeople.filter { it.id in ids }.mapNotNull { it.groupId }.toSet()
-                    if (touchedGroupIds.isEmpty()) return@update currentPeople
-
-                    // Clearing the id of a row mid-run would tear the block into two halves that both
-                    // keep the group's id. Dropping leavers past the group's last row keeps the rows
-                    // that stay contiguous.
-                    val lastIndexOfGroup =
-                        touchedGroupIds.associateWith { groupId ->
-                            currentPeople.indexOfLast { it.groupId == groupId }
-                        }
-                    val leavers = mutableMapOf<String, MutableList<Person>>()
-
-                    ungrouped = true
-                    buildList {
-                        currentPeople.forEachIndexed { index, person ->
-                            val groupId = person.groupId
-                            if (groupId != null && person.id in ids) {
-                                leavers.getOrPut(groupId) { mutableListOf() } +=
-                                    person.copy(groupId = null)
-                            } else {
-                                add(person)
-                            }
-                            // Flushed once the run is over, so leavers land under what is left of the
-                            // block, keeping their relative order.
-                            if (groupId != null && lastIndexOfGroup[groupId] == index) {
-                                leavers.remove(groupId)?.let { addAll(it) }
-                            }
-                        }
-                    }
-                }
-                if (ungrouped) {
-                    // Ungrouping reorders rows, so a stale sort would fight the new order.
-                    currentSort.value = null
-                }
+                ungroupSelected()
             }
 
             is SampleUiEvent.RenameGroup -> {
-                val newGroupId = event.newGroupId
-                // A blank id still groups (derivation only skips nulls), so it would leave a nameless
-                // band rather than ungroup.
-                if (newGroupId.isBlank() || newGroupId == event.groupId) return
-                // Rows keep their position: renaming must never reorder, so no sort reset either.
-                _people.update { currentPeople ->
-                    // Last line of defence behind the dialog: a taken name would fuse two groups into
-                    // one identity, so bail out rather than half-apply.
-                    if (currentPeople.any { it.groupId == newGroupId }) return@update currentPeople
-                    currentPeople.map {
-                        if (it.groupId == event.groupId) it.copy(groupId = newGroupId) else it
-                    }
-                }
+                renameGroup(event.groupId, event.newGroupId)
             }
 
             is SampleUiEvent.ClearSelection -> {
@@ -470,138 +384,301 @@ class SampleViewModel : ViewModel() {
             }
 
             is SampleUiEvent.RowMove -> {
-                var moved = false
-                _people.update { currentPeople ->
-                    if (currentPeople.size < 2) return@update currentPeople
-
-                    val sourceIndex = currentPeople.indexOfFirst { it.id == event.fromPersonId }
-                    val targetIndex = currentPeople.indexOfFirst { it.id == event.toPersonId }
-                    if (sourceIndex < 0 || targetIndex < 0 || sourceIndex == targetIndex) {
-                        return@update currentPeople
-                    }
-
-                    moved = true
-                    currentPeople.toMutableList().apply {
-                        val sourcePerson = this[sourceIndex]
-                        this[sourceIndex] = this[targetIndex]
-                        this[targetIndex] = sourcePerson
-                    }
-                }
-                if (moved) {
-                    // Same invariant as BlockMove below: an active sort is a live projection over
-                    // the source, and any projection re-pins row order — the swap would commit to
-                    // the source yet never show. Clearing the sort keeps the reorder visible.
-                    currentSort.value = null
-                }
+                moveRow(event.fromPersonId, event.toPersonId)
             }
 
             is SampleUiEvent.BlockMove -> {
-                var moved = false
-                _people.update { currentPeople ->
-                    // keyOf must mirror the table's rowKey — the move's anchors are row keys.
-                    val updated = currentPeople.toMutableList()
-                    updated.applyRowBlockMove(
-                        move = event.move,
-                        keyOf = { it.id.toString() },
-                        blockOf = { it.groupId },
-                    )
-                    // applyRowBlockMove leaves the list untouched when no anchor resolves.
-                    moved = updated != currentPeople
-                    updated
-                }
-                if (moved) {
-                    // Load-bearing, not tidiness: without this clear the live sort projection
-                    // re-pins unit order and the committed move becomes invisible.
-                    currentSort.value = null
-                }
+                moveBlock(event.move)
             }
 
             is SampleUiEvent.RowWithinBlockMove -> {
-                var moved = false
-                _people.update { currentPeople ->
-                    // keyOf must mirror the table's rowKey — the move's anchors are row keys.
-                    val updated = currentPeople.toMutableList()
-                    updated.applyRowReorderWithinBlock(
-                        move = event.move,
-                        keyOf = { it.id.toString() },
-                        blockOf = { it.groupId },
-                    )
-                    moved = updated != currentPeople
-                    updated
-                }
-                if (moved) {
-                    // Same dissolution as BlockMove: drop the live within-block sort projection so
-                    // the order just committed is not re-pinned on the next emission.
-                    currentSort.value = null
-                }
+                moveRowWithinBlock(event.move)
             }
 
             is SampleUiEvent.MovementBlockMove -> {
-                _people.update { currentPeople ->
-                    val personIndex = currentPeople.indexOfFirst { it.id == event.personId }
-                    if (personIndex < 0) return@update currentPeople
-
-                    val person = currentPeople[personIndex]
-                    val movements = person.movements.toMutableList()
-                    movements.applyRowBlockMove(
-                        move = event.move,
-                        // Mirrors the embedded table's rowKey and blockOf — see movementBlockId.
-                        keyOf = { it.date },
-                        blockOf = { it.movementBlockId },
-                    )
-                    if (movements == person.movements) return@update currentPeople
-
-                    currentPeople.toMutableList().apply {
-                        this[personIndex] = person.copy(movements = movements)
-                    }
-                }
+                moveMovementBlock(event.personId, event.move)
             }
 
             is SampleUiEvent.MovementRowWithinBlockMove -> {
-                _people.update { currentPeople ->
-                    val personIndex = currentPeople.indexOfFirst { it.id == event.personId }
-                    if (personIndex < 0) return@update currentPeople
-
-                    val person = currentPeople[personIndex]
-                    val movements = person.movements.toMutableList()
-                    movements.applyRowReorderWithinBlock(
-                        move = event.move,
-                        keyOf = { it.date },
-                        blockOf = { it.movementBlockId },
-                    )
-                    if (movements == person.movements) return@update currentPeople
-
-                    currentPeople.toMutableList().apply {
-                        this[personIndex] = person.copy(movements = movements)
-                    }
-                }
+                moveMovementRowWithinBlock(event.personId, event.move)
             }
 
             is SampleUiEvent.MovementRowMove -> {
-                _people.update { currentPeople ->
-                    val personIndex = currentPeople.indexOfFirst { it.id == event.personId }
-                    if (personIndex < 0) return@update currentPeople
+                moveMovementRow(event.personId, event.fromIndex, event.toIndex)
+            }
+        }
+    }
 
-                    val person = currentPeople[personIndex]
-                    val movements = person.movements
-                    if (
-                        movements.size < 2 ||
-                        event.fromIndex !in movements.indices ||
-                        event.toIndex !in movements.indices ||
-                        event.fromIndex == event.toIndex
-                    ) {
-                        return@update currentPeople
-                    }
+    /**
+     * Pulls the selected rows together under one block id, anchored on the first of them.
+     */
+    private fun groupSelected() {
+        val ids = selectedIds.value
+        if (ids.size < 2) return
+        var grouped = false
+        _people.update { currentPeople ->
+            val anchor = currentPeople.indexOfFirst { it.id in ids }
+            if (anchor < 0) return@update currentPeople
 
-                    val reorderedMovements =
-                        movements.toMutableList().apply {
-                            add(event.toIndex, removeAt(event.fromIndex))
-                        }
+            // The id IS the name and must stay unique: a duplicate would fuse two blocks
+            // into one identity. Only rows staying OUTSIDE the new block can hold a name
+            // against it, which is what lets two whole groups merge under the leader's name.
+            val takenGroupIds =
+                currentPeople.filterNot { it.id in ids }.mapNotNull { it.groupId }.toSet()
+            val groupId = uniqueGroupId(currentPeople[anchor].name, takenGroupIds)
 
-                    currentPeople.toMutableList().apply {
-                        this[personIndex] = person.copy(movements = reorderedMovements)
-                    }
+            // A drag unit must be contiguous: blocks form over ADJACENT rows with equal
+            // blockOf ids, so the rows are pulled together first and only then share an id.
+            val block =
+                currentPeople.filter { it.id in ids }.map { it.copy(groupId = groupId) }
+            val rest = currentPeople.filterNot { it.id in ids }
+
+            grouped = true
+            rest.toMutableList().apply { addAll(blockInsertionIndex(rest, anchor), block) }
+        }
+        if (grouped) {
+            // Grouping reorders rows, so a stale sort would fight the new order.
+            currentSort.value = null
+        }
+    }
+
+    /**
+     * Where a freshly formed block may land in [rest] without cutting an existing one.
+     *
+     * [anchor] is the FIRST selected index, so rows before it survive in [rest] and it still points
+     * at the right slot after the removal — do not "fix" it by shifting. It is then pushed past a
+     * group it would cut: a split run leaves two blocks sharing one id.
+     */
+    private fun blockInsertionIndex(
+        rest: List<Person>,
+        anchor: Int,
+    ): Int {
+        var insertAt = anchor.coerceAtMost(rest.size)
+        while (
+            insertAt > 0 && insertAt < rest.size &&
+            rest[insertAt - 1].groupId != null &&
+            rest[insertAt - 1].groupId == rest[insertAt].groupId
+        ) {
+            insertAt++
+        }
+        return insertAt
+    }
+
+    /**
+     * Drops the selected rows out of their blocks, past the last row of each block they leave.
+     */
+    private fun ungroupSelected() {
+        val ids = selectedIds.value
+        if (ids.isEmpty()) return
+        var ungrouped = false
+        _people.update { currentPeople ->
+            // Only a row that is IN a group can leave one: a selected row without a group
+            // keeps both its null id and its place.
+            val touchedGroupIds =
+                currentPeople.filter { it.id in ids }.mapNotNull { it.groupId }.toSet()
+            if (touchedGroupIds.isEmpty()) return@update currentPeople
+
+            ungrouped = true
+            withLeaversDropped(currentPeople, ids, touchedGroupIds)
+        }
+        if (ungrouped) {
+            // Ungrouping reorders rows, so a stale sort would fight the new order.
+            currentSort.value = null
+        }
+    }
+
+    /**
+     * [people] with every selected row of [touchedGroupIds] ungrouped and re-emitted after the last
+     * row of the block it left.
+     *
+     * Clearing the id of a row mid-run would tear the block into two halves that both keep the
+     * group's id. Dropping leavers past the group's last row keeps the rows that stay contiguous,
+     * and flushing per group preserves the leavers' relative order.
+     */
+    private fun withLeaversDropped(
+        people: List<Person>,
+        ids: Set<Int>,
+        touchedGroupIds: Set<String>,
+    ): List<Person> {
+        val lastIndexOfGroup =
+            touchedGroupIds.associateWith { groupId ->
+                people.indexOfLast { it.groupId == groupId }
+            }
+        val leavers = mutableMapOf<String, MutableList<Person>>()
+
+        return buildList {
+            people.forEachIndexed { index, person ->
+                val groupId = person.groupId
+                if (groupId != null && person.id in ids) {
+                    leavers.getOrPut(groupId) { mutableListOf() } += person.copy(groupId = null)
+                } else {
+                    add(person)
                 }
+                if (groupId != null && lastIndexOfGroup[groupId] == index) {
+                    leavers.remove(groupId)?.let { addAll(it) }
+                }
+            }
+        }
+    }
+
+    /** Renames a block in place. Rows keep their position, so no sort reset either. */
+    private fun renameGroup(
+        groupId: String,
+        newGroupId: String,
+    ) {
+        // A blank id still groups (derivation only skips nulls), so it would leave a nameless
+        // band rather than ungroup.
+        if (newGroupId.isBlank() || newGroupId == groupId) return
+        _people.update { currentPeople ->
+            // Last line of defence behind the dialog: a taken name would fuse two groups into
+            // one identity, so bail out rather than half-apply.
+            if (currentPeople.any { it.groupId == newGroupId }) return@update currentPeople
+            currentPeople.map {
+                if (it.groupId == groupId) it.copy(groupId = newGroupId) else it
+            }
+        }
+    }
+
+    /** Swaps two rows by person id. */
+    private fun moveRow(
+        fromPersonId: Int,
+        toPersonId: Int,
+    ) {
+        var moved = false
+        _people.update { currentPeople ->
+            if (currentPeople.size < 2) return@update currentPeople
+
+            val sourceIndex = currentPeople.indexOfFirst { it.id == fromPersonId }
+            val targetIndex = currentPeople.indexOfFirst { it.id == toPersonId }
+            if (sourceIndex < 0 || targetIndex < 0 || sourceIndex == targetIndex) {
+                return@update currentPeople
+            }
+
+            moved = true
+            currentPeople.toMutableList().apply {
+                val sourcePerson = this[sourceIndex]
+                this[sourceIndex] = this[targetIndex]
+                this[targetIndex] = sourcePerson
+            }
+        }
+        if (moved) {
+            // Same invariant as moveBlock below: an active sort is a live projection over the
+            // source, and any projection re-pins row order — the swap would commit to the source
+            // yet never show. Clearing the sort keeps the reorder visible.
+            currentSort.value = null
+        }
+    }
+
+    /** Commits a whole-block drag against the people list. */
+    private fun moveBlock(move: RowBlockMove) {
+        var moved = false
+        _people.update { currentPeople ->
+            // keyOf must mirror the table's rowKey — the move's anchors are row keys.
+            val updated = currentPeople.toMutableList()
+            updated.applyRowBlockMove(
+                move = move,
+                keyOf = { it.id.toString() },
+                blockOf = { it.groupId },
+            )
+            // applyRowBlockMove leaves the list untouched when no anchor resolves.
+            moved = updated != currentPeople
+            updated
+        }
+        if (moved) {
+            // Load-bearing, not tidiness: without this clear the live sort projection
+            // re-pins unit order and the committed move becomes invisible.
+            currentSort.value = null
+        }
+    }
+
+    /** Commits a within-block row drag against the people list. */
+    private fun moveRowWithinBlock(move: RowWithinBlockMove) {
+        var moved = false
+        _people.update { currentPeople ->
+            // keyOf must mirror the table's rowKey — the move's anchors are row keys.
+            val updated = currentPeople.toMutableList()
+            updated.applyRowReorderWithinBlock(
+                move = move,
+                keyOf = { it.id.toString() },
+                blockOf = { it.groupId },
+            )
+            moved = updated != currentPeople
+            updated
+        }
+        if (moved) {
+            // Same dissolution as moveBlock: drop the live within-block sort projection so
+            // the order just committed is not re-pinned on the next emission.
+            currentSort.value = null
+        }
+    }
+
+    /** Commits a whole-block drag inside one person's embedded movements table. */
+    private fun moveMovementBlock(
+        personId: Int,
+        move: RowBlockMove,
+    ) {
+        updateMovements(personId) { movements ->
+            movements.applyRowBlockMove(
+                move = move,
+                // Mirrors the embedded table's rowKey and blockOf — see movementBlockId.
+                keyOf = { it.date },
+                blockOf = { it.movementBlockId },
+            )
+        }
+    }
+
+    /** Commits a within-block row drag inside one person's embedded movements table. */
+    private fun moveMovementRowWithinBlock(
+        personId: Int,
+        move: RowWithinBlockMove,
+    ) {
+        updateMovements(personId) { movements ->
+            movements.applyRowReorderWithinBlock(
+                move = move,
+                keyOf = { it.date },
+                blockOf = { it.movementBlockId },
+            )
+        }
+    }
+
+    /** Moves one movement row of [personId] from [fromIndex] to [toIndex]. */
+    private fun moveMovementRow(
+        personId: Int,
+        fromIndex: Int,
+        toIndex: Int,
+    ) {
+        updateMovements(personId) { movements ->
+            if (
+                movements.size < 2 ||
+                fromIndex !in movements.indices ||
+                toIndex !in movements.indices ||
+                fromIndex == toIndex
+            ) {
+                return@updateMovements
+            }
+            movements.add(toIndex, movements.removeAt(fromIndex))
+        }
+    }
+
+    /**
+     * Applies [mutate] to a mutable copy of [personId]'s movements and writes it back, leaving the
+     * people list untouched when the person is gone or the mutation was a no-op.
+     */
+    private fun updateMovements(
+        personId: Int,
+        mutate: (MutableList<PersonMovement>) -> Unit,
+    ) {
+        _people.update { currentPeople ->
+            val personIndex = currentPeople.indexOfFirst { it.id == personId }
+            if (personIndex < 0) return@update currentPeople
+
+            val person = currentPeople[personIndex]
+            val movements = person.movements.toMutableList()
+            mutate(movements)
+            if (movements == person.movements) return@update currentPeople
+
+            currentPeople.toMutableList().apply {
+                this[personIndex] = person.copy(movements = movements)
             }
         }
     }

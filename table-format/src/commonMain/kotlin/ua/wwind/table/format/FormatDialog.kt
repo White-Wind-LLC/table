@@ -77,6 +77,13 @@ private const val RULES_CHANGE_DEBOUNCE_MS = 1_000L
 // Above this perceived brightness a background takes black text, below it white.
 private const val LUMINANCE_THRESHOLD = 0.5
 
+/**
+ * Nearly all of the complexity is optional slots: whether the dialog shows at all, the rule list
+ * versus the edit form, which action buttons a new rule gets against an existing one, and the
+ * `when` picking the current tab's content. The arms emit and return nothing, so
+ * `CyclomaticComplexMethod` is suppressed rather than fixed.
+ */
+@Suppress("CyclomaticComplexMethod")
 @OptIn(FlowPreview::class)
 @Composable
 public fun <E : Enum<E>, FILTER> FormatDialog(

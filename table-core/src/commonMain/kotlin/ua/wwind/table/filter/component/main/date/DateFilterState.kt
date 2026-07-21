@@ -13,6 +13,7 @@ import kotlinx.coroutines.delay
 import kotlinx.datetime.LocalDate
 import ua.wwind.table.filter.data.FilterConstraint
 import ua.wwind.table.filter.data.TableFilterState
+import ua.wwind.table.filter.data.isNullCheck
 
 /**
  * State holder for date filter components.
@@ -102,40 +103,7 @@ internal fun rememberDateFilterState(
             if (isEditing) {
                 delay(debounceMs)
                 isEditing = false
-
-                val values =
-                    when (editingConstraint) {
-                        FilterConstraint.BETWEEN -> {
-                            if (editingFirstDate != null && editingSecondDate != null) {
-                                listOf(editingFirstDate!!, editingSecondDate!!)
-                            } else {
-                                null
-                            }
-                        }
-
-                        FilterConstraint.IS_NULL, FilterConstraint.IS_NOT_NULL -> {
-                            emptyList()
-                        }
-
-                        else -> {
-                            editingFirstDate?.let { listOf(it) }
-                        }
-                    }
-
-                if (values == null ||
-                    (
-                        values.isEmpty() &&
-                            editingConstraint !in
-                            listOf(
-                                FilterConstraint.IS_NULL,
-                                FilterConstraint.IS_NOT_NULL,
-                            )
-                    )
-                ) {
-                    onStateChange(null)
-                } else {
-                    onStateChange(TableFilterState(editingConstraint, values))
-                }
+                emitDebouncedFilter(editingFirstDate, editingSecondDate, editingConstraint, onStateChange)
             }
         }
     }
@@ -162,30 +130,7 @@ internal fun rememberDateFilterState(
                 isEditing = true
             },
             applyFilter = {
-                val values =
-                    when (editingConstraint) {
-                        FilterConstraint.BETWEEN -> {
-                            if (editingFirstDate != null && editingSecondDate != null) {
-                                listOf(editingFirstDate!!, editingSecondDate!!)
-                            } else {
-                                null
-                            }
-                        }
-
-                        FilterConstraint.IS_NULL, FilterConstraint.IS_NOT_NULL -> {
-                            emptyList()
-                        }
-
-                        else -> {
-                            editingFirstDate?.let { listOf(it) }
-                        }
-                    }
-
-                if (values == null) {
-                    onStateChange(null)
-                } else {
-                    onStateChange(TableFilterState(editingConstraint, values))
-                }
+                emitAppliedFilter(editingFirstDate, editingSecondDate, editingConstraint, onStateChange)
                 isEditing = false
             },
             clearFilter = {
@@ -195,5 +140,69 @@ internal fun rememberDateFilterState(
                 isEditing = false
             },
         )
+    }
+}
+
+/**
+ * The values a date filter carries for [constraint], or null when the constraint needs a date the
+ * user has not picked yet. Shared by both emit paths — this half never differed between them.
+ */
+private fun dateFilterValues(
+    firstDate: LocalDate?,
+    secondDate: LocalDate?,
+    constraint: FilterConstraint,
+): List<LocalDate>? =
+    when (constraint) {
+        FilterConstraint.BETWEEN -> {
+            if (firstDate != null && secondDate != null) listOf(firstDate, secondDate) else null
+        }
+
+        FilterConstraint.IS_NULL, FilterConstraint.IS_NOT_NULL -> {
+            emptyList()
+        }
+
+        else -> {
+            firstDate?.let { listOf(it) }
+        }
+    }
+
+/**
+ * Emits the filter the debounced auto-apply path settles on.
+ *
+ * Deliberately kept separate from [emitAppliedFilter] rather than merged: the two paths do not agree
+ * today, and reconciling them is a behaviour change rather than a refactor. This one also clears the
+ * filter on an empty value list unless the constraint is IS_NULL/IS_NOT_NULL.
+ */
+private fun emitDebouncedFilter(
+    firstDate: LocalDate?,
+    secondDate: LocalDate?,
+    constraint: FilterConstraint,
+    onStateChange: (TableFilterState<LocalDate>?) -> Unit,
+) {
+    val values = dateFilterValues(firstDate, secondDate, constraint)
+    if (values == null || (values.isEmpty() && !constraint.isNullCheck())) {
+        onStateChange(null)
+    } else {
+        onStateChange(TableFilterState(constraint, values))
+    }
+}
+
+/**
+ * Emits the filter an explicit Apply settles on.
+ *
+ * See [emitDebouncedFilter] for why the two are not one function: this one clears only when the
+ * values are absent altogether, so an empty list still emits a filter.
+ */
+private fun emitAppliedFilter(
+    firstDate: LocalDate?,
+    secondDate: LocalDate?,
+    constraint: FilterConstraint,
+    onStateChange: (TableFilterState<LocalDate>?) -> Unit,
+) {
+    val values = dateFilterValues(firstDate, secondDate, constraint)
+    if (values == null) {
+        onStateChange(null)
+    } else {
+        onStateChange(TableFilterState(constraint, values))
     }
 }

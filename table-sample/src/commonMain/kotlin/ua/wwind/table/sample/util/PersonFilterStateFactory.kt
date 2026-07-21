@@ -14,10 +14,11 @@ object PersonFilterStateFactory {
      * Create a default filter state for the given column.
      *
      * One exhaustive `when` branch per column — the compiler checks the coverage, and every branch
-     * is a single construction. The length tracks the number of columns, not complexity, so
-     * `LongMethod` is suppressed rather than fixed.
+     * is a single construction. Both the length and the complexity count track the number of
+     * columns rather than anything a reader has to follow, so both rules are suppressed rather
+     * than fixed.
      */
-    @Suppress("LongMethod")
+    @Suppress("LongMethod", "CyclomaticComplexMethod")
     fun createDefaultState(column: PersonColumn): TableFilterState<*> =
         when (column) {
             PersonColumn.NAME -> {

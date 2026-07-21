@@ -14,10 +14,11 @@ object PersonSorter {
      * demo feeds it to `sortedWithinRowBlocks` while the free-sort path plain-sorts with it.
      * Returns null when [sort] is absent or the column has no ordering.
      *
-     * One exhaustive `when` branch per column, each a single `compareBy`, so `LongMethod` is
-     * suppressed rather than fixed.
+     * One exhaustive `when` branch per column, each a single `compareBy`. Both the length and the
+     * complexity count track the number of columns rather than anything a reader has to follow, so
+     * both rules are suppressed rather than fixed.
      */
-    @Suppress("LongMethod")
+    @Suppress("LongMethod", "CyclomaticComplexMethod")
     fun comparatorFor(sort: SortState<PersonColumn>?): Comparator<Person>? {
         if (sort == null) return null
 

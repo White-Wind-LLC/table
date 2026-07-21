@@ -24,6 +24,12 @@ import ua.wwind.table.state.TableState
 import ua.wwind.table.strings.UiString
 import ua.wwind.table.strings.currentStrings
 
+/**
+ * The complexity is gesture gating inside `pointerInput` and the choice of which menu entries to
+ * emit for this column — sort, group, ungroup — each a guard around an emission rather than a step
+ * in a computation. `CyclomaticComplexMethod` is suppressed rather than fixed.
+ */
+@Suppress("CyclomaticComplexMethod")
 @Composable
 internal fun <T : Any, C, E> ColumnHeaderDropdownMenuBox(
     spec: ColumnSpec<T, C, E>,

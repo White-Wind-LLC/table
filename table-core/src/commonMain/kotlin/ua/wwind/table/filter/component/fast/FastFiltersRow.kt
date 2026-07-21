@@ -34,6 +34,13 @@ import ua.wwind.table.strings.StringProvider
 
 private const val FAST_FILTER_ROW_HEIGHT = 40
 
+/**
+ * The complexity here is the `when (filterType)` that picks which fast-filter composable to emit,
+ * plus a handful of `if`s deciding whether a divider is drawn. Every arm emits and returns nothing;
+ * none of them interact. Splitting the dispatch by filter kind would add indirection without
+ * removing a decision, so `CyclomaticComplexMethod` is suppressed rather than fixed.
+ */
+@Suppress("CyclomaticComplexMethod")
 @Composable
 internal fun <T : Any, C, E> FastFiltersRow(
     visibleColumns: ImmutableList<ColumnSpec<T, C, E>>,

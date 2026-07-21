@@ -48,6 +48,7 @@ import ua.wwind.table.config.TableRowContext
 import ua.wwind.table.config.TableRowStyle
 import ua.wwind.table.config.TableSettings
 import ua.wwind.table.interaction.tableRowInteractions
+import ua.wwind.table.state.PinnedColumnState
 import ua.wwind.table.state.TableState
 import ua.wwind.table.state.calculatePinnedColumnState
 
@@ -266,40 +267,25 @@ private fun <C, T : Any, E> RenderTableRowItem(
                     horizontalState = horizontalState,
                 )
 
-            // For pinned columns, always ensure there's a solid background
-            // Use the row background color for pinned cells to prevent transparency
-            val finalCellStyle =
-                if (pinnedState.isPinned) {
-                    // Always use row background for pinned columns to ensure opacity
-                    val backgroundToUse =
-                        if (cellStyle.background != Unspecified) {
-                            cellStyle.background
-                        } else {
-                            finalRowColor
-                        }
-                    cellStyle.copy(background = backgroundToUse)
-                } else {
-                    cellStyle
-                }
-            val dividerThickness =
-                if (pinnedState.isLastLeftPinned) {
-                    dimensions.pinnedColumnDividerThickness
-                } else {
-                    dimensions.dividerThickness
-                }
+            val appearance =
+                pinnedCellAppearance(
+                    pinnedState = pinnedState,
+                    cellStyle = cellStyle,
+                    rowColor = finalRowColor,
+                    dimensions = dimensions,
+                    showVerticalDividers = state.settings.showVerticalDividers,
+                )
 
             TableCell(
                 width = width,
                 height = if (isDynamicRowHeight) null else dimensions.rowHeight,
-                dividerThickness = dividerThickness,
-                cellStyle = finalCellStyle,
+                dividerThickness = appearance.dividerThickness,
+                cellStyle = appearance.cellStyle,
                 alignment = spec.alignment,
                 isSelected = isCellSelected,
                 showLeftDivider = pinnedState.isFirstRightPinned,
                 leftDividerThickness = dimensions.pinnedColumnDividerThickness,
-                showRightDivider =
-                    !pinnedState.isLastBeforeRightPinned &&
-                        (state.settings.showVerticalDividers || pinnedState.isLastLeftPinned),
+                showRightDivider = appearance.showRightDivider,
                 isPinned = pinnedState.isPinned,
                 modifier =
                     Modifier
@@ -312,13 +298,7 @@ private fun <C, T : Any, E> RenderTableRowItem(
                                 .tableRowInteractions(
                                     item = item,
                                     onFocus = {
-                                        // Try to complete editing on other row if needed; proceed only when allowed
-                                        val allowFocus =
-                                            !settings.editingEnabled ||
-                                                state.editingRow == null ||
-                                                state.editingRow == index ||
-                                                state.tryCompleteEditing()
-                                        if (allowFocus) {
+                                        if (canMoveFocusTo(state, settings, index)) {
                                             requestTableFocus()
                                             state.selectCell(index, spec.key)
                                             state.focusRow(index)
@@ -328,29 +308,8 @@ private fun <C, T : Any, E> RenderTableRowItem(
                                         state.settings.selectionMode !=
                                             SelectionMode.None,
                                     onSelect = { state.toggleSelect(index) },
-                                    onClick = {
-                                        // Determine whether we can change focus/editing first
-                                        val canProceed =
-                                            run {
-                                                if (!settings.editingEnabled) return@run true
-                                                val editingRow = state.editingRow
-                                                if (editingRow == null || editingRow == index) return@run true
-                                                // Try to finish editing of other row; result controls continuation
-                                                state.tryCompleteEditing()
-                                            }
-
-                                        if (!canProceed) return@tableRowInteractions
-
-                                        if (settings.editingEnabled && spec.editable) {
-                                            val allowed = spec.canStartEdit?.invoke(item, index) ?: true
-                                            if (allowed) {
-                                                state.startEditing(item, index, spec.key)
-                                            } else {
-                                                onRowClick?.invoke(it)
-                                            }
-                                        } else {
-                                            onRowClick?.invoke(it)
-                                        }
+                                    onClick = { clicked ->
+                                        onCellClick(state, settings, spec, item, index, clicked, onRowClick)
                                     },
                                     onLongClick = onRowLongClick,
                                     onContextMenu =
@@ -416,3 +375,89 @@ private fun <C, T : Any, E> RenderTableRowItem(
         }
     }
 }
+
+/**
+ * Whether focus may move to a cell of row [index].
+ *
+ * An edit in flight on ANOTHER row has to be completed first, and completing it can fail: an invalid
+ * row stays in edit mode rather than losing what the user typed to a stray click elsewhere.
+ */
+private fun <C> canMoveFocusTo(
+    state: TableState<C>,
+    settings: TableSettings,
+    index: Int,
+): Boolean =
+    !settings.editingEnabled ||
+        state.editingRow == null ||
+        state.editingRow == index ||
+        state.tryCompleteEditing()
+
+/**
+ * Decides what a click on a cell does: start editing it, or fall through to the row's own action.
+ *
+ * Editing wins only when the table, the column and the row all allow it — [ColumnSpec.canStartEdit]
+ * gets the final say, and a refusal is a plain row click rather than nothing at all.
+ */
+@Suppress("LongParameterList")
+private fun <T : Any, C, E> onCellClick(
+    state: TableState<C>,
+    settings: TableSettings,
+    spec: ColumnSpec<T, C, E>,
+    item: T,
+    index: Int,
+    clicked: T,
+    onRowClick: ((T) -> Unit)?,
+) {
+    if (!canMoveFocusTo(state, settings, index)) return
+    val canEdit =
+        settings.editingEnabled &&
+            spec.editable &&
+            (spec.canStartEdit?.invoke(item, index) ?: true)
+    if (canEdit) {
+        state.startEditing(item, index, spec.key)
+    } else {
+        onRowClick?.invoke(clicked)
+    }
+}
+
+/** How a cell renders, given where it sits relative to the pinned run. */
+private class PinnedCellAppearance(
+    val cellStyle: TableCellStyle,
+    val dividerThickness: Dp,
+    val showRightDivider: Boolean,
+)
+
+/**
+ * Resolves a cell's background and dividers against its pinned position.
+ *
+ * A pinned cell scrolls over its neighbours, so it must be opaque — it falls back to the row colour
+ * whenever the style leaves the background unspecified. The divider between the pinned run and the
+ * rest is thicker than an ordinary one and is drawn even when vertical dividers are off, since it is
+ * the only thing marking the seam; the last cell before a right-pinned run leaves it to that run.
+ */
+private fun pinnedCellAppearance(
+    pinnedState: PinnedColumnState,
+    cellStyle: TableCellStyle,
+    rowColor: Color,
+    dimensions: TableDimensions,
+    showVerticalDividers: Boolean,
+): PinnedCellAppearance =
+    PinnedCellAppearance(
+        cellStyle =
+            if (pinnedState.isPinned) {
+                cellStyle.copy(
+                    background = cellStyle.background.takeUnless { it == Unspecified } ?: rowColor,
+                )
+            } else {
+                cellStyle
+            },
+        dividerThickness =
+            if (pinnedState.isLastLeftPinned) {
+                dimensions.pinnedColumnDividerThickness
+            } else {
+                dimensions.dividerThickness
+            },
+        showRightDivider =
+            !pinnedState.isLastBeforeRightPinned &&
+                (showVerticalDividers || pinnedState.isLastLeftPinned),
+    )

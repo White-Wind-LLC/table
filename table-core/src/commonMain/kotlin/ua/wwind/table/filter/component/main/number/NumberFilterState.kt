@@ -104,34 +104,7 @@ internal fun <T : Number> rememberNumberFilterState(
             if (isEditing) {
                 delay(debounceMs)
                 isEditing = false
-
-                val firstValue = filter.delegate.parse(editingText)
-
-                when (editingConstraint) {
-                    FilterConstraint.BETWEEN -> {
-                        val secondValue = filter.delegate.parse(editingSecondText)
-                        if (firstValue != null &&
-                            secondValue != null &&
-                            filter.delegate.compare(firstValue, secondValue)
-                        ) {
-                            onStateChange(TableFilterState(editingConstraint, listOf(firstValue, secondValue)))
-                        } else if (editingText.isBlank() && editingSecondText.isBlank()) {
-                            onStateChange(null)
-                        }
-                    }
-
-                    else -> {
-                        val isNullConstraint = editingConstraint.isNullCheck()
-
-                        if (isNullConstraint) {
-                            onStateChange(TableFilterState(editingConstraint, emptyList()))
-                        } else if (firstValue != null) {
-                            onStateChange(TableFilterState(editingConstraint, listOf(firstValue)))
-                        } else if (editingText.isBlank()) {
-                            onStateChange(null)
-                        }
-                    }
-                }
+                emitDebouncedFilter(editingText, editingSecondText, editingConstraint, filter, onStateChange)
             }
         }
     }
@@ -162,28 +135,7 @@ internal fun <T : Number> rememberNumberFilterState(
                 isEditing = true
             },
             applyFilter = {
-                val firstValue = filter.delegate.parse(editingText)
-
-                when (editingConstraint) {
-                    FilterConstraint.BETWEEN -> {
-                        val secondValue = filter.delegate.parse(editingSecondText)
-                        if (firstValue != null && secondValue != null) {
-                            onStateChange(TableFilterState(editingConstraint, listOf(firstValue, secondValue)))
-                        }
-                    }
-
-                    else -> {
-                        val isNullConstraint = editingConstraint.isNullCheck()
-
-                        if (isNullConstraint) {
-                            onStateChange(TableFilterState(editingConstraint, emptyList()))
-                        } else if (firstValue != null) {
-                            onStateChange(TableFilterState(editingConstraint, listOf(firstValue)))
-                        } else {
-                            onStateChange(null)
-                        }
-                    }
-                }
+                emitAppliedFilter(editingText, editingSecondText, editingConstraint, filter, onStateChange)
                 isEditing = false
             },
             clearFilter = {
@@ -194,5 +146,81 @@ internal fun <T : Number> rememberNumberFilterState(
             },
             delegate = filter.delegate,
         )
+    }
+}
+
+/**
+ * Emits the filter the debounced auto-apply path settles on.
+ *
+ * Deliberately kept separate from [emitAppliedFilter] rather than merged: the two paths do not agree
+ * today, and reconciling them is a behaviour change rather than a refactor. This one rejects an
+ * inverted BETWEEN range and only clears the filter when the text is blank.
+ */
+private fun <T : Number> emitDebouncedFilter(
+    editingText: String,
+    editingSecondText: String,
+    constraint: FilterConstraint,
+    filter: TableFilterType.NumberTableFilter<T>,
+    onStateChange: (TableFilterState<T>?) -> Unit,
+) {
+    val firstValue = filter.delegate.parse(editingText)
+
+    when (constraint) {
+        FilterConstraint.BETWEEN -> {
+            val secondValue = filter.delegate.parse(editingSecondText)
+            if (firstValue != null &&
+                secondValue != null &&
+                filter.delegate.compare(firstValue, secondValue)
+            ) {
+                onStateChange(TableFilterState(constraint, listOf(firstValue, secondValue)))
+            } else if (editingText.isBlank() && editingSecondText.isBlank()) {
+                onStateChange(null)
+            }
+        }
+
+        else -> {
+            if (constraint.isNullCheck()) {
+                onStateChange(TableFilterState(constraint, emptyList()))
+            } else if (firstValue != null) {
+                onStateChange(TableFilterState(constraint, listOf(firstValue)))
+            } else if (editingText.isBlank()) {
+                onStateChange(null)
+            }
+        }
+    }
+}
+
+/**
+ * Emits the filter an explicit Apply settles on.
+ *
+ * See [emitDebouncedFilter] for why the two are not one function: this one accepts an inverted
+ * BETWEEN range and clears the filter on any unparsable text, blank or not.
+ */
+private fun <T : Number> emitAppliedFilter(
+    editingText: String,
+    editingSecondText: String,
+    constraint: FilterConstraint,
+    filter: TableFilterType.NumberTableFilter<T>,
+    onStateChange: (TableFilterState<T>?) -> Unit,
+) {
+    val firstValue = filter.delegate.parse(editingText)
+
+    when (constraint) {
+        FilterConstraint.BETWEEN -> {
+            val secondValue = filter.delegate.parse(editingSecondText)
+            if (firstValue != null && secondValue != null) {
+                onStateChange(TableFilterState(constraint, listOf(firstValue, secondValue)))
+            }
+        }
+
+        else -> {
+            if (constraint.isNullCheck()) {
+                onStateChange(TableFilterState(constraint, emptyList()))
+            } else if (firstValue != null) {
+                onStateChange(TableFilterState(constraint, listOf(firstValue)))
+            } else {
+                onStateChange(null)
+            }
+        }
     }
 }

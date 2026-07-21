@@ -26,8 +26,13 @@ import ua.wwind.table.state.TableState
 import ua.wwind.table.state.currentTableState
 import kotlin.math.min
 
+/**
+ * Most of the complexity is nothing-to-draw guards and optional slots; the rest computes how far the
+ * sticky header is pushed up by the next group's first row. Extracting the push-up sum would leave
+ * the guards behind and gain nothing, so `CyclomaticComplexMethod` is suppressed rather than fixed.
+ */
 @Composable
-@Suppress("LongParameterList")
+@Suppress("LongParameterList", "CyclomaticComplexMethod")
 @ExperimentalTableApi
 internal fun <T : Any, C, E> GroupStickyOverlay(
     itemAt: (Int) -> T?,

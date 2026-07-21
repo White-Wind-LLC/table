@@ -10,6 +10,12 @@ import ua.wwind.table.format.data.TableFormatRule
 import ua.wwind.table.sample.column.PersonColumn
 import ua.wwind.table.strings.DefaultStrings
 
+/**
+ * Forwards everything to `FormatDialog`, supplying one exhaustive `when` arm per column to label
+ * it. The complexity count is the number of columns rather than branching a reader has to follow,
+ * so `CyclomaticComplexMethod` is suppressed rather than fixed.
+ */
+@Suppress("CyclomaticComplexMethod")
 @Composable
 fun ConditionalFormattingDialog(
     showDialog: Boolean,

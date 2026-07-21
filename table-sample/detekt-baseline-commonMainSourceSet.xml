@@ -3,26 +3,16 @@
   <ManuallySuppressedIssues/>
   <CurrentIssues>
     <ID>ComplexCondition:SampleViewModel.kt:SampleViewModel$insertAt > 0 &amp;&amp; insertAt &lt; rest.size &amp;&amp; rest[insertAt - 1].groupId != null &amp;&amp; rest[insertAt - 1].groupId == rest[insertAt].groupId</ID>
-    <ID>ComplexCondition:SampleViewModel.kt:SampleViewModel$movements.size &lt; 2 || event.fromIndex !in movements.indices || event.toIndex !in movements.indices || event.fromIndex == event.toIndex</ID>
+    <ID>ComplexCondition:SampleViewModel.kt:SampleViewModel$movements.size &lt; 2 || fromIndex !in movements.indices || toIndex !in movements.indices || fromIndex == toIndex</ID>
     <ID>ComposableParamOrder:MainTable.kt:@OptIn(ExperimentalTableApi::class) @Composable fun MainTable</ID>
     <ID>ContentEmitterReturningValues:NumericRangeFilter.kt:NumericRangeFilterRenderer$@Composable override fun RenderPanel: TableFilterType.CustomFilterActions</ID>
-    <ID>CyclomaticComplexMethod:ConditionalFormattingDialog.kt:@Composable fun ConditionalFormattingDialog</ID>
-    <ID>CyclomaticComplexMethod:PersonFilterMatcher.kt:PersonFilterMatcher$fun matchesPerson: Boolean</ID>
-    <ID>CyclomaticComplexMethod:PersonFilterMatcher.kt:PersonFilterMatcher$private fun matchesDateField: Boolean</ID>
-    <ID>CyclomaticComplexMethod:PersonFilterMatcher.kt:PersonFilterMatcher$private fun matchesIntField: Boolean</ID>
-    <ID>CyclomaticComplexMethod:PersonFilterStateFactory.kt:PersonFilterStateFactory$@Suppress("LongMethod") fun createDefaultState: TableFilterState&lt;*></ID>
-    <ID>CyclomaticComplexMethod:PersonSorter.kt:PersonSorter$@Suppress("LongMethod") fun comparatorFor: Comparator&lt;Person>?</ID>
-    <ID>CyclomaticComplexMethod:SampleApp.kt:@OptIn(ExperimentalTableApi::class) @Composable fun SampleApp</ID>
-    <ID>CyclomaticComplexMethod:SampleViewModel.kt:SampleViewModel$@Suppress("LongMethod") fun onEvent</ID>
-    <ID>CyclomaticComplexMethod:TableColumns.kt:@Suppress("LongMethod") @OptIn(ExperimentalMaterial3Api::class) fun createTableColumns: ImmutableList&lt;ColumnSpec&lt;Person, PersonColumn, PersonTableData>></ID>
     <ID>LambdaParameterInRestartableEffect:MainTable.kt:onFiltersChanged: (Map&lt;PersonColumn, TableFilterState&lt;*>>) -> Unit</ID>
     <ID>LambdaParameterInRestartableEffect:MainTable.kt:onSortChanged: (SortState&lt;PersonColumn>?) -> Unit</ID>
     <ID>ParameterNaming:ConditionalFormattingDialog.kt:onRulesChanged: ( ImmutableList&lt; TableFormatRule&lt; PersonColumn, Map&lt;PersonColumn, TableFilterState&lt;*>>, >, >, ) -> Unit</ID>
     <ID>ParameterNaming:MainTable.kt:onEditCancelled: (Int) -> Unit</ID>
     <ID>ParameterNaming:MainTable.kt:onFiltersChanged: (Map&lt;PersonColumn, TableFilterState&lt;*>>) -> Unit</ID>
     <ID>ParameterNaming:MainTable.kt:onSortChanged: (SortState&lt;PersonColumn>?) -> Unit</ID>
-    <ID>ReturnCount:PersonSorter.kt:PersonSorter$@Suppress("LongMethod") fun comparatorFor: Comparator&lt;Person>?</ID>
-    <ID>ReturnCount:SampleViewModel.kt:SampleViewModel$@Suppress("LongMethod") fun onEvent</ID>
+    <ID>ReturnCount:PersonSorter.kt:PersonSorter$@Suppress("LongMethod", "CyclomaticComplexMethod") fun comparatorFor: Comparator&lt;Person>?</ID>
     <ID>TooManyFunctions:SampleViewModel.kt:SampleViewModel : ViewModel</ID>
     <ID>ViewModelInjection:SampleApp.kt:val viewModel: SampleViewModel = viewModel { SampleViewModel() }</ID>
   </CurrentIssues>

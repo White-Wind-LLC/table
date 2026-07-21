@@ -1,6 +1,5 @@
 package ua.wwind.table.sample.util
 
-import kotlinx.datetime.LocalDate
 import ua.wwind.table.filter.data.FilterConstraint
 import ua.wwind.table.filter.data.TableFilterState
 import ua.wwind.table.filter.data.isNullCheck
@@ -16,7 +15,13 @@ object PersonFilterMatcher {
     /**
      * Evaluate whether the given person matches the filter map.
      * Supports Text, Number(Int), Boolean, LocalDate filter types.
+     *
+     * One exhaustive arm per column, each naming the matcher for that field's type. The complexity
+     * count is the number of columns rather than branching a reader has to follow, so
+     * `CyclomaticComplexMethod` is suppressed rather than fixed — the alternative is a lookup map
+     * that hides the missing-column check from the compiler.
      */
+    @Suppress("CyclomaticComplexMethod")
     fun matchesPerson(
         person: Person,
         filters: Map<PersonColumn, TableFilterState<*>>,
@@ -36,17 +41,17 @@ object PersonFilterMatcher {
             val matches =
                 when (column) {
                     PersonColumn.NAME -> matchesTextField(person.name, stateAny)
-                    PersonColumn.AGE -> matchesIntField(person.age, stateAny)
+                    PersonColumn.AGE -> matchesComparableField(person.age, stateAny)
                     PersonColumn.ACTIVE -> matchesBooleanField(person.active, stateAny)
-                    PersonColumn.ID -> matchesIntField(person.id, stateAny)
+                    PersonColumn.ID -> matchesComparableField(person.id, stateAny)
                     PersonColumn.EMAIL -> matchesTextField(person.email, stateAny)
                     PersonColumn.CITY -> matchesTextField(person.city, stateAny)
                     PersonColumn.COUNTRY -> matchesTextField(person.country, stateAny)
                     PersonColumn.DEPARTMENT -> matchesTextField(person.department, stateAny)
                     PersonColumn.POSITION -> matchesPositionField(person.position, stateAny)
                     PersonColumn.SALARY -> matchesSalaryField(person.salary, stateAny)
-                    PersonColumn.RATING -> matchesIntField(person.rating, stateAny)
-                    PersonColumn.HIRE_DATE -> matchesDateField(person.hireDate, stateAny)
+                    PersonColumn.RATING -> matchesComparableField(person.rating, stateAny)
+                    PersonColumn.HIRE_DATE -> matchesComparableField(person.hireDate, stateAny)
                     PersonColumn.NOTES -> matchesTextField(person.notes, stateAny)
                     PersonColumn.AGE_GROUP -> matchesAgeGroupField(person.age, stateAny)
                     PersonColumn.EXPAND -> true
@@ -78,47 +83,31 @@ object PersonFilterMatcher {
         }
     }
 
-    private fun matchesIntField(
-        value: Int,
+    /**
+     * Ordering constraints over any comparable field. Int and LocalDate share this: the constraint
+     * set is the same and both are [Comparable], so the two used to be the same `when` written twice.
+     *
+     * A missing bound falls back to [value] itself, which makes the comparison trivially true — an
+     * incomplete range filters nothing rather than everything.
+     */
+    private fun <T : Comparable<T>> matchesComparableField(
+        value: T,
         state: TableFilterState<*>,
     ): Boolean {
-        val st = state as TableFilterState<Int>
+        @Suppress("UNCHECKED_CAST")
+        val st = state as TableFilterState<T>
         val constraint = st.constraint ?: return true
+        val first = st.values?.getOrNull(0) ?: value
 
         return when (constraint) {
-            FilterConstraint.GT -> {
-                value > (st.values?.getOrNull(0) ?: value)
-            }
-
-            FilterConstraint.GTE -> {
-                value >= (st.values?.getOrNull(0) ?: value)
-            }
-
-            FilterConstraint.LT -> {
-                value < (st.values?.getOrNull(0) ?: value)
-            }
-
-            FilterConstraint.LTE -> {
-                value <= (st.values?.getOrNull(0) ?: value)
-            }
-
-            FilterConstraint.EQUALS -> {
-                value == (st.values?.getOrNull(0) ?: value)
-            }
-
-            FilterConstraint.NOT_EQUALS -> {
-                value != (st.values?.getOrNull(0) ?: value)
-            }
-
-            FilterConstraint.BETWEEN -> {
-                val from = st.values?.getOrNull(0) ?: value
-                val to = st.values?.getOrNull(1) ?: value
-                value in from..to
-            }
-
-            else -> {
-                true
-            }
+            FilterConstraint.GT -> value > first
+            FilterConstraint.GTE -> value >= first
+            FilterConstraint.LT -> value < first
+            FilterConstraint.LTE -> value <= first
+            FilterConstraint.EQUALS -> value == first
+            FilterConstraint.NOT_EQUALS -> value != first
+            FilterConstraint.BETWEEN -> value in first..(st.values?.getOrNull(1) ?: value)
+            else -> true
         }
     }
 
@@ -165,51 +154,7 @@ object PersonFilterMatcher {
         }
 
         // Standard number filter
-        return matchesIntField(value, state)
-    }
-
-    private fun matchesDateField(
-        value: LocalDate,
-        state: TableFilterState<*>,
-    ): Boolean {
-        val st = state as TableFilterState<LocalDate>
-        val constraint = st.constraint ?: return true
-
-        return when (constraint) {
-            FilterConstraint.GT -> {
-                value > (st.values?.getOrNull(0) ?: value)
-            }
-
-            FilterConstraint.GTE -> {
-                value >= (st.values?.getOrNull(0) ?: value)
-            }
-
-            FilterConstraint.LT -> {
-                value < (st.values?.getOrNull(0) ?: value)
-            }
-
-            FilterConstraint.LTE -> {
-                value <= (st.values?.getOrNull(0) ?: value)
-            }
-
-            FilterConstraint.EQUALS -> {
-                value == (st.values?.getOrNull(0) ?: value)
-            }
-
-            FilterConstraint.NOT_EQUALS -> {
-                value != (st.values?.getOrNull(0) ?: value)
-            }
-
-            FilterConstraint.BETWEEN -> {
-                val from = st.values?.getOrNull(0) ?: value
-                val to = st.values?.getOrNull(1) ?: value
-                from <= value && value <= to
-            }
-
-            else -> {
-                true
-            }
-        }
+        return matchesComparableField(value, state)
     }
 
     private fun matchesAgeGroupField(

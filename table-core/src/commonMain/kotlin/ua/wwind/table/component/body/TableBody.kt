@@ -58,19 +58,11 @@ internal fun <T : Any, C, E> TableBody(
     modifier: Modifier = Modifier,
 ) {
     val showFooter = state.settings.showFooter && !state.settings.footerPinned
-    // With blocks the drag is managed: units are blocks, so per-row onRowMove cannot apply. A block
-    // table drags when it can move whole blocks or reorder rows within one; neither = display-only.
-    val rowReorderEnabled =
-        state.settings.isRowReorderEnabled &&
-            (
-                if (blocks != null) {
-                    blocks.config.onCommit != null || blocks.config.onRowReorderWithinBlock != null
-                } else {
-                    onRowMove != null
-                }
-            )
-    val withinBlockEnabled =
-        rowReorderEnabled && blocks != null && blocks.config.onRowReorderWithinBlock != null
+    val hooks = rowDragHooks(state, blocks, onRowMove)
+    val rowReorderEnabled = hooks.rowReorderEnabled
+    val withinBlockEnabled = hooks.withinBlockEnabled
+    val blockHeader = blocks?.config?.blockHeader
+    val withinBlockRefusalCount = blocks?.refusedDropCount ?: 0
     val reorderState =
         if (rowReorderEnabled) {
             rememberReorderableLazyListState(verticalState) { from, to ->
@@ -85,59 +77,11 @@ internal fun <T : Any, C, E> TableBody(
             null
         }
 
-    // Commit side effects ride the drag lifecycle of the handle that owns the gesture, so the
-    // event fires exactly once per completed drag no matter how many items recomposed meanwhile.
-    val onBlockDragStarted: (() -> Unit)? =
-        if (blocks != null) {
-            {
-                // An edit in flight validates against row positions that are about to shift.
-                if (!state.tryCompleteEditing()) state.cancelEditing()
-            }
-        } else {
-            null
-        }
-    val onBlockDragStopped: (() -> Unit)? =
-        if (blocks != null) {
-            {
-                // Read the displacement before settle() — settling forgets the pre-gesture order.
-                val remap = blocks.gestureRemap()
-                val move = blocks.settle()
-                // A refused drop snaps the view back; remapping positional state through the dead
-                // gesture's displacement would corrupt it.
-                if (move != null && remap != null) {
-                    // Cached heights describe other rows now; re-measuring is the cheapest fix.
-                    for (viewIndex in 0 until blocks.itemsCount) {
-                        if (remap(viewIndex) != viewIndex) state.rowHeightsPx.remove(viewIndex)
-                    }
-                    state.remapRowPositions(remap)
-                }
-            }
-        } else {
-            null
-        }
-    // The nested within-block column reports its gesture once, at drop: apply the row move then
-    // settle it, with the same remap and paged-refusal handling as the whole-block hook.
-    val onRowMoveWithinBlock: ((fromView: Int, toView: Int) -> Unit)? =
-        if (withinBlockEnabled) {
-            { fromView, toView ->
-                blocks.applyRowMoveWithinBlock(fromView, toView)
-                val remap = blocks.gestureRemap()
-                val move = blocks.settleWithinBlock()
-                if (move != null && remap != null) {
-                    for (viewIndex in 0 until blocks.itemsCount) {
-                        if (remap(viewIndex) != viewIndex) state.rowHeightsPx.remove(viewIndex)
-                    }
-                    state.remapRowPositions(remap)
-                }
-            }
-        } else {
-            null
-        }
     // The engine keeps a per-item scope longer than any composition of this body — and across a
     // TableState swap — so the scope gets stable lambdas that read the current hooks at gesture time.
-    val currentOnBlockDragStarted = rememberUpdatedState(onBlockDragStarted)
-    val currentOnBlockDragStopped = rememberUpdatedState(onBlockDragStopped)
-    val currentOnRowMoveWithinBlock = rememberUpdatedState(onRowMoveWithinBlock)
+    val currentOnBlockDragStarted = rememberUpdatedState(hooks.onBlockDragStarted)
+    val currentOnBlockDragStopped = rememberUpdatedState(hooks.onBlockDragStopped)
+    val currentOnRowMoveWithinBlock = rememberUpdatedState(hooks.onRowMoveWithinBlock)
 
     LazyColumn(
         modifier = modifier,
@@ -149,12 +93,13 @@ internal fun <T : Any, C, E> TableBody(
         val snap = blocks?.snapshot
         val units = snap?.units ?: rowUnits
         val unitItemAt: (Int) -> T? = if (snap != null) snap::itemAt else itemAt
+        // Stable per-row key, drawn from the same snapshot as everything else the drag reads. Also
+        // serves as the nested within-block column's node identity.
+        val keyOf: (Int) -> Any =
+            if (snap != null) snap::keyAt else { row -> rowKey(itemAt(row), row) }
         items(
             count = units.unitCount,
-            key = { unit ->
-                val leader = units.rowsOf(unit).first
-                if (snap != null) snap.keyAt(leader) else rowKey(itemAt(leader), leader)
-            },
+            key = { unit -> keyOf(units.rowsOf(unit).first) },
         ) { unit ->
             val rows = units.rowsOf(unit)
             val isGroup = units.isGroup(unit)
@@ -162,10 +107,7 @@ internal fun <T : Any, C, E> TableBody(
             // the lookup in range and a trailing block still draws its closing gap above the footer.
             val nextIsGroup = unit < units.unitCount - 1 && units.isGroup(unit + 1)
             val blockId = if (isGroup) snap?.blockIdAt(rows.first) else null
-            val key = if (snap != null) snap.keyAt(rows.first) else rowKey(itemAt(rows.first), rows.first)
-            // Stable per-row key for the nested within-block column's node identity — drawn from the
-            // same snapshot as everything else the drag reads.
-            val rowKeyAt: (Int) -> Any = { i -> if (snap != null) snap.keyAt(i) else rowKey(itemAt(i), i) }
+            val key = keyOf(rows.first)
             val currentReorderState = reorderState
             if (currentReorderState != null) {
                 ReorderableItem(state = currentReorderState, key = key) {
@@ -183,7 +125,7 @@ internal fun <T : Any, C, E> TableBody(
                             isGroup = isGroup,
                             nextIsGroup = nextIsGroup,
                             blockId = blockId,
-                            blockHeader = blocks?.config?.blockHeader,
+                            blockHeader = blockHeader,
                             onRowMoveWithinBlock =
                                 if (withinBlockEnabled) {
                                     { fromView, toView -> currentOnRowMoveWithinBlock.value?.invoke(fromView, toView) }
@@ -191,8 +133,8 @@ internal fun <T : Any, C, E> TableBody(
                                     null
                                 },
                             onWithinBlockDragStarted = { currentOnBlockDragStarted.value?.invoke() },
-                            rowKeyAt = rowKeyAt,
-                            withinBlockRefusalCount = blocks?.refusedDropCount ?: 0,
+                            rowKeyAt = keyOf,
+                            withinBlockRefusalCount = withinBlockRefusalCount,
                             itemAt = unitItemAt,
                             visibleColumns = visibleColumns,
                             state = state,
@@ -216,11 +158,11 @@ internal fun <T : Any, C, E> TableBody(
                         isGroup = isGroup,
                         nextIsGroup = nextIsGroup,
                         blockId = blockId,
-                        blockHeader = blocks?.config?.blockHeader,
+                        blockHeader = blockHeader,
                         onRowMoveWithinBlock = null,
                         onWithinBlockDragStarted = null,
-                        rowKeyAt = rowKeyAt,
-                        withinBlockRefusalCount = blocks?.refusedDropCount ?: 0,
+                        rowKeyAt = keyOf,
+                        withinBlockRefusalCount = withinBlockRefusalCount,
                         itemAt = unitItemAt,
                         visibleColumns = visibleColumns,
                         state = state,
@@ -305,19 +247,11 @@ internal fun <T : Any, C, E> TableBodyEmbedded(
 ) {
     if (itemsCount <= 0 && !state.settings.showFooter) return
 
-    // With blocks the drag is managed: units are blocks, so per-row onRowMove cannot apply. A block
-    // table drags when it can move whole blocks or reorder rows within one; neither = display-only.
-    val rowReorderEnabled =
-        state.settings.isRowReorderEnabled &&
-            (
-                if (blocks != null) {
-                    blocks.config.onCommit != null || blocks.config.onRowReorderWithinBlock != null
-                } else {
-                    onRowMove != null
-                }
-            )
-    val withinBlockEnabled =
-        rowReorderEnabled && blocks != null && blocks.config.onRowReorderWithinBlock != null
+    val hooks = rowDragHooks(state, blocks, onRowMove)
+    val rowReorderEnabled = hooks.rowReorderEnabled
+    val withinBlockEnabled = hooks.withinBlockEnabled
+    val blockHeader = blocks?.config?.blockHeader
+    val withinBlockRefusalCount = blocks?.refusedDropCount ?: 0
 
     // One element per drag unit, holding that unit's leading item. `ReorderableColumn` keys its drag
     // state on this list by equality, so elements must track items (not unit indices, which never
@@ -325,68 +259,18 @@ internal fun <T : Any, C, E> TableBodyEmbedded(
     val unitList: List<T?> =
         EmbeddedUnitList(
             List(rowUnits.unitCount) { unit -> itemAt(rowUnits.rowsOf(unit).first) },
-            blocks?.refusedDropCount ?: 0,
+            withinBlockRefusalCount,
         )
 
     // `ReorderableColumn` captures `onSettle` once and never refreshes it, so route through the
     // state: equal leaders can hide a changed `rowUnits`, and a captured callback would then
     // translate units against a stale index.
-    val settleUnits: (List<T?>, Int, Int) -> Unit = settle@{ engineUnits, fromUnit, toUnit ->
-        // Unit indices mean nothing outside the list the engine laid out: a rebuilt engine can still
-        // deliver the dead gesture's settle, and applying it would commit a move nobody made.
-        if (engineUnits != unitList) return@settle
-        if (blocks != null) {
-            // The embedded engine reports the gesture's net result once, at drop, so the commit
-            // settles in this same callback.
-            blocks.applyUnitMove(fromUnit, toUnit)
-            // Read the displacement before settle() — settling forgets the pre-gesture order.
-            val remap = blocks.gestureRemap()
-            val move = blocks.settle()
-            // A refused drop snaps the model back; remapping positional state through the dead
-            // gesture's displacement would corrupt it.
-            if (move != null && remap != null) {
-                // Cached heights describe other rows now; re-measuring is the cheapest fix.
-                for (viewIndex in 0 until blocks.itemsCount) {
-                    if (remap(viewIndex) != viewIndex) state.rowHeightsPx.remove(viewIndex)
-                }
-                state.remapRowPositions(remap)
-            }
-        } else {
-            onRowMove?.invoke(rowUnits.rowsOf(fromUnit).first, rowUnits.rowsOf(toUnit).first)
-        }
+    val settleUnits: (List<T?>, Int, Int) -> Unit = { engineUnits, fromUnit, toUnit ->
+        settleEmbeddedUnits(engineUnits, unitList, fromUnit, toUnit, state, blocks, rowUnits, onRowMove)
     }
     val currentSettleUnits = rememberUpdatedState(settleUnits)
-
-    // An edit in flight validates against row positions that are about to shift.
-    val onBlockDragStarted: (() -> Unit)? =
-        if (blocks != null) {
-            {
-                if (!state.tryCompleteEditing()) state.cancelEditing()
-            }
-        } else {
-            null
-        }
-    val currentOnBlockDragStarted = rememberUpdatedState(onBlockDragStarted)
-
-    // The nested within-block column reports its gesture once, at drop: apply the row move then
-    // settle it, with the same remap and paged-refusal handling as the whole-block path.
-    val onRowMoveWithinBlock: ((fromView: Int, toView: Int) -> Unit)? =
-        if (withinBlockEnabled) {
-            { fromView, toView ->
-                blocks.applyRowMoveWithinBlock(fromView, toView)
-                val remap = blocks.gestureRemap()
-                val move = blocks.settleWithinBlock()
-                if (move != null && remap != null) {
-                    for (viewIndex in 0 until blocks.itemsCount) {
-                        if (remap(viewIndex) != viewIndex) state.rowHeightsPx.remove(viewIndex)
-                    }
-                    state.remapRowPositions(remap)
-                }
-            }
-        } else {
-            null
-        }
-    val currentOnRowMoveWithinBlock = rememberUpdatedState(onRowMoveWithinBlock)
+    val currentOnBlockDragStarted = rememberUpdatedState(hooks.onBlockDragStarted)
+    val currentOnRowMoveWithinBlock = rememberUpdatedState(hooks.onRowMoveWithinBlock)
 
     // Stable per-row key for the nested within-block column's node identity.
     val rowKeyAt: (Int) -> Any = { i -> rowKey(itemAt(i), i) }
@@ -418,7 +302,7 @@ internal fun <T : Any, C, E> TableBodyEmbedded(
                                     unitIndex < rowUnits.unitCount - 1 &&
                                         rowUnits.isGroup(unitIndex + 1),
                                 blockId = if (isGroup) blocks?.blockIdAt(rows.first) else null,
-                                blockHeader = blocks?.config?.blockHeader,
+                                blockHeader = blockHeader,
                                 onRowMoveWithinBlock =
                                     if (withinBlockEnabled) {
                                         {
@@ -432,7 +316,7 @@ internal fun <T : Any, C, E> TableBodyEmbedded(
                                     },
                                 onWithinBlockDragStarted = { currentOnBlockDragStarted.value?.invoke() },
                                 rowKeyAt = rowKeyAt,
-                                withinBlockRefusalCount = blocks?.refusedDropCount ?: 0,
+                                withinBlockRefusalCount = withinBlockRefusalCount,
                                 itemAt = itemAt,
                                 visibleColumns = visibleColumns,
                                 state = state,
@@ -463,11 +347,11 @@ internal fun <T : Any, C, E> TableBodyEmbedded(
                             unitIndex < rowUnits.unitCount - 1 &&
                                 rowUnits.isGroup(unitIndex + 1),
                         blockId = if (isGroup) blocks?.blockIdAt(rows.first) else null,
-                        blockHeader = blocks?.config?.blockHeader,
+                        blockHeader = blockHeader,
                         onRowMoveWithinBlock = null,
                         onWithinBlockDragStarted = null,
                         rowKeyAt = rowKeyAt,
-                        withinBlockRefusalCount = blocks?.refusedDropCount ?: 0,
+                        withinBlockRefusalCount = withinBlockRefusalCount,
                         itemAt = itemAt,
                         visibleColumns = visibleColumns,
                         state = state,
@@ -613,4 +497,117 @@ internal class EmbeddedUnitList<E>(
         other is EmbeddedUnitList<*> && refusedDrops == other.refusedDrops && elements == other.elements
 
     override fun hashCode(): Int = 31 * elements.hashCode() + refusedDrops
+}
+
+/**
+ * Commits an embedded whole-unit drag, if [engineUnits] is still the list this body laid out.
+ *
+ * Unit indices mean nothing outside the list the engine laid out: a rebuilt engine can still deliver
+ * the dead gesture's settle, and applying it would commit a move nobody made. The embedded engine
+ * reports the gesture's net result once, at drop, so the commit settles in this same call.
+ */
+@Suppress("LongParameterList")
+private fun <T : Any, C> settleEmbeddedUnits(
+    engineUnits: List<T?>,
+    unitList: List<T?>,
+    fromUnit: Int,
+    toUnit: Int,
+    state: TableState<C>,
+    blocks: RowBlocksState<T>?,
+    rowUnits: RowUnitIndex,
+    onRowMove: ((fromIndex: Int, toIndex: Int) -> Unit)?,
+) {
+    if (engineUnits != unitList) return
+    if (blocks != null) {
+        blocks.applyUnitMove(fromUnit, toUnit)
+        blocks.settleAndRemap(state) { blocks.settle() }
+    } else {
+        onRowMove?.invoke(rowUnits.rowsOf(fromUnit).first, rowUnits.rowsOf(toUnit).first)
+    }
+}
+
+/** The drag callbacks a table body wires to its blocks state, all null when reordering is off. */
+private class RowDragHooks(
+    val rowReorderEnabled: Boolean,
+    val withinBlockEnabled: Boolean,
+    val onBlockDragStarted: (() -> Unit)?,
+    val onBlockDragStopped: (() -> Unit)?,
+    val onRowMoveWithinBlock: ((fromView: Int, toView: Int) -> Unit)?,
+)
+
+/**
+ * Resolves what the body may drag and the side effects each gesture commits.
+ *
+ * With blocks the drag is managed: units are blocks, so per-row [onRowMove] cannot apply. A block
+ * table drags when it can move whole blocks or reorder rows within one; neither = display-only.
+ *
+ * The callbacks ride the drag lifecycle of the handle that owns the gesture, so each fires exactly
+ * once per completed drag no matter how many items recomposed meanwhile.
+ */
+private fun <T : Any, C> rowDragHooks(
+    state: TableState<C>,
+    blocks: RowBlocksState<T>?,
+    onRowMove: ((fromIndex: Int, toIndex: Int) -> Unit)?,
+): RowDragHooks {
+    val rowReorderEnabled =
+        state.settings.isRowReorderEnabled &&
+            (
+                if (blocks != null) {
+                    blocks.config.onCommit != null || blocks.config.onRowReorderWithinBlock != null
+                } else {
+                    onRowMove != null
+                }
+            )
+    val withinBlockEnabled =
+        rowReorderEnabled && blocks != null && blocks.config.onRowReorderWithinBlock != null
+    return RowDragHooks(
+        rowReorderEnabled = rowReorderEnabled,
+        withinBlockEnabled = withinBlockEnabled,
+        // An edit in flight validates against row positions that are about to shift.
+        onBlockDragStarted =
+            if (blocks != null) {
+                { if (!state.tryCompleteEditing()) state.cancelEditing() }
+            } else {
+                null
+            },
+        onBlockDragStopped =
+            if (blocks != null) {
+                { blocks.settleAndRemap(state) { blocks.settle() } }
+            } else {
+                null
+            },
+        // The nested within-block column reports its gesture once, at drop: apply the row move then
+        // settle it, with the same remap and paged-refusal handling as the whole-block hook.
+        onRowMoveWithinBlock =
+            if (withinBlockEnabled) {
+                { fromView, toView ->
+                    blocks.applyRowMoveWithinBlock(fromView, toView)
+                    blocks.settleAndRemap(state) { blocks.settleWithinBlock() }
+                }
+            } else {
+                null
+            },
+    )
+}
+
+/**
+ * Ends a finished block gesture with [commitMove] and re-syncs positional state through the
+ * displacement it reports.
+ *
+ * The displacement must be read BEFORE settling — settling forgets the pre-gesture order. A refused
+ * drop snaps back and reports no move, and remapping through the dead gesture's displacement would
+ * corrupt the state it touches, so both halves have to be present before anything is rewritten.
+ */
+private fun <T : Any, C> RowBlocksState<T>.settleAndRemap(
+    state: TableState<C>,
+    commitMove: () -> Any?,
+) {
+    val remap = gestureRemap()
+    val move = commitMove()
+    if (move == null || remap == null) return
+    // Cached heights describe other rows now; re-measuring is the cheapest fix.
+    for (viewIndex in 0 until itemsCount) {
+        if (remap(viewIndex) != viewIndex) state.rowHeightsPx.remove(viewIndex)
+    }
+    state.remapRowPositions(remap)
 }

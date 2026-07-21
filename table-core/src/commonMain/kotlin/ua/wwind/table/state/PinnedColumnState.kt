@@ -37,56 +37,56 @@ internal fun calculatePinnedColumnState(
     pinnedColumnsSide: PinnedSide,
     horizontalState: ScrollState,
 ): PinnedColumnState {
-    // If all columns are pinned, then effectively none are pinned
-    val effectivePinnedCount = if (pinnedColumnsCount >= totalVisibleColumns) 0 else pinnedColumnsCount
-
+    val effectivePinnedCount = effectivePinnedCount(pinnedColumnsCount, totalVisibleColumns)
     val isPinned =
-        effectivePinnedCount > 0 &&
-            when (pinnedColumnsSide) {
-                PinnedSide.Left -> columnIndex < effectivePinnedCount
-                PinnedSide.Right -> columnIndex >= totalVisibleColumns - effectivePinnedCount
-            }
-
-    val isLastBeforeRightPinned =
-        pinnedColumnsSide == PinnedSide.Right &&
-            !isPinned &&
-            columnIndex == totalVisibleColumns - effectivePinnedCount - 1
-
-    val isLastLeftPinned =
-        pinnedColumnsSide == PinnedSide.Left &&
-            isPinned &&
-            columnIndex == effectivePinnedCount - 1
-
-    val isFirstRightPinned =
-        pinnedColumnsSide == PinnedSide.Right &&
-            isPinned &&
-            columnIndex == totalVisibleColumns - effectivePinnedCount
-
-    val zIndex = if (isPinned) 1f else 0f
-
-    val translationX =
-        if (isPinned) {
-            when (pinnedColumnsSide) {
-                PinnedSide.Left -> {
-                    horizontalState.value.toFloat()
-                }
-
-                PinnedSide.Right -> {
-                    // For the right side use a simplified formula
-                    // translationX = scroll - maxValue
-                    horizontalState.value.toFloat() - horizontalState.maxValue
-                }
-            }
-        } else {
-            0f
-        }
+        isColumnPinned(columnIndex, totalVisibleColumns, effectivePinnedCount, pinnedColumnsSide)
 
     return PinnedColumnState(
         isPinned = isPinned,
-        isLastBeforeRightPinned = isLastBeforeRightPinned,
-        isLastLeftPinned = isLastLeftPinned,
-        isFirstRightPinned = isFirstRightPinned,
-        zIndex = zIndex,
-        translationX = translationX,
+        isLastBeforeRightPinned =
+            pinnedColumnsSide == PinnedSide.Right &&
+                !isPinned &&
+                columnIndex == totalVisibleColumns - effectivePinnedCount - 1,
+        isLastLeftPinned =
+            pinnedColumnsSide == PinnedSide.Left &&
+                isPinned &&
+                columnIndex == effectivePinnedCount - 1,
+        isFirstRightPinned =
+            pinnedColumnsSide == PinnedSide.Right &&
+                isPinned &&
+                columnIndex == totalVisibleColumns - effectivePinnedCount,
+        zIndex = if (isPinned) 1f else 0f,
+        translationX = if (isPinned) pinnedTranslationX(pinnedColumnsSide, horizontalState) else 0f,
     )
 }
+
+/** Pinning every column pins none: there would be nothing left to scroll underneath them. */
+private fun effectivePinnedCount(
+    pinnedColumnsCount: Int,
+    totalVisibleColumns: Int,
+): Int = if (pinnedColumnsCount >= totalVisibleColumns) 0 else pinnedColumnsCount
+
+/** Pinned columns are the leading [effectivePinnedCount] on the left, the trailing ones on the right. */
+private fun isColumnPinned(
+    columnIndex: Int,
+    totalVisibleColumns: Int,
+    effectivePinnedCount: Int,
+    side: PinnedSide,
+): Boolean =
+    effectivePinnedCount > 0 &&
+        when (side) {
+            PinnedSide.Left -> columnIndex < effectivePinnedCount
+            PinnedSide.Right -> columnIndex >= totalVisibleColumns - effectivePinnedCount
+        }
+
+/** Offset that holds a pinned column still while the rest of the row scrolls under it. */
+private fun pinnedTranslationX(
+    side: PinnedSide,
+    horizontalState: ScrollState,
+): Float =
+    when (side) {
+        PinnedSide.Left -> horizontalState.value.toFloat()
+
+        // For the right side use a simplified formula: translationX = scroll - maxValue
+        PinnedSide.Right -> horizontalState.value.toFloat() - horizontalState.maxValue
+    }

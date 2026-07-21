@@ -67,6 +67,12 @@ import ua.wwind.table.sample.viewmodel.SampleUiEvent
 import ua.wwind.table.sample.viewmodel.SampleViewModel
 import ua.wwind.table.state.rememberTableState
 
+/**
+ * The demo shell. Its complexity is compact-mode dimension picks and optional slots — which
+ * sidebar, dialog and table features the toggles currently enable — so `CyclomaticComplexMethod`
+ * is suppressed rather than fixed.
+ */
+@Suppress("CyclomaticComplexMethod")
 @OptIn(ExperimentalTableApi::class)
 @Composable
 fun SampleApp(modifier: Modifier = Modifier) {

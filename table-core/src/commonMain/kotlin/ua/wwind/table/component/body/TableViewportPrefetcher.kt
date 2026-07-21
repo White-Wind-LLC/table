@@ -12,7 +12,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.SubcomposeLayout
+import androidx.compose.ui.layout.SubcomposeMeasureScope
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -21,6 +23,7 @@ import ua.wwind.table.DefaultTableItemScope
 import ua.wwind.table.config.RowHeightMode
 import ua.wwind.table.config.TableColors
 import ua.wwind.table.config.TableCustomization
+import ua.wwind.table.state.RowUnitIndex
 import ua.wwind.table.state.TableState
 
 /**
@@ -60,16 +63,7 @@ internal fun <T : Any, C, E> TableViewportPrefetcher(
             val viewport = (li.viewportEndOffset - li.viewportStartOffset).coerceAtLeast(0)
             // Lazy items are units; the prefetch loop below walks rows, so translate back to rows.
             val lastVisibleUnit = li.visibleItemsInfo.maxByOrNull { it.index }?.index ?: -1
-            val units = state.rowUnits
-            val nextRow =
-                when {
-                    lastVisibleUnit < 0 -> 0
-
-                    // The footer is an extra lazy item at index == unitCount; it has no rows.
-                    lastVisibleUnit >= units.unitCount -> itemsCount
-
-                    else -> units.rowsOf(lastVisibleUnit).last + 1
-                }
+            val nextRow = nextPrefetchRow(lastVisibleUnit, state.rowUnits, itemsCount)
             Pair(viewport, nextRow.coerceAtMost(itemsCount))
         }.distinctUntilChanged()
             .collect { pair ->
@@ -89,9 +83,7 @@ internal fun <T : Any, C, E> TableViewportPrefetcher(
         }
 
         val widthPx = with(density) { state.tableWidth.roundToPx() }
-        val constraints =
-            androidx.compose.ui.unit.Constraints
-                .fixedWidth(widthPx)
+        val constraints = Constraints.fixedWidth(widthPx)
 
         var total = 0
         val updates = ArrayList<Pair<Int, Int>>()
@@ -101,40 +93,30 @@ internal fun <T : Any, C, E> TableViewportPrefetcher(
             // Skip if already known
             val known = state.rowHeightsPx[i]
             val h =
-                if (known != null) {
-                    known
-                } else {
+                known ?: measureRowHeight(i, constraints) {
                     // In-block flag from the same units this row is measured against. Offscreen
                     // measurement, no live gesture, so state.rowUnits is the right source.
                     val pfUnits = state.rowUnits
-                    val pfUnit = pfUnits.unitOf(i)
-                    val measurables =
-                        subcompose(slotId = i) {
-                            context(DefaultTableItemScope) {
-                                TableRowItem(
-                                    item = itemAt(i),
-                                    index = i,
-                                    isInRowBlock = pfUnits.isGroup(pfUnit),
-                                    visibleColumns = visibleColumns,
-                                    state = state,
-                                    colors = colors,
-                                    customization = customization,
-                                    tableData = tableData,
-                                    rowEmbedded = null,
-                                    placeholderRow = placeholderRow,
-                                    onRowClick = null,
-                                    onRowLongClick = null,
-                                    onContextMenu = null,
-                                    requestTableFocus = requestTableFocus,
-                                    horizontalState = horizontalState,
-                                )
-                            }
-                        }
-                    val placeables = measurables.map { it.measure(constraints) }
-                    (placeables.maxOfOrNull { it.height } ?: 0).also { measured ->
-                        updates += i to measured
+                    context(DefaultTableItemScope) {
+                        TableRowItem(
+                            item = itemAt(i),
+                            index = i,
+                            isInRowBlock = pfUnits.isGroup(pfUnits.unitOf(i)),
+                            visibleColumns = visibleColumns,
+                            state = state,
+                            colors = colors,
+                            customization = customization,
+                            tableData = tableData,
+                            rowEmbedded = null,
+                            placeholderRow = placeholderRow,
+                            onRowClick = null,
+                            onRowLongClick = null,
+                            onContextMenu = null,
+                            requestTableFocus = requestTableFocus,
+                            horizontalState = horizontalState,
+                        )
                     }
-                }
+                }.also { measured -> updates += i to measured }
 
             total += h
             i++
@@ -149,3 +131,33 @@ internal fun <T : Any, C, E> TableViewportPrefetcher(
         pendingUpdates.forEach { (index, heightPx) -> state.updateRowHeight(index, heightPx) }
     }
 }
+
+/**
+ * First row past the visible area — where prefetching picks up.
+ *
+ * [lastVisibleUnit] is a lazy item index, and lazy items are units rather than rows, so it has to be
+ * translated back. A negative index means nothing is laid out yet.
+ */
+private fun nextPrefetchRow(
+    lastVisibleUnit: Int,
+    units: RowUnitIndex,
+    itemsCount: Int,
+): Int =
+    when {
+        lastVisibleUnit < 0 -> 0
+
+        // The footer is an extra lazy item at index == unitCount; it has no rows.
+        lastVisibleUnit >= units.unitCount -> itemsCount
+
+        else -> units.rowsOf(lastVisibleUnit).last + 1
+    }
+
+/** Subcomposes [content] offscreen under [constraints] and reports the height it measured. */
+private fun SubcomposeMeasureScope.measureRowHeight(
+    index: Int,
+    constraints: Constraints,
+    content: @Composable () -> Unit,
+): Int =
+    subcompose(slotId = index, content = content)
+        .map { it.measure(constraints) }
+        .maxOfOrNull { it.height } ?: 0

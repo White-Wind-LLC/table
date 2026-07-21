@@ -20,7 +20,15 @@ public enum class FilterConstraint {
     IS_NOT_NULL,
     ;
 
-    /** Map constraint to a UI string key. */
+    /**
+     * Map constraint to a UI string key.
+     *
+     * One exhaustive arm per constant, each a bare reference. The arms do not interact, so the
+     * complexity count is the size of this enum rather than anything a reader has to follow —
+     * `CyclomaticComplexMethod` is suppressed rather than fixed. Keeping the mapping here instead
+     * of on the constants themselves keeps `filter.data` free of a `strings` dependency.
+     */
+    @Suppress("CyclomaticComplexMethod")
     public fun toUiString(): UiString =
         when (this) {
             EQUALS -> UiString.FilterConstraintEquals

@@ -163,12 +163,7 @@ internal class RowBlocksState<T : Any>(
      * whose landing neighbour is unloaded is refused and the view snaps back.
      */
     fun settle(): RowBlockMove? {
-        val dragged = draggedRows
-        val before = preGestureOrder
-        cancelledUntilSettle = false
-        draggedRows = null
-        preGestureOrder = null
-        if (dragged == null || before == null || viewOrder == before) return null
+        val (dragged, before) = endGesture() ?: return null
         val order = viewOrder
         // The extent NOW, not at gesture start: a page loaded mid-gesture can merge members into the
         // dragged run, and the stale extent would anchor the move inside the block itself.
@@ -178,13 +173,9 @@ internal class RowBlocksState<T : Any>(
         val rows = units.rowsOf(units.unitOf(leaderView))
         val first = rows.first
         val last = rows.last
-        val afterAnchorLoaded = first == 0 || upstream[order[first - 1]] != null
-        val beforeAnchorLoaded = last == order.lastIndex || upstream[order[last + 1]] != null
-        if (!afterAnchorLoaded || !beforeAnchorLoaded) {
-            viewOrder = before
-            refusedDropCount++
-            return null
-        }
+        val afterAnchorLoaded = isAnchorLoaded(if (first == 0) null else first - 1, order)
+        val beforeAnchorLoaded = isAnchorLoaded(if (last == order.lastIndex) null else last + 1, order)
+        if (!afterAnchorLoaded || !beforeAnchorLoaded) return refuseDrop(before)
         val move =
             RowBlockMove(
                 blockId = upstream[dragged.first()]?.let(config.blockOf),
@@ -223,12 +214,7 @@ internal class RowBlocksState<T : Any>(
      * row's neighbours inside its run. Same paged refusal as [settle].
      */
     fun settleWithinBlock(): RowWithinBlockMove? {
-        val dragged = draggedRows
-        val before = preGestureOrder
-        cancelledUntilSettle = false
-        draggedRows = null
-        preGestureOrder = null
-        if (dragged == null || before == null || viewOrder == before) return null
+        val (dragged, before) = endGesture() ?: return null
         val order = viewOrder
         val movedUpstream = dragged.first()
         val movedView = order.indexOf(movedUpstream)
@@ -239,12 +225,8 @@ internal class RowBlocksState<T : Any>(
         val runRows = units.rowsOf(unit)
         val afterView = if (movedView > runRows.first) movedView - 1 else null
         val beforeView = if (movedView < runRows.last) movedView + 1 else null
-        val afterLoaded = afterView == null || upstream[order[afterView]] != null
-        val beforeLoaded = beforeView == null || upstream[order[beforeView]] != null
-        if (!afterLoaded || !beforeLoaded) {
-            viewOrder = before
-            refusedDropCount++
-            return null
+        if (!isAnchorLoaded(afterView, order) || !isAnchorLoaded(beforeView, order)) {
+            return refuseDrop(before)
         }
         val blockId = upstream[movedUpstream]?.let(config.blockOf) ?: return null
         val move =
@@ -256,6 +238,42 @@ internal class RowBlocksState<T : Any>(
             )
         config.onRowReorderWithinBlock?.invoke(move)
         return move
+    }
+
+    /**
+     * Tears the gesture down and reports the rows it dragged together with the order it started
+     * from, or null when there was no effective gesture to settle.
+     *
+     * The teardown happens before the null check on purpose: a gesture that produced no move still
+     * has to release its state, or the next drag would inherit it.
+     */
+    private fun endGesture(): Pair<List<Int>, List<Int>>? {
+        val dragged = draggedRows
+        val before = preGestureOrder
+        cancelledUntilSettle = false
+        draggedRows = null
+        preGestureOrder = null
+        if (dragged == null || before == null || viewOrder == before) return null
+        return dragged to before
+    }
+
+    /**
+     * Whether the row a move would anchor on is loaded. A null [view] means there is no neighbour
+     * on that side — the run touches the end of the list, which anchors fine.
+     */
+    private fun isAnchorLoaded(
+        view: Int?,
+        order: List<Int>,
+    ): Boolean = view == null || upstream[order[view]] != null
+
+    /**
+     * Snaps the view back to [before] and counts the refusal. A placeholder cannot anchor a move, so
+     * a drop landing next to an unloaded row is rejected outright rather than committed blind.
+     */
+    private fun refuseDrop(before: List<Int>): Nothing? {
+        viewOrder = before
+        refusedDropCount++
+        return null
     }
 
     private fun keyAt(upstreamIndex: Int): Any = rowKey(upstream[upstreamIndex], upstreamIndex)
