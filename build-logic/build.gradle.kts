@@ -27,7 +27,7 @@ dependencies {
     implementation(libs.gradle.buildkonfig)
     // Quality & Coverage plugins available to precompiled scripts
     implementation(libs.gradle.detekt)
-    implementation(libs.gradle.ktlint)
+    implementation(libs.gradle.spotless)
     implementation(libs.gradle.kover)
     implementation(libs.gradle.dokka)
     implementation(libs.gradle.maven.publish)
