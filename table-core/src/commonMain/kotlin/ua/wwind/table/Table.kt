@@ -156,7 +156,7 @@ public fun <T : Any, C, E> EditableTable(
      */
     onRowEditComplete: ((rowIndex: Int) -> Boolean)? = null,
     /** Callback when editing is cancelled */
-    onEditCancelled: ((rowIndex: Int) -> Unit)? = null,
+    onEditCancel: ((rowIndex: Int) -> Unit)? = null,
 ) {
     val dimensions = state.dimensions
     val visibleColumns by remember(columns, state.columnOrder) {
@@ -193,7 +193,7 @@ public fun <T : Any, C, E> EditableTable(
     LaunchedEffect(itemsCount) { state.rowHeightsPx.clear() }
     ScrollToTopOnSortChange(state, verticalState)
 
-    RegisterEditCallbacks(state, effectiveItemAt, onRowEditStart, onRowEditComplete, onEditCancelled)
+    RegisterEditCallbacks(state, effectiveItemAt, onRowEditStart, onRowEditComplete, onEditCancel)
 
     CompositionLocalProvider(
         LocalTableState provides state,
@@ -419,7 +419,7 @@ public fun <T : Any, C> Table(
         embedded = embedded,
         onRowEditStart = null,
         onRowEditComplete = null,
-        onEditCancelled = null,
+        onEditCancel = null,
     )
 }
 
@@ -520,7 +520,7 @@ public fun <T : Any, C, E> Table(
         embedded = embedded,
         onRowEditStart = null,
         onRowEditComplete = null,
-        onEditCancelled = null,
+        onEditCancel = null,
     )
 }
 

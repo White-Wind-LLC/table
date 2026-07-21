@@ -18,10 +18,6 @@
     <ID>MutableStateAutoboxing:GroupStickyOverlay.kt:mutableStateOf(0)</ID>
     <ID>MutableStateAutoboxing:RowBlocksState.kt:RowBlocksState$mutableStateOf(0)</ID>
     <ID>MutableStateAutoboxing:TableViewportPrefetcher.kt:mutableStateOf(0)</ID>
-    <ID>ParameterNaming:DateFilter.kt:onDateSelected: (LocalDate) -> Unit</ID>
-    <ID>ParameterNaming:MeasureUtils.kt:onMeasured: (Dp) -> Unit</ID>
-    <ID>ParameterNaming:RowUnit.kt:/** Fires once when a within-block gesture starts (edit cancellation). */ onWithinBlockDragStarted: (() -> Unit)?</ID>
-    <ID>ParameterNaming:Table.kt:/** Callback when editing is cancelled */ onEditCancelled: ((rowIndex: Int) -> Unit)? = null</ID>
     <ID>TooManyFunctions:RowBlocksState.kt:RowBlocksState&lt;T : Any></ID>
     <ID>TooManyFunctions:TableState.kt:TableState&lt;C></ID>
     <ID>UnusedParameter:FastBooleanFilter.kt:strings: StringProvider</ID>

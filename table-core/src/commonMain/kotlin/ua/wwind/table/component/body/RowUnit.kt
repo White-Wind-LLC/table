@@ -63,7 +63,7 @@ internal fun <T : Any, C, E> RowUnit(
      *  block's rows render without an inner drag engine. */
     onRowMoveWithinBlock: ((fromView: Int, toView: Int) -> Unit)?,
     /** Fires once when a within-block gesture starts (edit cancellation). */
-    onWithinBlockDragStarted: (() -> Unit)?,
+    onWithinBlockDragStart: (() -> Unit)?,
     /** Stable key for the row at a view index — feeds the nested column's Compose node identity. */
     rowKeyAt: (Int) -> Any,
     /** Bumped on every refused drop; folded into the nested column's list equality so a refusal
@@ -168,7 +168,7 @@ internal fun <T : Any, C, E> RowUnit(
                             remember(this) {
                                 TableItemListDragScope(
                                     this,
-                                    onDragStartedHook = { onWithinBlockDragStarted?.invoke() },
+                                    onDragStartedHook = { onWithinBlockDragStart?.invoke() },
                                 )
                             }
                         context(innerScope) {

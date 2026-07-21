@@ -7,7 +7,7 @@ The table supports row‑scoped cell editing with custom edit UI, validation and
 - **Table data parameter**: the generic parameter `E` represents table data (shared state) accessible in headers,
   footers, and edit cells. This allows passing validation errors, aggregated values, or any other table-wide state.
 - **Editable columns DSL**: declare columns with `editableTableColumns<T, C, E> { ... }` and per‑cell `editCell`.
-- **Callbacks**: validate and react to edit lifecycle with `onRowEditStart`, `onRowEditComplete`, `onEditCancelled`.
+- **Callbacks**: validate and react to edit lifecycle with `onRowEditStart`, `onRowEditComplete`, `onEditCancel`.
 - **Keyboard**: Enter/Done moves to the next editable cell; Escape cancels editing (desktop targets).
 
 #### TableCellTextField: text field adapted for table editing
@@ -114,7 +114,7 @@ EditableTable(
         // Validate and persist; return true to exit edit mode, false to keep editing
         true
     },
-    onEditCancelled = { rowIndex ->
+    onEditCancel = { rowIndex ->
         // Optional: revert in‑memory changes
     },
 )
@@ -162,4 +162,4 @@ Runtime behavior:
 - All editable cells in the row render their `editCell` content.
 - Press **Enter/Done** in a cell to call `onComplete()` and move to the next editable column.
 - After the last editable cell, `onRowEditComplete` is invoked; returning `false` keeps the row in edit mode.
-- Press **Escape** to cancel editing and trigger `onEditCancelled` (desktop targets).
+- Press **Escape** to cancel editing and trigger `onEditCancel` (desktop targets).

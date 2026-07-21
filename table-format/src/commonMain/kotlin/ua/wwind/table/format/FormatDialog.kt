@@ -90,7 +90,7 @@ private const val LUMINANCE_THRESHOLD = 0.5
 public fun <E : Enum<E>, FILTER> FormatDialog(
     showDialog: Boolean,
     rules: ImmutableList<TableFormatRule<E, FILTER>>,
-    onRulesChanged: (ImmutableList<TableFormatRule<E, FILTER>>) -> Unit,
+    onRulesChange: (ImmutableList<TableFormatRule<E, FILTER>>) -> Unit,
     getNewRule: (id: Long) -> TableFormatRule<E, FILTER>,
     getTitle: @Composable (E) -> String,
     filters: (TableFormatRule<E, FILTER>, onApply: (TableFormatRule<E, FILTER>) -> Unit) -> List<FormatFilterData<E>>,
@@ -143,7 +143,7 @@ public fun <E : Enum<E>, FILTER> FormatDialog(
                     if (!isNew) {
                         IconButton(
                             onClick = {
-                                onRulesChanged(
+                                onRulesChange(
                                     rules.toPersistentList().mutate { list ->
                                         list.removeAt(index)
                                     },
@@ -162,7 +162,7 @@ public fun <E : Enum<E>, FILTER> FormatDialog(
                                 val id = rules.maxByOrNull { it.id }?.id?.inc() ?: 0L
                                 val lastIndex = rules.lastIndex
                                 val itemCopy = item.copy(id = id)
-                                onRulesChanged(
+                                onRulesChange(
                                     rules.toPersistentList().mutate { list ->
                                         list.add(itemCopy)
                                     },
@@ -190,7 +190,7 @@ public fun <E : Enum<E>, FILTER> FormatDialog(
                     }
                     IconButton(
                         onClick = {
-                            onRulesChanged(
+                            onRulesChange(
                                 rules.toPersistentList().mutate { list ->
                                     if (index in list.indices) {
                                         list[index] = item
@@ -300,13 +300,13 @@ public fun <E : Enum<E>, FILTER> FormatDialog(
             } ?: run {
                 var draggedItemIndex by remember { mutableStateOf<Int?>(null) }
                 var rulesState by remember(key) { mutableStateOf(rules) }
-                val currentOnRulesChanged = rememberUpdatedState(onRulesChanged)
+                val currentOnRulesChange = rememberUpdatedState(onRulesChange)
                 LaunchedEffect(key) {
                     snapshotFlow { rulesState }
                         .drop(1)
                         .debounce(RULES_CHANGE_DEBOUNCE_MS.milliseconds)
                         .distinctUntilChanged()
-                        .collect { currentOnRulesChanged.value(it) }
+                        .collect { currentOnRulesChange.value(it) }
                 }
                 val state =
                     rememberReorderableLazyListState(lazyListState) { from, to ->
@@ -398,7 +398,7 @@ public fun <E : Enum<E>, FILTER> FormatDialog(
                                                                         enabled = enabled,
                                                                     )
                                                             }
-                                                        onRulesChanged(rulesState)
+                                                        onRulesChange(rulesState)
                                                     }
                                                 },
                                                 enabled = !item.base,

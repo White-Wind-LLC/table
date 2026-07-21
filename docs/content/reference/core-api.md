@@ -16,7 +16,7 @@
     - All other parameters same as read-only variant.
 - **Composable `EditableTable<T, C, E>`**: renders header and virtualized rows with editing support.
     - **Additional parameters**: `tableData: E`, `onRowMove`, `rowBlocks`, `onRowEditStart`, `onRowEditComplete`,
-      `onEditCancelled`.
+      `onEditCancel`.
     - Columns must use `ColumnSpec<T, C, E>` with `E` matching the tableData type.
 - **Columns DSL**:
     - `tableColumns<T, C, E> { ... }` produces `List<ColumnSpec<T, C, E>>` for read-only tables.

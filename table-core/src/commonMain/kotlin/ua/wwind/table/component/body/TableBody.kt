@@ -132,7 +132,7 @@ internal fun <T : Any, C, E> TableBody(
                                 } else {
                                     null
                                 },
-                            onWithinBlockDragStarted = { currentOnBlockDragStarted.value?.invoke() },
+                            onWithinBlockDragStart = { currentOnBlockDragStarted.value?.invoke() },
                             rowKeyAt = keyOf,
                             withinBlockRefusalCount = withinBlockRefusalCount,
                             itemAt = unitItemAt,
@@ -160,7 +160,7 @@ internal fun <T : Any, C, E> TableBody(
                         blockId = blockId,
                         blockHeader = blockHeader,
                         onRowMoveWithinBlock = null,
-                        onWithinBlockDragStarted = null,
+                        onWithinBlockDragStart = null,
                         rowKeyAt = keyOf,
                         withinBlockRefusalCount = withinBlockRefusalCount,
                         itemAt = unitItemAt,
@@ -314,7 +314,7 @@ internal fun <T : Any, C, E> TableBodyEmbedded(
                                     } else {
                                         null
                                     },
-                                onWithinBlockDragStarted = { currentOnBlockDragStarted.value?.invoke() },
+                                onWithinBlockDragStart = { currentOnBlockDragStarted.value?.invoke() },
                                 rowKeyAt = rowKeyAt,
                                 withinBlockRefusalCount = withinBlockRefusalCount,
                                 itemAt = itemAt,
@@ -349,7 +349,7 @@ internal fun <T : Any, C, E> TableBodyEmbedded(
                         blockId = if (isGroup) blocks?.blockIdAt(rows.first) else null,
                         blockHeader = blockHeader,
                         onRowMoveWithinBlock = null,
-                        onWithinBlockDragStarted = null,
+                        onWithinBlockDragStart = null,
                         rowKeyAt = rowKeyAt,
                         withinBlockRefusalCount = withinBlockRefusalCount,
                         itemAt = itemAt,

@@ -51,29 +51,29 @@ fun MainTable(
     tableData: PersonTableData,
     columns: ImmutableList<ColumnSpec<Person, PersonColumn, PersonTableData>>,
     customization: TableCustomization<Person, PersonColumn>,
-    onFiltersChanged: (Map<PersonColumn, TableFilterState<*>>) -> Unit,
-    onSortChanged: (SortState<PersonColumn>?) -> Unit,
+    onFiltersChange: (Map<PersonColumn, TableFilterState<*>>) -> Unit,
+    onSortChange: (SortState<PersonColumn>?) -> Unit,
     onRowMove: (fromIndex: Int, toIndex: Int) -> Unit,
     onMovementRowMove: (person: Person, fromIndex: Int, toIndex: Int) -> Unit,
     onMovementBlockMove: (person: Person, move: RowBlockMove) -> Unit,
     onMovementRowWithinBlockMove: (person: Person, move: RowWithinBlockMove) -> Unit,
     onRowEditStart: (Person, Int) -> Unit,
     onRowEditComplete: (Int) -> Boolean,
-    onEditCancelled: (Int) -> Unit,
+    onEditCancel: (Int) -> Unit,
     modifier: Modifier = Modifier,
     rowBlocks: RowBlocks<Person>? = null,
     useCompactMode: Boolean = false,
     enableRowReorder: Boolean = false,
 ) {
     // Observe filters and sort state changes
-    val currentOnFiltersChanged = rememberUpdatedState(onFiltersChanged)
-    val currentOnSortChanged = rememberUpdatedState(onSortChanged)
+    val currentOnFiltersChange = rememberUpdatedState(onFiltersChange)
+    val currentOnSortChange = rememberUpdatedState(onSortChange)
 
     LaunchedEffect(state) {
-        snapshotFlow { state.filters.toMap() }.collect { filters -> currentOnFiltersChanged.value(filters) }
+        snapshotFlow { state.filters.toMap() }.collect { filters -> currentOnFiltersChange.value(filters) }
     }
 
-    LaunchedEffect(state) { snapshotFlow { state.sort }.collect { sort -> currentOnSortChanged.value(sort) } }
+    LaunchedEffect(state) { snapshotFlow { state.sort }.collect { sort -> currentOnSortChange.value(sort) } }
     val verticalState = rememberLazyListState()
     val horizontalState = rememberScrollState()
     var showVerticalScrollbar by remember { mutableStateOf(false) }
@@ -148,7 +148,7 @@ fun MainTable(
             onRowMove = onRowMove,
             onRowEditStart = onRowEditStart,
             onRowEditComplete = onRowEditComplete,
-            onEditCancelled = onEditCancelled,
+            onEditCancel = onEditCancel,
             modifier = Modifier.fillMaxWidth(),
         )
 

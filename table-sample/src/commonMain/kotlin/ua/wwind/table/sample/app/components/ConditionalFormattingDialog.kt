@@ -20,7 +20,7 @@ import ua.wwind.table.strings.DefaultStrings
 fun ConditionalFormattingDialog(
     showDialog: Boolean,
     rules: ImmutableList<TableFormatRule<PersonColumn, Map<PersonColumn, TableFilterState<*>>>>,
-    onRulesChanged: (
+    onRulesChange: (
         ImmutableList<
             TableFormatRule<
                 PersonColumn,
@@ -44,7 +44,7 @@ fun ConditionalFormattingDialog(
     FormatDialog(
         showDialog = showDialog,
         rules = rules,
-        onRulesChanged = onRulesChanged,
+        onRulesChange = onRulesChange,
         getNewRule = { id ->
             TableFormatRule.new<PersonColumn, Map<PersonColumn, TableFilterState<*>>>(
                 id,

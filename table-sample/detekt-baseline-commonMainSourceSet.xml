@@ -5,10 +5,6 @@
     <ID>ComplexCondition:SampleViewModel.kt:SampleViewModel$insertAt > 0 &amp;&amp; insertAt &lt; rest.size &amp;&amp; rest[insertAt - 1].groupId != null &amp;&amp; rest[insertAt - 1].groupId == rest[insertAt].groupId</ID>
     <ID>ComplexCondition:SampleViewModel.kt:SampleViewModel$movements.size &lt; 2 || fromIndex !in movements.indices || toIndex !in movements.indices || fromIndex == toIndex</ID>
     <ID>ContentEmitterReturningValues:NumericRangeFilter.kt:NumericRangeFilterRenderer$@Composable override fun RenderPanel: TableFilterType.CustomFilterActions</ID>
-    <ID>ParameterNaming:ConditionalFormattingDialog.kt:onRulesChanged: ( ImmutableList&lt; TableFormatRule&lt; PersonColumn, Map&lt;PersonColumn, TableFilterState&lt;*>>, >, >, ) -> Unit</ID>
-    <ID>ParameterNaming:MainTable.kt:onEditCancelled: (Int) -> Unit</ID>
-    <ID>ParameterNaming:MainTable.kt:onFiltersChanged: (Map&lt;PersonColumn, TableFilterState&lt;*>>) -> Unit</ID>
-    <ID>ParameterNaming:MainTable.kt:onSortChanged: (SortState&lt;PersonColumn>?) -> Unit</ID>
     <ID>TooManyFunctions:SampleViewModel.kt:SampleViewModel : ViewModel</ID>
     <ID>ViewModelInjection:SampleApp.kt:val viewModel: SampleViewModel = viewModel { SampleViewModel() }</ID>
   </CurrentIssues>

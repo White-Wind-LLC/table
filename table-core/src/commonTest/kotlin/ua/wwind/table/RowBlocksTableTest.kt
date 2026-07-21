@@ -348,7 +348,7 @@ class RowBlocksTableTest {
                         rowBlocks = blocks,
                         // Completion is blocked, so the drag must fall back to cancelling.
                         onRowEditComplete = { false },
-                        onEditCancelled = { cancelled += it },
+                        onEditCancel = { cancelled += it },
                     )
                 }
             }
@@ -964,7 +964,7 @@ class RowBlocksTableTest {
                         embedded = true,
                         // Completion is blocked, so the drag must fall back to cancelling.
                         onRowEditComplete = { false },
-                        onEditCancelled = { cancelled += it },
+                        onEditCancel = { cancelled += it },
                     )
                 }
             }

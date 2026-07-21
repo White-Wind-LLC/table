@@ -35,7 +35,7 @@ Table(
 FormatDialog(
     showDialog = show,
     rules = rules,
-    onRulesChanged = { /* persist */ },
+    onRulesChange = { /* persist */ },
     getNewRule = { id -> TableFormatRule.new<PersonField, Person>(id, Person("", 0)) },
     getTitle = { field -> field.name },
     filters = { rule, onApply -> /* return list of FormatFilterData for fields */ emptyList() },
@@ -122,7 +122,7 @@ Table(
 FormatDialog(
     showDialog = show,
     rules = rules,
-    onRulesChanged = { /* persist */ },
+    onRulesChange = { /* persist */ },
     getNewRule = { id -> TableFormatRule.new<PersonField, Person>(id, Person("", 0)) },
     getTitle = { it.name },
     filters = { rule, onApply -> emptyList() }, // build `FormatFilterData` list for your fields

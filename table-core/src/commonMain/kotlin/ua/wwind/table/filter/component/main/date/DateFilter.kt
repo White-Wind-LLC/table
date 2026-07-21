@@ -79,7 +79,7 @@ internal fun DateFilter(
         ) {
             DateField(
                 value = dateFilterState.firstDate,
-                onDateSelected = { selected ->
+                onDateSelect = { selected ->
                     dateFilterState.onFirstDateChange(selected)
                 },
                 modifier = Modifier.weight(1f),
@@ -91,7 +91,7 @@ internal fun DateFilter(
             if (isBetween) {
                 DateField(
                     value = dateFilterState.secondDate,
-                    onDateSelected = { selected ->
+                    onDateSelect = { selected ->
                         dateFilterState.onSecondDateChange(selected)
                     },
                     modifier = Modifier.weight(1f),
@@ -116,7 +116,7 @@ internal fun DateFilter(
 @Composable
 internal fun DateField(
     value: LocalDate?,
-    onDateSelected: (LocalDate) -> Unit,
+    onDateSelect: (LocalDate) -> Unit,
     strings: StringProvider,
     modifier: Modifier = Modifier,
     label: @Composable (() -> Unit)? = null,
@@ -170,7 +170,7 @@ internal fun DateField(
                     onClick = {
                         showDatePickerDialog = false
                         datePickerState.selectedDateMillis?.let {
-                            onDateSelected(
+                            onDateSelect(
                                 Instant
                                     .fromEpochMilliseconds(it)
                                     .toLocalDateTime(TimeZone.currentSystemDefault())

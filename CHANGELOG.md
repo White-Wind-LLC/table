@@ -13,6 +13,12 @@ All notable changes to this project will be documented in this file.
     - `rememberCustomization`: `matches` moves ahead of `key`. Note that `key` is `Any?`, so a positional call
       passing `matches` third would still compile while binding the lambda to `key` — check these by hand.
     - `FormatDialogTabRow`: `createTab` moves ahead of `modifier`; the `content` trailing lambda stays last.
+- Changed (breaking): event callbacks are named for the event in present tense, per the Compose convention
+  (`onClick`, `onValueChange`) — past-tense names described the action after the fact. Unlike the reorder above
+  this breaks callers using **named** arguments, but the compiler flags every one of them.
+    - `EditableTable`: `onEditCancelled` → `onEditCancel`. The `TableState` edit-state property of the same name
+      is renamed with it, so the parameter and the state it writes still read alike.
+    - `FormatDialog`: `onRulesChanged` → `onRulesChange`.
 
 ### 1.11.0 — 2026-07-21
 

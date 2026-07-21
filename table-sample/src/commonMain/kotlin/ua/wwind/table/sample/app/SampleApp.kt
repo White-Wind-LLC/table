@@ -295,8 +295,8 @@ fun SampleApp(modifier: Modifier = Modifier) {
                                     tableData = tableData,
                                     columns = columns,
                                     customization = customization,
-                                    onFiltersChanged = viewModel::updateFilters,
-                                    onSortChanged = viewModel::updateSort,
+                                    onFiltersChange = viewModel::updateFilters,
+                                    onSortChange = viewModel::updateSort,
                                     onRowMove = { from, to ->
                                         val displayedPeople = tableData.displayedPeople
                                         val source = displayedPeople.getOrNull(from) ?: return@MainTable
@@ -358,7 +358,7 @@ fun SampleApp(modifier: Modifier = Modifier) {
                                             false
                                         }
                                     },
-                                    onEditCancelled = { rowIndex ->
+                                    onEditCancel = { rowIndex ->
                                         viewModel.onEvent(SampleUiEvent.CancelEditing)
                                     },
                                     useCompactMode = tableConfig.useCompactMode,
@@ -410,7 +410,7 @@ fun SampleApp(modifier: Modifier = Modifier) {
         ConditionalFormattingDialog(
             showDialog = viewModel.showFormatDialog,
             rules = viewModel.rules,
-            onRulesChanged = viewModel::updateRules,
+            onRulesChange = viewModel::updateRules,
             buildFormatFilterData = viewModel::buildFormatFilterData,
             onDismissRequest = { viewModel.toggleFormatDialog(false) },
         )

@@ -33,7 +33,7 @@ internal fun <T : Any, C, E> FastDateFilter(
 
     DateField(
         value = dateFilterState.firstDate,
-        onDateSelected = { selectedDate ->
+        onDateSelect = { selectedDate ->
             dateFilterState.onFirstDateChange(selectedDate)
         },
         onClear = {

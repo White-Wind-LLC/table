@@ -224,7 +224,7 @@ public class TableState<C>
             private set
 
         /** Callback when editing is cancelled */
-        public var onEditCancelled: ((rowIndex: Int) -> Unit)? = null
+        public var onEditCancel: ((rowIndex: Int) -> Unit)? = null
             private set
 
         /**
@@ -491,7 +491,7 @@ public class TableState<C>
         ) {
             onRowEditStart = onStart
             onRowEditComplete = onComplete
-            onEditCancelled = onCancel
+            onEditCancel = onCancel
         }
 
         /**
@@ -603,11 +603,11 @@ public class TableState<C>
             }
         }
 
-        /** Cancel editing without validation. Calls onEditCancelled callback and clears edit state. */
+        /** Cancel editing without validation. Calls onEditCancel callback and clears edit state. */
         public fun cancelEditing() {
             val currentRow = editingRow
             if (currentRow != null) {
-                onEditCancelled?.invoke(currentRow)
+                onEditCancel?.invoke(currentRow)
             }
             editingRow = null
             editingColumn = null

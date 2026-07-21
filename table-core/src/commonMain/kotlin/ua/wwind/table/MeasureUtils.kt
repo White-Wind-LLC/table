@@ -13,7 +13,7 @@ import androidx.compose.ui.unit.Dp
 import ua.wwind.table.state.LocalTableState
 
 /**
- * Measures the minimal intrinsic width of [content] and reports it via [onMeasured].
+ * Measures the minimal intrinsic width of [content] and reports it via [onMeasure].
  *
  * This is used for both table body cells and header cells to compute a column's
  * max content width. The measurement is deferred to the next frame to avoid
@@ -25,7 +25,7 @@ internal fun <T, E> MeasureCellMinWidth(
     tableData: E,
     measureKey: Any,
     content: @Composable context(TableCellScope) BoxScope.(T, E) -> Unit,
-    onMeasured: (Dp) -> Unit,
+    onMeasure: (Dp) -> Unit,
 ) {
     val density = LocalDensity.current
     val state = LocalTableState.current
@@ -33,7 +33,7 @@ internal fun <T, E> MeasureCellMinWidth(
     // without introducing Compose state or recompositions.
     // Two slots: holder[0] = latest measured px; holder[1] = last dispatched px (for de-dup).
     val holder = remember(state) { IntArray(2) { -1 } }
-    val currentOnMeasured = rememberUpdatedState(onMeasured)
+    val currentOnMeasure = rememberUpdatedState(onMeasure)
     SubcomposeLayout {
         val measurables =
             subcompose("measure") {
@@ -52,7 +52,7 @@ internal fun <T, E> MeasureCellMinWidth(
             val px = holder[0]
             if (px > 0 && px != holder[1]) {
                 holder[1] = px
-                currentOnMeasured.value(with(density) { px.toDp() })
+                currentOnMeasure.value(with(density) { px.toDp() })
             }
         }
     }

@@ -419,7 +419,7 @@ private fun FormatDateFilter(
             ) {
                 DateField(
                     value = firstDate,
-                    onDateSelected = { selectedDate ->
+                    onDateSelect = { selectedDate ->
                         firstDate = selectedDate
                     },
                     modifier = Modifier.weight(1f),
@@ -430,7 +430,7 @@ private fun FormatDateFilter(
                 if (isBetween) {
                     DateField(
                         value = secondDate,
-                        onDateSelected = { selectedDate ->
+                        onDateSelect = { selectedDate ->
                             secondDate = selectedDate
                         },
                         modifier = Modifier.weight(1f),
@@ -448,7 +448,7 @@ private fun FormatDateFilter(
 @Composable
 private fun DateField(
     value: LocalDate?,
-    onDateSelected: (LocalDate) -> Unit,
+    onDateSelect: (LocalDate) -> Unit,
     strings: StringProvider,
     modifier: Modifier = Modifier,
     label: @Composable (() -> Unit)? = null,
@@ -496,7 +496,7 @@ private fun DateField(
                     onClick = {
                         showDatePickerDialog = false
                         datePickerState.selectedDateMillis?.let {
-                            onDateSelected(
+                            onDateSelect(
                                 Instant
                                     .fromEpochMilliseconds(it)
                                     .toLocalDateTime(TimeZone.currentSystemDefault())
