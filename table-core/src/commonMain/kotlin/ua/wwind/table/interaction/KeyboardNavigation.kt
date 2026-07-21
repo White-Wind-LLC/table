@@ -1,6 +1,5 @@
 package ua.wwind.table.interaction
 
-import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -25,7 +24,6 @@ internal fun <T : Any, C> Modifier.tableKeyboardNavigation(
     state: TableState<C>,
     visibleColumns: List<ColumnSpec<T, C, *>>,
     verticalState: LazyListState,
-    horizontalState: ScrollState,
 ): Modifier =
     this
         .focusRequester(focusRequester)

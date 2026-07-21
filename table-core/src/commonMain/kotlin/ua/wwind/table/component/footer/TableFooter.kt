@@ -25,7 +25,6 @@ internal fun <T : Any, C, E> TableFooter(
     tableWidth: Dp,
     pinnedColumnsCount: Int,
     pinnedColumnsSide: PinnedSide,
-    pinned: Boolean = true,
     showVerticalDividers: Boolean = true,
 ) {
     Surface(color = footerColor, contentColor = footerContentColor) {

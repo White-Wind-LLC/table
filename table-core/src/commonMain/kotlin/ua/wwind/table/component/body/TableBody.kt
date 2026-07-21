@@ -201,7 +201,6 @@ internal fun <T : Any, C, E> TableBody(
                     tableWidth = state.tableWidth,
                     pinnedColumnsCount = state.settings.pinnedColumnsCount,
                     pinnedColumnsSide = state.settings.pinnedColumnsSide,
-                    pinned = false,
                     showVerticalDividers = state.settings.showVerticalDividers,
                 )
             }
@@ -389,7 +388,6 @@ internal fun <T : Any, C, E> TableBodyEmbedded(
                 tableWidth = state.tableWidth,
                 pinnedColumnsCount = state.settings.pinnedColumnsCount,
                 pinnedColumnsSide = state.settings.pinnedColumnsSide,
-                pinned = false,
                 showVerticalDividers = state.settings.showVerticalDividers,
             )
         }

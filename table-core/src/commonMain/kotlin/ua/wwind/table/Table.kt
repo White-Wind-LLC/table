@@ -608,7 +608,6 @@ private fun <T : Any, C, E> Modifier.tableInteractionModifiers(
             state = state,
             visibleColumns = visibleColumns,
             verticalState = verticalState,
-            horizontalState = horizontalState,
         )
 
 /**

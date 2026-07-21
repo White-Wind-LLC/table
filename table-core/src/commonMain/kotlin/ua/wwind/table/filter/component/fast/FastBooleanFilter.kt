@@ -10,14 +10,12 @@ import androidx.compose.ui.state.ToggleableState
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.filter.component.main.booleann.rememberBooleanFilterState
 import ua.wwind.table.filter.data.TableFilterState
-import ua.wwind.table.strings.StringProvider
 
 @Composable
 internal fun <T : Any, C, E> FastBooleanFilter(
     spec: ColumnSpec<T, C, E>,
     state: TableFilterState<Boolean>?,
     autoFilterDebounce: Long,
-    strings: StringProvider,
     onChange: (ColumnSpec<T, C, E>, TableFilterState<T>?) -> Unit,
 ) {
     val booleanFilterState =

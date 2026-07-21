@@ -129,7 +129,6 @@ internal fun <T : Any, C, E> FastFiltersRow(
                                         spec = spec,
                                         state = state.filters[spec.key] as? TableFilterState<Boolean>,
                                         autoFilterDebounce = autoFilterDebounce,
-                                        strings = strings,
                                         onChange = onChange,
                                     )
                                 }
