@@ -82,13 +82,13 @@ column(PersonField.Name, valueOf = { it.name }) {
       Filtering stays available; fast filters and active filters header continue to work. With `rowBlocks`, note
       that dragging a partially hidden block still relocates the whole block in the source list — hidden members
       travel with it when the move is applied via `applyRowBlockMove` — see
-      [Row reordering](../guides/row-reordering.md#filtering-hidden-members-travel-with-the-block).
+      [Row blocks](../guides/row-blocks.md#filtering-hidden-members-travel-with-the-block).
     - `TableDimensions`: `defaultColumnWidth`, `defaultRowHeight`, `footerHeight`, `checkBoxColumnWidth`,
       `verticalDividerThickness`, `verticalDividerPaddingHorizontal`, `rowBlockSpacing`.
     - `TableColors`: via `TableDefaults.colors(...)`.
 - **Row blocks**: `rowBlocks = RowBlocks(blockOf, onCommit, blockHeader, onRowReorderWithinBlock)` makes adjacent
   rows sharing a non-null `blockOf` id render and drag as one unit — see
-  [Row reordering](../guides/row-reordering.md#row-blocks-dragging-adjacent-rows-as-one-unit).
+  [Row blocks](../guides/row-blocks.md).
     - Declared by identity: the table derives block extents itself from the snapshot it renders; there are no
       index ranges to maintain. Hold the `RowBlocks` in `remember` (identity equality); a stable `rowKey` is
       required (the default positional key triggers a warning).

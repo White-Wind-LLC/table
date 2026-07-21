@@ -35,6 +35,11 @@ column(PersonField.Department, valueOf = { it.department }) {
 }
 ```
 
+Grouping and [row blocks](row-blocks.md) describe two different structures over one list and do not
+compose: while `groupBy` is active, `rowBlocks` is suppressed and row drag is disabled. The column
+menu's group-by item is disabled while the table derives at least one block, and
+`TableState.rowBlocksSuppressedByGroupBy` reports the conflict when it happens programmatically.
+
 Group headers are sticky and remain visible during scrolling. Configure group content alignment via table settings:
 
 ```kotlin

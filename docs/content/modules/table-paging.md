@@ -19,7 +19,7 @@ There is also `LazyListScope.handleLoadState(...)` to render loading/empty state
 
 The adapter forwards the same `rowBlocks: RowBlocks<T>?` parameter as the core table, with the same
 declaration and the same commit event — see the
-[row blocks guide](../guides/row-reordering.md#row-blocks-dragging-adjacent-rows-as-one-unit).
+[row blocks guide](../guides/row-blocks.md).
 What differs is what paging can and cannot know:
 
 - **Bands derive over loaded runs.** Block extents are derived from loaded adjacent rows on each
