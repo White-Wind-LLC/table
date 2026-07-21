@@ -83,7 +83,9 @@ public fun FilterDropdownAnyField(
                         DropdownMenuItem(
                             text = {
                                 when (checked) {
-                                    null -> Text(getTitle(item))
+                                    null -> {
+                                        Text(getTitle(item))
+                                    }
 
                                     else -> {
                                         Row(

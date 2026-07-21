@@ -64,414 +64,415 @@ fun createTableColumns(
     enableRowReorder: Boolean = false,
     hiddenColumns: Set<PersonColumn> = emptySet(),
 ): ImmutableList<ColumnSpec<Person, PersonColumn, PersonTableData>> {
-    val specs: ImmutableList<ColumnSpec<Person, PersonColumn, PersonTableData>> = editableTableColumns {
-        val cellPadding = if (useCompactMode) CellPadding.compact else CellPadding.standard
-        val checkboxSize = if (useCompactMode) 36.dp else 48.dp
+    val specs: ImmutableList<ColumnSpec<Person, PersonColumn, PersonTableData>> =
+        editableTableColumns {
+            val cellPadding = if (useCompactMode) CellPadding.compact else CellPadding.standard
+            val checkboxSize = if (useCompactMode) 36.dp else 48.dp
 
-        // Selection checkbox column - visibility controlled via width in SampleApp
-        column(PersonColumn.SELECTION, valueOf = { it.id }) {
-            title { "" }
-            width(checkboxSize, checkboxSize)
-            resizable(false)
-            cell {item, tableData ->
-                if (tableData.selectionModeEnabled) {
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier.fillMaxSize(),
-                    ) {
-                        Checkbox(
-                            checked = item.id in tableData.selectedIds,
-                            onCheckedChange = {
-                                onEvent(SampleUiEvent.ToggleSelection(item.id))
-                            },
-                        )
-                    }
-                } else if (enableRowReorder) {
-                    // Every row carries a handle: a standalone row reorders among units, a block row
-                    // reorders within its block. The whole block is dragged from its header handle.
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier.fillMaxSize().draggableHandle(),
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Reorder,
-                            contentDescription = "Drag to reorder",
-                            modifier = Modifier.size(24.dp),
-                        )
-                    }
-                }
-            }
-            header { tableData ->
-                if (tableData.selectionModeEnabled) {
-                    val displayedIds = tableData.displayedPeople.map { it.id }.toSet()
-                    val selectedDisplayedCount = displayedIds.count { it in tableData.selectedIds }
-                    val toggleState =
-                        when (selectedDisplayedCount) {
-                            0 -> ToggleableState.Off
-                            displayedIds.size -> ToggleableState.On
-                            else -> ToggleableState.Indeterminate
-                        }
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier.fillMaxSize(),
-                    ) {
-                        TriStateCheckbox(
-                            state = toggleState,
-                            onClick = { onEvent(SampleUiEvent.ToggleSelectAll) },
-                        )
-                    }
-                }
-            }
-        }
-
-        column(PersonColumn.EXPAND, valueOf = { it.expandedMovement }) {
-            val iconButtonSize = if (useCompactMode) 36.dp else 48.dp
-            title { "Movements" }
-            width(iconButtonSize, iconButtonSize)
-            resizable(false)
-            cell { item, _ ->
-                // Use smaller IconButton in compact mode to allow shorter rows
-                IconButton(
-                    onClick = { onToggleMovementExpanded(item.id) },
-                    modifier = Modifier.size(iconButtonSize),
-                ) {
-                    if (item.expandedMovement) {
-                        Icon(
-                            imageVector = Icons.Filled.ExpandLess,
-                            contentDescription = "Collapse movements",
-                        )
-                    } else {
-                        Icon(
-                            imageVector = Icons.Filled.ExpandMore,
-                            contentDescription = "Expand movements",
-                        )
-                    }
-                }
-            }
-        }
-
-        // Real Person fields
-        column(PersonColumn.NAME, { it.name }) {
-            title { "Name" }
-            autoWidth(500.dp)
-            sortable()
-            filterTypes[PersonColumn.NAME]?.let { filter(it) }
-            cell { item, _ ->
-                // Group metadata belongs in the block's header band, not in a row cell — see
-                // the `blockHeader` slot of the `RowBlocks` built in SampleApp.
-                Text(item.name, modifier = Modifier.padding(cellPadding))
-            }
-
-            // Editing configuration - table will manage when to show this
-            editCell { person, tableData, onComplete ->
-                var text by remember(person) { mutableStateOf(person.name) }
-
-                TableCellTextFieldWithTooltipError(
-                    value = text,
-                    onValueChange = {
-                        text = it
-                        onEvent(SampleUiEvent.UpdateName(it))
-                    },
-                    errorMessage = tableData.editState.nameError,
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                    keyboardActions =
-                        KeyboardActions(
-                            onDone = { onComplete() },
-                        ),
-                )
-            }
-
-            footer { tableData ->
-                Text(
-                    "Total: ${tableData.displayedPeople.size}",
-                    modifier = Modifier.padding(cellPadding),
-                    fontWeight = FontWeight.Bold,
-                )
-            }
-        }
-        column(PersonColumn.AGE, { it.age }) {
-            title { "Age" }
-            autoWidth()
-            sortable()
-            filterTypes[PersonColumn.AGE]?.let { filter(it) }
-            align(Alignment.CenterEnd)
-            cell { item, _ ->
-                Text(
-                    item.age.toString(),
-                    modifier = Modifier.padding(cellPadding),
-                )
-            }
-
-            // Editing configuration
-            editCell { person, tableData, onComplete ->
-                var text by remember(person) { mutableStateOf(person.age.toString()) }
-
-                TableCellTextFieldWithTooltipError(
-                    value = text,
-                    onValueChange = {
-                        text = it.filter { char -> char.isDigit() }
-                        it.toIntOrNull()?.let { age ->
-                            onEvent(SampleUiEvent.UpdateAge(age))
-                        }
-                    },
-                    errorMessage = tableData.editState.ageError,
-                    singleLine = true,
-                    keyboardOptions =
-                        KeyboardOptions(
-                            keyboardType = KeyboardType.Number,
-                            imeAction = ImeAction.Done,
-                        ),
-                    keyboardActions =
-                        KeyboardActions(
-                            onDone = { onComplete() },
-                        ),
-                )
-            }
-
-            footer { tableData ->
-                val avgAge =
-                    if (tableData.displayedPeople.isNotEmpty()) {
-                        tableData.displayedPeople.map { it.age }.average()
-                    } else {
-                        0.0
-                    }
-                val rounded = (avgAge * 10).toInt() / 10.0
-                Text(
-                    "Avg: $rounded",
-                    modifier = Modifier.padding(cellPadding),
-                    fontWeight = FontWeight.Bold,
-                )
-            }
-        }
-        column(PersonColumn.ACTIVE, { it.active }) {
-            title { "Active" }
-            autoWidth()
-            sortable()
-            filterTypes[PersonColumn.ACTIVE]?.let { filter(it) }
-            cell { item, _ ->
-                Text(
-                    if (item.active) "Yes" else "No",
-                    modifier = Modifier.padding(cellPadding),
-                )
-            }
-        }
-        column(PersonColumn.ID, valueOf = { it.id }) {
-            title { "ID" }
-            autoWidth()
-            sortable()
-            align(Alignment.CenterEnd)
-            cell { item, _ ->
-                Text(
-                    item.id.toString(),
-                    modifier = Modifier.padding(cellPadding),
-                )
-            }
-        }
-        column(PersonColumn.EMAIL, valueOf = { it.email }) {
-            title { "Email" }
-            autoWidth()
-            sortable()
-            filterTypes[PersonColumn.EMAIL]?.let { filter(it) }
-            cell { item, _ -> Text(item.email.orEmpty(), modifier = Modifier.padding(cellPadding)) }
-        }
-        column(PersonColumn.CITY, { it.city }) {
-            title { "City" }
-            autoWidth(500.dp)
-            sortable()
-            filterTypes[PersonColumn.CITY]?.let { filter(it) }
-            cell { item, _ -> Text(item.city, modifier = Modifier.padding(cellPadding)) }
-        }
-        column(PersonColumn.COUNTRY, { it.country }) {
-            title { "Country" }
-            autoWidth(500.dp)
-            sortable()
-            filterTypes[PersonColumn.COUNTRY]?.let { filter(it) }
-            cell { item, _ -> Text(item.country, modifier = Modifier.padding(cellPadding)) }
-        }
-        column(PersonColumn.DEPARTMENT, { it.department }) {
-            title { "Department" }
-            autoWidth(500.dp)
-            sortable()
-            filterTypes[PersonColumn.DEPARTMENT]?.let { filter(it) }
-            cell { item, _ ->
-                Text(item.department, modifier = Modifier.padding(cellPadding))
-            }
-        }
-        column(PersonColumn.POSITION, { it.position }) {
-            title { "Position" }
-            autoWidth(500.dp)
-            sortable()
-            filterTypes[PersonColumn.POSITION]?.let { filter(it) }
-            cell { item, _ ->
-                Text(item.position.displayName, modifier = Modifier.padding(cellPadding))
-            }
-
-            // Editing configuration with dropdown
-            editCell { person, tableData, onComplete ->
-                var expanded by remember { mutableStateOf(false) }
-                var selectedPosition by remember(person) { mutableStateOf(person.position) }
-
-                ExposedDropdownMenuBox(
-                    expanded = expanded,
-                    onExpandedChange = { expanded = it },
-                    modifier = Modifier.fillMaxSize(),
-                ) {
-                    TableCellTextField(
-                        value = selectedPosition.displayName,
-                        onValueChange = {},
-                        readOnly = true,
-                        trailingIcon = {
-                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
-                        },
-                        modifier =
-                            Modifier.menuAnchor(
-                                ExposedDropdownMenuAnchorType.PrimaryNotEditable,
-                            ),
-                        singleLine = true,
-                    )
-                    ExposedDropdownMenu(
-                        expanded = expanded,
-                        onDismissRequest = { expanded = false },
-                    ) {
-                        Position.entries.forEach { position ->
-                            DropdownMenuItem(
-                                text = { Text(position.displayName) },
-                                onClick = {
-                                    selectedPosition = position
-                                    onEvent(SampleUiEvent.UpdatePosition(position))
-                                    expanded = false
-                                    onComplete()
+            // Selection checkbox column - visibility controlled via width in SampleApp
+            column(PersonColumn.SELECTION, valueOf = { it.id }) {
+                title { "" }
+                width(checkboxSize, checkboxSize)
+                resizable(false)
+                cell { item, tableData ->
+                    if (tableData.selectionModeEnabled) {
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier.fillMaxSize(),
+                        ) {
+                            Checkbox(
+                                checked = item.id in tableData.selectedIds,
+                                onCheckedChange = {
+                                    onEvent(SampleUiEvent.ToggleSelection(item.id))
                                 },
+                            )
+                        }
+                    } else if (enableRowReorder) {
+                        // Every row carries a handle: a standalone row reorders among units, a block row
+                        // reorders within its block. The whole block is dragged from its header handle.
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier.fillMaxSize().draggableHandle(),
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Reorder,
+                                contentDescription = "Drag to reorder",
+                                modifier = Modifier.size(24.dp),
+                            )
+                        }
+                    }
+                }
+                header { tableData ->
+                    if (tableData.selectionModeEnabled) {
+                        val displayedIds = tableData.displayedPeople.map { it.id }.toSet()
+                        val selectedDisplayedCount = displayedIds.count { it in tableData.selectedIds }
+                        val toggleState =
+                            when (selectedDisplayedCount) {
+                                0 -> ToggleableState.Off
+                                displayedIds.size -> ToggleableState.On
+                                else -> ToggleableState.Indeterminate
+                            }
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier.fillMaxSize(),
+                        ) {
+                            TriStateCheckbox(
+                                state = toggleState,
+                                onClick = { onEvent(SampleUiEvent.ToggleSelectAll) },
                             )
                         }
                     }
                 }
             }
-        }
-        column(PersonColumn.SALARY, { it.salary }) {
-            title { "Salary" }
-            width(350.dp, 350.dp)
-            sortable()
-            // Custom visual range filter with histogram - uses tableData internally
-            filter(createSalaryRangeFilter())
-            align(Alignment.CenterEnd)
-            cell { item, _ ->
-                Text(
-                    "$${item.salary}",
-                    modifier = Modifier.padding(cellPadding),
-                )
-            }
 
-            // Editing configuration
-            editCell { person, tableData, onComplete ->
-                var text by remember(person) { mutableStateOf(person.salary.toString()) }
-
-                TableCellTextFieldWithTooltipError(
-                    value = text,
-                    onValueChange = {
-                        text = it.filter { char -> char.isDigit() }
-                        it.toIntOrNull()?.let { salary ->
-                            onEvent(SampleUiEvent.UpdateSalary(salary))
+            column(PersonColumn.EXPAND, valueOf = { it.expandedMovement }) {
+                val iconButtonSize = if (useCompactMode) 36.dp else 48.dp
+                title { "Movements" }
+                width(iconButtonSize, iconButtonSize)
+                resizable(false)
+                cell { item, _ ->
+                    // Use smaller IconButton in compact mode to allow shorter rows
+                    IconButton(
+                        onClick = { onToggleMovementExpanded(item.id) },
+                        modifier = Modifier.size(iconButtonSize),
+                    ) {
+                        if (item.expandedMovement) {
+                            Icon(
+                                imageVector = Icons.Filled.ExpandLess,
+                                contentDescription = "Collapse movements",
+                            )
+                        } else {
+                            Icon(
+                                imageVector = Icons.Filled.ExpandMore,
+                                contentDescription = "Expand movements",
+                            )
                         }
-                    },
-                    errorMessage = tableData.editState.salaryError,
-                    singleLine = true,
-                    prefix = { Text("$") },
-                    keyboardOptions =
-                        KeyboardOptions(
-                            keyboardType = KeyboardType.Number,
-                            imeAction = ImeAction.Done,
-                        ),
-                    keyboardActions =
-                        KeyboardActions(
-                            onDone = { onComplete() },
-                        ),
-                )
-            }
-
-            footer { tableData ->
-                val totalSalary = tableData.displayedPeople.sumOf { it.salary }
-                Text(
-                    "Total: $$totalSalary",
-                    modifier = Modifier.padding(cellPadding),
-                    fontWeight = FontWeight.Bold,
-                )
-            }
-        }
-        column(PersonColumn.RATING, { it.rating }) {
-            title { "Rating" }
-            autoWidth()
-            sortable()
-            filterTypes[PersonColumn.RATING]?.let { filter(it) }
-            align(Alignment.Center)
-            cell { item, _ ->
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(2.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(cellPadding),
-                ) {
-                    repeat(item.rating) {
-                        Icon(
-                            imageVector = Icons.Filled.Star,
-                            contentDescription = null,
-                            modifier = Modifier.size(16.dp),
-                        )
                     }
                 }
             }
-        }
-        column(PersonColumn.HIRE_DATE, { it.hireDate }) {
-            title { "Hire Date" }
-            autoWidth()
-            sortable()
-            filterTypes[PersonColumn.HIRE_DATE]?.let { filter(it) }
-            cell { item, _ ->
-                Text(
-                    item.hireDate.format(
-                        LocalDate.Format {
-                            day()
-                            chars(".")
-                            monthNumber()
-                            chars(".")
-                            year()
-                        },
-                    ),
-                    modifier = Modifier.padding(cellPadding),
-                )
-            }
-        }
-        // Multiline text field to demonstrate dynamic row height
-        column(PersonColumn.NOTES, { it.notes }) {
-            title { "Notes" }
-            // Let the row grow by content; optionally set bounds in dynamic mode
-            // Use smaller min height in compact mode
-            rowHeight(
-                min = if (useCompactMode) 36.dp else 48.dp,
-                max = 200.dp,
-            )
-            autoWidth(500.dp)
-            filterTypes[PersonColumn.NOTES]?.let { filter(it) }
-            cell { item, _ -> Text(item.notes, modifier = Modifier.padding(cellPadding)) }
-        }
 
-        // Computed fields
-        val ageGroup = { item: Person ->
-            when {
-                item.age < 25 -> "<25"
-                item.age < 35 -> "25-34"
-                else -> "35+"
+            // Real Person fields
+            column(PersonColumn.NAME, { it.name }) {
+                title { "Name" }
+                autoWidth(500.dp)
+                sortable()
+                filterTypes[PersonColumn.NAME]?.let { filter(it) }
+                cell { item, _ ->
+                    // Group metadata belongs in the block's header band, not in a row cell — see
+                    // the `blockHeader` slot of the `RowBlocks` built in SampleApp.
+                    Text(item.name, modifier = Modifier.padding(cellPadding))
+                }
+
+                // Editing configuration - table will manage when to show this
+                editCell { person, tableData, onComplete ->
+                    var text by remember(person) { mutableStateOf(person.name) }
+
+                    TableCellTextFieldWithTooltipError(
+                        value = text,
+                        onValueChange = {
+                            text = it
+                            onEvent(SampleUiEvent.UpdateName(it))
+                        },
+                        errorMessage = tableData.editState.nameError,
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                        keyboardActions =
+                            KeyboardActions(
+                                onDone = { onComplete() },
+                            ),
+                    )
+                }
+
+                footer { tableData ->
+                    Text(
+                        "Total: ${tableData.displayedPeople.size}",
+                        modifier = Modifier.padding(cellPadding),
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+            }
+            column(PersonColumn.AGE, { it.age }) {
+                title { "Age" }
+                autoWidth()
+                sortable()
+                filterTypes[PersonColumn.AGE]?.let { filter(it) }
+                align(Alignment.CenterEnd)
+                cell { item, _ ->
+                    Text(
+                        item.age.toString(),
+                        modifier = Modifier.padding(cellPadding),
+                    )
+                }
+
+                // Editing configuration
+                editCell { person, tableData, onComplete ->
+                    var text by remember(person) { mutableStateOf(person.age.toString()) }
+
+                    TableCellTextFieldWithTooltipError(
+                        value = text,
+                        onValueChange = {
+                            text = it.filter { char -> char.isDigit() }
+                            it.toIntOrNull()?.let { age ->
+                                onEvent(SampleUiEvent.UpdateAge(age))
+                            }
+                        },
+                        errorMessage = tableData.editState.ageError,
+                        singleLine = true,
+                        keyboardOptions =
+                            KeyboardOptions(
+                                keyboardType = KeyboardType.Number,
+                                imeAction = ImeAction.Done,
+                            ),
+                        keyboardActions =
+                            KeyboardActions(
+                                onDone = { onComplete() },
+                            ),
+                    )
+                }
+
+                footer { tableData ->
+                    val avgAge =
+                        if (tableData.displayedPeople.isNotEmpty()) {
+                            tableData.displayedPeople.map { it.age }.average()
+                        } else {
+                            0.0
+                        }
+                    val rounded = (avgAge * 10).toInt() / 10.0
+                    Text(
+                        "Avg: $rounded",
+                        modifier = Modifier.padding(cellPadding),
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+            }
+            column(PersonColumn.ACTIVE, { it.active }) {
+                title { "Active" }
+                autoWidth()
+                sortable()
+                filterTypes[PersonColumn.ACTIVE]?.let { filter(it) }
+                cell { item, _ ->
+                    Text(
+                        if (item.active) "Yes" else "No",
+                        modifier = Modifier.padding(cellPadding),
+                    )
+                }
+            }
+            column(PersonColumn.ID, valueOf = { it.id }) {
+                title { "ID" }
+                autoWidth()
+                sortable()
+                align(Alignment.CenterEnd)
+                cell { item, _ ->
+                    Text(
+                        item.id.toString(),
+                        modifier = Modifier.padding(cellPadding),
+                    )
+                }
+            }
+            column(PersonColumn.EMAIL, valueOf = { it.email }) {
+                title { "Email" }
+                autoWidth()
+                sortable()
+                filterTypes[PersonColumn.EMAIL]?.let { filter(it) }
+                cell { item, _ -> Text(item.email.orEmpty(), modifier = Modifier.padding(cellPadding)) }
+            }
+            column(PersonColumn.CITY, { it.city }) {
+                title { "City" }
+                autoWidth(500.dp)
+                sortable()
+                filterTypes[PersonColumn.CITY]?.let { filter(it) }
+                cell { item, _ -> Text(item.city, modifier = Modifier.padding(cellPadding)) }
+            }
+            column(PersonColumn.COUNTRY, { it.country }) {
+                title { "Country" }
+                autoWidth(500.dp)
+                sortable()
+                filterTypes[PersonColumn.COUNTRY]?.let { filter(it) }
+                cell { item, _ -> Text(item.country, modifier = Modifier.padding(cellPadding)) }
+            }
+            column(PersonColumn.DEPARTMENT, { it.department }) {
+                title { "Department" }
+                autoWidth(500.dp)
+                sortable()
+                filterTypes[PersonColumn.DEPARTMENT]?.let { filter(it) }
+                cell { item, _ ->
+                    Text(item.department, modifier = Modifier.padding(cellPadding))
+                }
+            }
+            column(PersonColumn.POSITION, { it.position }) {
+                title { "Position" }
+                autoWidth(500.dp)
+                sortable()
+                filterTypes[PersonColumn.POSITION]?.let { filter(it) }
+                cell { item, _ ->
+                    Text(item.position.displayName, modifier = Modifier.padding(cellPadding))
+                }
+
+                // Editing configuration with dropdown
+                editCell { person, tableData, onComplete ->
+                    var expanded by remember { mutableStateOf(false) }
+                    var selectedPosition by remember(person) { mutableStateOf(person.position) }
+
+                    ExposedDropdownMenuBox(
+                        expanded = expanded,
+                        onExpandedChange = { expanded = it },
+                        modifier = Modifier.fillMaxSize(),
+                    ) {
+                        TableCellTextField(
+                            value = selectedPosition.displayName,
+                            onValueChange = {},
+                            readOnly = true,
+                            trailingIcon = {
+                                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                            },
+                            modifier =
+                                Modifier.menuAnchor(
+                                    ExposedDropdownMenuAnchorType.PrimaryNotEditable,
+                                ),
+                            singleLine = true,
+                        )
+                        ExposedDropdownMenu(
+                            expanded = expanded,
+                            onDismissRequest = { expanded = false },
+                        ) {
+                            Position.entries.forEach { position ->
+                                DropdownMenuItem(
+                                    text = { Text(position.displayName) },
+                                    onClick = {
+                                        selectedPosition = position
+                                        onEvent(SampleUiEvent.UpdatePosition(position))
+                                        expanded = false
+                                        onComplete()
+                                    },
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+            column(PersonColumn.SALARY, { it.salary }) {
+                title { "Salary" }
+                width(350.dp, 350.dp)
+                sortable()
+                // Custom visual range filter with histogram - uses tableData internally
+                filter(createSalaryRangeFilter())
+                align(Alignment.CenterEnd)
+                cell { item, _ ->
+                    Text(
+                        "$${item.salary}",
+                        modifier = Modifier.padding(cellPadding),
+                    )
+                }
+
+                // Editing configuration
+                editCell { person, tableData, onComplete ->
+                    var text by remember(person) { mutableStateOf(person.salary.toString()) }
+
+                    TableCellTextFieldWithTooltipError(
+                        value = text,
+                        onValueChange = {
+                            text = it.filter { char -> char.isDigit() }
+                            it.toIntOrNull()?.let { salary ->
+                                onEvent(SampleUiEvent.UpdateSalary(salary))
+                            }
+                        },
+                        errorMessage = tableData.editState.salaryError,
+                        singleLine = true,
+                        prefix = { Text("$") },
+                        keyboardOptions =
+                            KeyboardOptions(
+                                keyboardType = KeyboardType.Number,
+                                imeAction = ImeAction.Done,
+                            ),
+                        keyboardActions =
+                            KeyboardActions(
+                                onDone = { onComplete() },
+                            ),
+                    )
+                }
+
+                footer { tableData ->
+                    val totalSalary = tableData.displayedPeople.sumOf { it.salary }
+                    Text(
+                        "Total: $$totalSalary",
+                        modifier = Modifier.padding(cellPadding),
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+            }
+            column(PersonColumn.RATING, { it.rating }) {
+                title { "Rating" }
+                autoWidth()
+                sortable()
+                filterTypes[PersonColumn.RATING]?.let { filter(it) }
+                align(Alignment.Center)
+                cell { item, _ ->
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(2.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(cellPadding),
+                    ) {
+                        repeat(item.rating) {
+                            Icon(
+                                imageVector = Icons.Filled.Star,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp),
+                            )
+                        }
+                    }
+                }
+            }
+            column(PersonColumn.HIRE_DATE, { it.hireDate }) {
+                title { "Hire Date" }
+                autoWidth()
+                sortable()
+                filterTypes[PersonColumn.HIRE_DATE]?.let { filter(it) }
+                cell { item, _ ->
+                    Text(
+                        item.hireDate.format(
+                            LocalDate.Format {
+                                day()
+                                chars(".")
+                                monthNumber()
+                                chars(".")
+                                year()
+                            },
+                        ),
+                        modifier = Modifier.padding(cellPadding),
+                    )
+                }
+            }
+            // Multiline text field to demonstrate dynamic row height
+            column(PersonColumn.NOTES, { it.notes }) {
+                title { "Notes" }
+                // Let the row grow by content; optionally set bounds in dynamic mode
+                // Use smaller min height in compact mode
+                rowHeight(
+                    min = if (useCompactMode) 36.dp else 48.dp,
+                    max = 200.dp,
+                )
+                autoWidth(500.dp)
+                filterTypes[PersonColumn.NOTES]?.let { filter(it) }
+                cell { item, _ -> Text(item.notes, modifier = Modifier.padding(cellPadding)) }
+            }
+
+            // Computed fields
+            val ageGroup = { item: Person ->
+                when {
+                    item.age < 25 -> "<25"
+                    item.age < 35 -> "25-34"
+                    else -> "35+"
+                }
+            }
+            column(PersonColumn.AGE_GROUP, ageGroup) {
+                title { "Age group" }
+                autoWidth(500.dp)
+                sortable()
+                cell { item, _ ->
+                    Text(ageGroup(item), modifier = Modifier.padding(cellPadding))
+                }
             }
         }
-        column(PersonColumn.AGE_GROUP, ageGroup) {
-            title { "Age group" }
-            autoWidth(500.dp)
-            sortable()
-            cell { item, _ ->
-                Text(ageGroup(item), modifier = Modifier.padding(cellPadding))
-            }
-        }
-    }
 
     // Visibility is a ColumnSpec property, so the sidebar toggle rebuilds the spec list instead of
     // mutating table state — exercising ColumnSpec.visible end to end.

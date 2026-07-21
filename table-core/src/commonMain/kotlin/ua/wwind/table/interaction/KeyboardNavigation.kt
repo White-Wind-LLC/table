@@ -69,7 +69,9 @@ internal fun <T : Any, C> Modifier.tableKeyboardNavigation(
                         true
                     }
 
-                    else -> false
+                    else -> {
+                        false
+                    }
                 }
             } else {
                 when (event.key) {
@@ -170,7 +172,9 @@ internal fun <T : Any, C> Modifier.tableKeyboardNavigation(
                         true
                     }
 
-                    else -> false
+                    else -> {
+                        false
+                    }
                 }
             }
         }

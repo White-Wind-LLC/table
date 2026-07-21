@@ -31,8 +31,8 @@ import ua.wwind.table.ColumnSpec
 import ua.wwind.table.EditableTable
 import ua.wwind.table.ExperimentalTableApi
 import ua.wwind.table.RowBlockMove
-import ua.wwind.table.RowWithinBlockMove
 import ua.wwind.table.RowBlocks
+import ua.wwind.table.RowWithinBlockMove
 import ua.wwind.table.config.TableCustomization
 import ua.wwind.table.filter.data.TableFilterState
 import ua.wwind.table.sample.column.PersonColumn

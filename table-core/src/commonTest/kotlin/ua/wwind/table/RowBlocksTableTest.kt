@@ -50,7 +50,10 @@ import ua.wwind.table.state.TableState
 import ua.wwind.table.state.rememberTableState
 import kotlin.test.Test
 
-private data class BlockRow(val id: Int, val block: String?) {
+private data class BlockRow(
+    val id: Int,
+    val block: String?,
+) {
     val name: String get() = "name-$id"
 }
 
@@ -86,7 +89,8 @@ private fun blockColumns() =
  * A block header carrying the whole-block drag handle tagged `block-handle-<blockId>`, plus a
  * `band-<blockId>` label. Dragging the handle drags the entire block through the outer engine.
  */
-private val blockDragHeader: @Composable context(RowBlockHeaderScope) (blockId: Any, rows: IntRange) -> Unit =
+private val blockDragHeader: @Composable context(RowBlockHeaderScope)
+(blockId: Any, rows: IntRange) -> Unit =
     { blockId, _ ->
         Box(
             Modifier

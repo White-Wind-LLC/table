@@ -49,7 +49,7 @@ internal fun <T, E> FilterPanel(
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             when (type) {
-                is TableFilterType.TextTableFilter ->
+                is TableFilterType.TextTableFilter -> {
                     TextFilter(
                         filter = type,
                         state =
@@ -61,8 +61,9 @@ internal fun <T, E> FilterPanel(
                         autoFilterDebounce = autoFilterDebounce,
                         onChange = { onChange(it as? TableFilterState<T>) },
                     )
+                }
 
-                is TableFilterType.NumberTableFilter<*> ->
+                is TableFilterType.NumberTableFilter<*> -> {
                     NumberFilter<Number>(
                         filter = type as TableFilterType.NumberTableFilter<Number>,
                         state =
@@ -74,8 +75,9 @@ internal fun <T, E> FilterPanel(
                         autoFilterDebounce = autoFilterDebounce,
                         onChange = { onChange(it as? TableFilterState<T>) },
                     )
+                }
 
-                is TableFilterType.BooleanTableFilter ->
+                is TableFilterType.BooleanTableFilter -> {
                     BooleanFilter(
                         filter = type,
                         state =
@@ -87,8 +89,9 @@ internal fun <T, E> FilterPanel(
                         autoFilterDebounce = autoFilterDebounce,
                         onChange = { onChange(it as? TableFilterState<T>) },
                     )
+                }
 
-                is TableFilterType.DateTableFilter ->
+                is TableFilterType.DateTableFilter -> {
                     DateFilter(
                         filter = type,
                         state =
@@ -100,8 +103,9 @@ internal fun <T, E> FilterPanel(
                         autoFilterDebounce = autoFilterDebounce,
                         onChange = { onChange(it as? TableFilterState<T>) },
                     )
+                }
 
-                is TableFilterType.EnumTableFilter<*> ->
+                is TableFilterType.EnumTableFilter<*> -> {
                     EnumFilter(
                         filter = type,
                         state =
@@ -113,6 +117,7 @@ internal fun <T, E> FilterPanel(
                         autoFilterDebounce = autoFilterDebounce,
                         onChange = { onChange(it as? TableFilterState<T>) },
                     )
+                }
 
                 is TableFilterType.CustomTableFilter<*, *> -> {
                     val customFilter = type as TableFilterType.CustomTableFilter<Any, E>
@@ -131,7 +136,9 @@ internal fun <T, E> FilterPanel(
                     // No-op
                 }
 
-                null -> error("Filter type cannot be null")
+                null -> {
+                    error("Filter type cannot be null")
+                }
             }
         }
     }

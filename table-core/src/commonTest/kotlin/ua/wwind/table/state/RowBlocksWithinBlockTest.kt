@@ -8,7 +8,10 @@ import ua.wwind.table.RowBlocks
 import ua.wwind.table.RowWithinBlockMove
 import kotlin.test.Test
 
-private data class WbItem(val id: Int, val block: String?)
+private data class WbItem(
+    val id: Int,
+    val block: String?,
+)
 
 // row 0..1 block "a" (unit 0) | row 2..4 block "b" (unit 1) | row 5 standalone (unit 2) | row 6 block "c" (unit 3)
 private val wbFixture =

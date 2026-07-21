@@ -21,7 +21,8 @@ public interface TableCellScope : TableItemScope
 @Stable
 internal class TableCellScopeImpl(
     delegate: TableItemScope,
-) : TableCellScope, TableItemScope by delegate
+) : TableCellScope,
+    TableItemScope by delegate
 
 @Immutable
 internal object DefaultTableCellScope : TableCellScope, TableItemScope by DefaultTableItemScope
@@ -41,21 +42,22 @@ internal object DefaultTableCellScope : TableCellScope, TableItemScope by Defaul
  * @param dragGestureDetector gesture detector that defines how dragging is started.
  * @return a modifier with drag-handle behavior applied.
  */
-public context(cellScope: TableCellScope)
-fun Modifier.draggableHandle(
+context(cellScope: TableCellScope)
+public fun Modifier.draggableHandle(
     enabled: Boolean = true,
     interactionSource: MutableInteractionSource? = null,
     onDragStarted: (startedPosition: Offset) -> Unit = {},
     onDragStopped: () -> Unit = {},
-    dragGestureDetector: DragGestureDetector = DragGestureDetector.Press
-): Modifier = cellScope.applyDraggableHandle(
-    modifier = this,
-    enabled = enabled,
-    interactionSource = interactionSource,
-    onDragStarted = onDragStarted,
-    onDragStopped = onDragStopped,
-    dragGestureDetector = dragGestureDetector
-)
+    dragGestureDetector: DragGestureDetector = DragGestureDetector.Press,
+): Modifier =
+    cellScope.applyDraggableHandle(
+        modifier = this,
+        enabled = enabled,
+        interactionSource = interactionSource,
+        onDragStarted = onDragStarted,
+        onDragStopped = onDragStopped,
+        dragGestureDetector = dragGestureDetector,
+    )
 
 /**
  * Makes this modifier act as a long-press drag handle for the current table item from cell
@@ -72,16 +74,17 @@ fun Modifier.draggableHandle(
  * @param onDragStopped callback invoked when dragging stops.
  * @return a modifier with long-press drag-handle behavior applied.
  */
-public context(cellScope: TableCellScope)
-fun Modifier.longPressDraggableHandle(
+context(cellScope: TableCellScope)
+public fun Modifier.longPressDraggableHandle(
     enabled: Boolean = true,
     interactionSource: MutableInteractionSource? = null,
     onDragStarted: (startedPosition: Offset) -> Unit = {},
     onDragStopped: () -> Unit = {},
-): Modifier = cellScope.applyLongPressDraggableHandle(
-    modifier = this,
-    enabled = enabled,
-    interactionSource = interactionSource,
-    onDragStarted = onDragStarted,
-    onDragStopped = onDragStopped
-)
+): Modifier =
+    cellScope.applyLongPressDraggableHandle(
+        modifier = this,
+        enabled = enabled,
+        interactionSource = interactionSource,
+        onDragStarted = onDragStarted,
+        onDragStopped = onDragStopped,
+    )

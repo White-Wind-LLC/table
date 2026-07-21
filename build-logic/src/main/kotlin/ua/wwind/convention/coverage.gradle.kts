@@ -36,7 +36,7 @@ extensions.configure(KoverProjectExtension::class.java) {
                     "*.MR",
                     "*.MR$*",
                     // Compose previews or preview-only holders
-                    "*.*Preview*"
+                    "*.*Preview*",
                 )
             }
         }

@@ -421,7 +421,12 @@ internal fun <T : Any, C, E> TableBodyEmbedded(
                                 blockHeader = blocks?.config?.blockHeader,
                                 onRowMoveWithinBlock =
                                     if (withinBlockEnabled) {
-                                        { fromView, toView -> currentOnRowMoveWithinBlock.value?.invoke(fromView, toView) }
+                                        {
+                                            fromView,
+                                            toView,
+                                            ->
+                                            currentOnRowMoveWithinBlock.value?.invoke(fromView, toView)
+                                        }
                                     } else {
                                         null
                                     },

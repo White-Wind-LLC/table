@@ -11,7 +11,8 @@ import ua.wwind.table.platform.isMobile
 
 /**
  * Builds platform-aware interactions for a table row.
- * - Desktop/Web: single click -> select (or click), double click -> open (if select is primary), right click -> context menu
+ * - Desktop/Web: single click -> select (or click), double click -> open (if select is primary),
+ *   right click -> context menu
  * - Mobile: tap -> select (if requested) or open, long press if provided
  */
 @Suppress("LongParameterList", "CyclomaticComplexMethod")

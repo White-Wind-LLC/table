@@ -5,7 +5,9 @@ import kotlin.annotation.Retention
 
 @Suppress("ExperimentalAnnotationRetention")
 @RequiresOptIn(
-    message = "This table library API is experimental and may change without notice. Opt in with @OptIn(ExperimentalTableApi::class).",
+    message =
+        "This table library API is experimental and may change without notice. " +
+            "Opt in with @OptIn(ExperimentalTableApi::class).",
     level = RequiresOptIn.Level.ERROR,
 )
 @MustBeDocumented

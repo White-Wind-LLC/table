@@ -39,8 +39,7 @@ internal fun SortButton(
                         }
                     } else {
                         Modifier
-                    }
-                )
-                .padding(start = 4.dp),
+                    },
+                ).padding(start = 4.dp),
     )
 }

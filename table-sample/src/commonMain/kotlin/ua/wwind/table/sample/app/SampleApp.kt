@@ -46,11 +46,11 @@ import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.launch
 import ua.wwind.table.ExperimentalTableApi
 import ua.wwind.table.RowBlocks
-import ua.wwind.table.draggableHandle
 import ua.wwind.table.config.RowHeightMode
 import ua.wwind.table.config.SelectionMode
 import ua.wwind.table.config.TableDefaults
 import ua.wwind.table.config.TableSettings
+import ua.wwind.table.draggableHandle
 import ua.wwind.table.filter.data.TableFilterState
 import ua.wwind.table.format.rememberCustomization
 import ua.wwind.table.sample.app.components.AppToolbar

@@ -6,7 +6,10 @@ import assertk.assertions.isNull
 import ua.wwind.table.RowBlocks
 import kotlin.test.Test
 
-private data class RemapItem(val id: Int, val block: String?)
+private data class RemapItem(
+    val id: Int,
+    val block: String?,
+)
 
 /**
  * The commit-side companion of `settle()`: the remap is what carries positional runtime state

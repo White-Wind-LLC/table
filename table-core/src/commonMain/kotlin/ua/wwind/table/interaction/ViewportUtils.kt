@@ -158,8 +158,10 @@ public suspend fun <T : Any, C, E> ensureColumnFullyVisible(
         when {
             // a) Cell's left is left of viewport -> scroll left by delta
             cellX1Px < viewportX1Px -> cellX1Px - viewportX1Px
+
             // b) Cell's right is right of viewport -> scroll right by delta
             cellX2Px > viewportX2Px -> cellX2Px - viewportX2Px
+
             // c) Otherwise do nothing
             else -> 0
         }

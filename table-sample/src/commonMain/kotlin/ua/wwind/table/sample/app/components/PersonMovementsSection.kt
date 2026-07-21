@@ -24,12 +24,12 @@ import ua.wwind.table.ExperimentalTableApi
 import ua.wwind.table.RowBlockMove
 import ua.wwind.table.RowBlocks
 import ua.wwind.table.RowWithinBlockMove
-import ua.wwind.table.draggableHandle
 import ua.wwind.table.Table
 import ua.wwind.table.config.RowHeightMode
 import ua.wwind.table.config.SelectionMode
 import ua.wwind.table.config.TableDefaults
 import ua.wwind.table.config.TableSettings
+import ua.wwind.table.draggableHandle
 import ua.wwind.table.sample.column.createMovementColumns
 import ua.wwind.table.sample.model.Person
 import ua.wwind.table.sample.model.PersonMovement

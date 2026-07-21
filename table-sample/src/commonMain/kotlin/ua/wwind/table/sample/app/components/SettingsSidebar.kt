@@ -221,7 +221,9 @@ fun SettingsSidebar(
                             ) { Text("-") }
                             Text("${config.pinnedColumnsCount}", modifier = Modifier.width(24.dp))
                             OutlinedButton(
-                                onClick = { onConfigChange(config.copy(pinnedColumnsCount = config.pinnedColumnsCount + 1)) },
+                                onClick = {
+                                    onConfigChange(config.copy(pinnedColumnsCount = config.pinnedColumnsCount + 1))
+                                },
                             ) { Text("+") }
                         }
                     }

@@ -145,70 +145,119 @@ public object DefaultStrings : StringProvider {
         when (key) {
             // Generic
             UiString.FilterClear -> "Clear"
+
             UiString.FilterApply -> "Apply"
 
             // Placeholders
             UiString.FilterSearchPlaceholder -> "Search..."
+
             UiString.FilterEnterNumberPlaceholder -> "Enter number..."
+
             UiString.FilterSelectOnePlaceholder -> "Select One"
+
             UiString.FilterSelectManyPlaceholder -> "Select Many"
+
             UiString.FilterRangeFromPlaceholder -> "From"
+
             UiString.FilterRangeToPlaceholder -> "To"
+
             UiString.FilterRangeIconDescription -> "Range"
 
             // Date picker
             UiString.DatePickerSelectDate -> "Select Date"
+
             UiString.DatePickerConfirm -> "Confirm"
+
             UiString.DatePickerCancel -> "Cancel"
+
             UiString.DatePickerClear -> "Clear"
 
             // Boolean
             UiString.BooleanTrueTitle -> "Yes"
+
             UiString.BooleanFalseTitle -> "No"
 
             // Constraints
             UiString.FilterConstraintEquals -> "Equals"
+
             UiString.FilterConstraintNotEquals -> "Not equals"
+
             UiString.FilterConstraintBetween -> "Between"
+
             UiString.FilterConstraintContains -> "Contains"
+
             UiString.FilterConstraintIn -> "In"
+
             UiString.FilterConstraintStartsWith -> "Starts with"
+
             UiString.FilterConstraintEndsWith -> "Ends with"
+
             UiString.FilterConstraintNotIn -> "Not in"
+
             UiString.FilterConstraintGt -> "Greater than"
+
             UiString.FilterConstraintGte -> "Greater than or equal"
+
             UiString.FilterConstraintLt -> "Less than"
+
             UiString.FilterConstraintLte -> "Less than or equal"
+
             UiString.FilterConstraintIsNull -> "Is null"
+
             UiString.FilterConstraintIsNotNull -> "Is not null"
 
             // Format
             UiString.FormatRules -> "Formatting rules"
+
             UiString.FormatDesignTab -> "Design"
+
             UiString.FormatConditionTab -> "Condition"
+
             UiString.FormatFieldTab -> "Fields to format"
+
             UiString.FormatVerticalAlignmentTop -> "Top"
+
             UiString.FormatVerticalAlignmentCenter -> "Center"
+
             UiString.FormatVerticalAlignmentBottom -> "Bottom"
+
             UiString.FormatHorizontalAlignmentStart -> "Start"
+
             UiString.FormatHorizontalAlignmentCenter -> "Center"
+
             UiString.FormatHorizontalAlignmentEnd -> "End"
+
             UiString.FormatLabelVerticalAlignment -> "Vertical alignment"
+
             UiString.FormatLabelHorizontalAlignment -> "Horizontal alignment"
+
             UiString.FormatLabelTypography -> "Text style"
+
             UiString.FormatTextStyleNormal -> "Normal"
+
             UiString.FormatTextStyleItalic -> "Italic"
+
             UiString.FormatTextStyleBold -> "Bold"
+
             UiString.FormatTextStyleUnderline -> "Underline"
+
             UiString.FormatTextStyleStrikethrough -> "Strikethrough"
+
             UiString.FormatContentColor -> "Content color"
+
             UiString.FormatBackgroundColor -> "Background color"
+
             UiString.FormatChooseColor -> "Choose color"
+
             UiString.FormatResetColor -> "Reset color"
+
             UiString.FormatAlwaysApply -> "Always"
+
             // Grouping menu
             UiString.GroupBy -> "Group by"
+
             UiString.Ungroup -> "Ungroup"
+
             // Tooltip actions
             UiString.TooltipDismiss -> "Dismiss"
         }

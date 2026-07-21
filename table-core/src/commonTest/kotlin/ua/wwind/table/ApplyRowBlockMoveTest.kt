@@ -8,14 +8,20 @@ import kotlin.random.Random
 import kotlin.test.Test
 import kotlin.test.fail
 
-private data class Row(val key: Int, val block: String?)
+private data class Row(
+    val key: Int,
+    val block: String?,
+)
 
 private fun row(
     key: Int,
     block: String? = null,
 ) = Row(key, block)
 
-private fun MutableList<Row>.applyMove(move: RowBlockMove) = applyRowBlockMove(move, keyOf = { it.key }, blockOf = { it.block })
+private fun MutableList<Row>.applyMove(move: RowBlockMove) =
+    applyRowBlockMove(move, keyOf = {
+        it.key
+    }, blockOf = { it.block })
 
 /** Fails when any non-null block id occupies non-adjacent positions — the P1 invariant. */
 private fun assertBlocksContiguous(rows: List<Row>) {

@@ -98,7 +98,10 @@ internal class RowUnitIndex private constructor(
                 unitCount = itemsCount.coerceAtLeast(0),
             )
 
-        fun of(itemsCount: Int, groups: List<IntRange>): RowUnitIndex {
+        fun of(
+            itemsCount: Int,
+            groups: List<IntRange>,
+        ): RowUnitIndex {
             val size = groups.size
             val starts = IntArray(size)
             val ends = IntArray(size)

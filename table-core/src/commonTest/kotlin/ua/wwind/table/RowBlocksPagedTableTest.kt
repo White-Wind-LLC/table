@@ -29,7 +29,10 @@ import ua.wwind.table.config.TableSettings
 import ua.wwind.table.state.rememberTableState
 import kotlin.test.Test
 
-private data class PagedRow(val id: Int, val block: String?) {
+private data class PagedRow(
+    val id: Int,
+    val block: String?,
+) {
     val name: String get() = "name-$id"
 }
 
@@ -57,7 +60,8 @@ private fun pagedColumns() =
     }
 
 /** Block header carrying the whole-block drag handle tagged `block-handle-<blockId>`. */
-private val pagedBlockDragHeader: @Composable context(RowBlockHeaderScope) (blockId: Any, rows: IntRange) -> Unit =
+private val pagedBlockDragHeader: @Composable context(RowBlockHeaderScope)
+(blockId: Any, rows: IntRange) -> Unit =
     { blockId, _ ->
         Box(
             Modifier

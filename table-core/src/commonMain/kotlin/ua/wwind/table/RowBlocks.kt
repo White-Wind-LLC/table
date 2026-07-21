@@ -26,7 +26,8 @@ public class RowBlocks<T : Any>(
     /** Band content above a block; a `draggableHandle()` in its [RowBlockHeaderScope] drags the
      *  whole block. A block with no header cannot be dragged as a whole. */
     public val blockHeader: (
-        @Composable context(RowBlockHeaderScope) (blockId: Any, rows: IntRange) -> Unit
+        @Composable context(RowBlockHeaderScope)
+        (blockId: Any, rows: IntRange) -> Unit
     )? = null,
     /** One event per within-block row reorder; null disables it. The row never leaves its block. */
     public val onRowReorderWithinBlock: ((RowWithinBlockMove) -> Unit)? = null,
@@ -88,7 +89,10 @@ public fun <T> MutableList<T>.applyRowBlockMove(
                 val movedKeys = move.movedKeys.toSet()
                 ({ item -> keyOf(item) in movedKeys })
             }
-            else -> ({ item -> blockOf(item) == blockId })
+
+            else -> {
+                ({ item -> blockOf(item) == blockId })
+            }
         }
     val moved = filter(belongsToMove)
     if (moved.isEmpty()) return

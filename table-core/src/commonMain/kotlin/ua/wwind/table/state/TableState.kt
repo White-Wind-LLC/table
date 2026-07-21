@@ -451,7 +451,8 @@ public class TableState<C>
          */
         public fun recalculateAutoWidths() {
             logger.v {
-                "AutoWidth: reset flags, clearing ${columnContentMaxWidths.size} measured widths, preserving ${columnHeaderWidths.size} header widths"
+                "AutoWidth: reset flags, clearing ${columnContentMaxWidths.size} measured widths, " +
+                    "preserving ${columnHeaderWidths.size} header widths"
             }
             // Reset flags to allow ApplyAutoWidthEffect to recompute on next frame
             autoWidthAppliedForEmpty = false

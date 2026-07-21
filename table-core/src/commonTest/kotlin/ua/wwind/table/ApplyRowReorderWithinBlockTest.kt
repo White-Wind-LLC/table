@@ -4,7 +4,10 @@ import assertk.assertThat
 import assertk.assertions.isEqualTo
 import kotlin.test.Test
 
-private data class WbRow(val key: Int, val block: String?)
+private data class WbRow(
+    val key: Int,
+    val block: String?,
+)
 
 private fun wbRow(
     key: Int,

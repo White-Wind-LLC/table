@@ -110,10 +110,11 @@ internal fun <T : Any, C, E> TableHeader(
             HorizontalDivider(modifier = Modifier.width(state.tableWidth))
         }
         AnimatedVisibility(
-            visible = state.settings.showFastFilters &&
-                derived.visibleColumns.any {
-                    it.filter != null && it.filter !is TableFilterType.DisabledTableFilter
-                },
+            visible =
+                state.settings.showFastFilters &&
+                    derived.visibleColumns.any {
+                        it.filter != null && it.filter !is TableFilterType.DisabledTableFilter
+                    },
             enter =
                 slideInVertically(
                     initialOffsetY = { fullHeight -> -fullHeight },

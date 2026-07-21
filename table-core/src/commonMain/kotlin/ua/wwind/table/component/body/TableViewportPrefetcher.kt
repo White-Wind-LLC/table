@@ -64,8 +64,10 @@ internal fun <T : Any, C, E> TableViewportPrefetcher(
             val nextRow =
                 when {
                     lastVisibleUnit < 0 -> 0
+
                     // The footer is an extra lazy item at index == unitCount; it has no rows.
                     lastVisibleUnit >= units.unitCount -> itemsCount
+
                     else -> units.rowsOf(lastVisibleUnit).last + 1
                 }
             Pair(viewport, nextRow.coerceAtMost(itemsCount))

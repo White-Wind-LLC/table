@@ -16,19 +16,21 @@ private val includeIosX64: Boolean by lazy {
 }
 
 kotlin {
-    val iosTargets = buildList {
-        if (includeIosX64) add(iosX64())
-        add(iosArm64())
-        add(iosSimulatorArm64())
-    }
+    val iosTargets =
+        buildList {
+            if (includeIosX64) add(iosX64())
+            add(iosArm64())
+            add(iosSimulatorArm64())
+        }
 
     val xcFramework = XCFramework()
 
     iosTargets.forEach { target ->
         target.binaries.framework {
-            baseName = project.name
-                .replaceFirstChar { char -> if (char.isLowerCase()) char.titlecase() else char.toString() }
-                .replace("-", "_")
+            baseName =
+                project.name
+                    .replaceFirstChar { char -> if (char.isLowerCase()) char.titlecase() else char.toString() }
+                    .replace("-", "_")
             isStatic = true
 
             // Package into XCFramework (recommended for iOS)

@@ -41,7 +41,7 @@ public interface TableItemScope {
         interactionSource: MutableInteractionSource? = null,
         onDragStarted: (startedPosition: Offset) -> Unit = {},
         onDragStopped: () -> Unit = {},
-        dragGestureDetector: DragGestureDetector = DragGestureDetector.Press
+        dragGestureDetector: DragGestureDetector = DragGestureDetector.Press,
     ): Modifier
 
     /**
@@ -80,27 +80,29 @@ public interface RowBlockHeaderScope : TableItemScope
 @Stable
 internal class RowBlockHeaderScopeImpl(
     delegate: TableItemScope,
-) : RowBlockHeaderScope, TableItemScope by delegate
+) : RowBlockHeaderScope,
+    TableItemScope by delegate
 
 /**
  * Makes this modifier the drag handle for the whole block, from its header band. The node must be a
  * descendant of the block's [ReorderableItem].
  */
-public context(scope: RowBlockHeaderScope)
-fun Modifier.draggableHandle(
+context(scope: RowBlockHeaderScope)
+public fun Modifier.draggableHandle(
     enabled: Boolean = true,
     interactionSource: MutableInteractionSource? = null,
     onDragStarted: (startedPosition: Offset) -> Unit = {},
     onDragStopped: () -> Unit = {},
     dragGestureDetector: DragGestureDetector = DragGestureDetector.Press,
-): Modifier = scope.applyDraggableHandle(
-    modifier = this,
-    enabled = enabled,
-    interactionSource = interactionSource,
-    onDragStarted = onDragStarted,
-    onDragStopped = onDragStopped,
-    dragGestureDetector = dragGestureDetector,
-)
+): Modifier =
+    scope.applyDraggableHandle(
+        modifier = this,
+        enabled = enabled,
+        interactionSource = interactionSource,
+        onDragStarted = onDragStarted,
+        onDragStopped = onDragStopped,
+        dragGestureDetector = dragGestureDetector,
+    )
 
 @Immutable
 internal object DefaultTableItemScope : TableItemScope {
@@ -110,7 +112,7 @@ internal object DefaultTableItemScope : TableItemScope {
         interactionSource: MutableInteractionSource?,
         onDragStarted: (startedPosition: Offset) -> Unit,
         onDragStopped: () -> Unit,
-        dragGestureDetector: DragGestureDetector
+        dragGestureDetector: DragGestureDetector,
     ): Modifier = modifier
 
     override fun applyLongPressDraggableHandle(
@@ -118,7 +120,7 @@ internal object DefaultTableItemScope : TableItemScope {
         enabled: Boolean,
         interactionSource: MutableInteractionSource?,
         onDragStarted: (startedPosition: Offset) -> Unit,
-        onDragStopped: () -> Unit
+        onDragStopped: () -> Unit,
     ): Modifier = modifier
 }
 
@@ -131,16 +133,17 @@ internal class TableItemDragScope(
     private val delegate: ReorderableCollectionItemScope,
     private val onDragStartedHook: (() -> Unit)? = null,
     private val onDragStoppedHook: (() -> Unit)? = null,
-) : TableItemScope, ReorderableCollectionItemScope by delegate {
+) : TableItemScope,
+    ReorderableCollectionItemScope by delegate {
     override fun applyDraggableHandle(
         modifier: Modifier,
         enabled: Boolean,
         interactionSource: MutableInteractionSource?,
         onDragStarted: (startedPosition: Offset) -> Unit,
         onDragStopped: () -> Unit,
-        dragGestureDetector: DragGestureDetector
-    ): Modifier {
-        return context(delegate) {
+        dragGestureDetector: DragGestureDetector,
+    ): Modifier =
+        context(delegate) {
             modifier.draggableHandle(
                 enabled = enabled,
                 interactionSource = interactionSource,
@@ -152,19 +155,18 @@ internal class TableItemDragScope(
                     onDragStoppedHook?.invoke()
                     onDragStopped()
                 },
-                dragGestureDetector = dragGestureDetector
+                dragGestureDetector = dragGestureDetector,
             )
         }
-    }
 
     override fun applyLongPressDraggableHandle(
         modifier: Modifier,
         enabled: Boolean,
         interactionSource: MutableInteractionSource?,
         onDragStarted: (startedPosition: Offset) -> Unit,
-        onDragStopped: () -> Unit
-    ): Modifier {
-        return context(delegate) {
+        onDragStopped: () -> Unit,
+    ): Modifier =
+        context(delegate) {
             modifier.longPressDraggableHandle(
                 enabled = enabled,
                 interactionSource = interactionSource,
@@ -178,7 +180,6 @@ internal class TableItemDragScope(
                 },
             )
         }
-    }
 }
 
 /**
@@ -189,16 +190,17 @@ internal class TableItemDragScope(
 internal class TableItemListDragScope(
     private val delegate: ReorderableListItemScope,
     private val onDragStartedHook: (() -> Unit)? = null,
-) : TableItemScope, ReorderableListItemScope by delegate {
+) : TableItemScope,
+    ReorderableListItemScope by delegate {
     override fun applyDraggableHandle(
         modifier: Modifier,
         enabled: Boolean,
         interactionSource: MutableInteractionSource?,
         onDragStarted: (startedPosition: Offset) -> Unit,
         onDragStopped: () -> Unit,
-        dragGestureDetector: DragGestureDetector
-    ): Modifier {
-        return context(delegate) {
+        dragGestureDetector: DragGestureDetector,
+    ): Modifier =
+        context(delegate) {
             modifier.draggableHandle(
                 enabled = enabled,
                 interactionSource = interactionSource,
@@ -207,19 +209,18 @@ internal class TableItemListDragScope(
                     onDragStarted(startedPosition)
                 },
                 onDragStopped = { onDragStopped() },
-                dragGestureDetector = dragGestureDetector
+                dragGestureDetector = dragGestureDetector,
             )
         }
-    }
 
     override fun applyLongPressDraggableHandle(
         modifier: Modifier,
         enabled: Boolean,
         interactionSource: MutableInteractionSource?,
         onDragStarted: (startedPosition: Offset) -> Unit,
-        onDragStopped: () -> Unit
-    ): Modifier {
-        return context(delegate) {
+        onDragStopped: () -> Unit,
+    ): Modifier =
+        context(delegate) {
             modifier.longPressDraggableHandle(
                 enabled = enabled,
                 interactionSource = interactionSource,
@@ -230,5 +231,4 @@ internal class TableItemListDragScope(
                 onDragStopped = { onDragStopped() },
             )
         }
-    }
 }

@@ -55,7 +55,10 @@ internal fun <T : Any, C, E> RowUnit(
     blockId: Any?,
     /** Optional content for the band above a block; replaces the block's top gap. Its
      *  [RowBlockHeaderScope] receiver carries the whole-block drag handle. */
-    blockHeader: (@Composable context(RowBlockHeaderScope) (blockId: Any, rows: IntRange) -> Unit)?,
+    blockHeader: (
+        @Composable context(RowBlockHeaderScope)
+        (blockId: Any, rows: IntRange) -> Unit
+    )?,
     /** View-space within-block move `(fromView, toView)`. Null disables within-block reorder — the
      *  block's rows render without an inner drag engine. */
     onRowMoveWithinBlock: ((fromView: Int, toView: Int) -> Unit)?,

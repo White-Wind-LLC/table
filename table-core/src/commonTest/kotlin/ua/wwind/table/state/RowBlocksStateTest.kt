@@ -9,7 +9,10 @@ import ua.wwind.table.RowBlockMove
 import ua.wwind.table.RowBlocks
 import kotlin.test.Test
 
-private data class Item(val id: Int, val block: String?)
+private data class Item(
+    val id: Int,
+    val block: String?,
+)
 
 /**
  * The rendered fixture, in view order:

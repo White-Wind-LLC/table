@@ -26,8 +26,8 @@ public data class TableHeaderIcons(
 )
 
 public object TableHeaderDefaults {
-    @Composable
     /** Factory for [TableHeaderIcons] with sensible defaults. */
+    @Composable
     public fun icons(
         sortAsc: ImageVector = Icons.Rounded.ArrowUpward,
         sortDesc: ImageVector = Icons.Rounded.ArrowDownward,

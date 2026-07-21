@@ -55,8 +55,7 @@ public fun Modifier.syncEditCellFocus(): Modifier {
             // Prevent parent clickable semantics from treating Space as an activation click.
             .onPreviewKeyEvent { event ->
                 event.key == Key.Spacebar && event.type == KeyEventType.KeyUp
-            }
-            .onFocusChanged { focusState ->
+            }.onFocusChanged { focusState ->
                 // Update selectedCell when this component receives focus
                 if (focusState.isFocused) {
                     tableState.selectCellUnchecked(

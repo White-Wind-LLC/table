@@ -125,7 +125,10 @@ public open class ReadonlyColumnBuilder<T : Any, C, E>
     ) {
         protected var header: (@Composable (E) -> Unit)? = null
         protected var title: (@Composable () -> String)? = null
-        protected var cell: (@Composable context(TableCellScope) BoxScope.(T, E) -> Unit)? = null
+        protected var cell: (
+            @Composable context(TableCellScope)
+            BoxScope.(T, E) -> Unit
+        )? = null
         protected var sortable: Boolean = false
         protected var resizable: Boolean = true
         protected var visible: Boolean = true
@@ -302,8 +305,9 @@ public class EditableColumnBuilder<T : Any, C, E>
     }
 
 /** DSL entry to declare readonly table columns with custom table data type. */
-public fun <T : Any, C, E> tableColumns(build: ReadonlyTableColumnsBuilder<T, C, E>.() -> Unit): ImmutableList<ColumnSpec<T, C, E>> =
-    ReadonlyTableColumnsBuilder<T, C, E>().apply(build).build()
+public fun <T : Any, C, E> tableColumns(
+    build: ReadonlyTableColumnsBuilder<T, C, E>.() -> Unit,
+): ImmutableList<ColumnSpec<T, C, E>> = ReadonlyTableColumnsBuilder<T, C, E>().apply(build).build()
 
 /** DSL entry to declare editable table columns. */
 public fun <T : Any, C, E> editableTableColumns(

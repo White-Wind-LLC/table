@@ -6,7 +6,11 @@ import assertk.assertions.isTrue
 import kotlin.random.Random
 import kotlin.test.Test
 
-private data class Entry(val key: Int, val block: String?, val value: Int)
+private data class Entry(
+    val key: Int,
+    val block: String?,
+    val value: Int,
+)
 
 /** The table's unit rule, reimplemented independently: adjacency runs, singletons for null ids. */
 private fun unitsOf(rows: List<Entry>): List<List<Entry>> {

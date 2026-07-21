@@ -172,7 +172,9 @@ public fun <E : Enum<E>, FILTER> FormatDialogConditionTab(
                                         FormatTextFilter(
                                             filter = filter,
                                             state = filterData.filterState as TableFilterState<String>,
-                                            onChange = { newState -> filterData.onChange(newState as TableFilterState<*>) },
+                                            onChange = { newState ->
+                                                filterData.onChange(newState as TableFilterState<*>)
+                                            },
                                             strings = strings,
                                         )
                                     }
@@ -181,7 +183,9 @@ public fun <E : Enum<E>, FILTER> FormatDialogConditionTab(
                                         FormatBooleanFilter(
                                             filter = filter,
                                             state = filterData.filterState as TableFilterState<Boolean>,
-                                            onChange = { newState -> filterData.onChange(newState as TableFilterState<*>) },
+                                            onChange = { newState ->
+                                                filterData.onChange(newState as TableFilterState<*>)
+                                            },
                                             strings = strings,
                                         )
                                     }
@@ -190,7 +194,9 @@ public fun <E : Enum<E>, FILTER> FormatDialogConditionTab(
                                         FormatDateFilter(
                                             filter = filter,
                                             state = filterData.filterState as TableFilterState<LocalDate>,
-                                            onChange = { newState -> filterData.onChange(newState as TableFilterState<*>) },
+                                            onChange = { newState ->
+                                                filterData.onChange(newState as TableFilterState<*>)
+                                            },
                                             strings = strings,
                                         )
                                     }
@@ -199,7 +205,9 @@ public fun <E : Enum<E>, FILTER> FormatDialogConditionTab(
                                         FormatEnumFilter(
                                             filter = filter,
                                             state = filterData.filterState as TableFilterState<*>,
-                                            onChange = { newState -> filterData.onChange(newState as TableFilterState<*>) },
+                                            onChange = { newState ->
+                                                filterData.onChange(newState as TableFilterState<*>)
+                                            },
                                             strings = strings,
                                         )
                                     }
@@ -208,7 +216,9 @@ public fun <E : Enum<E>, FILTER> FormatDialogConditionTab(
                                         FormatNumberFilter(
                                             filter = filter as TableFilterType.NumberTableFilter<Number>,
                                             state = filterData.filterState as TableFilterState<Number>,
-                                            onChange = { newState -> filterData.onChange(newState as TableFilterState<*>) },
+                                            onChange = { newState ->
+                                                filterData.onChange(newState as TableFilterState<*>)
+                                            },
                                             strings = strings,
                                         )
                                     }
@@ -566,7 +576,9 @@ private fun FormatEnumFilter(
             FilterConstraint.EQUALS -> {
                 FilterDropdownAnyField(
                     currentValue = if (selectedValues.size == 1) selectedValues.first() else null,
-                    getTitle = { anyItem -> (filter.getTitle as @Composable (Enum<*>) -> String).invoke(anyItem as Enum<*>) },
+                    getTitle = { anyItem ->
+                        (filter.getTitle as @Composable (Enum<*>) -> String).invoke(anyItem as Enum<*>)
+                    },
                     placeholder = strings.get(UiString.FilterSelectOnePlaceholder),
                     values = (filter.options as ImmutableList<Enum<*>>),
                     onClick = { anyItem -> selectedValues = listOf(anyItem as Enum<*>) },
@@ -577,7 +589,9 @@ private fun FormatEnumFilter(
             FilterConstraint.IN, FilterConstraint.NOT_IN -> {
                 FilterDropdownAnyField(
                     currentValue = null,
-                    getTitle = { anyItem -> (filter.getTitle as @Composable (Enum<*>) -> String).invoke(anyItem as Enum<*>) },
+                    getTitle = { anyItem ->
+                        (filter.getTitle as @Composable (Enum<*>) -> String).invoke(anyItem as Enum<*>)
+                    },
                     placeholder =
                         if (selectedValues.isEmpty()) {
                             strings.get(UiString.FilterSelectManyPlaceholder)
@@ -593,7 +607,11 @@ private fun FormatEnumFilter(
                     onClick = { anyItem ->
                         val enumItem = anyItem as Enum<*>
                         selectedValues =
-                            if (selectedValues.contains(enumItem)) selectedValues - enumItem else selectedValues + enumItem
+                            if (selectedValues.contains(enumItem)) {
+                                selectedValues - enumItem
+                            } else {
+                                selectedValues + enumItem
+                            }
                     },
                     checked = { anyEnum -> selectedValues.contains(anyEnum as Enum<*>) },
                     modifier = Modifier.fillMaxWidth(),
@@ -672,7 +690,11 @@ private fun <T : Number> FormatNumberFilter(
                 placeholder = {
                     Text(
                         strings.get(
-                            if (isBetween) UiString.FilterRangeFromPlaceholder else UiString.FilterEnterNumberPlaceholder,
+                            if (isBetween) {
+                                UiString.FilterRangeFromPlaceholder
+                            } else {
+                                UiString.FilterEnterNumberPlaceholder
+                            },
                         ),
                     )
                 },

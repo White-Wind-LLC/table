@@ -36,7 +36,8 @@ import androidx.compose.ui.unit.dp
  * @param readOnly controls the editable state of the text field
  * @param textStyle the style to be applied to the input text
  * @param label the optional label to be displayed inside the text field container
- * @param placeholder the optional placeholder to be displayed when the text field is in focus and the input text is empty
+ * @param placeholder the optional placeholder to be displayed when the text field is in focus and the input text is
+ * empty
  * @param leadingIcon the optional leading icon to be displayed at the beginning of the text field container
  * @param trailingIcon the optional trailing icon to be displayed at the end of the text field container
  * @param prefix the optional prefix to be displayed before the input text in the text field
@@ -52,8 +53,8 @@ import androidx.compose.ui.unit.dp
  * @param interactionSource the [MutableInteractionSource] representing the stream of interactions for this text field
  * @param shape defines the shape of this text field's border
  * @param colors [TextFieldColors] that will be used to resolve the colors used for this text field in different states
- * @param contentPadding the padding applied to the inner text field. Use [TableTextFieldDefaults.contentPadding] for standard padding
- * or [TableTextFieldDefaults.reducedContentPadding] for compact appearance
+ * @param contentPadding the padding applied to the inner text field. Use [TableTextFieldDefaults.contentPadding] for
+ * standard padding or [TableTextFieldDefaults.reducedContentPadding] for compact appearance
  * @param showBorder when false, the border/outline of the text field will be hidden
  */
 @OptIn(ExperimentalMaterial3Api::class)

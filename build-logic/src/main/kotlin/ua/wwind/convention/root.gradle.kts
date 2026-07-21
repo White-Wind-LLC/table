@@ -1,4 +1,5 @@
 @file:Suppress("UnstableApiUsage")
+
 package ua.wwind.convention
 
 plugins {
@@ -21,9 +22,10 @@ allprojects {
 }
 
 // Aggregation task to run 'check' on all subprojects
-val checkAll = tasks.register("checkAll") {
-    group = "verification"
-    description = "Runs the 'check' task on all subprojects."
-    // Lazy dependency to avoid task realization too early
-    dependsOn(subprojects.map { "${it.path}:check" })
-}
+val checkAll =
+    tasks.register("checkAll") {
+        group = "verification"
+        description = "Runs the 'check' task on all subprojects."
+        // Lazy dependency to avoid task realization too early
+        dependsOn(subprojects.map { "${it.path}:check" })
+    }

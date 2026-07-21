@@ -9,7 +9,10 @@ import ua.wwind.table.RowBlockMove
 import ua.wwind.table.RowBlocks
 import kotlin.test.Test
 
-private data class PagedItem(val id: Int, val block: String?)
+private data class PagedItem(
+    val id: Int,
+    val block: String?,
+)
 
 /**
  * Paged sources render placeholders (null items) for rows whose page has not arrived. Two policies

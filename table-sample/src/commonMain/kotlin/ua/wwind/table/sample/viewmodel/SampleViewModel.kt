@@ -74,10 +74,12 @@ class SampleViewModel : ViewModel() {
             val comparator = PersonSorter.comparatorFor(sort)
             when {
                 comparator == null -> filtered
+
                 // A live projection re-pins unit order after every committed move, hiding it. Safe
                 // ONLY because every move handler clears currentSort on commit — copy this without
                 // that clear and moves become invisible.
                 withinBlocks -> filtered.sortedWithinRowBlocks({ it.groupId }, comparator)
+
                 else -> filtered.sortedWith(comparator)
             }
         }.stateIn(

@@ -13,13 +13,24 @@ plugins {
 
 kotlin {
     android {
-        namespace = project.computeValidatedNamespace(
-            explicitPropertyNames = listOf("androidNamespace"),
-            basePropertyName = "baseNamespace",
-            subjectLabel = "Android namespace",
-        )
-        compileSdk = libs.findVersion("android-compileSdk").get().requiredVersion.toInt()
-        minSdk = libs.findVersion("android-minSdk").get().requiredVersion.toInt()
+        namespace =
+            project.computeValidatedNamespace(
+                explicitPropertyNames = listOf("androidNamespace"),
+                basePropertyName = "baseNamespace",
+                subjectLabel = "Android namespace",
+            )
+        compileSdk =
+            libs
+                .findVersion("android-compileSdk")
+                .get()
+                .requiredVersion
+                .toInt()
+        minSdk =
+            libs
+                .findVersion("android-minSdk")
+                .get()
+                .requiredVersion
+                .toInt()
 
         // Required so Compose composeResources keep packaging into consumers' APKs (CMP-9547)
         androidResources {

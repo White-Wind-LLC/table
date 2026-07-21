@@ -324,8 +324,7 @@ internal class RowBlocksState<T : Any>(
         fun blockIdAt(viewIndex: Int): Any? = items.getOrNull(viewIndex)?.let(config.blockOf)
 
         /** The same key the table's effectiveRowKey produces, but read off this frozen snapshot. */
-        fun keyAt(viewIndex: Int): Any =
-            rowKey(items.getOrNull(viewIndex), order.getOrElse(viewIndex) { viewIndex })
+        fun keyAt(viewIndex: Int): Any = rowKey(items.getOrNull(viewIndex), order.getOrElse(viewIndex) { viewIndex })
     }
 }
 

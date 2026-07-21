@@ -44,7 +44,8 @@ import ua.wwind.table.strings.currentStrings
  * @param readOnly controls the editable state of the text field
  * @param textStyle the style to be applied to the input text
  * @param label the optional label to be displayed inside the text field container
- * @param placeholder the optional placeholder to be displayed when the text field is in focus and the input text is empty
+ * @param placeholder the optional placeholder to be displayed when the text field is in focus and the input text is
+ * empty
  * @param leadingIcon the optional leading icon to be displayed at the beginning of the text field container
  * @param trailingIcon the optional trailing icon to be displayed at the end of the text field container
  * @param prefix the optional prefix to be displayed before the input text in the text field

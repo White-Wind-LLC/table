@@ -316,15 +316,31 @@ public fun <E : Enum<E>, FILTER> FormatDialog(
                                     ListItem(
                                         overlineContent =
                                             buildList {
-                                                if (item.cellStyle.textStyle != null) add(strings.get(UiString.FormatLabelTypography))
-                                                if (item.cellStyle.vertical != null) add(strings.get(UiString.FormatLabelVerticalAlignment))
+                                                if (item.cellStyle.textStyle !=
+                                                    null
+                                                ) {
+                                                    add(strings.get(UiString.FormatLabelTypography))
+                                                }
+                                                if (item.cellStyle.vertical !=
+                                                    null
+                                                ) {
+                                                    add(strings.get(UiString.FormatLabelVerticalAlignment))
+                                                }
                                                 if (item.cellStyle.horizontal !=
                                                     null
                                                 ) {
                                                     add(strings.get(UiString.FormatLabelHorizontalAlignment))
                                                 }
-                                                if (item.cellStyle.backgroundColor != null) add(strings.get(UiString.FormatBackgroundColor))
-                                                if (item.cellStyle.contentColor != null) add(strings.get(UiString.FormatContentColor))
+                                                if (item.cellStyle.backgroundColor !=
+                                                    null
+                                                ) {
+                                                    add(strings.get(UiString.FormatBackgroundColor))
+                                                }
+                                                if (item.cellStyle.contentColor !=
+                                                    null
+                                                ) {
+                                                    add(strings.get(UiString.FormatContentColor))
+                                                }
                                             }.takeIf { it.isNotEmpty() }?.let {
                                                 { Text(it.joinToString(", "), maxLines = 1) }
                                             },
@@ -446,7 +462,10 @@ private fun Color.contrastColor(): Color {
 private fun <E : Enum<E>, FILTER> buildRuleTitle(
     rule: TableFormatRule<E, FILTER>,
     getFieldTitle: @Composable (E) -> String,
-    filtersProvider: (TableFormatRule<E, FILTER>, onApply: (TableFormatRule<E, FILTER>) -> Unit) -> List<FormatFilterData<E>>,
+    filtersProvider: (
+        TableFormatRule<E, FILTER>,
+        onApply: (TableFormatRule<E, FILTER>) -> Unit,
+    ) -> List<FormatFilterData<E>>,
     strings: StringProvider,
 ): String {
     val parts = mutableListOf<String>()
@@ -458,5 +477,6 @@ private fun <E : Enum<E>, FILTER> buildRuleTitle(
             parts += "$fieldTitle $built"
         }
     }
-    return parts.takeIf { it.isNotEmpty() }?.joinToString(separator = " • ") ?: strings.get(UiString.FormatAlwaysApply)
+    return parts.takeIf { it.isNotEmpty() }?.joinToString(separator = " • ")
+        ?: strings.get(UiString.FormatAlwaysApply)
 }
