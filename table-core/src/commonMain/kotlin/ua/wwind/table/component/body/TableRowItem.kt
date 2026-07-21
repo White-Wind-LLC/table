@@ -53,15 +53,6 @@ import ua.wwind.table.state.TableState
 import ua.wwind.table.state.calculatePinnedColumnState
 
 /**
- * Context for the currently editing cell, providing row index and column key.
- * Column is stored as Any to avoid star projection issues when updating selectedCell.
- */
-public data class EditCellContext(
-    val rowIndex: Int,
-    val columnAsAny: Any,
-)
-
-/**
  * Composition local providing the current edit cell context (row index and column key).
  */
 public val LocalEditCellContext: ProvidableCompositionLocal<EditCellContext?> =
