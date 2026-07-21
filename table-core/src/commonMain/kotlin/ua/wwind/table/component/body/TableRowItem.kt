@@ -160,7 +160,7 @@ internal fun <T : Any, C, E> TableRowItem(
             Column {
                 Column(modifier = Modifier.width(state.tableWidth)) {
                     RenderTableRowItem(
-                        rowModifier = rowModifier,
+                        modifier = rowModifier,
                         state = state,
                         index = index,
                         visibleColumns = visibleColumns,
@@ -199,7 +199,7 @@ internal fun <T : Any, C, E> TableRowItem(
 @Composable
 context(rowScope: TableItemScope)
 private fun <C, T : Any, E> RenderTableRowItem(
-    rowModifier: Modifier,
+    modifier: Modifier,
     state: TableState<C>,
     index: Int,
     visibleColumns: ImmutableList<ColumnSpec<T, C, E>>,
@@ -220,7 +220,7 @@ private fun <C, T : Any, E> RenderTableRowItem(
 ) {
     Row(
         modifier =
-            rowModifier.onGloballyPositioned { coordinates ->
+            modifier.onGloballyPositioned { coordinates ->
                 state.updateRowHeight(index, coordinates.size.height)
             },
     ) {

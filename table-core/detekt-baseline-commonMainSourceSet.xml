@@ -3,8 +3,7 @@
   <ManuallySuppressedIssues/>
   <CurrentIssues>
     <ID>LoopWithTooManyJumpStatements:RowBlocksState.kt:RowBlocksState$for</ID>
-    <ID>ModifierNaming:TableRowItem.kt:rowModifier: Modifier</ID>
-    <ID>ModifierWithoutDefault:TableRowItem.kt:rowModifier: Modifier</ID>
+    <ID>ModifierWithoutDefault:TableRowItem.kt:modifier: Modifier</ID>
     <ID>MultipleEmitters:ActiveFiltersHeader.kt:@Composable internal fun &lt;T : Any, C, E> ActiveFiltersHeader</ID>
     <ID>TooManyFunctions:RowBlocksState.kt:RowBlocksState&lt;T : Any></ID>
     <ID>TooManyFunctions:TableState.kt:TableState&lt;C></ID>
