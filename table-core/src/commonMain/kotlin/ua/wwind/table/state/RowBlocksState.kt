@@ -129,11 +129,7 @@ internal class RowBlocksState<T : Any>(
     private fun isPlaceholderFillIn(newUpstream: List<T?>): Boolean {
         val old = upstream
         if (newUpstream.size != old.size) return false
-        for (index in old.indices) {
-            val loaded = old[index] ?: continue
-            if (loaded != newUpstream[index]) return false
-        }
-        return true
+        return old.indices.all { index -> old[index] == null || old[index] == newUpstream[index] }
     }
 
     /**
@@ -164,11 +160,10 @@ internal class RowBlocksState<T : Any>(
      */
     fun settle(): RowBlockMove? {
         val (dragged, before) = endGesture() ?: return null
-        val order = viewOrder
         // The extent NOW, not at gesture start: a page loaded mid-gesture can merge members into the
         // dragged run, and the stale extent would anchor the move inside the block itself.
-        val leaderView = order.indexOf(dragged.first())
-        if (leaderView < 0) return null
+        val leaderView = viewOrder.indexOf(dragged.first()).takeIf { it >= 0 } ?: return null
+        val order = viewOrder
         val units = derived.units
         val rows = units.rowsOf(units.unitOf(leaderView))
         val first = rows.first
@@ -212,7 +207,13 @@ internal class RowBlocksState<T : Any>(
     /**
      * Ends a within-block gesture and emits at most one [RowWithinBlockMove], anchored on the moved
      * row's neighbours inside its run. Same paged refusal as [settle].
+     *
+     * Five of the exits are the ways a within-block drop can fail to name a move — stale probe, unit
+     * that is no longer a group, unloaded anchor, row without a block id — and each is read on its
+     * own, not as a step in a chain. [settle] fits under the limit only because whole-block anchoring
+     * has fewer failure modes; nesting these would bury the emit under four levels of indentation.
      */
+    @Suppress("ReturnCount")
     fun settleWithinBlock(): RowWithinBlockMove? {
         val (dragged, before) = endGesture() ?: return null
         val order = viewOrder

@@ -108,7 +108,12 @@ public fun <T> MutableList<T>.applyRowBlockMove(
  * Destination in [rest], or null when neither anchor resolves. Each anchor expands over its own
  * hidden block-mates — forward past `afterKey`'s, backward before `beforeKey`'s — so the filtered
  * projection shows the unit exactly where the drag put it.
+ *
+ * The exits are the resolution table above, one per outcome: list start, primary anchor, list end,
+ * fallback anchor, unresolvable. Funnelling them through a single exit would thread a nullable
+ * through four branches to say what each `return` already says in place.
  */
+@Suppress("ReturnCount")
 private fun <T> rowBlockInsertionIndex(
     rest: List<T>,
     move: RowBlockMove,
@@ -152,18 +157,19 @@ public fun <T> MutableList<T>.applyRowReorderWithinBlock(
     if (movedIndex < 0) return
     if (blockOf(this[movedIndex]) != move.blockId) return
     val moving = removeAt(movedIndex)
-    val insertAt = withinBlockInsertionIndex(this, move, keyOf, blockOf)
-    if (insertAt == null) {
-        add(movedIndex, moving)
-        return
-    }
+    // Neither anchor resolved: [movedIndex] puts the row back where it was, leaving the list as found.
+    val insertAt = withinBlockInsertionIndex(this, move, keyOf, blockOf) ?: movedIndex
     add(insertAt.coerceIn(0, size), moving)
 }
 
 /**
  * Destination in [rest] for a within-block move, or null when neither anchor resolves. A null
  * anchor means the block's edge, so the row lands at its first / after its last source member.
+ *
+ * One exit per outcome, as in [rowBlockInsertionIndex]: each anchor resolves either to a key or to
+ * its block edge, and the pair is tried primary-then-fallback.
  */
+@Suppress("ReturnCount")
 private fun <T> withinBlockInsertionIndex(
     rest: List<T>,
     move: RowWithinBlockMove,

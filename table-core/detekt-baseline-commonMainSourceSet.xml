@@ -35,20 +35,6 @@
     <ID>ParameterNaming:MeasureUtils.kt:onMeasured: (Dp) -> Unit</ID>
     <ID>ParameterNaming:RowUnit.kt:/** Fires once when a within-block gesture starts (edit cancellation). */ onWithinBlockDragStarted: (() -> Unit)?</ID>
     <ID>ParameterNaming:Table.kt:/** Callback when editing is cancelled */ onEditCancelled: ((rowIndex: Int) -> Unit)? = null</ID>
-    <ID>ReturnCount:ColumnReorder.kt:internal fun &lt;C> computeReorderMove: Pair&lt;Int, Int>?</ID>
-    <ID>ReturnCount:RowBlocks.kt:private fun &lt;T> rowBlockInsertionIndex: Int?</ID>
-    <ID>ReturnCount:RowBlocks.kt:private fun &lt;T> withinBlockInsertionIndex: Int?</ID>
-    <ID>ReturnCount:RowBlocks.kt:public fun &lt;T> MutableList&lt;T>.applyRowReorderWithinBlock</ID>
-    <ID>ReturnCount:RowBlocksState.kt:RowBlocksState$fun applyRowMoveWithinBlock</ID>
-    <ID>ReturnCount:RowBlocksState.kt:RowBlocksState$fun gestureRemap: ((Int) -> Int)?</ID>
-    <ID>ReturnCount:RowBlocksState.kt:RowBlocksState$fun settle: RowBlockMove?</ID>
-    <ID>ReturnCount:RowBlocksState.kt:RowBlocksState$fun settleWithinBlock: RowWithinBlockMove?</ID>
-    <ID>ReturnCount:RowBlocksState.kt:RowBlocksState$private fun isPlaceholderFillIn: Boolean</ID>
-    <ID>ReturnCount:RowUnitIndex.kt:RowUnitIndex$fun rowsOf: IntRange</ID>
-    <ID>ReturnCount:RowUnitIndex.kt:RowUnitIndex$fun unitOf: Int</ID>
-    <ID>ReturnCount:TableState.kt:TableState$public fun completeCurrentCellEdit</ID>
-    <ID>ReturnCount:TableState.kt:TableState$public fun moveColumn</ID>
-    <ID>ReturnCount:TableState.kt:TableState$public fun startEditing: Boolean</ID>
     <ID>TooManyFunctions:RowBlocksState.kt:RowBlocksState&lt;T : Any></ID>
     <ID>TooManyFunctions:TableState.kt:TableState&lt;C></ID>
     <ID>UnusedParameter:FastBooleanFilter.kt:strings: StringProvider</ID>

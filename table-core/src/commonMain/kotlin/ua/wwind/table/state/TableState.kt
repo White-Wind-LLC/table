@@ -236,12 +236,11 @@ public class TableState<C>
             toIndex: Int,
         ) {
             // Guard against invalid indices and no-op moves
-            val size = columnOrder.size
-            if (size < 2) return
-            if (fromIndex !in 0 until size) return
+            if (columnOrder.size < 2) return
+            if (fromIndex !in columnOrder.indices) return
 
             // Allow dropping after the last element (append)
-            var targetIndex = toIndex.coerceIn(0, size)
+            var targetIndex = toIndex.coerceIn(0, columnOrder.size)
             if (fromIndex == targetIndex || fromIndex == targetIndex - 1) return
 
             val column = columnOrder.removeAt(fromIndex)

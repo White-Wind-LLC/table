@@ -12,7 +12,6 @@
     <ID>ParameterNaming:MainTable.kt:onEditCancelled: (Int) -> Unit</ID>
     <ID>ParameterNaming:MainTable.kt:onFiltersChanged: (Map&lt;PersonColumn, TableFilterState&lt;*>>) -> Unit</ID>
     <ID>ParameterNaming:MainTable.kt:onSortChanged: (SortState&lt;PersonColumn>?) -> Unit</ID>
-    <ID>ReturnCount:PersonSorter.kt:PersonSorter$@Suppress("LongMethod", "CyclomaticComplexMethod") fun comparatorFor: Comparator&lt;Person>?</ID>
     <ID>TooManyFunctions:SampleViewModel.kt:SampleViewModel : ViewModel</ID>
     <ID>ViewModelInjection:SampleApp.kt:val viewModel: SampleViewModel = viewModel { SampleViewModel() }</ID>
   </CurrentIssues>

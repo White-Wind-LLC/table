@@ -19,6 +19,13 @@ complexity:
       - "**/commonTest/**"
       - "**/test/**"
 
+style:
+  ReturnCount:
+    # detekt counts every exit equally, but a leading guard clause is not an exit a reader has to
+    # follow — it is the precondition, read once and done with before the body starts. `max` stays
+    # at 2, so a function with three returns scattered through real branching is still reported.
+    excludeGuardClauses: true
+
 naming:
   FunctionNaming:
     active: true
