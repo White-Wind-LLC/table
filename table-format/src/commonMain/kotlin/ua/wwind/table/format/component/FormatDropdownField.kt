@@ -5,6 +5,7 @@ import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -62,7 +63,7 @@ internal fun <E : Enum<E>> FormatDropdownField(
             readOnly = true,
             singleLine = true,
             label = label,
-            modifier = modifier,
+            modifier = Modifier.fillMaxWidth(),
             trailingIcon =
                 currentValue?.let {
                     {

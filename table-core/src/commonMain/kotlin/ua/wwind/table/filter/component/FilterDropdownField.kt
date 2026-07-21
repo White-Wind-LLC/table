@@ -64,6 +64,7 @@ public fun <E : Enum<E>> FilterDropdownField(
     ExposedDropdownMenuBox(
         expanded = expanded,
         onExpandedChange = { expanded = !expanded },
+        modifier = modifier,
     ) {
         TableTextField(
             value = currentValue?.let { getTitle(it) } ?: "",
@@ -77,7 +78,7 @@ public fun <E : Enum<E>> FilterDropdownField(
             },
             singleLine = true,
             modifier =
-                modifier.menuAnchor(
+                Modifier.menuAnchor(
                     ExposedDropdownMenuAnchorType.PrimaryNotEditable,
                     enabled = true,
                 ),

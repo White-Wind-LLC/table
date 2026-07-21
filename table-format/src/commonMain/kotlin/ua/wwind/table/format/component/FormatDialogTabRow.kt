@@ -4,6 +4,7 @@ package ua.wwind.table.format.component
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.TabRow
@@ -63,7 +64,7 @@ public fun <E, T> FormatDialogTabRow(
             }
         }
 
-        Box(modifier = modifier) {
+        Box(modifier = Modifier.fillMaxSize()) {
             content()
         }
     }

@@ -19,6 +19,10 @@ All notable changes to this project will be documented in this file.
     - `EditableTable`: `onEditCancelled` → `onEditCancel`. The `TableState` edit-state property of the same name
       is renamed with it, so the parameter and the state it writes still read alike.
     - `FormatDialog`: `onRulesChanged` → `onRulesChange`.
+- Changed: `FilterDropdownField`, `FilterDropdownAnyField` and `FormatDialogTabRow` now apply their `modifier` to
+  their own root node instead of to an inner element. Positioning, sizing and padding modifiers therefore affect
+  the whole component — previously they reached only the text field, or were applied twice. Source-compatible, and
+  the components render as before at every call site in this repository.
 
 ### 1.11.0 — 2026-07-21
 

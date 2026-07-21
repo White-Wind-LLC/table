@@ -48,6 +48,7 @@ public fun FilterDropdownAnyField(
     ExposedDropdownMenuBox(
         expanded = expanded,
         onExpandedChange = { expanded = !expanded },
+        modifier = modifier,
     ) {
         TableTextField(
             value = currentValue?.let { getTitle(it) } ?: "",
@@ -61,7 +62,7 @@ public fun FilterDropdownAnyField(
             readOnly = true,
             singleLine = true,
             modifier =
-                modifier.menuAnchor(
+                Modifier.menuAnchor(
                     ExposedDropdownMenuAnchorType.PrimaryNotEditable,
                     enabled = true,
                 ),

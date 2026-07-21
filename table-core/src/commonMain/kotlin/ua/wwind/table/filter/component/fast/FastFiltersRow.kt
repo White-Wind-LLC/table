@@ -55,9 +55,9 @@ internal fun <T : Any, C, E> FastFiltersRow(
 ) {
     val settings = state.settings
 
-    Column {
+    Column(modifier = modifier) {
         LazyRow(
-            modifier = modifier.height(FAST_FILTER_ROW_HEIGHT.dp).width(state.tableWidth),
+            modifier = Modifier.height(FAST_FILTER_ROW_HEIGHT.dp).width(state.tableWidth),
             state = rememberLazyListState(),
             userScrollEnabled = false,
         ) {
