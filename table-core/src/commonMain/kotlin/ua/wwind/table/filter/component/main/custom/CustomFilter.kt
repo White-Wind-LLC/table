@@ -3,8 +3,10 @@ package ua.wwind.table.filter.component.main.custom
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.unit.dp
 import ua.wwind.table.filter.component.FilterPanelActions
+import ua.wwind.table.filter.data.CustomFilterPanelActions
 import ua.wwind.table.filter.data.TableFilterState
 import ua.wwind.table.filter.data.TableFilterType
 import ua.wwind.table.strings.StringProvider
@@ -35,21 +37,24 @@ internal fun <T : Any, E> CustomFilter(
     Column(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        // Render user's custom filter content
-        val actions =
-            filter.renderFilter.RenderPanel(
-                currentState = state,
-                tableData = tableData,
-                onDismiss = onClose,
-                onChange = onChange,
-            )
+        // Render user's custom filter content, which publishes its apply/clear behavior into the
+        // handle. It composes ahead of the buttons below, so the handle is filled by the time
+        // either can be pressed.
+        val panelActions = remember { CustomFilterPanelActions() }
+        filter.renderFilter.RenderPanel(
+            currentState = state,
+            tableData = tableData,
+            panelActions = panelActions,
+            onDismiss = onClose,
+            onChange = onChange,
+        )
 
         // Standard action buttons (Clear + optional Apply)
         FilterPanelActions(
             autoApplyFilters = autoApplyFilters,
             enabled = true,
-            onApply = { actions.applyFilter() },
-            onClear = { actions.clearFilter() },
+            onApply = { panelActions.actions?.applyFilter() },
+            onClear = { panelActions.actions?.clearFilter() },
             onClose = onClose,
             strings = strings,
         )

@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ### Unreleased
 
+- Changed (breaking): `CustomFilterRenderer.RenderPanel` now returns `Unit` and takes a
+  `CustomFilterPanelActions` parameter instead of returning `TableFilterType.CustomFilterActions`. It emits the
+  filter panel UI, so returning a value tripped the Compose naming/emitter rules — a `@Composable` that both draws
+  and returns is exactly what the convention warns against. Implementers must add the `panelActions` parameter
+  (placed after `tableData`, ahead of the `onDismiss`/`onChange` lambdas), drop the return type, and replace
+  `return <actions>` with `panelActions.set(<actions>)` where the old `return` was. A panel that publishes nothing
+  now leaves the host's Apply/Clear buttons as no-ops. New public type: `CustomFilterPanelActions`.
 - Changed (breaking): parameter order on five public composables now follows the Compose convention — required
   parameters, `modifier`, optional parameters, trailing lambda. Callers using named arguments are unaffected;
   positional callers must update.

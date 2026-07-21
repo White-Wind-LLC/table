@@ -2,7 +2,6 @@
 <SmellBaseline>
   <ManuallySuppressedIssues/>
   <CurrentIssues>
-    <ID>ComposableNaming:TableFilterType.kt:CustomFilterRenderer$@Composable public fun RenderPanel: TableFilterType.CustomFilterActions</ID>
     <ID>ContentSlotReused:TableCell.kt:content: @Composable BoxScope.() -> Unit</ID>
     <ID>ContentTrailingLambda:MeasureUtils.kt:content: @Composable context(TableCellScope) BoxScope.(T, E) -> Unit</ID>
     <ID>LambdaParameterEventTrailing:TableRowItem.kt:onContextMenu: ((T, Offset) -> Unit)?</ID>

@@ -2,6 +2,7 @@ package ua.wwind.table.filter.data
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.Stable
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.datetime.LocalDate
@@ -161,7 +162,8 @@ public sealed class TableFilterType<T>(
 
     /**
      * Actions interface for custom filters to control apply/clear behavior.
-     * Custom filters return this from RenderPanel to enable FilterPanelActions integration.
+     * Custom filters publish this from [CustomFilterRenderer.RenderPanel] through
+     * [CustomFilterPanelActions] to enable FilterPanelActions integration.
      */
     public interface CustomFilterActions {
         /**
@@ -173,6 +175,24 @@ public sealed class TableFilterType<T>(
          * Clear the filter state. Called when user clicks Clear button.
          */
         public fun clearFilter()
+    }
+}
+
+/**
+ * Handle a custom filter panel publishes its apply/clear behavior into.
+ *
+ * The panel calls [set] during composition; the host reads it back from the Apply/Clear buttons
+ * after composition. A panel that never calls [set] leaves the buttons as no-ops. Instances are
+ * created by the library and handed to [CustomFilterRenderer.RenderPanel] — implementers only ever
+ * receive one.
+ */
+@Stable
+public class CustomFilterPanelActions internal constructor() {
+    internal var actions: TableFilterType.CustomFilterActions? = null
+
+    /** Publish the [actions] the host's Apply/Clear buttons should drive. */
+    public fun set(actions: TableFilterType.CustomFilterActions) {
+        this.actions = actions
     }
 }
 
@@ -189,17 +209,20 @@ public interface CustomFilterRenderer<T, E> {
      *
      * @param currentState the current filter state from the table
      * @param tableData the current table data for accessing context like displayed items
+     * @param panelActions handle to publish apply/clear behavior into via
+     *   [CustomFilterPanelActions.set]; leaving it untouched makes the host's Apply/Clear buttons
+     *   no-ops
      * @param onDismiss callback to close the filter panel
      * @param onChange callback to update the filter state; pass null to clear the filter
-     * @return CustomFilterActions to control apply/clear behavior
      */
     @Composable
     public fun RenderPanel(
         currentState: TableFilterState<T>?,
         tableData: E,
+        panelActions: CustomFilterPanelActions,
         onDismiss: () -> Unit,
         onChange: (TableFilterState<T>?) -> Unit,
-    ): TableFilterType.CustomFilterActions
+    )
 
     /**
      * Render the fast filter shown inline in the fast filters row.

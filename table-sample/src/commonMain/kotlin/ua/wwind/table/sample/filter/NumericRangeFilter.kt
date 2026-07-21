@@ -34,6 +34,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import ua.wwind.table.filter.data.CustomFilterPanelActions
 import ua.wwind.table.filter.data.CustomFilterRenderer
 import ua.wwind.table.filter.data.CustomFilterStateProvider
 import ua.wwind.table.filter.data.FilterConstraint
@@ -69,9 +70,10 @@ private class NumericRangeFilterRenderer : CustomFilterRenderer<NumericRangeFilt
     override fun RenderPanel(
         currentState: TableFilterState<NumericRangeFilterState>?,
         tableData: PersonTableData,
+        panelActions: CustomFilterPanelActions,
         onDismiss: () -> Unit,
         onChange: (TableFilterState<NumericRangeFilterState>?) -> Unit,
-    ): TableFilterType.CustomFilterActions {
+    ) {
         // Use people filtered by all filters EXCEPT salary filter for range calculation
         val allData = tableData.peopleExcludingSalaryFilter
         val dataMin = allData.minOfOrNull { it.salary } ?: 0
@@ -112,6 +114,36 @@ private class NumericRangeFilterRenderer : CustomFilterRenderer<NumericRangeFilt
                 ),
             )
         }
+
+        // Publish apply/clear behavior for the host's FilterPanelActions buttons.
+        panelActions.set(
+            remember {
+                object : TableFilterType.CustomFilterActions {
+                    override fun applyFilter() {
+                        // In auto-apply mode, already applied
+                        // In manual mode, apply current state
+                        val newState =
+                            NumericRangeFilterState(
+                                min = rangeMin.roundToInt(),
+                                max = rangeMax.roundToInt(),
+                            )
+                        onChange(
+                            TableFilterState(
+                                constraint = FilterConstraint.BETWEEN,
+                                values = listOf(newState),
+                            ),
+                        )
+                    }
+
+                    override fun clearFilter() {
+                        rangeMin = dataMin.toFloat()
+                        rangeMax = dataMax.toFloat()
+                        onChange(null)
+                        onDismiss()
+                    }
+                }
+            },
+        )
 
         Column(
             modifier = Modifier.width(400.dp),
@@ -221,34 +253,6 @@ private class NumericRangeFilterRenderer : CustomFilterRenderer<NumericRangeFilt
                         modifier = Modifier.weight(1f),
                         singleLine = true,
                     )
-                }
-            }
-        }
-
-        // Return actions for FilterPanelActions
-        return remember {
-            object : TableFilterType.CustomFilterActions {
-                override fun applyFilter() {
-                    // In auto-apply mode, already applied
-                    // In manual mode, apply current state
-                    val newState =
-                        NumericRangeFilterState(
-                            min = rangeMin.roundToInt(),
-                            max = rangeMax.roundToInt(),
-                        )
-                    onChange(
-                        TableFilterState(
-                            constraint = FilterConstraint.BETWEEN,
-                            values = listOf(newState),
-                        ),
-                    )
-                }
-
-                override fun clearFilter() {
-                    rangeMin = dataMin.toFloat()
-                    rangeMax = dataMax.toFloat()
-                    onChange(null)
-                    onDismiss()
                 }
             }
         }
