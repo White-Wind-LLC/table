@@ -69,6 +69,13 @@ import ua.wwind.table.format.scrollbar.VerticalScrollbarRenderer
 import ua.wwind.table.format.scrollbar.VerticalScrollbarState
 import ua.wwind.table.strings.StringProvider
 import ua.wwind.table.strings.UiString
+import kotlin.time.Duration.Companion.milliseconds
+
+// Rules are edited in place; wait for the edits to settle before reporting them upstream.
+private const val RULES_CHANGE_DEBOUNCE_MS = 1_000L
+
+// Above this perceived brightness a background takes black text, below it white.
+private const val LUMINANCE_THRESHOLD = 0.5
 
 @OptIn(FlowPreview::class)
 @Composable
@@ -288,7 +295,7 @@ public fun <E : Enum<E>, FILTER> FormatDialog(
                 LaunchedEffect(key) {
                     snapshotFlow { rulesState }
                         .drop(1)
-                        .debounce(1000)
+                        .debounce(RULES_CHANGE_DEBOUNCE_MS.milliseconds)
                         .distinctUntilChanged()
                         .collect { onRulesChanged(it) }
                 }
@@ -455,7 +462,7 @@ public fun <E : Enum<E>, FILTER> FormatDialog(
 
 private fun Color.contrastColor(): Color {
     val luminance = 0.299 * red + 0.587 * green + 0.114 * blue
-    return if (luminance > 0.5) Color.Black else Color.White
+    return if (luminance > LUMINANCE_THRESHOLD) Color.Black else Color.White
 }
 
 @Composable

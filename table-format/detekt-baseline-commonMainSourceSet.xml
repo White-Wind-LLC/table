@@ -16,8 +16,6 @@
     <ID>LambdaParameterInRestartableEffect:FormatDialogConditionTab.kt:onChange: (TableFilterState&lt;LocalDate>) -> Unit</ID>
     <ID>LambdaParameterInRestartableEffect:FormatDialogConditionTab.kt:onChange: (TableFilterState&lt;String>) -> Unit</ID>
     <ID>LambdaParameterInRestartableEffect:FormatDialogConditionTab.kt:onChange: (TableFilterState&lt;T>) -> Unit</ID>
-    <ID>MagicNumber:FormatDialog.kt:0.5</ID>
-    <ID>MagicNumber:FormatDialog.kt:1000</ID>
     <ID>ModifierMissing:FormatDialogConditionTab.kt:@Suppress("LongMethod", "CyclomaticComplexMethod", "UNCHECKED_CAST") @Composable public fun &lt;E : Enum&lt;E>, FILTER> FormatDialogConditionTab</ID>
     <ID>ModifierMissing:FormatDialogDesignTab.kt:@Composable public fun &lt;E : Enum&lt;E>, FILTER> FormatDialogDesignTab</ID>
     <ID>ModifierMissing:FormatDialogFieldTab.kt:@Composable public fun &lt;E : Enum&lt;E>, FILTER> FormatDialogFieldTab</ID>

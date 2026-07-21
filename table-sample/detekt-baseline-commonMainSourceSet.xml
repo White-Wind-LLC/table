@@ -17,55 +17,6 @@
     <ID>CyclomaticComplexMethod:TableColumns.kt:@Suppress("LongMethod") @OptIn(ExperimentalMaterial3Api::class) fun createTableColumns: ImmutableList&lt;ColumnSpec&lt;Person, PersonColumn, PersonTableData>></ID>
     <ID>LambdaParameterInRestartableEffect:MainTable.kt:onFiltersChanged: (Map&lt;PersonColumn, TableFilterState&lt;*>>) -> Unit</ID>
     <ID>LambdaParameterInRestartableEffect:MainTable.kt:onSortChanged: (SortState&lt;PersonColumn>?) -> Unit</ID>
-    <ID>MagicNumber:DemoData.kt:10</ID>
-    <ID>MagicNumber:DemoData.kt:11</ID>
-    <ID>MagicNumber:DemoData.kt:12</ID>
-    <ID>MagicNumber:DemoData.kt:13</ID>
-    <ID>MagicNumber:DemoData.kt:14</ID>
-    <ID>MagicNumber:DemoData.kt:15</ID>
-    <ID>MagicNumber:DemoData.kt:16</ID>
-    <ID>MagicNumber:DemoData.kt:17</ID>
-    <ID>MagicNumber:DemoData.kt:18</ID>
-    <ID>MagicNumber:DemoData.kt:19</ID>
-    <ID>MagicNumber:DemoData.kt:20</ID>
-    <ID>MagicNumber:DemoData.kt:2011</ID>
-    <ID>MagicNumber:DemoData.kt:2012</ID>
-    <ID>MagicNumber:DemoData.kt:2013</ID>
-    <ID>MagicNumber:DemoData.kt:2014</ID>
-    <ID>MagicNumber:DemoData.kt:2015</ID>
-    <ID>MagicNumber:DemoData.kt:2016</ID>
-    <ID>MagicNumber:DemoData.kt:2017</ID>
-    <ID>MagicNumber:DemoData.kt:2018</ID>
-    <ID>MagicNumber:DemoData.kt:2019</ID>
-    <ID>MagicNumber:DemoData.kt:2020</ID>
-    <ID>MagicNumber:DemoData.kt:2021</ID>
-    <ID>MagicNumber:DemoData.kt:2022</ID>
-    <ID>MagicNumber:DemoData.kt:2023</ID>
-    <ID>MagicNumber:DemoData.kt:21</ID>
-    <ID>MagicNumber:DemoData.kt:22</ID>
-    <ID>MagicNumber:DemoData.kt:23</ID>
-    <ID>MagicNumber:DemoData.kt:24</ID>
-    <ID>MagicNumber:DemoData.kt:25</ID>
-    <ID>MagicNumber:DemoData.kt:26</ID>
-    <ID>MagicNumber:DemoData.kt:27</ID>
-    <ID>MagicNumber:DemoData.kt:28</ID>
-    <ID>MagicNumber:DemoData.kt:29</ID>
-    <ID>MagicNumber:DemoData.kt:3</ID>
-    <ID>MagicNumber:DemoData.kt:30</ID>
-    <ID>MagicNumber:DemoData.kt:4</ID>
-    <ID>MagicNumber:DemoData.kt:5</ID>
-    <ID>MagicNumber:DemoData.kt:6</ID>
-    <ID>MagicNumber:DemoData.kt:7</ID>
-    <ID>MagicNumber:DemoData.kt:8</ID>
-    <ID>MagicNumber:DemoData.kt:9</ID>
-    <ID>MagicNumber:NumericRangeFilter.kt:0.9f</ID>
-    <ID>MagicNumber:NumericRangeFilter.kt:NumericRangeFilterRenderer$100000</ID>
-    <ID>MagicNumber:NumericRangeFilter.kt:NumericRangeFilterRenderer$50000</ID>
-    <ID>MagicNumber:Person.kt:Person$4</ID>
-    <ID>MagicNumber:Person.kt:Person$7</ID>
-    <ID>MagicNumber:PersonValidator.kt:PersonValidator$100</ID>
-    <ID>MagicNumber:PersonValidator.kt:PersonValidator$18</ID>
-    <ID>MagicNumber:SettingsSidebar.kt:0.5f</ID>
     <ID>ParameterNaming:ConditionalFormattingDialog.kt:onRulesChanged: ( ImmutableList&lt; TableFormatRule&lt; PersonColumn, Map&lt;PersonColumn, TableFilterState&lt;*>>, >, >, ) -> Unit</ID>
     <ID>ParameterNaming:MainTable.kt:onEditCancelled: (Int) -> Unit</ID>
     <ID>ParameterNaming:MainTable.kt:onFiltersChanged: (Map&lt;PersonColumn, TableFilterState&lt;*>>) -> Unit</ID>

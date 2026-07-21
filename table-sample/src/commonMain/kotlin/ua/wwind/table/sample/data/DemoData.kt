@@ -5,8 +5,9 @@ import ua.wwind.table.sample.model.Person
 import ua.wwind.table.sample.model.Position
 
 // A flat list of literal demo rows. Splitting it into chunks would only add call indirection —
-// there is no logic here to isolate.
-@Suppress("LongMethod")
+// there is no logic here to isolate, and the calendar values in the hire dates name nothing worth
+// naming.
+@Suppress("LongMethod", "MagicNumber")
 fun createDemoData(): List<Person> =
     listOf(
         Person(

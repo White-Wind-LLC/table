@@ -36,6 +36,9 @@ import androidx.compose.ui.unit.dp
 import ua.wwind.table.config.PinnedSide
 import ua.wwind.table.sample.column.PersonColumn
 
+// Dims a switch that stays composed while its section fades out.
+private const val DISABLED_CONTROL_ALPHA = 0.5f
+
 /**
  * Settings sidebar that displays all table configuration options. Designed to be used as drawer
  * content in a ModalNavigationDrawer.
@@ -194,7 +197,10 @@ fun SettingsSidebar(
                             label = "Pin footer",
                             checked = config.footerPinned,
                             onCheckedChange = { onConfigChange(config.copy(footerPinned = it)) },
-                            modifier = Modifier.then(if (!config.showFooter) Modifier.alpha(0.5f) else Modifier),
+                            modifier =
+                                Modifier.then(
+                                    if (!config.showFooter) Modifier.alpha(DISABLED_CONTROL_ALPHA) else Modifier,
+                                ),
                         )
                     }
                 }

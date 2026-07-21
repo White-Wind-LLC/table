@@ -5,6 +5,10 @@ import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.plus
 
+// Which demo rows get a longer note: every 4th person gets three lines, every 7th gets two.
+private const val MULTILINE_NOTE_EVERY = 4
+private const val TWO_LINE_NOTE_EVERY = 7
+
 /** Person data model with fields for table demonstration. */
 @Immutable
 data class Person(
@@ -25,7 +29,7 @@ data class Person(
     /** Multiline notes to demonstrate dynamic row height in table. */
     val notes: String =
         when {
-            id % 4 == 0 -> {
+            id % MULTILINE_NOTE_EVERY == 0 -> {
                 """
                 This is a sample multi-line note for demo purposes.
                 It spans multiple lines to showcase dynamic row height.
@@ -33,7 +37,7 @@ data class Person(
                 """.trimIndent()
             }
 
-            id % 7 == 0 -> {
+            id % TWO_LINE_NOTE_EVERY == 0 -> {
                 """
                 This is a sample multi-line note for demo purposes.
                 It spans two lines to showcase dynamic row height.

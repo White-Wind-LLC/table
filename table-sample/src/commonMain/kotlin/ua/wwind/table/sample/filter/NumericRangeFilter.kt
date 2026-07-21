@@ -42,6 +42,17 @@ import ua.wwind.table.filter.data.TableFilterType
 import ua.wwind.table.sample.model.PersonTableData
 import kotlin.math.roundToInt
 
+// Salary buckets behind the fast filter's segmented buttons, matching the "< 50k / 50k-100k /
+// > 100k" labels.
+private const val LOW_SALARY_BUCKET = 50_000
+private const val HIGH_SALARY_BUCKET = 100_000
+
+// Upper bound used when the data set is empty and has no maximum of its own.
+private const val DEFAULT_MAX_SALARY = 200_000
+
+// Leaves a gap between neighbouring histogram bars.
+private const val HISTOGRAM_BAR_WIDTH_FRACTION = 0.9f
+
 /**
  * Creates a visual numeric range filter for salary column with histogram. Demonstrates the power of
  * custom filters with rich UI. The filter uses tableData to access displayed people for histogram.
@@ -64,7 +75,7 @@ private class NumericRangeFilterRenderer : CustomFilterRenderer<NumericRangeFilt
         // Use people filtered by all filters EXCEPT salary filter for range calculation
         val allData = tableData.peopleExcludingSalaryFilter
         val dataMin = allData.minOfOrNull { it.salary } ?: 0
-        val dataMax = allData.maxOfOrNull { it.salary } ?: 200000
+        val dataMax = allData.maxOfOrNull { it.salary } ?: DEFAULT_MAX_SALARY
 
         val current =
             currentState?.values?.firstOrNull() ?: NumericRangeFilterState(dataMin, dataMax)
@@ -252,7 +263,7 @@ private class NumericRangeFilterRenderer : CustomFilterRenderer<NumericRangeFilt
         // Use people filtered by all filters EXCEPT salary filter for range calculation
         val allData = tableData.peopleExcludingSalaryFilter
         val dataMin = allData.minOfOrNull { it.salary } ?: 0
-        val dataMax = allData.maxOfOrNull { it.salary } ?: 200000
+        val dataMax = allData.maxOfOrNull { it.salary } ?: DEFAULT_MAX_SALARY
 
         val current = currentState?.values?.firstOrNull()
 
@@ -261,13 +272,13 @@ private class NumericRangeFilterRenderer : CustomFilterRenderer<NumericRangeFilt
                 current == null -> 3
 
                 // All
-                current.max <= 50000 -> 0
+                current.max <= LOW_SALARY_BUCKET -> 0
 
                 // < 50k
-                current.min >= 50000 && current.max <= 100000 -> 1
+                current.min >= LOW_SALARY_BUCKET && current.max <= HIGH_SALARY_BUCKET -> 1
 
                 // 50k-100k
-                current.min >= 100000 -> 2
+                current.min >= HIGH_SALARY_BUCKET -> 2
 
                 // > 100k
                 else -> 3 // Custom/All
@@ -290,7 +301,7 @@ private class NumericRangeFilterRenderer : CustomFilterRenderer<NumericRangeFilt
                                             listOf(
                                                 NumericRangeFilterState(
                                                     dataMin,
-                                                    50000,
+                                                    LOW_SALARY_BUCKET,
                                                 ),
                                             ),
                                     ),
@@ -305,8 +316,8 @@ private class NumericRangeFilterRenderer : CustomFilterRenderer<NumericRangeFilt
                                         values =
                                             listOf(
                                                 NumericRangeFilterState(
-                                                    50000,
-                                                    100000,
+                                                    LOW_SALARY_BUCKET,
+                                                    HIGH_SALARY_BUCKET,
                                                 ),
                                             ),
                                     ),
@@ -321,7 +332,7 @@ private class NumericRangeFilterRenderer : CustomFilterRenderer<NumericRangeFilt
                                         values =
                                             listOf(
                                                 NumericRangeFilterState(
-                                                    100000,
+                                                    HIGH_SALARY_BUCKET,
                                                     dataMax,
                                                 ),
                                             ),
@@ -415,14 +426,14 @@ private fun SalaryHistogram(
                 drawRect(
                     color = if (isInRange) primaryColor else surfaceVariantColor,
                     topLeft = Offset(x, height - barHeight),
-                    size = Size(binWidth * 0.9f, barHeight),
+                    size = Size(binWidth * HISTOGRAM_BAR_WIDTH_FRACTION, barHeight),
                 )
 
                 // Draw outline
                 drawRect(
                     color = outlineColor.copy(alpha = 0.3f),
                     topLeft = Offset(x, height - barHeight),
-                    size = Size(binWidth * 0.9f, barHeight),
+                    size = Size(binWidth * HISTOGRAM_BAR_WIDTH_FRACTION, barHeight),
                     style =
                         androidx.compose.ui.graphics.drawscope
                             .Stroke(width = 1f),

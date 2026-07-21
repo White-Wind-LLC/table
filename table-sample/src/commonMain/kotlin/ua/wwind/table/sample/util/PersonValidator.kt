@@ -2,6 +2,9 @@ package ua.wwind.table.sample.util
 
 import ua.wwind.table.sample.model.Person
 
+private const val MIN_AGE = 18
+private const val MAX_AGE = 100
+
 /**
  * Result of person validation containing error messages for each field.
  */
@@ -31,8 +34,8 @@ object PersonValidator {
 
         // Validate age
         when {
-            person.age < 18 -> ageError = "Age must be at least 18"
-            person.age > 100 -> ageError = "Age must not exceed 100"
+            person.age < MIN_AGE -> ageError = "Age must be at least $MIN_AGE"
+            person.age > MAX_AGE -> ageError = "Age must not exceed $MAX_AGE"
         }
 
         // Validate salary
