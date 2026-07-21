@@ -45,6 +45,7 @@ turbine = "1.2.1"
 hotReload = "1.1.1"
 buildKonfig = "0.21.2"
 detekt = "2.0.0-alpha.5"
+compose-rules = "0.6.2"
 spotless = "8.7.0"
 ktlint = "1.8.0"
 kover = "0.9.8"
@@ -93,6 +94,10 @@ kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotl
 kotlin-test-annotations-common = { module = "org.jetbrains.kotlin:kotlin-test-annotations-common", version.ref = "kotlin" }
 coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines-test-ver" }
 turbine-turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
+
+# --- Static analysis rulesets ---
+# Loaded onto the `detektPlugins` configuration, not the compile classpath.
+detekt-compose = { module = "io.nlopez.compose.rules:detekt", version.ref = "compose-rules" }
 
 # --- Gradle Build Plugins ---
 # External Gradle plugin artifacts for buildscript/pluginManagement classpaths

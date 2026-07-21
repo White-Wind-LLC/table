@@ -3,8 +3,19 @@
   <ManuallySuppressedIssues/>
   <CurrentIssues>
     <ID>ComplexCondition:FormatCustomizationBuilder.kt:&lt;no name provided>$rule.enabled &amp;&amp; matches(ctx.row.item, rule.filter) &amp;&amp; (rule.columns.isEmpty() || rule.columns.contains(ctx.column))</ID>
+    <ID>ComposableParamOrder:FormatColorField.kt:@OptIn(ExperimentalMaterial3Api::class) @Suppress("LongParameterList") @Composable internal fun &lt;E : Enum&lt;E>> FormatColorField</ID>
+    <ID>ComposableParamOrder:FormatCustomizationBuilder.kt:@Composable public fun &lt;T : Any, C, FILTER> rememberCustomization: TableCustomization&lt;T, C></ID>
+    <ID>ComposableParamOrder:FormatDialogConditionTab.kt:@OptIn(ExperimentalMaterial3Api::class, ExperimentalTime::class) @Composable private fun DateField</ID>
+    <ID>ComposableParamOrder:FormatDialogTabRow.kt:@Composable @Suppress("LongParameterList") public fun &lt;E, T> FormatDialogTabRow</ID>
+    <ID>ComposableParamOrder:FormatDropdownField.kt:@OptIn(ExperimentalMaterial3Api::class) @Suppress("LongParameterList", "LongMethod") @Composable internal fun &lt;E : Enum&lt;E>> FormatDropdownField</ID>
     <ID>CyclomaticComplexMethod:FormatDialog.kt:@OptIn(FlowPreview::class) @Composable public fun &lt;E : Enum&lt;E>, FILTER> FormatDialog</ID>
     <ID>ExplicitItLambdaMultipleParameters:FormatDialog.kt:{ _, it -> it.id }</ID>
+    <ID>LambdaParameterInRestartableEffect:FormatDialog.kt:onRulesChanged: (ImmutableList&lt;TableFormatRule&lt;E, FILTER>>) -> Unit</ID>
+    <ID>LambdaParameterInRestartableEffect:FormatDialogConditionTab.kt:onChange: (TableFilterState&lt;*>) -> Unit</ID>
+    <ID>LambdaParameterInRestartableEffect:FormatDialogConditionTab.kt:onChange: (TableFilterState&lt;Boolean>) -> Unit</ID>
+    <ID>LambdaParameterInRestartableEffect:FormatDialogConditionTab.kt:onChange: (TableFilterState&lt;LocalDate>) -> Unit</ID>
+    <ID>LambdaParameterInRestartableEffect:FormatDialogConditionTab.kt:onChange: (TableFilterState&lt;String>) -> Unit</ID>
+    <ID>LambdaParameterInRestartableEffect:FormatDialogConditionTab.kt:onChange: (TableFilterState&lt;T>) -> Unit</ID>
     <ID>LongMethod:FormatDialog.kt:@OptIn(FlowPreview::class) @Composable public fun &lt;E : Enum&lt;E>, FILTER> FormatDialog</ID>
     <ID>LongMethod:FormatDialogConditionTab.kt:@OptIn(ExperimentalMaterial3Api::class, ExperimentalTime::class) @Composable private fun DateField</ID>
     <ID>LongMethod:FormatDialogConditionTab.kt:@OptIn(FlowPreview::class) @Suppress("FunctionNaming", "LongParameterList") @Composable private fun FormatDateFilter</ID>
@@ -13,5 +24,16 @@
     <ID>LongMethod:FormatDialogDesignTab.kt:@Composable public fun &lt;E : Enum&lt;E>, FILTER> FormatDialogDesignTab</ID>
     <ID>MagicNumber:FormatDialog.kt:0.5</ID>
     <ID>MagicNumber:FormatDialog.kt:1000</ID>
+    <ID>ModifierMissing:FormatDialogConditionTab.kt:@Suppress("LongMethod", "CyclomaticComplexMethod", "UNCHECKED_CAST") @Composable public fun &lt;E : Enum&lt;E>, FILTER> FormatDialogConditionTab</ID>
+    <ID>ModifierMissing:FormatDialogDesignTab.kt:@Composable public fun &lt;E : Enum&lt;E>, FILTER> FormatDialogDesignTab</ID>
+    <ID>ModifierMissing:FormatDialogFieldTab.kt:@Composable public fun &lt;E : Enum&lt;E>, FILTER> FormatDialogFieldTab</ID>
+    <ID>ModifierNotUsedAtRoot:FormatDialogTabRow.kt:modifier = modifier</ID>
+    <ID>ModifierNotUsedAtRoot:FormatDropdownField.kt:modifier = modifier</ID>
+    <ID>ModifierReused:FormatDialogTabRow.kt:Box(modifier = modifier) { content() }</ID>
+    <ID>ModifierReused:FormatDialogTabRow.kt:Column(modifier = modifier) { Surface { val selectedIndex = list.indexOfFirst { it.type == currentItem } val tabContent: @Composable () -> Unit = { list.forEachIndexed { index, item -> createTab(item, index == selectedIndex) { onClick(item.type) } } } if (isScrollable) { ScrollableTabRow( selectedTabIndex = selectedIndex, tabs = tabContent, containerColor = Color.Transparent, ) } else { TabRow( selectedTabIndex = selectedIndex, tabs = tabContent, containerColor = Color.Transparent, ) } } Box(modifier = modifier) { content() } }</ID>
+    <ID>ModifierReused:FormatDropdownField.kt:ExposedDropdownMenuBox( expanded = expanded, onExpandedChange = { expanded = !expanded }, modifier = modifier, ) { OutlinedTextField( value = currentValue?.let { getTitle(it) } ?: placeholder, onValueChange = {}, readOnly = true, singleLine = true, label = label, modifier = modifier, trailingIcon = currentValue?.let { { IconButton( onClick = { onClick(null) }, ) { Icon( imageVector = Icons.Rounded.Close, contentDescription = "Clear", ) } } }, interactionSource = interactionSource, ) ExposedDropdownMenu( expanded = expanded, onDismissRequest = { expanded = false }, ) { Box { Column( modifier = Modifier .heightIn(max = 240.dp) .verticalScroll(scrollState), ) { values.forEach { enum -> DropdownMenuItem( text = { when (checked) { null -> { Text(getTitle(enum)) } else -> { Row( verticalAlignment = Alignment.CenterVertically, ) { Checkbox( checked = checked.invoke(enum), onCheckedChange = { onClick(enum) }, ) Text(getTitle(enum)) } } } }, onClick = { onClick(enum) if (checked == null) expanded = false }, ) } } } } }</ID>
+    <ID>ModifierReused:FormatDropdownField.kt:OutlinedTextField( value = currentValue?.let { getTitle(it) } ?: placeholder, onValueChange = {}, readOnly = true, singleLine = true, label = label, modifier = modifier, trailingIcon = currentValue?.let { { IconButton( onClick = { onClick(null) }, ) { Icon( imageVector = Icons.Rounded.Close, contentDescription = "Clear", ) } } }, interactionSource = interactionSource, )</ID>
+    <ID>ParameterNaming:FormatDialog.kt:onRulesChanged: (ImmutableList&lt;TableFormatRule&lt;E, FILTER>>) -> Unit</ID>
+    <ID>ParameterNaming:FormatDialogConditionTab.kt:onDateSelected: (LocalDate) -> Unit</ID>
   </CurrentIssues>
 </SmellBaseline>

@@ -1,6 +1,84 @@
+config:
+  validation: true
+  # `Compose` is not part of detekt's bundled config, so config validation would reject the block
+  # below as an unknown ruleset. The rules themselves still run — they come from the
+  # io.nlopez.compose.rules:detekt plugin on the `detektPlugins` configuration.
+  excludes:
+    - "Compose"
+
 naming:
   FunctionNaming:
     active: true
     # Allow PascalCase for functions annotated with @Composable
     ignoreAnnotated:
       - Composable
+
+# Compose rules (io.nlopez.compose.rules). Rules absent from this block still run with the defaults
+# bundled in the ruleset jar, because `buildUponDefaultConfig = true`.
+Compose:
+  ComposableNaming:
+    active: true
+  ComposableParamOrder:
+    active: true
+  CompositionLocalAllowlist:
+    active: true
+    # Every CompositionLocal in the library. New ones need a deliberate entry here — that is the
+    # point of the rule: they are invisible dependencies in a public API.
+    allowedCompositionLocals:
+      - LocalStringProvider
+      - LocalTableState
+      - LocalTableHeaderCellInfo
+      - LocalTableHeaderIcons
+      - LocalEditCellContext
+      - LocalEditCellFocusRequester
+  CompositionLocalNaming:
+    active: true
+  ContentEmitterReturningValues:
+    active: true
+  ContentSlotReused:
+    active: true
+  ContentTrailingLambda:
+    active: true
+  DefaultsVisibility:
+    active: true
+  LambdaParameterEventTrailing:
+    active: true
+  LambdaParameterInRestartableEffect:
+    active: true
+  ModifierClickableOrder:
+    active: true
+  ModifierComposed:
+    active: true
+  ModifierMissing:
+    active: true
+    checkModifiersForVisibility: only_public
+  ModifierNaming:
+    active: true
+  ModifierNotUsedAtRoot:
+    active: true
+  ModifierReused:
+    active: true
+  ModifierWithoutDefault:
+    active: true
+  MultipleEmitters:
+    active: true
+  MutableParams:
+    active: true
+  MutableStateAutoboxing:
+    active: true
+  MutableStateParam:
+    active: true
+  ParameterNaming:
+    active: true
+  PreviewAnnotationNaming:
+    active: true
+  PreviewPublic:
+    active: true
+  RememberContentMissing:
+    active: true
+  RememberMissing:
+    active: true
+  ViewModelForwarding:
+    active: true
+  ViewModelInjection:
+    active: true

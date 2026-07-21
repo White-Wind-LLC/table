@@ -13,5 +13,6 @@
     <ID>LongMethod:RowBlocksTableTest.kt:RowBlocksTableTest$@Test fun `embedded drop commits one move and remaps positional state`</ID>
     <ID>LongMethod:RowBlocksTableTest.kt:RowBlocksTableTest$@Test fun `embedded upstream change mid-gesture cancels the drag and commits nothing`</ID>
     <ID>LoopWithTooManyJumpStatements:ApplyRowBlockMoveTest.kt:ApplyRowBlockMoveTest$while</ID>
+    <ID>MutableStateAutoboxing:RowBlocksTableTest.kt:RowBlocksTableTest$mutableStateOf(0)</ID>
   </CurrentIssues>
 </SmellBaseline>

@@ -95,6 +95,13 @@ subprojects {
             // without accumulated debt need no baseline at all. Regenerate via `detektBaselines`.
         }
 
+        // Compose-specific rules (io.nlopez.compose.rules). Configured in config/detekt/detekt.yml
+        // under the `Compose:` block. Deliberately NOT wired into the ktlint side as well, so a
+        // single finding is not reported twice.
+        dependencies {
+            "detektPlugins"(libs.findLibrary("detekt-compose").get())
+        }
+
         // In a KMP project dev.detekt puts the actual sources on per-source-set tasks
         // (detektCommonMainSourceSet, detektJvmMainSourceSet, …) and leaves the aggregate `detekt`
         // task with NO-SOURCE. Without this wiring `qualityCheck` would pass while analysing
