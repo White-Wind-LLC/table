@@ -180,13 +180,13 @@ internal fun <T : Any, C, E> TableRowItem(
                         isSelected = isSelected,
                         isInRowBlock = isInRowBlock,
                         settings = settings,
-                        horizontalState = horizontalState,
                         finalRowColor = finalRowColor,
                         isDynamicRowHeight = isDynamicRowHeight,
-                        requestTableFocus = requestTableFocus,
                         onRowClick = onRowClick,
                         onRowLongClick = onRowLongClick,
                         onContextMenu = onContextMenu,
+                        requestTableFocus = requestTableFocus,
+                        horizontalState = horizontalState,
                     )
                 }
                 rowEmbedded?.invoke(index, item)
@@ -219,13 +219,13 @@ private fun <C, T : Any, E> RenderTableRowItem(
     isSelected: Boolean,
     isInRowBlock: Boolean,
     settings: TableSettings,
-    horizontalState: ScrollState,
     finalRowColor: Color,
     isDynamicRowHeight: Boolean,
-    requestTableFocus: () -> Unit,
     onRowClick: ((T) -> Unit)?,
     onRowLongClick: ((T) -> Unit)?,
     onContextMenu: ((T, Offset) -> Unit)?,
+    requestTableFocus: () -> Unit,
+    horizontalState: ScrollState,
 ) {
     Row(
         modifier =

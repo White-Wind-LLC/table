@@ -2,7 +2,6 @@
 <SmellBaseline>
   <ManuallySuppressedIssues/>
   <CurrentIssues>
-    <ID>LambdaParameterEventTrailing:TableRowItem.kt:onContextMenu: ((T, Offset) -> Unit)?</ID>
     <ID>LoopWithTooManyJumpStatements:RowBlocksState.kt:RowBlocksState$for</ID>
     <ID>MatchingDeclarationName:TableRowItem.kt:EditCellContext</ID>
     <ID>ModifierNaming:TableRowItem.kt:rowModifier: Modifier</ID>
