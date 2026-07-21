@@ -2,82 +2,55 @@
 
 All notable changes to this project will be documented in this file.
 
-### 1.11.0 — 2026-07-17
+### 1.11.0 — 2026-07-21
 
-- Added: row blocks — a `rowBlocks` parameter on `Table`, `EditableTable` and the `table-paging` adapter, taking
-  `RowBlocks(blockOf, onCommit, blockHeader, onRowReorderWithinBlock)`.
-    - Blocks are declared by identity: adjacent rows whose `blockOf` returns the same non-null id render and drag
-      as one unit, with an optional header band above the block. The table derives block extents itself from the
-      same snapshot it renders — there are no index ranges to compute or keep in sync with an asynchronous
-      pipeline.
-    - Two drag levels: the whole block is dragged from a `draggableHandle()` in its `blockHeader`, while every
-      row carries a cell handle that reorders it **within** its block only — a row can never leave its block.
-      A standalone row's cell handle reorders it among units.
-    - The drag is managed: during a gesture the table permutes its own internal view and the consumer's data does
-      not change; on drop a whole-block drag delivers exactly one `RowBlockMove(blockId, movedKeys, afterKey,
-      beforeKey)` via `onCommit`, and a within-block reorder delivers one `RowWithinBlockMove(blockId, movedKey,
-      afterKey, beforeKey)` via `onRowReorderWithinBlock` — all in stable row keys, identical in lazy and embedded
-      tables. `rowBlocks` supersedes `onRowMove`, which is then no longer invoked: standalone rows report through
-      `onCommit` too, with a null `blockId`. `onCommit == null` disables whole-block drag; `onRowReorderWithinBlock
-      == null` disables within-block reorder; a block with neither is display-only. A block with no `blockHeader`
-      cannot be dragged as a whole (a warning is logged when `onCommit` is set without one). If the rendered list
-      changes mid-gesture, the gesture is cancelled.
-    - Positional runtime state — selection, checked rows, the row being edited, cached row heights — is remapped
-      through the move at commit, so it keeps pointing at the same rows.
-    - Blocks require a stable `rowKey`: move anchors are row keys, and passing `rowBlocks` with the default
-      positional key logs a warning.
-    - The `blockHeader` slot runs in a `RowBlockHeaderScope`; a `Modifier.draggableHandle()` there is the
-      whole-block drag handle. A cell `Modifier.draggableHandle()` is the within-block (or standalone unit) handle.
-    - Filtering composes: blocks derive from the rendered list, a partially hidden block drags as its visible
-      rows, and the commit still describes the whole block.
-    - Mutually exclusive with `state.groupBy`: while grouping is active, blocks are suppressed with a warning and
-      row drag is disabled entirely — `onCommit` is not invoked and `onRowMove` stays superseded rather than
-      taking over. The read-only `TableState.rowBlocksSuppressedByGroupBy` flag surfaces the
-      conflict, and the column menu's group-by item is disabled while blocks are present.
-- Added: block-preserving data helpers.
-    - `MutableList.applyRowBlockMove(move, keyOf, blockOf)` applies a whole-block commit to the source list: it
-      relocates every member of the moved block — including rows hidden by the current filter — preserving relative
-      order, and expands the insertion point to whole-block boundaries so no other block is ever split. When
-      neither anchor resolves, the list is left untouched.
-    - `MutableList.applyRowReorderWithinBlock(move, keyOf, blockOf)` applies a within-block commit: it relocates
-      the single moved row among its block-mates using the move's anchors; hidden block members keep their
-      relative order, and the list is left untouched when neither anchor resolves.
-    - `List.sortedWithinRowBlocks(blockOf, comparator)` sorts rows within each block; units order by their
-      minimal member, so blocks never fragment. The sort is stable.
-    - `List.filteredWholeRowBlocks(blockOf, predicate)` filters at block granularity: a block survives whole when
-      any member matches.
-- Added: row blocks in `table-paging`.
-    - Bands derive over loaded adjacent runs; an unloaded placeholder breaks a run, and a partially loaded block
-      extends as its pages arrive.
-    - Paged drop policy: a drop commits only when its landing neighbours are loaded; against a placeholder the
-      gesture snaps back and nothing is emitted. Pages loading under the held pointer do not cancel the gesture.
-    - A paged consumer applies commits in its data layer by `RowBlockMove.blockId` — it holds no materialized
-      list for `applyRowBlockMove`, and the data layer knows full block membership, including rows the client
-      never loaded.
-- Added: row block theming — `TableDimensions.rowBlockSpacing` (default `8.dp`) and
-  `TableColors.rowBlockContainerColor` (default `Color.Unspecified`, resolved to `surfaceContainerHighest` at
-  draw time). Both are trailing optional parameters, so existing construction keeps compiling, positional calls
-  included.
+- Added: **row blocks** — a new `rowBlocks` parameter on `Table`, `EditableTable` and the `table-paging` adapter
+  makes adjacent rows sharing a block id render and drag as one unit, with an optional header band, reordering
+  within a block, and one key-based commit event per gesture. Supersedes `onRowMove` while declared, and is
+  mutually exclusive with `state.groupBy`. See the
+  [Row blocks guide](https://white-wind-llc.github.io/table/guides/row-blocks/).
+    - New API: `RowBlocks`, `RowBlockMove`, `RowWithinBlockMove`, `RowBlockHeaderScope`,
+      `TableState.rowBlocksSuppressedByGroupBy`, the `MutableList.applyRowBlockMove()` /
+      `applyRowReorderWithinBlock()` and `List.sortedWithinRowBlocks()` / `filteredWholeRowBlocks()` helpers,
+      and the `TableDimensions.rowBlockSpacing` / `TableColors.rowBlockContainerColor` theming parameters.
 - Changed: `state.setSort()` is now a warning no-op while row reorder is enabled, matching the existing
-  `initialSort` normalization — under an active sort the rendered order is a function of row values, so a reorder
-  would be unobservable; the two features cannot both apply.
-- Deprecated: `TableRowContext.isGroup`, renamed to `isInRowBlock` — "group" is the column-value grouping
-  (`groupBy`) vocabulary, which never set this flag. A read-only forwarder keeps existing customizations
-  compiling, and the flag is now actually set: it is true for rows rendered inside a row block, so
-  `TableCustomization` can style block members (previously it was always `false`).
-- Fixed: table width no longer freezes when `ColumnSpec.visible` changes after the first render.
-    - `TableState.tableWidth` derives from the visible column list, but that list was a plain field, so
-      Compose never saw it change and served a cached width instead. Columns shown again stayed off
-      screen and out of horizontal scroll range, while the header — which measures independently —
-      laid them out, leaving header and rows misaligned.
-    - The stale width was only flushed by an unrelated write to `columnWidths`, so the symptom
-      disappeared as soon as a column was resized, and never appeared at all where `autoWidth` writes
-      those widths on every column change.
-- Added: the module's first tests, covering row blocks end to end (block derivation, the managed drag and its
-  commit event, the data helpers under seeded property harnesses, paged sources, groupBy suppression, selection
-  and editing remap), the row-to-unit index, the table width across column hide, show and resize, and a
-  composition-level cover that flips `ColumnSpec.visible` on a live `Table` and asserts the revealed column's
-  cell reaches the screen.
+  `initialSort` normalization — under an active sort a reorder would be unobservable.
+- Deprecated: `TableRowContext.isGroup`, renamed to `isInRowBlock`. A read-only forwarder keeps existing
+  customizations compiling, and the flag is now actually set — true for rows inside a row block, so
+  `TableCustomization` can style block members (previously always `false`).
+- Fixed: table width no longer freezes when `ColumnSpec.visible` changes after the first render. The visible column
+  list was a plain field, so Compose served a cached width and revealed columns stayed off screen and out of
+  horizontal scroll range while the header laid them out.
+- Added: the module's first tests — row blocks end to end (derivation, managed drag and commit, data helpers under
+  seeded property harnesses, paged sources, groupBy suppression, selection and editing remap), the row-to-unit
+  index, and table width across column hide, show and resize.
+- Changed: the Android build migrated to the AGP 9.2.1 KMP library plugin
+  (`com.android.kotlin.multiplatform.library`) — AGP 9 dropped Kotlin Multiplatform support from
+  `com.android.library`.
+    - Publishing is unaffected: artifact ids and repository layout are unchanged. Only the Gradle variant names
+      change (`release*` → `android*`), which consumers do not match on.
+    - `table-sample` is split into the multiplatform module plus a thin `table-sample-android` application module,
+      since a KMP target and `com.android.application` can no longer share one module.
+- Changed: quality tooling reworked.
+    - ktlint-gradle replaced by Spotless driving ktlint `1.8.0`; the tree was reformatted mechanically, with no
+      behaviour change.
+    - detekt moved to `dev.detekt` `2.0.0-alpha.5` and now actually analyses the KMP source sets — the aggregate
+      task had been reporting success on NO-SOURCE. The 171 pre-existing findings are recorded in per-source-set
+      baselines.
+    - `io.nlopez.compose.rules` added to detekt for Compose-specific linting; its 63 findings are baselined, as
+      most fixes would change the published API.
+- Changed: the Gradle daemon JVM is pinned to Java 17 (Temurin) via `gradle/gradle-daemon-jvm.properties`, matching
+  the `jvmToolchain(17)` used for compilation and the JDK installed on CI.
+- Removed: the `-Xcontext-parameters` compiler flag — context parameters are stable in Kotlin 2.4.0.
+- Updated: Kotlin to 2.4.10 (from 2.4.0).
+- Updated: Android Gradle Plugin to 9.2.1 (from 8.13.2). `compileSdk` and `targetSdk` stay at `37`.
+- Updated: library dependencies.
+    - AndroidX Lifecycle upgraded from `2.10.0` to `2.11.0`.
+    - Collections Immutable upgraded from `0.5.0` to `0.5.1`.
+- Updated: Build tooling dependencies.
+    - BuildKonfig upgraded from `0.21.2` to `0.22.0`.
+    - Spotless upgraded from `8.7.0` to `8.8.0`.
+    - Compose Rules upgraded from `0.6.2` to `0.6.3`.
 
 Compare: [v1.10.0...v1.11.0](https://github.com/White-Wind-LLC/table/compare/v1.10.0...v1.11.0)
 
