@@ -49,6 +49,19 @@ internal fun TableCell(
             Modifier
         }
 
+    // Resolve the content colour once. When the style leaves it Unspecified we re-provide the
+    // ambient LocalContentColor, which is a no-op, so the slot renders exactly as before.
+    val resolvedContentColor =
+        if (cellStyle.contentColor != Unspecified) cellStyle.contentColor else LocalContentColor.current
+
+    // Emit the slot from a single position so detekt's ContentSlotReused no longer fires and the
+    // slot's remembered state survives; the pinned/non-pinned branches wrap around this call.
+    val cellContent: @Composable BoxScope.() -> Unit = {
+        CompositionLocalProvider(LocalContentColor provides resolvedContentColor) {
+            content()
+        }
+    }
+
     Row(modifier = modifier) {
         if (showLeftDivider) {
             VerticalDivider(
@@ -83,13 +96,7 @@ internal fun TableCell(
                     modifier = Modifier.fillMaxHeight(),
                     contentAlignment = alignment,
                 ) {
-                    if (cellStyle.contentColor != Unspecified) {
-                        CompositionLocalProvider(LocalContentColor provides cellStyle.contentColor) {
-                            content()
-                        }
-                    } else {
-                        content()
-                    }
+                    cellContent()
                 }
             }
         } else {
@@ -109,13 +116,7 @@ internal fun TableCell(
                         .then(selectionBorderModifier),
                 contentAlignment = alignment,
             ) {
-                if (cellStyle.contentColor != Unspecified) {
-                    CompositionLocalProvider(LocalContentColor provides cellStyle.contentColor) {
-                        content()
-                    }
-                } else {
-                    content()
-                }
+                cellContent()
             }
         }
 

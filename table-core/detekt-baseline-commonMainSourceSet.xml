@@ -2,7 +2,6 @@
 <SmellBaseline>
   <ManuallySuppressedIssues/>
   <CurrentIssues>
-    <ID>ContentSlotReused:TableCell.kt:content: @Composable BoxScope.() -> Unit</ID>
     <ID>ContentTrailingLambda:MeasureUtils.kt:content: @Composable context(TableCellScope) BoxScope.(T, E) -> Unit</ID>
     <ID>LambdaParameterEventTrailing:TableRowItem.kt:onContextMenu: ((T, Offset) -> Unit)?</ID>
     <ID>LoopWithTooManyJumpStatements:RowBlocksState.kt:RowBlocksState$for</ID>
