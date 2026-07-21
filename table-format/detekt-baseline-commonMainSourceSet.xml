@@ -4,8 +4,5 @@
   <CurrentIssues>
     <ID>ComplexCondition:FormatCustomizationBuilder.kt:&lt;no name provided>$rule.enabled &amp;&amp; matches(ctx.row.item, rule.filter) &amp;&amp; (rule.columns.isEmpty() || rule.columns.contains(ctx.column))</ID>
     <ID>ExplicitItLambdaMultipleParameters:FormatDialog.kt:{ _, it -> it.id }</ID>
-    <ID>ModifierMissing:FormatDialogConditionTab.kt:@Suppress("LongMethod", "CyclomaticComplexMethod", "UNCHECKED_CAST") @Composable public fun &lt;E : Enum&lt;E>, FILTER> FormatDialogConditionTab</ID>
-    <ID>ModifierMissing:FormatDialogDesignTab.kt:@Composable public fun &lt;E : Enum&lt;E>, FILTER> FormatDialogDesignTab</ID>
-    <ID>ModifierMissing:FormatDialogFieldTab.kt:@Composable public fun &lt;E : Enum&lt;E>, FILTER> FormatDialogFieldTab</ID>
   </CurrentIssues>
 </SmellBaseline>

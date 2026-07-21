@@ -87,10 +87,11 @@ public fun <E : Enum<E>, FILTER> FormatDialogConditionTab(
     filters: (TableFormatRule<E, FILTER>, onApply: (TableFormatRule<E, FILTER>) -> Unit) -> List<FormatFilterData<E>>,
     onChange: (TableFormatRule<E, FILTER>) -> Unit,
     strings: StringProvider,
+    modifier: Modifier = Modifier,
     scrollbarRenderer: VerticalScrollbarRenderer? = null,
 ) {
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center,
     ) {
         val listState = rememberLazyListState()

@@ -25,10 +25,11 @@ public fun <E : Enum<E>, FILTER> FormatDialogDesignTab(
     item: TableFormatRule<E, FILTER>,
     onChange: (TableFormatRule<E, FILTER>) -> Unit,
     strings: StringProvider,
+    modifier: Modifier = Modifier,
     scrollbarRenderer: VerticalScrollbarRenderer? = null,
 ) {
     Column(
-        modifier = Modifier.padding(top = 8.dp),
+        modifier = modifier.padding(top = 8.dp),
         verticalArrangement = spacedBy(8.dp),
     ) {
         FormatDropdownField(

@@ -24,10 +24,11 @@ public fun <E : Enum<E>, FILTER> FormatDialogFieldTab(
     entries: ImmutableList<E>,
     getTitle: @Composable (E) -> String,
     onChange: (TableFormatRule<E, FILTER>) -> Unit,
+    modifier: Modifier = Modifier,
     scrollbarRenderer: VerticalScrollbarRenderer? = null,
 ) {
     val lazyListState = rememberLazyListState()
-    Box {
+    Box(modifier = modifier) {
         LazyColumn(modifier = Modifier.fillMaxSize(), state = lazyListState) {
             items(entries) { field ->
                 ListItem(
