@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+### Unreleased
+
+- Changed (breaking): parameter order on five public composables now follows the Compose convention — required
+  parameters, `modifier`, optional parameters, trailing lambda. Callers using named arguments are unaffected;
+  positional callers must update.
+    - `FilterDropdownField` and `FilterDropdownAnyField`: `values` and `onClick` move ahead of `getTitle` and
+      `placeholder`.
+    - `TableActiveFilters`: `modifier` moves ahead of `strings`.
+    - `rememberCustomization`: `matches` moves ahead of `key`. Note that `key` is `Any?`, so a positional call
+      passing `matches` third would still compile while binding the lambda to `key` — check these by hand.
+    - `FormatDialogTabRow`: `createTab` moves ahead of `modifier`; the `content` trailing lambda stays last.
+
 ### 1.11.0 — 2026-07-21
 
 - Added: **row blocks** — a new `rowBlocks` parameter on `Table`, `EditableTable` and the `table-paging` adapter

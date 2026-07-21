@@ -50,8 +50,8 @@ internal fun <T : Any, C, E> FastFiltersRow(
     tableData: E,
     strings: StringProvider,
     onChange: (ColumnSpec<T, C, E>, TableFilterState<T>?) -> Unit,
-    modifier: Modifier = Modifier,
     horizontalState: ScrollState,
+    modifier: Modifier = Modifier,
 ) {
     val settings = state.settings
 

@@ -3,13 +3,6 @@
   <ManuallySuppressedIssues/>
   <CurrentIssues>
     <ID>ComposableNaming:TableFilterType.kt:CustomFilterRenderer$@Composable public fun RenderPanel: TableFilterType.CustomFilterActions</ID>
-    <ID>ComposableParamOrder:DateFilter.kt:@OptIn(ExperimentalMaterial3Api::class, ExperimentalTime::class) @Composable internal fun DateField</ID>
-    <ID>ComposableParamOrder:FastFiltersRow.kt:@Suppress("CyclomaticComplexMethod") @Composable internal fun &lt;T : Any, C, E> FastFiltersRow</ID>
-    <ID>ComposableParamOrder:FilterDropdownAnyField.kt:@OptIn(ExperimentalMaterial3Api::class) @Suppress("LongParameterList") @Composable public fun FilterDropdownAnyField</ID>
-    <ID>ComposableParamOrder:FilterDropdownField.kt:@OptIn(ExperimentalMaterial3Api::class) @Suppress("LongParameterList") @Composable public fun &lt;E : Enum&lt;E>> FilterDropdownField</ID>
-    <ID>ComposableParamOrder:FilterPanelActions.kt:@Composable internal fun FilterPanelActions</ID>
-    <ID>ComposableParamOrder:TableActiveFilters.kt:@Composable @Suppress("LongParameterList") public fun &lt;T : Any, C, E> TableActiveFilters</ID>
-    <ID>ComposableParamOrder:TableCell.kt:@Composable internal fun TableCell</ID>
     <ID>ContentSlotReused:TableCell.kt:content: @Composable BoxScope.() -> Unit</ID>
     <ID>ContentTrailingLambda:MeasureUtils.kt:content: @Composable context(TableCellScope) BoxScope.(T, E) -> Unit</ID>
     <ID>LambdaParameterEventTrailing:TableRowItem.kt:onContextMenu: ((T, Offset) -> Unit)?</ID>

@@ -40,8 +40,8 @@ import ua.wwind.table.strings.UiString
  *
  * @param columns all column specs used by the table
  * @param state table state containing current filters
- * @param strings string provider for localized labels
  * @param modifier layout modifier for the chips row
+ * @param strings string provider for localized labels
  * @param includeClearAllChip whether to include a leading "Clear" chip to reset all filters
  */
 @Composable
@@ -49,8 +49,8 @@ import ua.wwind.table.strings.UiString
 public fun <T : Any, C, E> TableActiveFilters(
     columns: ImmutableList<ColumnSpec<T, C, E>>,
     state: TableState<C>,
-    strings: StringProvider = DefaultStrings,
     modifier: Modifier = Modifier,
+    strings: StringProvider = DefaultStrings,
     includeClearAllChip: Boolean = true,
 ) {
     val keyToSpec: Map<C, ColumnSpec<T, C, E>> = remember(columns) { columns.associateBy { it.key } }

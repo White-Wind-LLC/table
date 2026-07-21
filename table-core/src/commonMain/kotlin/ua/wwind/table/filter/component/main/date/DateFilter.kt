@@ -117,11 +117,11 @@ internal fun DateFilter(
 internal fun DateField(
     value: LocalDate?,
     onDateSelected: (LocalDate) -> Unit,
+    strings: StringProvider,
     modifier: Modifier = Modifier,
     label: @Composable (() -> Unit)? = null,
     onClear: () -> Unit = {},
     dateValidator: (Long) -> Boolean = { true },
-    strings: StringProvider,
     contentPadding: PaddingValues = TableTextFieldDefaults.contentPadding(),
     showBorder: Boolean = true,
 ) {

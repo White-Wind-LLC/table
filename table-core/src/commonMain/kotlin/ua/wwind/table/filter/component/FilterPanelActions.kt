@@ -15,11 +15,11 @@ import ua.wwind.table.strings.UiString
 @Composable
 internal fun FilterPanelActions(
     autoApplyFilters: Boolean,
-    enabled: Boolean = true,
     onApply: () -> Unit,
     onClear: () -> Unit,
     onClose: () -> Unit,
     strings: StringProvider,
+    enabled: Boolean = true,
 ) {
     Row(
         horizontalArrangement = Arrangement.SpaceBetween,

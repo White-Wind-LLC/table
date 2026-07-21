@@ -31,9 +31,9 @@ public fun <E, T> FormatDialogTabRow(
     currentItem: E,
     onClick: (E) -> Unit,
     list: ImmutableList<TabData<E, T>>,
+    createTab: @Composable (TabData<E, T>, Boolean, () -> Unit) -> Unit,
     modifier: Modifier = Modifier,
     isScrollable: Boolean = false,
-    createTab: @Composable (TabData<E, T>, Boolean, () -> Unit) -> Unit,
     content: @Composable () -> Unit,
 ) {
     Column(modifier = modifier) {

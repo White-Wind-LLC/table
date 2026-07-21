@@ -3,11 +3,6 @@
   <ManuallySuppressedIssues/>
   <CurrentIssues>
     <ID>ComplexCondition:FormatCustomizationBuilder.kt:&lt;no name provided>$rule.enabled &amp;&amp; matches(ctx.row.item, rule.filter) &amp;&amp; (rule.columns.isEmpty() || rule.columns.contains(ctx.column))</ID>
-    <ID>ComposableParamOrder:FormatColorField.kt:@OptIn(ExperimentalMaterial3Api::class) @Suppress("LongParameterList") @Composable internal fun &lt;E : Enum&lt;E>> FormatColorField</ID>
-    <ID>ComposableParamOrder:FormatCustomizationBuilder.kt:@Composable public fun &lt;T : Any, C, FILTER> rememberCustomization: TableCustomization&lt;T, C></ID>
-    <ID>ComposableParamOrder:FormatDialogConditionTab.kt:@OptIn(ExperimentalMaterial3Api::class, ExperimentalTime::class) @Composable private fun DateField</ID>
-    <ID>ComposableParamOrder:FormatDialogTabRow.kt:@Composable @Suppress("LongParameterList") public fun &lt;E, T> FormatDialogTabRow</ID>
-    <ID>ComposableParamOrder:FormatDropdownField.kt:@OptIn(ExperimentalMaterial3Api::class) @Suppress("LongParameterList", "LongMethod") @Composable internal fun &lt;E : Enum&lt;E>> FormatDropdownField</ID>
     <ID>ExplicitItLambdaMultipleParameters:FormatDialog.kt:{ _, it -> it.id }</ID>
     <ID>ModifierMissing:FormatDialogConditionTab.kt:@Suppress("LongMethod", "CyclomaticComplexMethod", "UNCHECKED_CAST") @Composable public fun &lt;E : Enum&lt;E>, FILTER> FormatDialogConditionTab</ID>
     <ID>ModifierMissing:FormatDialogDesignTab.kt:@Composable public fun &lt;E : Enum&lt;E>, FILTER> FormatDialogDesignTab</ID>

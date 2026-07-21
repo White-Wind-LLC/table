@@ -60,10 +60,10 @@ fun MainTable(
     onRowEditStart: (Person, Int) -> Unit,
     onRowEditComplete: (Int) -> Boolean,
     onEditCancelled: (Int) -> Unit,
+    modifier: Modifier = Modifier,
     rowBlocks: RowBlocks<Person>? = null,
     useCompactMode: Boolean = false,
     enableRowReorder: Boolean = false,
-    modifier: Modifier = Modifier,
 ) {
     // Observe filters and sort state changes
     val currentOnFiltersChanged = rememberUpdatedState(onFiltersChanged)

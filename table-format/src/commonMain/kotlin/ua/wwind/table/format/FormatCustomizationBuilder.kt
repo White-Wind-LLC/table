@@ -24,8 +24,8 @@ import ua.wwind.table.format.data.TableFormatVerticalAlignment
 @Composable
 public fun <T : Any, C, FILTER> rememberCustomization(
     rules: ImmutableList<TableFormatRule<C, FILTER>>,
-    key: Any? = null,
     matches: (item: T, filter: FILTER) -> Boolean,
+    key: Any? = null,
     baseRowStyle: (@Composable (TableRowContext<T, C>) -> TableRowStyle)? = null,
     baseCellStyle: (@Composable (TableCellContext<T, C>) -> TableCellStyle)? = null,
 ): TableCustomization<T, C> {

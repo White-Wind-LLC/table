@@ -34,11 +34,11 @@ import ua.wwind.table.component.TableTextFieldDefaults
 @Composable
 public fun FilterDropdownAnyField(
     currentValue: Any?,
-    getTitle: @Composable (Any) -> String = { it.toString() },
-    placeholder: String = "",
     values: ImmutableList<Any>,
     onClick: (Any) -> Unit,
     modifier: Modifier = Modifier,
+    getTitle: @Composable (Any) -> String = { it.toString() },
+    placeholder: String = "",
     checked: ((Any) -> Boolean)? = null,
     contentPadding: PaddingValues = TableTextFieldDefaults.contentPadding(),
     showBorder: Boolean = true,

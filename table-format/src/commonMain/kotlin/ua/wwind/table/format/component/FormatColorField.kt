@@ -31,9 +31,9 @@ internal fun <E : Enum<E>> FormatColorField(
     color: Color?,
     label: String,
     onClick: (Color?) -> Unit,
+    strings: StringProvider,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    strings: StringProvider,
     scrollbarRenderer: VerticalScrollbarRenderer? = null,
 ) {
     var show by remember { mutableStateOf(false) }

@@ -51,11 +51,11 @@ public fun <T> Flow<T>.collectAsEffect(block: (T) -> Unit) {
 @Composable
 public fun <E : Enum<E>> FilterDropdownField(
     currentValue: E?,
-    getTitle: @Composable (E) -> String = { it.name },
-    placeholder: String = "",
     values: ImmutableList<E>,
     onClick: (E) -> Unit,
     modifier: Modifier = Modifier,
+    getTitle: @Composable (E) -> String = { it.name },
+    placeholder: String = "",
     checked: ((E) -> Boolean)? = null,
     contentPadding: PaddingValues = TableTextFieldDefaults.contentPadding(),
 ) {

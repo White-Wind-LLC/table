@@ -34,12 +34,12 @@ import ua.wwind.table.filter.component.collectAsEffect
 @Composable
 internal fun <E : Enum<E>> FormatDropdownField(
     currentValue: E?,
-    getTitle: @Composable (E) -> String = { it.name },
-    placeholder: String = "",
-    label: @Composable (() -> Unit)? = null,
     values: ImmutableList<E>,
     onClick: (E?) -> Unit,
     modifier: Modifier = Modifier,
+    getTitle: @Composable (E) -> String = { it.name },
+    placeholder: String = "",
+    label: @Composable (() -> Unit)? = null,
     checked: ((E) -> Boolean)? = null,
     enabled: Boolean = true,
 ) {
