@@ -6,6 +6,19 @@ config:
   excludes:
     - "Compose"
 
+complexity:
+  LongMethod:
+    # A composable that lays out a panel is not the same kind of debt as a long piece of business
+    # logic: its length is the layout it declares, and splitting it produces indirection rather than
+    # smaller units. The rule stays on for everything else.
+    ignoreAnnotated:
+      - Composable
+    # Scenario tests read as one block — build the table, run the gesture, assert the outcome.
+    # Extracting the steps into helpers hides the very sequence the test exists to document.
+    excludes:
+      - "**/commonTest/**"
+      - "**/test/**"
+
 naming:
   FunctionNaming:
     active: true

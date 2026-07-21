@@ -55,7 +55,14 @@ import ua.wwind.table.sample.model.Position
 import ua.wwind.table.sample.viewmodel.SampleUiEvent
 import ua.wwind.table.tableColumns
 
-/** Create column definitions with titles, cells and optional filters for header UI. */
+/**
+ * Create column definitions with titles, cells and optional filters for header UI.
+ *
+ * One `column { … }` block per column of the demo table. The `editableTableColumns` DSL is
+ * declarative, so the length here is the size of the table being described, not branching logic —
+ * hence the `LongMethod` suppression.
+ */
+@Suppress("LongMethod")
 @OptIn(ExperimentalMaterial3Api::class)
 fun createTableColumns(
     onToggleMovementExpanded: (personId: Int) -> Unit,
@@ -483,6 +490,8 @@ fun createTableColumns(
     }
 }
 
+// Declarative column list, same as [createTableColumns].
+@Suppress("LongMethod")
 fun createMovementColumns(
     useCompactMode: Boolean = false,
     enableRowReorder: Boolean = false,

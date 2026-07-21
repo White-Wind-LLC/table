@@ -12,7 +12,12 @@ import ua.wwind.table.sample.model.Position
 object PersonFilterStateFactory {
     /**
      * Create a default filter state for the given column.
+     *
+     * One exhaustive `when` branch per column — the compiler checks the coverage, and every branch
+     * is a single construction. The length tracks the number of columns, not complexity, so
+     * `LongMethod` is suppressed rather than fixed.
      */
+    @Suppress("LongMethod")
     fun createDefaultState(column: PersonColumn): TableFilterState<*> =
         when (column) {
             PersonColumn.NAME -> {

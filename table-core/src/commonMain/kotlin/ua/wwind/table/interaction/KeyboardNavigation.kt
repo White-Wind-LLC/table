@@ -7,6 +7,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.focusTarget
 import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.isCtrlPressed
 import androidx.compose.ui.input.key.isMetaPressed
@@ -25,157 +26,136 @@ internal fun <T : Any, C> Modifier.tableKeyboardNavigation(
     visibleColumns: List<ColumnSpec<T, C, *>>,
     verticalState: LazyListState,
     horizontalState: ScrollState,
-): Modifier {
-    return this
+): Modifier =
+    this
         .focusRequester(focusRequester)
         .focusTarget()
         .onPreviewKeyEvent { event ->
-            if (event.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
+            when {
+                event.type != KeyEventType.KeyDown -> false
 
-            val cell = state.selectedCell
-            val colKeys = visibleColumns.map { it.key }
-            val currentRow = cell?.rowIndex ?: 0
-            val currentColIndex = cell?.let { colKeys.indexOf(it.column) }?.takeIf { it >= 0 } ?: 0
+                // While editing, the edit field owns cursor movement — only end the edit here.
+                state.editingRow != null -> handleEditingKey(event, state, visibleColumns)
 
-            fun clampRow(r: Int) = r.coerceIn(0, itemsCount.coerceAtLeast(1) - 1)
-
-            fun clampCol(c: Int) = c.coerceIn(0, (colKeys.size - 1).coerceAtLeast(0))
-
-            fun ensureFocus(
-                row: Int,
-                colIndex: Int,
-            ) {
-                val targetRow = clampRow(row)
-                val targetColIndex = clampCol(colIndex)
-                val targetColKey = colKeys.getOrNull(targetColIndex) ?: return
-                state.selectCell(targetRow, targetColKey)
-                // If selection is enabled, keep selected row in sync with focused row
-                state.focusRow(targetRow)
-            }
-
-            val jumpToEdge = event.isCtrlPressed || event.isMetaPressed
-            val isEditing = state.editingRow != null
-
-            // Disable navigation when editing - let the edit field handle cursor movement
-            if (isEditing) {
-                when (event.key) {
-                    Key.Escape -> {
-                        state.cancelEditing()
-                        true
-                    }
-
-                    Key.Tab -> {
-                        state.completeCurrentCellEdit(visibleColumns)
-                        true
-                    }
-
-                    else -> {
-                        false
-                    }
-                }
-            } else {
-                when (event.key) {
-                    Key.DirectionRight -> {
-                        ensureFocus(currentRow, currentColIndex + 1)
-                        true
-                    }
-
-                    Key.DirectionLeft -> {
-                        ensureFocus(currentRow, currentColIndex - 1)
-                        true
-                    }
-
-                    Key.DirectionDown -> {
-                        if (jumpToEdge) {
-                            ensureFocus(itemsCount - 1, currentColIndex)
-                        } else {
-                            ensureFocus(currentRow + 1, currentColIndex)
-                        }
-                        true
-                    }
-
-                    Key.DirectionUp -> {
-                        if (jumpToEdge) {
-                            ensureFocus(0, currentColIndex)
-                        } else {
-                            ensureFocus(currentRow - 1, currentColIndex)
-                        }
-                        true
-                    }
-
-                    Key.PageDown -> {
-                        val layoutInfo = verticalState.layoutInfo
-                        val viewportHeight =
-                            (layoutInfo.viewportEndOffset - layoutInfo.viewportStartOffset).coerceAtLeast(0)
-                        val fullyVisible =
-                            layoutInfo.visibleItemsInfo
-                                .count { item ->
-                                    val top = item.offset
-                                    val bottom = item.offset + item.size
-                                    top >= 0 && bottom <= viewportHeight
-                                }.coerceAtLeast(1)
-                        // `fullyVisible` counts lazy items (units), so page by units and land on the
-                        // target unit's first row. Without groups this reduces to currentRow + fullyVisible.
-                        val units = state.rowUnits
-                        val target =
-                            if (units.unitCount <= 0) {
-                                currentRow
-                            } else {
-                                val targetUnit =
-                                    (units.unitOf(currentRow) + fullyVisible)
-                                        .coerceAtMost(units.unitCount - 1)
-                                units.rowsOf(targetUnit).first
-                            }
-                        ensureFocus(target, currentColIndex)
-                        true
-                    }
-
-                    Key.PageUp -> {
-                        val layoutInfo = verticalState.layoutInfo
-                        val viewportHeight =
-                            (layoutInfo.viewportEndOffset - layoutInfo.viewportStartOffset).coerceAtLeast(0)
-                        val fullyVisible =
-                            layoutInfo.visibleItemsInfo
-                                .count { item ->
-                                    val top = item.offset
-                                    val bottom = item.offset + item.size
-                                    top >= 0 && bottom <= viewportHeight
-                                }.coerceAtLeast(1)
-                        // See PageDown: page by units, then land on the target unit's first row.
-                        val units = state.rowUnits
-                        val target =
-                            if (units.unitCount <= 0) {
-                                currentRow
-                            } else {
-                                val targetUnit = (units.unitOf(currentRow) - fullyVisible).coerceAtLeast(0)
-                                units.rowsOf(targetUnit).first
-                            }
-                        ensureFocus(target, currentColIndex)
-                        true
-                    }
-
-                    Key.MoveHome -> {
-                        if (jumpToEdge) {
-                            ensureFocus(0, currentColIndex)
-                        } else {
-                            ensureFocus(currentRow, 0)
-                        }
-                        true
-                    }
-
-                    Key.MoveEnd -> {
-                        if (jumpToEdge) {
-                            ensureFocus(itemsCount - 1, currentColIndex)
-                        } else {
-                            ensureFocus(currentRow, colKeys.lastIndex)
-                        }
-                        true
-                    }
-
-                    else -> {
-                        false
-                    }
-                }
+                else -> handleNavigationKey(event, itemsCount, state, visibleColumns, verticalState)
             }
         }
+
+private fun <C> handleEditingKey(
+    event: KeyEvent,
+    state: TableState<C>,
+    visibleColumns: List<ColumnSpec<*, C, *>>,
+): Boolean =
+    when (event.key) {
+        Key.Escape -> {
+            state.cancelEditing()
+            true
+        }
+
+        Key.Tab -> {
+            state.completeCurrentCellEdit(visibleColumns)
+            true
+        }
+
+        else -> {
+            false
+        }
+    }
+
+private fun <T : Any, C> handleNavigationKey(
+    event: KeyEvent,
+    itemsCount: Int,
+    state: TableState<C>,
+    visibleColumns: List<ColumnSpec<T, C, *>>,
+    verticalState: LazyListState,
+): Boolean {
+    val colKeys = visibleColumns.map { it.key }
+    val cell = state.selectedCell
+    val currentRow = cell?.rowIndex ?: 0
+    val currentColIndex = cell?.let { colKeys.indexOf(it.column) }?.takeIf { it >= 0 } ?: 0
+    val jumpToEdge = event.isCtrlPressed || event.isMetaPressed
+
+    fun ensureFocus(
+        row: Int,
+        colIndex: Int,
+    ) {
+        val targetRow = row.coerceIn(0, itemsCount.coerceAtLeast(1) - 1)
+        val targetColIndex = colIndex.coerceIn(0, (colKeys.size - 1).coerceAtLeast(0))
+        val targetColKey = colKeys.getOrNull(targetColIndex) ?: return
+        state.selectCell(targetRow, targetColKey)
+        // If selection is enabled, keep selected row in sync with focused row
+        state.focusRow(targetRow)
+    }
+
+    // Every navigation key resolves to the (row, column) the selection moves to.
+    val (targetRow, targetColIndex) =
+        when (event.key) {
+            Key.DirectionRight -> {
+                currentRow to currentColIndex + 1
+            }
+
+            Key.DirectionLeft -> {
+                currentRow to currentColIndex - 1
+            }
+
+            Key.DirectionDown -> {
+                (if (jumpToEdge) itemsCount - 1 else currentRow + 1) to currentColIndex
+            }
+
+            Key.DirectionUp -> {
+                (if (jumpToEdge) 0 else currentRow - 1) to currentColIndex
+            }
+
+            Key.PageDown -> {
+                state.pagedRow(verticalState, currentRow, forward = true) to currentColIndex
+            }
+
+            Key.PageUp -> {
+                state.pagedRow(verticalState, currentRow, forward = false) to currentColIndex
+            }
+
+            Key.MoveHome -> {
+                if (jumpToEdge) 0 to currentColIndex else currentRow to 0
+            }
+
+            Key.MoveEnd -> {
+                if (jumpToEdge) itemsCount - 1 to currentColIndex else currentRow to colKeys.lastIndex
+            }
+
+            else -> {
+                return false
+            }
+        }
+    ensureFocus(targetRow, targetColIndex)
+    return true
+}
+
+/**
+ * Row to land on after PageDown/PageUp.
+ *
+ * A page is measured in fully visible lazy items, and a lazy item is a *unit* (a single row or a
+ * declared group of adjacent rows). So paging happens in units and resolves back to the target
+ * unit's first row; without groups this reduces to `currentRow ± fullyVisibleUnits`.
+ */
+private fun <C> TableState<C>.pagedRow(
+    verticalState: LazyListState,
+    currentRow: Int,
+    forward: Boolean,
+): Int {
+    val units = rowUnits
+    if (units.unitCount <= 0) return currentRow
+    val layoutInfo = verticalState.layoutInfo
+    val viewportHeight = layoutInfo.viewportHeightPx()
+    val fullyVisible =
+        layoutInfo.visibleItemsInfo
+            .count { item -> item.offset >= 0 && item.offset + item.size <= viewportHeight }
+            .coerceAtLeast(1)
+    val currentUnit = units.unitOf(currentRow)
+    val targetUnit =
+        if (forward) {
+            (currentUnit + fullyVisible).coerceAtMost(units.unitCount - 1)
+        } else {
+            (currentUnit - fullyVisible).coerceAtLeast(0)
+        }
+    return units.rowsOf(targetUnit).first
 }

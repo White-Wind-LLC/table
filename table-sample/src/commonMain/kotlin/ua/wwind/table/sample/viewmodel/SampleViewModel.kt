@@ -250,7 +250,14 @@ class SampleViewModel : ViewModel() {
         return validationResult.isValid
     }
 
-    /** Handle UI events, including editing events from table columns */
+    /**
+     * Handle UI events, including editing events from table columns.
+     *
+     * The single exhaustive dispatch over [SampleUiEvent]; each branch is a few lines of state
+     * update. Keeping them together is what makes the event contract readable at a glance, so
+     * `LongMethod` is suppressed rather than fixed.
+     */
+    @Suppress("LongMethod")
     fun onEvent(event: SampleUiEvent) {
         when (event) {
             is SampleUiEvent.StartEditing -> {

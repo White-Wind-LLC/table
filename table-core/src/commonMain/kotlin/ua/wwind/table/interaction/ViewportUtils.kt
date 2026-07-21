@@ -2,6 +2,8 @@ package ua.wwind.table.interaction
 
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.gestures.animateScrollBy
+import androidx.compose.foundation.lazy.LazyListItemInfo
+import androidx.compose.foundation.lazy.LazyListLayoutInfo
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
@@ -25,105 +27,130 @@ public suspend fun <C> ensureRowFullyVisible(
     movement: Int = 0,
 ) {
     val unitIndex = state.rowUnits.unitOf(index)
-    val layout = verticalState.layoutInfo
-    val visible = layout.visibleItemsInfo
+    val visible = verticalState.layoutInfo.visibleItemsInfo
     if (visible.isEmpty()) {
         verticalState.animateScrollToItem(unitIndex)
         return
     }
 
+    val targetInfo = visible.firstOrNull { it.index == unitIndex }
     val firstVisibleIndex = visible.first().index
     val lastVisibleIndex = visible.last().index
-    val targetInfo = visible.firstOrNull { it.index == unitIndex }
-    val viewportHeight = (layout.viewportEndOffset - layout.viewportStartOffset).coerceAtLeast(0)
-
-    if (targetInfo != null) {
-        val top = targetInfo.offset
-        val bottom = targetInfo.offset + targetInfo.size
-        val epsilon = 1 // px to avoid off-by-one clipping
-        when {
-            top < 0 -> verticalState.animateScrollBy(top.toFloat())
-            bottom > viewportHeight - epsilon -> verticalState.animateScrollBy((bottom - viewportHeight).toFloat())
+    when {
+        targetInfo != null -> {
+            verticalState.nudgeVisibleUnitIntoView(targetInfo)
         }
-        return
-    }
 
-    if (unitIndex < firstVisibleIndex) {
-        // If moving upward and the target is immediately above, scroll just enough to reveal it at the top.
-        val prevIndex = firstVisibleIndex - 1
-        if (movement < 0 && unitIndex == prevIndex) {
-            val estimatedHeight =
-                state.rowHeightsPx[index] ?: with(density) { state.dimensions.rowHeight.toPx() }.toInt()
-            val firstTop = visible.first().offset
-            val delta = (firstTop - estimatedHeight)
-            if (delta != 0) verticalState.animateScrollBy(delta.toFloat())
-            // Fine-tune once it becomes visible
-            val info = verticalState.layoutInfo.visibleItemsInfo.firstOrNull { it.index == unitIndex }
-            if (info != null && info.offset < 0) verticalState.animateScrollBy(info.offset.toFloat())
-        } else {
-            // Fallback: align to top
-            verticalState.animateScrollToItem(unitIndex)
-        }
-        return
-    }
-
-    if (unitIndex > lastVisibleIndex) {
-        // If moving downward and the target is the next unit after the last visible, reveal just one unit.
-        val nextIndex = lastVisibleIndex + 1
-        if (movement > 0 && unitIndex == nextIndex) {
-            val estimatedHeight =
-                state.rowHeightsPx[index] ?: with(density) { state.dimensions.rowHeight.toPx() }.toInt()
-            val last = visible.last()
-            val lastBottom = last.offset + last.size
-            val desiredTop = (viewportHeight - estimatedHeight).coerceAtLeast(0)
-            val delta = (lastBottom - desiredTop).coerceAtLeast(0)
-            if (delta != 0) verticalState.animateScrollBy(delta.toFloat())
-            // Fine-tune now that it's visible
-            val info = verticalState.layoutInfo.visibleItemsInfo.firstOrNull { it.index == unitIndex }
-            if (info != null) {
-                val bottom = info.offset + info.size
-                val overflow = bottom - viewportHeight
-                if (overflow > 0) verticalState.animateScrollBy(overflow.toFloat())
-            }
-        } else {
-            // Fallback for multi-row downward jumps (e.g., PageDown):
-            // compute exact delta using measured/estimated heights
-            val defaultHeight = with(density) { state.dimensions.rowHeight.toPx() }.toInt()
-
-            fun heightOf(i: Int): Int = state.rowHeightsPx[i] ?: defaultHeight
-
-            // Sum heights between the last visible row and the target (excluding the target).
-            // `lastVisibleIndex` is a unit index, so translate it back to the last row it renders
-            // before walking rows; with no groups this is exactly `lastVisibleIndex + 1`.
-            var betweenSum = 0
-            var i = state.rowUnits.rowsOf(lastVisibleIndex).last + 1
-            while (i < index) {
-                betweenSum += heightOf(i)
-                i++
-            }
-            val targetHeight = heightOf(index)
-
-            val last = visible.last()
-            val lastBottom = last.offset + last.size
-            val desiredTop = (viewportHeight - targetHeight).coerceAtLeast(0)
-            val delta = (lastBottom + betweenSum) - desiredTop
-            if (delta != 0) verticalState.animateScrollBy(delta.toFloat())
-
-            // Fine-tune once it becomes visible (avoid off-by-one and dynamic height adjustments)
-            val info = verticalState.layoutInfo.visibleItemsInfo.firstOrNull { it.index == unitIndex }
-            if (info != null) {
-                val bottom = info.offset + info.size
-                val overflow = bottom - viewportHeight
-                if (overflow > 0) {
-                    verticalState.animateScrollBy(overflow.toFloat())
-                } else if (info.offset < 0) {
-                    verticalState.animateScrollBy(info.offset.toFloat())
-                }
+        // Moving upward onto the unit immediately above: scroll just enough to reveal it at the top.
+        unitIndex < firstVisibleIndex -> {
+            if (movement < 0 && unitIndex == firstVisibleIndex - 1) {
+                verticalState.revealUnitAbove(index, unitIndex, state, density)
+            } else {
+                verticalState.animateScrollToItem(unitIndex) // Fallback: align to top
             }
         }
-        return
+
+        // Moving downward onto the unit right after the last visible one: reveal just that unit.
+        unitIndex > lastVisibleIndex -> {
+            if (movement > 0 && unitIndex == lastVisibleIndex + 1) {
+                verticalState.revealUnitBelow(index, unitIndex, state, density)
+            } else {
+                verticalState.jumpDownToUnit(index, unitIndex, state, density)
+            }
+        }
     }
 }
+
+/** Pulls an already visible [info] fully inside the viewport, correcting a clipped top or bottom. */
+private suspend fun LazyListState.nudgeVisibleUnitIntoView(info: LazyListItemInfo) {
+    val viewportHeight = layoutInfo.viewportHeightPx()
+    val top = info.offset
+    val bottom = info.offset + info.size
+    val epsilon = 1 // px to avoid off-by-one clipping
+    when {
+        top < 0 -> animateScrollBy(top.toFloat())
+        bottom > viewportHeight - epsilon -> animateScrollBy((bottom - viewportHeight).toFloat())
+    }
+}
+
+/** Scrolls up by one estimated row height so that [unitIndex] lands at the top of the viewport. */
+private suspend fun <C> LazyListState.revealUnitAbove(
+    index: Int,
+    unitIndex: Int,
+    state: TableState<C>,
+    density: Density,
+) {
+    val firstTop = layoutInfo.visibleItemsInfo.first().offset
+    val delta = firstTop - state.estimatedRowHeight(index, density)
+    if (delta != 0) animateScrollBy(delta.toFloat())
+    // Fine-tune once it becomes visible
+    val info = layoutInfo.visibleItemsInfo.firstOrNull { it.index == unitIndex }
+    if (info != null && info.offset < 0) animateScrollBy(info.offset.toFloat())
+}
+
+/** Scrolls down by one estimated row height so that [unitIndex] lands at the bottom of the viewport. */
+private suspend fun <C> LazyListState.revealUnitBelow(
+    index: Int,
+    unitIndex: Int,
+    state: TableState<C>,
+    density: Density,
+) {
+    val viewportHeight = layoutInfo.viewportHeightPx()
+    val last = layoutInfo.visibleItemsInfo.last()
+    val lastBottom = last.offset + last.size
+    val desiredTop = (viewportHeight - state.estimatedRowHeight(index, density)).coerceAtLeast(0)
+    val delta = (lastBottom - desiredTop).coerceAtLeast(0)
+    if (delta != 0) animateScrollBy(delta.toFloat())
+    // Fine-tune now that it's visible
+    val info = layoutInfo.visibleItemsInfo.firstOrNull { it.index == unitIndex }
+    val overflow = info?.let { it.offset + it.size - viewportHeight } ?: 0
+    if (overflow > 0) animateScrollBy(overflow.toFloat())
+}
+
+/**
+ * Fallback for multi-row downward jumps (e.g. PageDown): computes the exact delta from the
+ * measured/estimated heights of every row between the last visible one and [index].
+ */
+private suspend fun <C> LazyListState.jumpDownToUnit(
+    index: Int,
+    unitIndex: Int,
+    state: TableState<C>,
+    density: Density,
+) {
+    val viewportHeight = layoutInfo.viewportHeightPx()
+    val last = layoutInfo.visibleItemsInfo.last()
+
+    // Sum heights between the last visible row and the target (excluding the target).
+    // `last.index` is a unit index, so translate it back to the last row it renders before
+    // walking rows; with no groups this is exactly `last.index + 1`.
+    var betweenSum = 0
+    var i = state.rowUnits.rowsOf(last.index).last + 1
+    while (i < index) {
+        betweenSum += state.estimatedRowHeight(i, density)
+        i++
+    }
+
+    val lastBottom = last.offset + last.size
+    val desiredTop = (viewportHeight - state.estimatedRowHeight(index, density)).coerceAtLeast(0)
+    val delta = (lastBottom + betweenSum) - desiredTop
+    if (delta != 0) animateScrollBy(delta.toFloat())
+
+    // Fine-tune once it becomes visible (avoid off-by-one and dynamic height adjustments)
+    val info = layoutInfo.visibleItemsInfo.firstOrNull { it.index == unitIndex } ?: return
+    val overflow = info.offset + info.size - viewportHeight
+    when {
+        overflow > 0 -> animateScrollBy(overflow.toFloat())
+        info.offset < 0 -> animateScrollBy(info.offset.toFloat())
+    }
+}
+
+/** Measured height of row [index], falling back to the configured default when it is not laid out yet. */
+private fun <C> TableState<C>.estimatedRowHeight(
+    index: Int,
+    density: Density,
+): Int = rowHeightsPx[index] ?: with(density) { dimensions.rowHeight.toPx() }.toInt()
+
+internal fun LazyListLayoutInfo.viewportHeightPx(): Int = (viewportEndOffset - viewportStartOffset).coerceAtLeast(0)
 
 /** Ensure that the given column becomes fully visible horizontally. */
 public suspend fun <T : Any, C, E> ensureColumnFullyVisible(

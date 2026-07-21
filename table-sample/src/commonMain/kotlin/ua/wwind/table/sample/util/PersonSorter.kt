@@ -13,7 +13,11 @@ object PersonSorter {
      * The ordering rule as a comparator rather than a sorted list, because the within-blocks sort
      * demo feeds it to `sortedWithinRowBlocks` while the free-sort path plain-sorts with it.
      * Returns null when [sort] is absent or the column has no ordering.
+     *
+     * One exhaustive `when` branch per column, each a single `compareBy`, so `LongMethod` is
+     * suppressed rather than fixed.
      */
+    @Suppress("LongMethod")
     fun comparatorFor(sort: SortState<PersonColumn>?): Comparator<Person>? {
         if (sort == null) return null
 

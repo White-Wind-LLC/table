@@ -18,7 +18,7 @@
     <ID>CyclomaticComplexMethod:FastFiltersRow.kt:@Composable internal fun &lt;T : Any, C, E> FastFiltersRow</ID>
     <ID>CyclomaticComplexMethod:FilterConstraint.kt:FilterConstraint$public fun toUiString: UiString</ID>
     <ID>CyclomaticComplexMethod:GroupStickyOverlay.kt:@Composable @Suppress("LongParameterList") @ExperimentalTableApi internal fun &lt;T : Any, C, E> GroupStickyOverlay</ID>
-    <ID>CyclomaticComplexMethod:KeyboardNavigation.kt:@ExperimentalTableApi internal fun &lt;T : Any, C> Modifier.tableKeyboardNavigation: Modifier</ID>
+    <ID>CyclomaticComplexMethod:KeyboardNavigation.kt:private fun &lt;T : Any, C> handleNavigationKey: Boolean</ID>
     <ID>CyclomaticComplexMethod:NumberFilterState.kt:@OptIn(FlowPreview::class) @Composable internal fun &lt;T : Number> rememberNumberFilterState: NumberFilterState&lt;T></ID>
     <ID>CyclomaticComplexMethod:PinnedColumnState.kt:internal fun calculatePinnedColumnState: PinnedColumnState</ID>
     <ID>CyclomaticComplexMethod:RowBlocksState.kt:RowBlocksState$fun settleWithinBlock: RowWithinBlockMove?</ID>
@@ -28,7 +28,6 @@
     <ID>CyclomaticComplexMethod:TableRowItem.kt:@Composable context(rowScope: TableItemScope) private fun &lt;C, T : Any, E> RenderTableRowItem</ID>
     <ID>CyclomaticComplexMethod:TableViewportPrefetcher.kt:@Composable @Suppress("LongParameterList") internal fun &lt;T : Any, C, E> TableViewportPrefetcher</ID>
     <ID>CyclomaticComplexMethod:UiString.kt:DefaultStrings$@Composable public override fun get: String</ID>
-    <ID>CyclomaticComplexMethod:ViewportUtils.kt:public suspend fun &lt;C> ensureRowFullyVisible</ID>
     <ID>LambdaParameterEventTrailing:TableRowItem.kt:onContextMenu: ((T, Offset) -> Unit)?</ID>
     <ID>LambdaParameterInRestartableEffect:BooleanFilterState.kt:onStateChange: (TableFilterState&lt;Boolean>?) -> Unit</ID>
     <ID>LambdaParameterInRestartableEffect:DateFilterState.kt:onStateChange: (TableFilterState&lt;LocalDate>?) -> Unit</ID>
@@ -36,40 +35,6 @@
     <ID>LambdaParameterInRestartableEffect:MeasureUtils.kt:onMeasured: (Dp) -> Unit</ID>
     <ID>LambdaParameterInRestartableEffect:NumberFilterState.kt:onStateChange: (TableFilterState&lt;T>?) -> Unit</ID>
     <ID>LambdaParameterInRestartableEffect:TextFilterState.kt:onStateChange: (TableFilterState&lt;String>?) -> Unit</ID>
-    <ID>LongMethod:ColumnHeaderDropdownMenuBox.kt:@Composable internal fun &lt;T : Any, C, E> ColumnHeaderDropdownMenuBox</ID>
-    <ID>LongMethod:ColumnResizersOverlay.kt:@Composable internal fun &lt;T : Any, C, E> ColumnResizersOverlay</ID>
-    <ID>LongMethod:DateFilter.kt:@OptIn(ExperimentalMaterial3Api::class, ExperimentalTime::class) @Composable internal fun DateField</ID>
-    <ID>LongMethod:DateFilterState.kt:@OptIn(FlowPreview::class) @Composable internal fun rememberDateFilterState: DateFilterState</ID>
-    <ID>LongMethod:DraggableTable.kt:internal fun Modifier.draggableTable: Modifier</ID>
-    <ID>LongMethod:EnumFilter.kt:@OptIn(FlowPreview::class) @Suppress("LongParameterList", "UNCHECKED_CAST") @Composable internal fun &lt;E : Enum&lt;E>> EnumFilter</ID>
-    <ID>LongMethod:EnumFilterState.kt:@OptIn(FlowPreview::class) @Composable internal fun &lt;T : Enum&lt;T>> rememberEnumFilterState: EnumFilterState&lt;T></ID>
-    <ID>LongMethod:FastFiltersRow.kt:@Composable internal fun &lt;T : Any, C, E> FastFiltersRow</ID>
-    <ID>LongMethod:FilterDropdownAnyField.kt:@OptIn(ExperimentalMaterial3Api::class) @Suppress("LongParameterList") @Composable public fun FilterDropdownAnyField</ID>
-    <ID>LongMethod:FilterDropdownField.kt:@OptIn(ExperimentalMaterial3Api::class) @Suppress("LongParameterList") @Composable public fun &lt;E : Enum&lt;E>> FilterDropdownField</ID>
-    <ID>LongMethod:FilterPanel.kt:@Suppress("LongParameterList", "UNCHECKED_CAST") @Composable internal fun &lt;T, E> FilterPanel</ID>
-    <ID>LongMethod:GroupStickyOverlay.kt:@Composable @Suppress("LongParameterList") @ExperimentalTableApi internal fun &lt;T : Any, C, E> GroupStickyOverlay</ID>
-    <ID>LongMethod:HeaderCell.kt:@Composable internal fun &lt;T : Any, C, E> HeaderCell</ID>
-    <ID>LongMethod:KeyboardNavigation.kt:@ExperimentalTableApi internal fun &lt;T : Any, C> Modifier.tableKeyboardNavigation: Modifier</ID>
-    <ID>LongMethod:NumberFilter.kt:@OptIn(FlowPreview::class) @Suppress("LongParameterList") @Composable internal fun &lt;T : Number> NumberFilter</ID>
-    <ID>LongMethod:NumberFilterState.kt:@OptIn(FlowPreview::class) @Composable internal fun &lt;T : Number> rememberNumberFilterState: NumberFilterState&lt;T></ID>
-    <ID>LongMethod:RowUnit.kt:@Composable @Suppress("LongParameterList") context(itemScope: TableItemScope) internal fun &lt;T : Any, C, E> RowUnit</ID>
-    <ID>LongMethod:Table.kt:@OptIn(ExperimentalTableApi::class) @Composable private fun &lt;T : Any, C, E> TableBodySection</ID>
-    <ID>LongMethod:Table.kt:@Suppress("LongParameterList") @ExperimentalTableApi @Composable public fun &lt;T : Any, C, E> EditableTable</ID>
-    <ID>LongMethod:TableActiveFilters.kt:@Composable @Suppress("LongParameterList") public fun &lt;T : Any, C, E> TableActiveFilters</ID>
-    <ID>LongMethod:TableActiveFilters.kt:@Composable @Suppress("UNCHECKED_CAST", "CyclomaticComplexMethod", "ReturnCount") private fun buildFilterChipTextUnsafe: String?</ID>
-    <ID>LongMethod:TableBody.kt:@Composable @Suppress("LongParameterList") context(_: TableItemScope) internal fun &lt;T : Any, C, E> TableBodyRow</ID>
-    <ID>LongMethod:TableBody.kt:@Composable @Suppress("LongParameterList") internal fun &lt;T : Any, C, E> TableBody</ID>
-    <ID>LongMethod:TableBody.kt:@Composable @Suppress("LongParameterList") internal fun &lt;T : Any, C, E> TableBodyEmbedded</ID>
-    <ID>LongMethod:TableCell.kt:@Composable internal fun TableCell</ID>
-    <ID>LongMethod:TableCellTextFieldWithTooltipError.kt:@OptIn(ExperimentalMaterial3Api::class) @Composable public fun TableCellTextFieldWithTooltipError</ID>
-    <ID>LongMethod:TableHeader.kt:@Composable @Suppress("LongParameterList") internal fun &lt;T : Any, C, E> TableHeader</ID>
-    <ID>LongMethod:TableHeaderRow.kt:@Composable internal fun &lt;T : Any, C, E> TableHeaderRow</ID>
-    <ID>LongMethod:TableRowInteractions.kt:@Suppress("LongParameterList", "CyclomaticComplexMethod") internal fun &lt;T : Any> Modifier.tableRowInteractions: Modifier</ID>
-    <ID>LongMethod:TableRowItem.kt:@Composable context(rowScope: TableItemScope) private fun &lt;C, T : Any, E> RenderTableRowItem</ID>
-    <ID>LongMethod:TableTextField.kt:@OptIn(ExperimentalMaterial3Api::class) @Composable public fun TableTextField</ID>
-    <ID>LongMethod:TableViewportPrefetcher.kt:@Composable @Suppress("LongParameterList") internal fun &lt;T : Any, C, E> TableViewportPrefetcher</ID>
-    <ID>LongMethod:TextFilterState.kt:@OptIn(FlowPreview::class) @Composable internal fun rememberTextFilterState: TextFilterState</ID>
-    <ID>LongMethod:ViewportUtils.kt:public suspend fun &lt;C> ensureRowFullyVisible</ID>
     <ID>LoopWithTooManyJumpStatements:RowBlocksState.kt:RowBlocksState$for</ID>
     <ID>MatchingDeclarationName:TableRowItem.kt:EditCellContext</ID>
     <ID>ModifierNaming:TableRowItem.kt:rowModifier: Modifier</ID>
@@ -100,7 +65,6 @@
     <ID>ReturnCount:TableState.kt:TableState$public fun completeCurrentCellEdit</ID>
     <ID>ReturnCount:TableState.kt:TableState$public fun moveColumn</ID>
     <ID>ReturnCount:TableState.kt:TableState$public fun startEditing: Boolean</ID>
-    <ID>ReturnCount:ViewportUtils.kt:public suspend fun &lt;C> ensureRowFullyVisible</ID>
     <ID>TooManyFunctions:RowBlocksState.kt:RowBlocksState&lt;T : Any></ID>
     <ID>TooManyFunctions:TableState.kt:TableState&lt;C></ID>
     <ID>UnusedParameter:FastBooleanFilter.kt:strings: StringProvider</ID>

@@ -4,6 +4,9 @@ import kotlinx.datetime.LocalDate
 import ua.wwind.table.sample.model.Person
 import ua.wwind.table.sample.model.Position
 
+// A flat list of literal demo rows. Splitting it into chunks would only add call indirection —
+// there is no logic here to isolate.
+@Suppress("LongMethod")
 fun createDemoData(): List<Person> =
     listOf(
         Person(

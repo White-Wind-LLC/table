@@ -15,7 +15,7 @@ import ua.wwind.table.platform.isMobile
  *   right click -> context menu
  * - Mobile: tap -> select (if requested) or open, long press if provided
  */
-@Suppress("LongParameterList", "CyclomaticComplexMethod")
+@Suppress("LongParameterList")
 internal fun <T : Any> Modifier.tableRowInteractions(
     item: T?,
     onFocus: ((T) -> Unit)? = null,
@@ -27,66 +27,77 @@ internal fun <T : Any> Modifier.tableRowInteractions(
 ): Modifier {
     if (item == null) return this
     return if (getPlatform().isMobile()) {
-        val tapHandler: (() -> Unit)? =
-            when {
-                useSelectAsPrimary && onSelect != null -> ({ onSelect(item) })
-                onClick != null -> ({ onClick(item) })
-                else -> null
-            }
-        if (tapHandler != null || onLongClick != null) {
-            this.then(
-                Modifier.combinedClickable(
-                    onClick = {
-                        onFocus?.invoke(item)
-                        tapHandler?.invoke()
-                    },
-                    onLongClick = onLongClick?.let { { it(item) } },
-                ),
-            )
-        } else {
-            this
-        }
+        // Mobile has no double click, so a row that only wants selection but has no [onSelect]
+        // falls back to [onClick] rather than losing the action entirely.
+        val onTap = (if (useSelectAsPrimary) onSelect else null) ?: onClick
+        mobileRowInteractions(item, onFocus, onTap, onLongClick)
     } else {
-        var desktopModifier =
-            this.then(
-                Modifier.combinedClickable(
-                    onClick =
-                        if (useSelectAsPrimary) {
-                            onSelect?.let {
-                                {
-                                    onFocus?.invoke(item)
-                                    it(item)
-                                }
-                            } ?: { onFocus?.invoke(item) }
-                        } else {
-                            onClick?.let {
-                                {
-                                    onFocus?.invoke(item)
-                                    it(item)
-                                }
-                            } ?: { onFocus?.invoke(item) }
-                        },
-                    onDoubleClick = if (useSelectAsPrimary) onClick?.let { { it(item) } } else null,
-                    onLongClick = onLongClick?.let { { it(item) } },
-                ),
-            )
-
-        if (onContextMenu != null) {
-            desktopModifier =
-                desktopModifier.then(
-                    Modifier.pointerInput(item) {
-                        awaitPointerEventScope {
-                            while (true) {
-                                val event = awaitPointerEvent()
-                                if (event.type == PointerEventType.Press && event.buttons.isSecondaryPressed) {
-                                    val pos = event.changes.firstOrNull()?.position ?: Offset.Zero
-                                    onContextMenu.invoke(item, pos)
-                                }
-                            }
-                        }
-                    },
-                )
-        }
-        desktopModifier
+        desktopRowInteractions(
+            item = item,
+            onFocus = onFocus,
+            onPrimary = if (useSelectAsPrimary) onSelect else onClick,
+            // Selection took the single click, so opening the row moves to the double click.
+            onDoubleClick = if (useSelectAsPrimary) onClick else null,
+            onLongClick = onLongClick,
+        ).contextMenuGesture(item, onContextMenu)
     }
+}
+
+private fun <T : Any> Modifier.mobileRowInteractions(
+    item: T,
+    onFocus: ((T) -> Unit)?,
+    onTap: ((T) -> Unit)?,
+    onLongClick: ((T) -> Unit)?,
+): Modifier {
+    // With nothing to invoke there is no reason to make the row clickable at all.
+    if (onTap == null && onLongClick == null) return this
+    return this.then(
+        Modifier.combinedClickable(
+            onClick = {
+                onFocus?.invoke(item)
+                onTap?.invoke(item)
+            },
+            onLongClick = onLongClick?.let { { it(item) } },
+        ),
+    )
+}
+
+@Suppress("LongParameterList")
+private fun <T : Any> Modifier.desktopRowInteractions(
+    item: T,
+    onFocus: ((T) -> Unit)?,
+    onPrimary: ((T) -> Unit)?,
+    onDoubleClick: ((T) -> Unit)?,
+    onLongClick: ((T) -> Unit)?,
+): Modifier =
+    this.then(
+        Modifier.combinedClickable(
+            // The row stays clickable even without a primary action, so that a click still moves focus.
+            onClick = {
+                onFocus?.invoke(item)
+                onPrimary?.invoke(item)
+            },
+            onDoubleClick = onDoubleClick?.let { { it(item) } },
+            onLongClick = onLongClick?.let { { it(item) } },
+        ),
+    )
+
+private fun <T : Any> Modifier.contextMenuGesture(
+    item: T,
+    onContextMenu: ((item: T, position: Offset) -> Unit)?,
+): Modifier {
+    if (onContextMenu == null) return this
+    return this.then(
+        Modifier.pointerInput(item) {
+            awaitPointerEventScope {
+                while (true) {
+                    val event = awaitPointerEvent()
+                    if (event.type == PointerEventType.Press && event.buttons.isSecondaryPressed) {
+                        val pos = event.changes.firstOrNull()?.position ?: Offset.Zero
+                        onContextMenu.invoke(item, pos)
+                    }
+                }
+            }
+        },
+    )
 }
