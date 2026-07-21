@@ -334,11 +334,12 @@ private fun <C, T : Any, E> RenderTableRowItem(
                             item = item,
                             tableData = tableData,
                             measureKey = Pair(spec.key, index),
+                            onMeasure = { measuredMinWidth ->
+                                val adjusted = maxOf(measuredMinWidth, spec.minWidth)
+                                state.updateMaxContentWidth(spec.key, adjusted, source = "Row[$index]")
+                            },
                             content = spec.cell,
-                        ) { measuredMinWidth ->
-                            val adjusted = maxOf(measuredMinWidth, spec.minWidth)
-                            state.updateMaxContentWidth(spec.key, adjusted, source = "Row[$index]")
-                        }
+                        )
                     }
                 }
 

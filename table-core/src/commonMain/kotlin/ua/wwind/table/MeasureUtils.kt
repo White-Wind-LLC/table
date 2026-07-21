@@ -24,8 +24,8 @@ internal fun <T, E> MeasureCellMinWidth(
     item: T,
     tableData: E,
     measureKey: Any,
-    content: @Composable context(TableCellScope) BoxScope.(T, E) -> Unit,
     onMeasure: (Dp) -> Unit,
+    content: @Composable context(TableCellScope) BoxScope.(T, E) -> Unit,
 ) {
     val density = LocalDensity.current
     val state = LocalTableState.current
