@@ -44,6 +44,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -264,12 +265,13 @@ private fun FormatTextFilter(
 ) {
     var constraint by remember { mutableStateOf(state.constraint ?: filter.constraints.first()) }
     var searchText by remember { mutableStateOf(state.values?.firstOrNull() ?: "") }
+    val currentOnChange = rememberUpdatedState(onChange)
     LaunchedEffect(Unit) {
         snapshotFlow { searchText }
             .drop(1)
             .distinctUntilChanged()
             .collect {
-                onChange(TableFilterState(constraint, listOf(searchText)))
+                currentOnChange.value(TableFilterState(constraint, listOf(searchText)))
             }
     }
     FlowRow(
@@ -308,12 +310,13 @@ private fun FormatBooleanFilter(
         "Boolean filter supports only EQUALS constraint"
     }
     var valueState by remember { mutableStateOf(state.values?.firstOrNull() ?: false) }
+    val currentOnChange = rememberUpdatedState(onChange)
     LaunchedEffect(Unit) {
         snapshotFlow { valueState }
             .drop(1)
             .distinctUntilChanged()
             .collect {
-                onChange(TableFilterState(filter.constraints.first(), listOf(valueState)))
+                currentOnChange.value(TableFilterState(filter.constraints.first(), listOf(valueState)))
             }
     }
     Row(
@@ -366,6 +369,7 @@ private fun FormatDateFilter(
     }
     val isNullConstraint = constraint.isNullCheck()
     val isBetween = constraint == FilterConstraint.BETWEEN
+    val currentOnChange = rememberUpdatedState(onChange)
     LaunchedEffect(Unit) {
         snapshotFlow { Triple(constraint, firstDate, secondDate) }
             .drop(1)
@@ -389,7 +393,7 @@ private fun FormatDateFilter(
                             currentFirst?.let { listOf(it) }
                         }
                     }
-                onChange(TableFilterState(currentConstraint, values))
+                currentOnChange.value(TableFilterState(currentConstraint, values))
             }
     }
     Column(
@@ -552,12 +556,13 @@ private fun FormatEnumFilter(
 ) {
     var constraint by remember { mutableStateOf(state.constraint ?: filter.constraints.first()) }
     var selectedValues: List<Enum<*>> by remember { mutableStateOf((state.values as? List<Enum<*>>).orEmpty()) }
+    val currentOnChange = rememberUpdatedState(onChange)
     LaunchedEffect(Unit) {
         snapshotFlow { selectedValues }
             .drop(1)
             .distinctUntilChanged()
             .collect {
-                onChange(TableFilterState(constraint, selectedValues.takeIf { it.isNotEmpty() }))
+                currentOnChange.value(TableFilterState(constraint, selectedValues.takeIf { it.isNotEmpty() }))
             }
     }
     FlowRow(
@@ -648,6 +653,7 @@ private fun <T : Number> FormatNumberFilter(
     val toValue = filter.delegate.parse(secondText) ?: max
     val isBetween = constraint == FilterConstraint.BETWEEN
     val isRangeValid = filter.delegate.compare(fromValue, toValue)
+    val currentOnChange = rememberUpdatedState(onChange)
     LaunchedEffect(isBetween) {
         snapshotFlow { firstText to secondText }
             .drop(1)
@@ -657,10 +663,10 @@ private fun <T : Number> FormatNumberFilter(
                 if (isBetween) {
                     val toVal = filter.delegate.parse(to)
                     if (fromVal != null && toVal != null && filter.delegate.compare(fromVal, toVal)) {
-                        onChange(TableFilterState(constraint, listOf(fromVal, toVal)))
+                        currentOnChange.value(TableFilterState(constraint, listOf(fromVal, toVal)))
                     }
                 } else {
-                    onChange(TableFilterState(constraint, fromVal?.let { listOf(it) }))
+                    currentOnChange.value(TableFilterState(constraint, fromVal?.let { listOf(it) }))
                 }
             }
     }

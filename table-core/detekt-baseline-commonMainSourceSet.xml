@@ -13,12 +13,6 @@
     <ID>ContentSlotReused:TableCell.kt:content: @Composable BoxScope.() -> Unit</ID>
     <ID>ContentTrailingLambda:MeasureUtils.kt:content: @Composable context(TableCellScope) BoxScope.(T, E) -> Unit</ID>
     <ID>LambdaParameterEventTrailing:TableRowItem.kt:onContextMenu: ((T, Offset) -> Unit)?</ID>
-    <ID>LambdaParameterInRestartableEffect:BooleanFilterState.kt:onStateChange: (TableFilterState&lt;Boolean>?) -> Unit</ID>
-    <ID>LambdaParameterInRestartableEffect:DateFilterState.kt:onStateChange: (TableFilterState&lt;LocalDate>?) -> Unit</ID>
-    <ID>LambdaParameterInRestartableEffect:EnumFilterState.kt:onStateChange: (TableFilterState&lt;*>?) -> Unit</ID>
-    <ID>LambdaParameterInRestartableEffect:MeasureUtils.kt:onMeasured: (Dp) -> Unit</ID>
-    <ID>LambdaParameterInRestartableEffect:NumberFilterState.kt:onStateChange: (TableFilterState&lt;T>?) -> Unit</ID>
-    <ID>LambdaParameterInRestartableEffect:TextFilterState.kt:onStateChange: (TableFilterState&lt;String>?) -> Unit</ID>
     <ID>LoopWithTooManyJumpStatements:RowBlocksState.kt:RowBlocksState$for</ID>
     <ID>MatchingDeclarationName:TableRowItem.kt:EditCellContext</ID>
     <ID>ModifierNaming:TableRowItem.kt:rowModifier: Modifier</ID>

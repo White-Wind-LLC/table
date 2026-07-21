@@ -7,6 +7,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
@@ -91,6 +92,8 @@ internal fun <T : Number> rememberNumberFilterState(
     var editingConstraint by remember { mutableStateOf(sourceConstraint) }
     var isEditing by remember { mutableStateOf(false) }
 
+    val currentOnStateChange = rememberUpdatedState(onStateChange)
+
     LaunchedEffect(sourceText, sourceSecondText, sourceConstraint) {
         if (!isEditing) {
             editingText = sourceText
@@ -104,7 +107,13 @@ internal fun <T : Number> rememberNumberFilterState(
             if (isEditing) {
                 delay(debounceMs)
                 isEditing = false
-                emitDebouncedFilter(editingText, editingSecondText, editingConstraint, filter, onStateChange)
+                emitDebouncedFilter(
+                    editingText,
+                    editingSecondText,
+                    editingConstraint,
+                    filter,
+                    currentOnStateChange.value,
+                )
             }
         }
     }
@@ -135,13 +144,19 @@ internal fun <T : Number> rememberNumberFilterState(
                 isEditing = true
             },
             applyFilter = {
-                emitAppliedFilter(editingText, editingSecondText, editingConstraint, filter, onStateChange)
+                emitAppliedFilter(
+                    editingText,
+                    editingSecondText,
+                    editingConstraint,
+                    filter,
+                    currentOnStateChange.value,
+                )
                 isEditing = false
             },
             clearFilter = {
                 editingText = ""
                 editingSecondText = ""
-                onStateChange(null)
+                currentOnStateChange.value(null)
                 isEditing = false
             },
             delegate = filter.delegate,

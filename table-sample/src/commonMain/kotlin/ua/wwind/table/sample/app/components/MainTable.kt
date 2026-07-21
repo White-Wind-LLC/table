@@ -17,6 +17,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -65,11 +66,14 @@ fun MainTable(
     modifier: Modifier = Modifier,
 ) {
     // Observe filters and sort state changes
+    val currentOnFiltersChanged = rememberUpdatedState(onFiltersChanged)
+    val currentOnSortChanged = rememberUpdatedState(onSortChanged)
+
     LaunchedEffect(state) {
-        snapshotFlow { state.filters.toMap() }.collect { filters -> onFiltersChanged(filters) }
+        snapshotFlow { state.filters.toMap() }.collect { filters -> currentOnFiltersChanged.value(filters) }
     }
 
-    LaunchedEffect(state) { snapshotFlow { state.sort }.collect { sort -> onSortChanged(sort) } }
+    LaunchedEffect(state) { snapshotFlow { state.sort }.collect { sort -> currentOnSortChanged.value(sort) } }
     val verticalState = rememberLazyListState()
     val horizontalState = rememberScrollState()
     var showVerticalScrollbar by remember { mutableStateOf(false) }

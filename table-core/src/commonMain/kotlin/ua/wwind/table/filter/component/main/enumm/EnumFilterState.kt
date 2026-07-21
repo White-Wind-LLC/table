@@ -7,6 +7,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
@@ -74,6 +75,8 @@ internal fun <T : Enum<T>> rememberEnumFilterState(
     var editingConstraint by remember { mutableStateOf(sourceConstraint) }
     var isEditing by remember { mutableStateOf(false) }
 
+    val currentOnStateChange = rememberUpdatedState(onStateChange)
+
     LaunchedEffect(sourceValues, sourceConstraint) {
         if (!isEditing) {
             editingValues = sourceValues
@@ -86,7 +89,7 @@ internal fun <T : Enum<T>> rememberEnumFilterState(
             if (isEditing) {
                 delay(debounceMs)
                 isEditing = false
-                emitDebouncedFilter(editingValues, editingConstraint, onStateChange)
+                emitDebouncedFilter(editingValues, editingConstraint, currentOnStateChange.value)
             }
         }
     }
@@ -120,12 +123,12 @@ internal fun <T : Enum<T>> rememberEnumFilterState(
                 isEditing = true
             },
             applyFilter = {
-                emitAppliedFilter(editingValues, editingConstraint, onStateChange)
+                emitAppliedFilter(editingValues, editingConstraint, currentOnStateChange.value)
                 isEditing = false
             },
             clearFilter = {
                 editingValues = emptyList()
-                onStateChange(null)
+                currentOnStateChange.value(null)
                 isEditing = false
             },
         )

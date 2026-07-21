@@ -9,12 +9,6 @@
     <ID>ComposableParamOrder:FormatDialogTabRow.kt:@Composable @Suppress("LongParameterList") public fun &lt;E, T> FormatDialogTabRow</ID>
     <ID>ComposableParamOrder:FormatDropdownField.kt:@OptIn(ExperimentalMaterial3Api::class) @Suppress("LongParameterList", "LongMethod") @Composable internal fun &lt;E : Enum&lt;E>> FormatDropdownField</ID>
     <ID>ExplicitItLambdaMultipleParameters:FormatDialog.kt:{ _, it -> it.id }</ID>
-    <ID>LambdaParameterInRestartableEffect:FormatDialog.kt:onRulesChanged: (ImmutableList&lt;TableFormatRule&lt;E, FILTER>>) -> Unit</ID>
-    <ID>LambdaParameterInRestartableEffect:FormatDialogConditionTab.kt:onChange: (TableFilterState&lt;*>) -> Unit</ID>
-    <ID>LambdaParameterInRestartableEffect:FormatDialogConditionTab.kt:onChange: (TableFilterState&lt;Boolean>) -> Unit</ID>
-    <ID>LambdaParameterInRestartableEffect:FormatDialogConditionTab.kt:onChange: (TableFilterState&lt;LocalDate>) -> Unit</ID>
-    <ID>LambdaParameterInRestartableEffect:FormatDialogConditionTab.kt:onChange: (TableFilterState&lt;String>) -> Unit</ID>
-    <ID>LambdaParameterInRestartableEffect:FormatDialogConditionTab.kt:onChange: (TableFilterState&lt;T>) -> Unit</ID>
     <ID>ModifierMissing:FormatDialogConditionTab.kt:@Suppress("LongMethod", "CyclomaticComplexMethod", "UNCHECKED_CAST") @Composable public fun &lt;E : Enum&lt;E>, FILTER> FormatDialogConditionTab</ID>
     <ID>ModifierMissing:FormatDialogDesignTab.kt:@Composable public fun &lt;E : Enum&lt;E>, FILTER> FormatDialogDesignTab</ID>
     <ID>ModifierMissing:FormatDialogFieldTab.kt:@Composable public fun &lt;E : Enum&lt;E>, FILTER> FormatDialogFieldTab</ID>

@@ -7,6 +7,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
@@ -88,6 +89,8 @@ internal fun rememberDateFilterState(
     var editingConstraint by remember { mutableStateOf(sourceConstraint) }
     var isEditing by remember { mutableStateOf(false) }
 
+    val currentOnStateChange = rememberUpdatedState(onStateChange)
+
     // Sync editing state with external state when not editing
     LaunchedEffect(sourceFirstDate, sourceSecondDate, sourceConstraint) {
         if (!isEditing) {
@@ -103,7 +106,12 @@ internal fun rememberDateFilterState(
             if (isEditing) {
                 delay(debounceMs)
                 isEditing = false
-                emitDebouncedFilter(editingFirstDate, editingSecondDate, editingConstraint, onStateChange)
+                emitDebouncedFilter(
+                    editingFirstDate,
+                    editingSecondDate,
+                    editingConstraint,
+                    currentOnStateChange.value,
+                )
             }
         }
     }
@@ -130,13 +138,18 @@ internal fun rememberDateFilterState(
                 isEditing = true
             },
             applyFilter = {
-                emitAppliedFilter(editingFirstDate, editingSecondDate, editingConstraint, onStateChange)
+                emitAppliedFilter(
+                    editingFirstDate,
+                    editingSecondDate,
+                    editingConstraint,
+                    currentOnStateChange.value,
+                )
                 isEditing = false
             },
             clearFilter = {
                 editingFirstDate = null
                 editingSecondDate = null
-                onStateChange(null)
+                currentOnStateChange.value(null)
                 isEditing = false
             },
         )

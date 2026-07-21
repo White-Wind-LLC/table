@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.layout.SubcomposeLayout
 import androidx.compose.ui.platform.LocalDensity
@@ -32,6 +33,7 @@ internal fun <T, E> MeasureCellMinWidth(
     // without introducing Compose state or recompositions.
     // Two slots: holder[0] = latest measured px; holder[1] = last dispatched px (for de-dup).
     val holder = remember(state) { IntArray(2) { -1 } }
+    val currentOnMeasured = rememberUpdatedState(onMeasured)
     SubcomposeLayout {
         val measurables =
             subcompose("measure") {
@@ -50,7 +52,7 @@ internal fun <T, E> MeasureCellMinWidth(
             val px = holder[0]
             if (px > 0 && px != holder[1]) {
                 holder[1] = px
-                onMeasured(with(density) { px.toDp() })
+                currentOnMeasured.value(with(density) { px.toDp() })
             }
         }
     }

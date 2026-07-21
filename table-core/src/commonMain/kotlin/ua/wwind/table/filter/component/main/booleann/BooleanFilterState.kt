@@ -7,6 +7,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
@@ -61,6 +62,8 @@ internal fun rememberBooleanFilterState(
     var editingValue by remember { mutableStateOf(sourceValue) }
     var isEditing by remember { mutableStateOf(false) }
 
+    val currentOnStateChange = rememberUpdatedState(onStateChange)
+
     LaunchedEffect(sourceValue) {
         if (!isEditing) {
             editingValue = sourceValue
@@ -74,9 +77,9 @@ internal fun rememberBooleanFilterState(
                 isEditing = false
 
                 if (editingValue == null) {
-                    onStateChange(null)
+                    currentOnStateChange.value(null)
                 } else {
-                    onStateChange(TableFilterState(FilterConstraint.EQUALS, listOf(editingValue!!)))
+                    currentOnStateChange.value(TableFilterState(FilterConstraint.EQUALS, listOf(editingValue!!)))
                 }
             }
         }
@@ -92,15 +95,15 @@ internal fun rememberBooleanFilterState(
             },
             applyFilter = {
                 if (editingValue == null) {
-                    onStateChange(null)
+                    currentOnStateChange.value(null)
                 } else {
-                    onStateChange(TableFilterState(FilterConstraint.EQUALS, listOf(editingValue!!)))
+                    currentOnStateChange.value(TableFilterState(FilterConstraint.EQUALS, listOf(editingValue!!)))
                 }
                 isEditing = false
             },
             clearFilter = {
                 editingValue = null
-                onStateChange(null)
+                currentOnStateChange.value(null)
                 isEditing = false
             },
         )

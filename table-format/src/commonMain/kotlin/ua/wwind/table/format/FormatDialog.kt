@@ -39,6 +39,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -299,12 +300,13 @@ public fun <E : Enum<E>, FILTER> FormatDialog(
             } ?: run {
                 var draggedItemIndex by remember { mutableStateOf<Int?>(null) }
                 var rulesState by remember(key) { mutableStateOf(rules) }
+                val currentOnRulesChanged = rememberUpdatedState(onRulesChanged)
                 LaunchedEffect(key) {
                     snapshotFlow { rulesState }
                         .drop(1)
                         .debounce(RULES_CHANGE_DEBOUNCE_MS.milliseconds)
                         .distinctUntilChanged()
-                        .collect { onRulesChanged(it) }
+                        .collect { currentOnRulesChanged.value(it) }
                 }
                 val state =
                     rememberReorderableLazyListState(lazyListState) { from, to ->
