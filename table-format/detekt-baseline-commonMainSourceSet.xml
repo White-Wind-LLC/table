@@ -1,0 +1,17 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>ComplexCondition:FormatCustomizationBuilder.kt:&lt;no name provided>$rule.enabled &amp;&amp; matches(ctx.row.item, rule.filter) &amp;&amp; (rule.columns.isEmpty() || rule.columns.contains(ctx.column))</ID>
+    <ID>CyclomaticComplexMethod:FormatDialog.kt:@OptIn(FlowPreview::class) @Composable public fun &lt;E : Enum&lt;E>, FILTER> FormatDialog</ID>
+    <ID>ExplicitItLambdaMultipleParameters:FormatDialog.kt:{ _, it -> it.id }</ID>
+    <ID>LongMethod:FormatDialog.kt:@OptIn(FlowPreview::class) @Composable public fun &lt;E : Enum&lt;E>, FILTER> FormatDialog</ID>
+    <ID>LongMethod:FormatDialogConditionTab.kt:@OptIn(ExperimentalMaterial3Api::class, ExperimentalTime::class) @Composable private fun DateField</ID>
+    <ID>LongMethod:FormatDialogConditionTab.kt:@OptIn(FlowPreview::class) @Suppress("FunctionNaming", "LongParameterList") @Composable private fun FormatDateFilter</ID>
+    <ID>LongMethod:FormatDialogConditionTab.kt:@OptIn(FlowPreview::class) @Suppress("FunctionNaming", "LongParameterList") @Composable private fun FormatEnumFilter</ID>
+    <ID>LongMethod:FormatDialogConditionTab.kt:@Suppress("CyclomaticComplexMethod", "ReturnCount") @Composable internal fun &lt;E : Enum&lt;E>> buildFilterHeaderTitle: String?</ID>
+    <ID>LongMethod:FormatDialogDesignTab.kt:@Composable public fun &lt;E : Enum&lt;E>, FILTER> FormatDialogDesignTab</ID>
+    <ID>MagicNumber:FormatDialog.kt:0.5</ID>
+    <ID>MagicNumber:FormatDialog.kt:1000</ID>
+  </CurrentIssues>
+</SmellBaseline>

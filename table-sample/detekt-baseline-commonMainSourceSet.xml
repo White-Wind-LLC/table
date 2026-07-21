@@ -1,0 +1,82 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>ComplexCondition:SampleViewModel.kt:SampleViewModel$insertAt > 0 &amp;&amp; insertAt &lt; rest.size &amp;&amp; rest[insertAt - 1].groupId != null &amp;&amp; rest[insertAt - 1].groupId == rest[insertAt].groupId</ID>
+    <ID>ComplexCondition:SampleViewModel.kt:SampleViewModel$movements.size &lt; 2 || event.fromIndex !in movements.indices || event.toIndex !in movements.indices || event.fromIndex == event.toIndex</ID>
+    <ID>CyclomaticComplexMethod:ConditionalFormattingDialog.kt:@Composable fun ConditionalFormattingDialog</ID>
+    <ID>CyclomaticComplexMethod:PersonFilterMatcher.kt:PersonFilterMatcher$fun matchesPerson: Boolean</ID>
+    <ID>CyclomaticComplexMethod:PersonFilterMatcher.kt:PersonFilterMatcher$private fun matchesDateField: Boolean</ID>
+    <ID>CyclomaticComplexMethod:PersonFilterMatcher.kt:PersonFilterMatcher$private fun matchesIntField: Boolean</ID>
+    <ID>CyclomaticComplexMethod:PersonFilterStateFactory.kt:PersonFilterStateFactory$fun createDefaultState: TableFilterState&lt;*></ID>
+    <ID>CyclomaticComplexMethod:PersonSorter.kt:PersonSorter$fun comparatorFor: Comparator&lt;Person>?</ID>
+    <ID>CyclomaticComplexMethod:SampleApp.kt:@OptIn(ExperimentalTableApi::class) @Composable fun SampleApp</ID>
+    <ID>CyclomaticComplexMethod:SampleViewModel.kt:SampleViewModel$fun onEvent</ID>
+    <ID>CyclomaticComplexMethod:TableColumns.kt:@OptIn(ExperimentalMaterial3Api::class) fun createTableColumns: ImmutableList&lt;ColumnSpec&lt;Person, PersonColumn, PersonTableData>></ID>
+    <ID>LongMethod:DemoData.kt:fun createDemoData: List&lt;Person></ID>
+    <ID>LongMethod:MainTable.kt:@OptIn(ExperimentalTableApi::class) @Composable fun MainTable</ID>
+    <ID>LongMethod:NumericRangeFilter.kt:NumericRangeFilterRenderer$@Composable override fun RenderFastFilter</ID>
+    <ID>LongMethod:NumericRangeFilter.kt:NumericRangeFilterRenderer$@Composable override fun RenderPanel: TableFilterType.CustomFilterActions</ID>
+    <ID>LongMethod:PersonFilterStateFactory.kt:PersonFilterStateFactory$fun createDefaultState: TableFilterState&lt;*></ID>
+    <ID>LongMethod:PersonMovementsSection.kt:@OptIn(ExperimentalTableApi::class) @Composable fun PersonMovementsSection</ID>
+    <ID>LongMethod:PersonSorter.kt:PersonSorter$fun comparatorFor: Comparator&lt;Person>?</ID>
+    <ID>LongMethod:SampleApp.kt:@OptIn(ExperimentalTableApi::class) @Composable fun SampleApp</ID>
+    <ID>LongMethod:SampleViewModel.kt:SampleViewModel$fun onEvent</ID>
+    <ID>LongMethod:SelectionActionBar.kt:@Composable fun SelectionActionBar</ID>
+    <ID>LongMethod:SettingsSidebar.kt:@OptIn(ExperimentalMaterial3Api::class) @Composable fun SettingsSidebar</ID>
+    <ID>LongMethod:TableColumns.kt:@OptIn(ExperimentalMaterial3Api::class) fun createTableColumns: ImmutableList&lt;ColumnSpec&lt;Person, PersonColumn, PersonTableData>></ID>
+    <ID>LongMethod:TableColumns.kt:fun createMovementColumns: ImmutableList&lt;ColumnSpec&lt;PersonMovement, PersonMovementColumn, Person>></ID>
+    <ID>MagicNumber:DemoData.kt:10</ID>
+    <ID>MagicNumber:DemoData.kt:11</ID>
+    <ID>MagicNumber:DemoData.kt:12</ID>
+    <ID>MagicNumber:DemoData.kt:13</ID>
+    <ID>MagicNumber:DemoData.kt:14</ID>
+    <ID>MagicNumber:DemoData.kt:15</ID>
+    <ID>MagicNumber:DemoData.kt:16</ID>
+    <ID>MagicNumber:DemoData.kt:17</ID>
+    <ID>MagicNumber:DemoData.kt:18</ID>
+    <ID>MagicNumber:DemoData.kt:19</ID>
+    <ID>MagicNumber:DemoData.kt:20</ID>
+    <ID>MagicNumber:DemoData.kt:2011</ID>
+    <ID>MagicNumber:DemoData.kt:2012</ID>
+    <ID>MagicNumber:DemoData.kt:2013</ID>
+    <ID>MagicNumber:DemoData.kt:2014</ID>
+    <ID>MagicNumber:DemoData.kt:2015</ID>
+    <ID>MagicNumber:DemoData.kt:2016</ID>
+    <ID>MagicNumber:DemoData.kt:2017</ID>
+    <ID>MagicNumber:DemoData.kt:2018</ID>
+    <ID>MagicNumber:DemoData.kt:2019</ID>
+    <ID>MagicNumber:DemoData.kt:2020</ID>
+    <ID>MagicNumber:DemoData.kt:2021</ID>
+    <ID>MagicNumber:DemoData.kt:2022</ID>
+    <ID>MagicNumber:DemoData.kt:2023</ID>
+    <ID>MagicNumber:DemoData.kt:21</ID>
+    <ID>MagicNumber:DemoData.kt:22</ID>
+    <ID>MagicNumber:DemoData.kt:23</ID>
+    <ID>MagicNumber:DemoData.kt:24</ID>
+    <ID>MagicNumber:DemoData.kt:25</ID>
+    <ID>MagicNumber:DemoData.kt:26</ID>
+    <ID>MagicNumber:DemoData.kt:27</ID>
+    <ID>MagicNumber:DemoData.kt:28</ID>
+    <ID>MagicNumber:DemoData.kt:29</ID>
+    <ID>MagicNumber:DemoData.kt:3</ID>
+    <ID>MagicNumber:DemoData.kt:30</ID>
+    <ID>MagicNumber:DemoData.kt:4</ID>
+    <ID>MagicNumber:DemoData.kt:5</ID>
+    <ID>MagicNumber:DemoData.kt:6</ID>
+    <ID>MagicNumber:DemoData.kt:7</ID>
+    <ID>MagicNumber:DemoData.kt:8</ID>
+    <ID>MagicNumber:DemoData.kt:9</ID>
+    <ID>MagicNumber:NumericRangeFilter.kt:0.9f</ID>
+    <ID>MagicNumber:NumericRangeFilter.kt:NumericRangeFilterRenderer$100000</ID>
+    <ID>MagicNumber:NumericRangeFilter.kt:NumericRangeFilterRenderer$50000</ID>
+    <ID>MagicNumber:Person.kt:Person$4</ID>
+    <ID>MagicNumber:Person.kt:Person$7</ID>
+    <ID>MagicNumber:PersonValidator.kt:PersonValidator$100</ID>
+    <ID>MagicNumber:PersonValidator.kt:PersonValidator$18</ID>
+    <ID>MagicNumber:SettingsSidebar.kt:0.5f</ID>
+    <ID>ReturnCount:PersonSorter.kt:PersonSorter$fun comparatorFor: Comparator&lt;Person>?</ID>
+    <ID>ReturnCount:SampleViewModel.kt:SampleViewModel$fun onEvent</ID>
+    <ID>TooManyFunctions:SampleViewModel.kt:SampleViewModel : ViewModel</ID>
+  </CurrentIssues>
+</SmellBaseline>

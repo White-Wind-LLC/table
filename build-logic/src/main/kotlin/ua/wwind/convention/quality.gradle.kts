@@ -3,6 +3,8 @@
 package ua.wwind.convention
 
 import com.diffplug.gradle.spotless.SpotlessExtension
+import dev.detekt.gradle.Detekt
+import dev.detekt.gradle.DetektCreateBaselineTask
 import dev.detekt.gradle.extensions.DetektExtension
 
 // Needs to exist before the first usage of 'libs'
@@ -88,8 +90,33 @@ subprojects {
                 config.setFrom(files(customConfig))
             }
             basePath.set(rootDir)
+            // Baselines stay at detekt's own defaults: one file per source set,
+            // <module>/detekt-baseline-<sourceSet>.xml. A missing file is ignored, so source sets
+            // without accumulated debt need no baseline at all. Regenerate via `detektBaselines`.
+        }
+
+        // In a KMP project dev.detekt puts the actual sources on per-source-set tasks
+        // (detektCommonMainSourceSet, detektJvmMainSourceSet, …) and leaves the aggregate `detekt`
+        // task with NO-SOURCE. Without this wiring `qualityCheck` would pass while analysing
+        // nothing at all. The `detekt<Compilation><Target>` variants (type resolution) are left out
+        // on purpose: they require a full Kotlin compile, and no rule we enable needs types.
+        tasks.named("detekt") {
+            dependsOn(tasks.withType<Detekt>().matching { it.name.endsWith("SourceSet") })
         }
     }
+}
+
+// Regenerates every per-source-set baseline (<module>/detekt-baseline-<sourceSet>.xml). The bare
+// `detektBaseline` task is not usable here: like `detekt`, it holds no sources in a KMP project and
+// expects an explicit --baseline path.
+tasks.register("detektBaselines") {
+    group = "verification"
+    description = "Regenerates the detekt baseline of every source set in every subproject."
+    dependsOn(
+        subprojects.filter(hasKotlinSources).map { subproject ->
+            subproject.tasks.withType<DetektCreateBaselineTask>().matching { it.name.endsWith("SourceSet") }
+        },
+    )
 }
 
 // Aggregated quality task

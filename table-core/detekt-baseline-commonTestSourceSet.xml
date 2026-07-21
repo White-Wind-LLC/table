@@ -1,0 +1,17 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>InvalidRange:MoveRowGroupTest.kt:MoveRowGroupTest$3..2</ID>
+    <ID>InvalidRange:RowUnitIndexTest.kt:RowUnitIndexTest$3..2</ID>
+    <ID>LargeClass:RowBlocksTableTest.kt:RowBlocksTableTest</ID>
+    <ID>LongMethod:RowBlocksPagedTableTest.kt:RowBlocksPagedTableTest$@Test fun `drop onto a placeholder cancels and a later drop onto the loaded page commits`</ID>
+    <ID>LongMethod:RowBlocksPagedTableTest.kt:RowBlocksPagedTableTest$@Test fun `embedded refused drop snaps the view back and a later drop onto the loaded page commits`</ID>
+    <ID>LongMethod:RowBlocksPagedTableTest.kt:RowBlocksPagedTableTest$@Test fun `page loading mid gesture keeps the drag alive and the drop commits`</ID>
+    <ID>LongMethod:RowBlocksTableTest.kt:RowBlocksTableTest$@Test fun `drag hooks land on a recreated TableState`</ID>
+    <ID>LongMethod:RowBlocksTableTest.kt:RowBlocksTableTest$@Test fun `drop commits one move and remaps positional state`</ID>
+    <ID>LongMethod:RowBlocksTableTest.kt:RowBlocksTableTest$@Test fun `embedded drop commits one move and remaps positional state`</ID>
+    <ID>LongMethod:RowBlocksTableTest.kt:RowBlocksTableTest$@Test fun `embedded upstream change mid-gesture cancels the drag and commits nothing`</ID>
+    <ID>LoopWithTooManyJumpStatements:ApplyRowBlockMoveTest.kt:ApplyRowBlockMoveTest$while</ID>
+  </CurrentIssues>
+</SmellBaseline>
