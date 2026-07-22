@@ -5,6 +5,5 @@
     <ID>ComplexCondition:SampleViewModel.kt:SampleViewModel$insertAt > 0 &amp;&amp; insertAt &lt; rest.size &amp;&amp; rest[insertAt - 1].groupId != null &amp;&amp; rest[insertAt - 1].groupId == rest[insertAt].groupId</ID>
     <ID>ComplexCondition:SampleViewModel.kt:SampleViewModel$movements.size &lt; 2 || fromIndex !in movements.indices || toIndex !in movements.indices || fromIndex == toIndex</ID>
     <ID>TooManyFunctions:SampleViewModel.kt:SampleViewModel : ViewModel</ID>
-    <ID>ViewModelInjection:SampleApp.kt:val viewModel: SampleViewModel = viewModel { SampleViewModel() }</ID>
   </CurrentIssues>
 </SmellBaseline>

@@ -75,9 +75,11 @@ import ua.wwind.table.state.rememberTableState
 @Suppress("CyclomaticComplexMethod")
 @OptIn(ExperimentalTableApi::class)
 @Composable
-fun SampleApp(modifier: Modifier = Modifier) {
+fun SampleApp(
+    modifier: Modifier = Modifier,
+    viewModel: SampleViewModel = viewModel { SampleViewModel() },
+) {
     var isDarkTheme by remember { mutableStateOf(false) }
-    val viewModel: SampleViewModel = viewModel { SampleViewModel() }
 
     var tableConfig by remember { mutableStateOf(SampleTableConfig()) }
 
