@@ -120,7 +120,7 @@ private class RecordingCustomization(
     }
 }
 
-@OptIn(ExperimentalTestApi::class, ExperimentalTableApi::class)
+@OptIn(ExperimentalTestApi::class)
 class RowBlocksTableTest {
     @Test
     fun `bands render from blockOf derivation without onCommit`() =

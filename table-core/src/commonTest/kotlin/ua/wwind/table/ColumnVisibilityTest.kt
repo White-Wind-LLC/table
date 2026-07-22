@@ -31,7 +31,7 @@ import kotlin.test.Test
  * composition, and a write that kept invalidating its own readers would never let `waitForIdle`
  * return, failing here by timeout rather than by assertion.
  */
-@OptIn(ExperimentalTestApi::class, ExperimentalTableApi::class)
+@OptIn(ExperimentalTestApi::class)
 class ColumnVisibilityTest {
     private fun columnsWith(showSecond: Boolean) =
         tableColumns<String, String, Unit> {

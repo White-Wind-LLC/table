@@ -21,10 +21,10 @@ Add the modules you need from Maven Central:
 
 ```kotlin
 dependencies {
-    implementation("ua.wwind.table-kmp:table-core:1.11.0")
+    implementation("ua.wwind.table-kmp:table-core:2.0.0")
     // optional
-    implementation("ua.wwind.table-kmp:table-format:1.11.0")
-    implementation("ua.wwind.table-kmp:table-paging:1.11.0")
+    implementation("ua.wwind.table-kmp:table-format:2.0.0")
+    implementation("ua.wwind.table-kmp:table-paging:2.0.0")
 }
 ```
 
@@ -53,7 +53,6 @@ val state = rememberTableState(
     settings = TableSettings(stripedRows = true),
 )
 
-@OptIn(ExperimentalTableApi::class)
 @Composable
 fun PeopleTable(items: List<Person>) {
     Table(

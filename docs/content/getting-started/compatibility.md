@@ -4,6 +4,7 @@ The following table lists compatibility information for released library version
 
 | Version | Kotlin | Compose Multiplatform |
 |---------|-------:|----------------------:|
+| 2.0.0   | 2.4.10 |                1.11.1 |
 | 1.11.0  | 2.4.10 |                1.11.1 |
 | 1.10.0  |  2.4.0 |                1.11.1 |
 | 1.9.0   | 2.3.21 |                1.11.0 |

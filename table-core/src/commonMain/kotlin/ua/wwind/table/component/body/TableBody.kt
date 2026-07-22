@@ -27,7 +27,6 @@ import ua.wwind.table.TableItemScope
 import ua.wwind.table.component.footer.TableFooter
 import ua.wwind.table.config.TableColors
 import ua.wwind.table.config.TableCustomization
-import ua.wwind.table.config.isRowReorderEnabled
 import ua.wwind.table.state.RowBlocksState
 import ua.wwind.table.state.RowUnitIndex
 import ua.wwind.table.state.TableState
@@ -548,7 +547,7 @@ private fun <T : Any, C> rowDragHooks(
     onRowMove: ((fromIndex: Int, toIndex: Int) -> Unit)?,
 ): RowDragHooks {
     val rowReorderEnabled =
-        state.settings.isRowReorderEnabled &&
+        state.settings.rowReorderEnabled &&
             (
                 if (blocks != null) {
                     blocks.config.onCommit != null || blocks.config.onRowReorderWithinBlock != null

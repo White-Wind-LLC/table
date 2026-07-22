@@ -24,7 +24,6 @@ import ua.wwind.table.config.SelectionMode
 import ua.wwind.table.config.TableDefaults
 import ua.wwind.table.config.TableDimensions
 import ua.wwind.table.config.TableSettings
-import ua.wwind.table.config.isRowReorderEnabled
 import ua.wwind.table.data.SortOrder
 import ua.wwind.table.filter.data.TableFilterState
 
@@ -290,7 +289,7 @@ public class TableState<C>
             column: C,
             order: SortOrder? = null,
         ) {
-            if (settings.isRowReorderEnabled) {
+            if (settings.rowReorderEnabled) {
                 settingsLogger.w { "rowReorderEnabled is incompatible with sorting; setSort is ignored." }
                 return
             }
@@ -664,7 +663,7 @@ private fun <C> normalizeTableStateInput(
     settings: TableSettings,
     initialSort: SortState<C>?,
 ): NormalizedTableStateInput<C> {
-    if (!settings.isRowReorderEnabled) {
+    if (!settings.rowReorderEnabled) {
         return NormalizedTableStateInput(settings = settings, initialSort = initialSort, warnings = emptyList())
     }
 

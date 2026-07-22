@@ -30,7 +30,6 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.delay
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.EditableTable
-import ua.wwind.table.ExperimentalTableApi
 import ua.wwind.table.RowBlockMove
 import ua.wwind.table.RowBlocks
 import ua.wwind.table.RowWithinBlockMove
@@ -44,7 +43,6 @@ import ua.wwind.table.state.TableState
 import ua.wwind.table.strings.DefaultStrings
 import kotlin.time.Duration.Companion.seconds
 
-@OptIn(ExperimentalTableApi::class)
 @Composable
 fun MainTable(
     state: TableState<PersonColumn>,

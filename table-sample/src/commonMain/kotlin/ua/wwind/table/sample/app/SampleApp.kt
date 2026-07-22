@@ -44,7 +44,6 @@ import io.github.fletchmckee.liquid.liquefiable
 import io.github.fletchmckee.liquid.rememberLiquidState
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.launch
-import ua.wwind.table.ExperimentalTableApi
 import ua.wwind.table.RowBlocks
 import ua.wwind.table.config.RowHeightMode
 import ua.wwind.table.config.SelectionMode
@@ -73,7 +72,6 @@ import ua.wwind.table.state.rememberTableState
  * is suppressed rather than fixed.
  */
 @Suppress("CyclomaticComplexMethod")
-@OptIn(ExperimentalTableApi::class)
 @Composable
 fun SampleApp(
     modifier: Modifier = Modifier,

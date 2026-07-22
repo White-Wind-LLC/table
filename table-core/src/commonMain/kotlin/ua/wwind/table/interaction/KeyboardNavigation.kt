@@ -14,10 +14,8 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import ua.wwind.table.ColumnSpec
-import ua.wwind.table.ExperimentalTableApi
 import ua.wwind.table.state.TableState
 
-@ExperimentalTableApi
 internal fun <T : Any, C> Modifier.tableKeyboardNavigation(
     focusRequester: FocusRequester,
     itemsCount: Int,

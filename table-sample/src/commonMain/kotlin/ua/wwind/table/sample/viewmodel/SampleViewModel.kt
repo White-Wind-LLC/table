@@ -13,7 +13,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
-import ua.wwind.table.ExperimentalTableApi
 import ua.wwind.table.RowBlockMove
 import ua.wwind.table.RowWithinBlockMove
 import ua.wwind.table.applyRowBlockMove
@@ -37,7 +36,6 @@ import ua.wwind.table.sample.util.PersonValidator
 import ua.wwind.table.sortedWithinRowBlocks
 import ua.wwind.table.state.SortState
 
-@OptIn(ExperimentalTableApi::class)
 class SampleViewModel : ViewModel() {
     // StateFlow for people list to enable reactive transformations
     private val _people = MutableStateFlow<List<Person>>(createDemoData())

@@ -4,10 +4,10 @@ Add repository (usually `mavenCentral`) and include the modules you need:
 
 ```kotlin
 dependencies {
-    implementation("ua.wwind.table-kmp:table-core:1.11.0")
+    implementation("ua.wwind.table-kmp:table-core:2.0.0")
     // optional
-    implementation("ua.wwind.table-kmp:table-format:1.11.0")
-    implementation("ua.wwind.table-kmp:table-paging:1.11.0")
+    implementation("ua.wwind.table-kmp:table-format:2.0.0")
+    implementation("ua.wwind.table-kmp:table-paging:2.0.0")
 }
 ```
 
@@ -20,11 +20,5 @@ dependencies {
 }
 ```
 
-Opt‑in to experimental API on call sites that use the table:
-
-```kotlin
-@OptIn(ExperimentalTableApi::class)
-@Composable
-fun MyScreen() { /* ... */
-}
-```
+The table API is stable — no opt-in annotation is required. Upgrading from 1.x? See the
+[2.0 migration guide](migration-2.0.md).

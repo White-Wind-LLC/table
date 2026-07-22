@@ -20,7 +20,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.toImmutableList
-import ua.wwind.table.ExperimentalTableApi
 import ua.wwind.table.RowBlockMove
 import ua.wwind.table.RowBlocks
 import ua.wwind.table.RowWithinBlockMove
@@ -38,7 +37,6 @@ import ua.wwind.table.sample.model.movementBlockId
 import ua.wwind.table.state.rememberTableState
 import ua.wwind.table.strings.DefaultStrings
 
-@OptIn(ExperimentalTableApi::class)
 @Composable
 fun PersonMovementsSection(
     person: Person,

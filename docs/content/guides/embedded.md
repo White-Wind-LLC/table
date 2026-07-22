@@ -46,7 +46,6 @@ This master–detail section renders a person's movements as a full‑height tab
 detail pane. Note the compact dimensions and dynamic row height, which pair well with embedding.
 
 ```kotlin
-@OptIn(ExperimentalTableApi::class)
 @Composable
 fun PersonMovementsSection(person: Person, modifier: Modifier = Modifier) {
     val columns = remember { createMovementColumns() }

@@ -18,7 +18,6 @@ import kotlinx.collections.immutable.ImmutableList
 import ua.wwind.paging.core.PagingData
 import ua.wwind.paging.core.getOrNull
 import ua.wwind.table.ColumnSpec
-import ua.wwind.table.ExperimentalTableApi
 import ua.wwind.table.RowBlocks
 import ua.wwind.table.Table
 import ua.wwind.table.component.TableHeaderDefaults
@@ -98,7 +97,6 @@ private fun WarnOnDefaultRowKeyWithBlocks(
  * @param shape surface shape of the table
  * @param border outer border stroke; `null` uses theme default, [TableDefaults.NoBorder] disables border
  */
-@OptIn(ExperimentalTableApi::class)
 @Composable
 @Suppress("LongParameterList", "ktlint:standard:function-naming")
 public fun <T : Any, C, E> Table(
@@ -188,7 +186,6 @@ public fun <T : Any, C, E> Table(
  * @param shape surface shape of the table
  * @param border outer border stroke; `null` uses theme default, [TableDefaults.NoBorder] disables border
  */
-@OptIn(ExperimentalTableApi::class)
 @Composable
 @Suppress("LongParameterList", "ktlint:standard:function-naming")
 public fun <T : Any, C> Table(

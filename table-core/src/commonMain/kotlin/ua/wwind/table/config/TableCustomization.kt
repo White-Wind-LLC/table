@@ -43,17 +43,7 @@ public data class TableRowContext<T : Any, C>(
     /** True for rows rendered inside a row block declared via `rowBlocks`, so members can be styled. */
     val isInRowBlock: Boolean,
     val isDeleted: Boolean,
-) {
-    /**
-     * Shipped under a name that collides with column-value grouping (`groupBy`), which never sets
-     * it — row blocks do. Kept as a forwarder so released consumers compile through the rename.
-     */
-    @Deprecated(
-        "Renamed: \"group\" is the groupBy vocabulary; this flag marks row block membership.",
-        ReplaceWith("isInRowBlock"),
-    )
-    public val isGroup: Boolean get() = isInRowBlock
-}
+)
 
 @Immutable
 public data class TableCellContext<T : Any, C>(

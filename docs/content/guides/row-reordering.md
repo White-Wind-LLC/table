@@ -7,8 +7,6 @@ by [Reorderable](https://github.com/Calvin-LL/Reorderable).
 
 - **Enable it**: set `TableSettings(rowReorderEnabled = true)`.
 - **Handle moves**: pass `onRowMove = { fromIndex, toIndex -> ... }` to `Table` or `EditableTable`.
-- **Enable compiler support**: add `-Xcontext-parameters` in the consuming module, because row drag handles are exposed
-  through Kotlin context parameters.
 - **How context is passed**: the `cell { ... }` DSL is backed by `context(TableCellScope)`, so inside a cell you can
   call `Modifier.draggableHandle()` or `Modifier.longPressDraggableHandle()` directly.
 - **Interaction rules**: while row reorder mode is active, sorting and grouping interactions are disabled:
@@ -26,7 +24,6 @@ data class Person(val id: Int, val name: String)
 
 enum class PersonColumn { Handle, Name }
 
-@OptIn(ExperimentalTableApi::class)
 @Composable
 fun ReorderablePeopleTable() {
     val people = remember {

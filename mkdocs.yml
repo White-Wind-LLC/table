@@ -50,6 +50,7 @@ nav:
   - Getting Started:
       - Installation: getting-started/installation.md
       - Compatibility: getting-started/compatibility.md
+      - Migrating to 2.0: getting-started/migration-2.0.md
       - Quick start: getting-started/quick-start.md
   - Guides:
       - Overview: guides/index.md

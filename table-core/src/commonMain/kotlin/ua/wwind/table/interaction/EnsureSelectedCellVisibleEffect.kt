@@ -13,13 +13,11 @@ import androidx.compose.ui.platform.LocalDensity
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.flow.collectLatest
 import ua.wwind.table.ColumnSpec
-import ua.wwind.table.ExperimentalTableApi
 import ua.wwind.table.state.TableState
 import ua.wwind.table.state.currentTableState
 
 @Composable
 @Suppress("LongParameterList")
-@ExperimentalTableApi
 internal fun <T : Any, C, E> EnsureSelectedCellVisibleEffect(
     visibleColumns: ImmutableList<ColumnSpec<T, C, E>>,
     verticalState: LazyListState,

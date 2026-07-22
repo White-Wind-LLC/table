@@ -195,7 +195,6 @@ data class Person(val id: Int, val name: String, val groupId: String? = null)
 
 enum class PersonColumn { Handle, Name }
 
-@OptIn(ExperimentalTableApi::class)
 @Composable
 fun BlockedPeopleTable() {
     var people by remember {

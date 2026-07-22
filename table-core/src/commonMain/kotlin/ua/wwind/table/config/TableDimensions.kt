@@ -15,12 +15,6 @@ public data class TableDimensions(
     val dividerThickness: Dp,
     /** Thickness of pinned column dividers. Should be at least 1.dp. */
     val pinnedColumnDividerThickness: Dp,
-    @Deprecated(
-        "Use pinnedColumnDividerThickness instead",
-        ReplaceWith("pinnedColumnDividerThickness"),
-        level = DeprecationLevel.WARNING,
-    )
-    val fixedColumnDividerThickness: Dp = pinnedColumnDividerThickness,
     /** Vertical gap rendered above and below a row block declared via `rowBlocks`. */
     val rowBlockSpacing: Dp = 8.dp,
 ) {

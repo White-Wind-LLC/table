@@ -15,13 +15,6 @@ public data class TableSettings(
      * [ua.wwind.table.state.rememberTableState].
      */
     val rowReorderEnabled: Boolean = false,
-    /** @deprecated Use [rowReorderEnabled]. */
-    @Deprecated(
-        "Use rowReorderEnabled instead",
-        ReplaceWith("rowReorderEnabled"),
-        level = DeprecationLevel.WARNING,
-    )
-    val isDragEnabled: Boolean = rowReorderEnabled,
     /** Automatically apply filters while typing */
     val autoApplyFilters: Boolean = true,
     /** Show fast filters in the table header */
@@ -47,24 +40,6 @@ public data class TableSettings(
     val pinnedColumnsCount: Int = 0,
     /** Side to pin columns to */
     val pinnedColumnsSide: PinnedSide = PinnedSide.Left,
-    /** Number of fixed columns */
-    @Deprecated(
-        "Use pinnedColumnsCount instead",
-        ReplaceWith("pinnedColumnsCount"),
-        level = DeprecationLevel.WARNING,
-    )
-    val fixedColumnsCount: Int = pinnedColumnsCount,
-    /** Side to fix columns to */
-    @Deprecated(
-        "Use pinnedColumnsSide instead",
-        ReplaceWith("pinnedColumnsSide"),
-        level = DeprecationLevel.WARNING,
-    )
-    val fixedColumnsSide: FixedSide =
-        when (pinnedColumnsSide) {
-            PinnedSide.Left -> FixedSide.Left
-            PinnedSide.Right -> FixedSide.Right
-        },
     /**
      * Enable cell editing mode for the table. When disabled, all column-level edit settings are
      * ignored.
@@ -86,18 +61,13 @@ public data class TableSettings(
     val showFastFiltersDivider: Boolean = true,
 )
 
-/** Effective row reorder flag supporting both the new and deprecated setting names. */
-@Suppress("DEPRECATION")
-public val TableSettings.isRowReorderEnabled: Boolean
-    get() = rowReorderEnabled || isDragEnabled
-
 /**
  * Interaction lock used when row reorder mode is active.
  *
  * In this mode sorting and grouping are treated as incompatible.
  */
 public val TableSettings.isInteractionLockByRowReorderEnabled: Boolean
-    get() = isRowReorderEnabled
+    get() = rowReorderEnabled
 
 /** Row selection behavior. */
 public enum class SelectionMode {
@@ -111,14 +81,6 @@ public enum class PinnedSide {
     Left,
     Right,
 }
-
-/** Side to fix columns to. */
-@Deprecated(
-    "Use PinnedSide instead",
-    ReplaceWith("PinnedSide", "ua.wwind.table.config.PinnedSide"),
-    level = DeprecationLevel.WARNING,
-)
-public typealias FixedSide = PinnedSide
 
 /** Row height behavior. */
 public enum class RowHeightMode {

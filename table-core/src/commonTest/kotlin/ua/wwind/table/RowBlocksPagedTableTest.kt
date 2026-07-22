@@ -81,7 +81,7 @@ private val pagedRowKey: (PagedRow?, Int) -> Any = { item, index -> item?.id ?: 
  * adapter hands the core table, so the policies proven here — bands over loaded runs, the paged
  * drop policy, gestures surviving a mid-drag page load — are the adapter's behavior.
  */
-@OptIn(ExperimentalTestApi::class, ExperimentalTableApi::class)
+@OptIn(ExperimentalTestApi::class)
 class RowBlocksPagedTableTest {
     @Test
     fun `bands extend as pages load`() =

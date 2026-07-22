@@ -2,8 +2,32 @@
 
 All notable changes to this project will be documented in this file.
 
-### Unreleased
+### 2.0.0 — 2026-07-22
 
+The API is stable. Nothing in the library carries `@ExperimentalTableApi` any more — `Table`,
+`EditableTable` and the `table-paging` adapter have been in production use since 2025, the surface has
+settled, and the opt-in was outliving the uncertainty it was meant to signal. This release also clears
+the technical debt that had accumulated behind that marker: the deprecated members carried through the
+1.x line are gone, the public composables now follow the Compose conventions for parameter order,
+naming and `modifier` handling, and the two filter apply paths that had silently drifted apart are
+reconciled. Every break is listed below with its migration; see the
+[2.0 migration guide](https://white-wind-llc.github.io/table/getting-started/migration-2.0/) for the
+consolidated version.
+
+- Changed (breaking): the table API is stable and requires no opt-in. `@ExperimentalTableApi` is off
+  `Table`, `EditableTable` and the `table-paging` adapter — delete the `@OptIn(ExperimentalTableApi::class)`
+  annotation from your call sites. The marker itself is kept for one release, deprecated, so existing
+  opt-ins still compile with a warning that names the fix; it is removed in the next major.
+- Removed (breaking): the members deprecated during 1.x. Each has carried a `ReplaceWith` migration for
+  at least one minor release.
+    - `TableSettings.isDragEnabled` → `rowReorderEnabled`.
+    - `TableSettings.fixedColumnsCount` → `pinnedColumnsCount`; `TableSettings.fixedColumnsSide` →
+      `pinnedColumnsSide`; the `FixedSide` typealias → `PinnedSide`.
+    - `TableDimensions.fixedColumnDividerThickness` → `pinnedColumnDividerThickness`.
+    - `TableRowContext.isGroup` → `isInRowBlock`.
+    - The `TableSettings.isRowReorderEnabled` extension goes with them: it existed only to OR the new
+      and deprecated reorder flags together, so with `isDragEnabled` gone it is exactly
+      `settings.rowReorderEnabled`. `isInteractionLockByRowReorderEnabled` is unaffected and stays.
 - Changed (breaking): `CustomFilterRenderer.RenderPanel` now returns `Unit` and takes a
   `CustomFilterPanelActions` parameter instead of returning `TableFilterType.CustomFilterActions`. It emits the
   filter panel UI, so returning a value tripped the Compose naming/emitter rules — a `@Composable` that both draws
@@ -35,6 +59,25 @@ All notable changes to this project will be documented in this file.
   their own root node instead of to an inner element. Positioning, sizing and padding modifiers therefore affect
   the whole component — previously they reached only the text field, or were applied twice. Source-compatible, and
   the components render as before at every call site in this repository.
+- Fixed: pressing **Apply** and letting auto-apply fire now produce the same filter. Every
+  `remember*FilterState` factory implemented its emit rule twice — once in the debounced auto-apply
+  effect, once in `applyFilter` — and the two copies had drifted, so identical input produced different
+  filters depending on which path ran. Each filter now resolves through a single pure function, so the
+  paths cannot disagree. Two behaviours change as a result:
+    - Number: invalid, incomplete or inverted input (`to` below `from`) is an error — the filter is not
+      applied, the input is preserved so it can be corrected, and the field is flagged. Only empty input
+      clears the filter. The UI reads one `isError` source of truth instead of recomputing its own.
+    - Enum: an empty selection combined with `IS_NULL` / `IS_NOT_NULL` stays applied instead of being
+      dropped by the debounced path.
+    - Date, text and boolean are merged with no behaviour change; an incomplete date range still clears,
+      which is deliberate and now documented.
+- Changed: the quality debt recorded in 1.11.0 is paid down rather than suppressed. 223 of the 234
+  baselined detekt and compose-rules findings are fixed; 11 remain baselined. The breaking convention
+  changes above are the consumer-visible part of that work. Unit tests were added over the filter
+  resolve functions.
+- Updated: Android Gradle Plugin to 9.3.0 (from 9.2.1).
+
+Compare: [v1.11.0...v2.0.0](https://github.com/White-Wind-LLC/table/compare/v1.11.0...v2.0.0)
 
 ### 1.11.0 — 2026-07-21
 

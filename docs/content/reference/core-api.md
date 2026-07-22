@@ -67,8 +67,7 @@ column(PersonField.Name, valueOf = { it.name }) {
     - Selection: `state.toggleSelect(index)`, `state.toggleCheck(index)`, `state.toggleCheckAll(count)`,
       `state.selectCell(row, column)`.
 - **Settings and geometry**
-    - `TableSettings`: `rowReorderEnabled` (new name; deprecated alias `isDragEnabled` is still supported),
-      `autoApplyFilters`, `autoFilterDebounce`, `stripedRows`,
+    - `TableSettings`: `rowReorderEnabled`, `autoApplyFilters`, `autoFilterDebounce`, `stripedRows`,
       `showActiveFiltersHeader`, `selectionMode: None/Single/Multiple`, `groupContentAlignment`,
       `rowHeightMode: Fixed/Dynamic`, `enableDragToScroll` (controls whether drag-to-scroll is enabled; when disabled,
       traditional scrollbars are used instead), `editingEnabled` (master switch for cell editing mode), `showFooter` (

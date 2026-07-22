@@ -54,7 +54,6 @@ import ua.wwind.table.config.TableColors
 import ua.wwind.table.config.TableCustomization
 import ua.wwind.table.config.TableDefaults
 import ua.wwind.table.config.isInteractionLockByRowReorderEnabled
-import ua.wwind.table.config.isRowReorderEnabled
 import ua.wwind.table.interaction.ApplyAutoWidthEffect
 import ua.wwind.table.interaction.ApplyAutoWidthEmbeddedEffect
 import ua.wwind.table.interaction.ContextMenuState
@@ -117,7 +116,6 @@ internal val DefaultRowKey: (Any?, Int) -> Any = { _, index -> index }
  * occupies a bounded area and scrolls its rows internally.
  */
 @Suppress("LongParameterList")
-@ExperimentalTableApi
 @Composable
 public fun <T : Any, C, E> EditableTable(
     itemsCount: Int,
@@ -362,7 +360,6 @@ public fun <T : Any, C, E> EditableTable(
  * occupies a bounded area and scrolls its rows internally.
  */
 @Suppress("LongParameterList")
-@ExperimentalTableApi
 @Composable
 public fun <T : Any, C> Table(
     itemsCount: Int,
@@ -462,7 +459,6 @@ public fun <T : Any, C> Table(
  * occupies a bounded area and scrolls its rows internally.
  */
 @Suppress("LongParameterList")
-@ExperimentalTableApi
 @Composable
 public fun <T : Any, C, E> Table(
     itemsCount: Int,
@@ -571,7 +567,6 @@ private fun resolveBorderStroke(
 /**
  * Creates a modifier chain for table interaction handling including dragging and keyboard navigation.
  */
-@OptIn(ExperimentalTableApi::class)
 @Composable
 private fun <T : Any, C, E> Modifier.tableInteractionModifiers(
     embedded: Boolean,
@@ -613,7 +608,6 @@ private fun <T : Any, C, E> Modifier.tableInteractionModifiers(
 /**
  * Renders the table body content with optional selection container wrapper.
  */
-@OptIn(ExperimentalTableApi::class)
 @Composable
 private fun <T : Any, C, E> TableBodySection(
     embedded: Boolean,
