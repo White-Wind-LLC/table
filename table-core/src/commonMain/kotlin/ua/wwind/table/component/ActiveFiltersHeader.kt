@@ -1,5 +1,6 @@
 package ua.wwind.table.component
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
@@ -16,12 +17,14 @@ internal fun <T : Any, C, E> ActiveFiltersHeader(
     state: TableState<C>,
     strings: StringProvider,
 ) {
-    TableActiveFilters(
-        columns = columns,
-        state = state,
-        strings = strings,
-        modifier = Modifier.width(state.tableWidth),
-        includeClearAllChip = true,
-    )
-    HorizontalDivider(modifier = Modifier.width(state.tableWidth))
+    Column {
+        TableActiveFilters(
+            columns = columns,
+            state = state,
+            strings = strings,
+            modifier = Modifier.width(state.tableWidth),
+            includeClearAllChip = true,
+        )
+        HorizontalDivider(modifier = Modifier.width(state.tableWidth))
+    }
 }
