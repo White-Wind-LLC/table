@@ -44,7 +44,7 @@ so an upgrade from 1.x lands on the final names in a single pass.
   makes the rules contradict each other.
 - Changed: the `ComplexCondition` debt baselined in 1.11.0 is paid down too — three conditions in `table-format`
   and `table-sample` rewritten as guard clauses or named predicates, with no behaviour or API change. Neither
-  module carries a baseline any more; the remaining 5 of the 234 findings are all in `table-core`.
+  module carries a baseline any more.
 
 Compare: [v2.0.0...v2.1.0](https://github.com/White-Wind-LLC/table/compare/v2.0.0...v2.1.0)
 
