@@ -2,7 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
-### Unreleased
+### 2.1.0 — 2026-07-22
+
+`TableState` splits into state holders. It had grown to carry four unrelated jobs at once, and the detekt debt
+2.0.0 left behind was pointing straight at it; column layout, selection and editing now live in holders of their
+own, reached through the same state object. Nothing breaks — every displaced member stays on `TableState`,
+deprecated, with the `ReplaceWith` migration the IDE applies for you, exactly the cycle 2.0.0 used for
+`@ExperimentalTableApi`. Because 2.0.0 shipped one day earlier, the 2.0 migration guide carries this mapping too,
+so an upgrade from 1.x lands on the final names in a single pass.
 
 - Added: `TableState` now composes three state holders of its own, reached as `state.columns`, `state.selection`
   and `state.editing`. `TableColumnsState` owns column order, width overrides and the measurements auto-fit works
@@ -35,6 +42,8 @@ All notable changes to this project will be documented in this file.
   reasoning recorded in `config/detekt/detekt.yml`: a private helper is what `CyclomaticComplexMethod` and
   `LongMethod` ask a class to extract, and a deprecated member is a forwarder on its way out, so counting either
   makes the rules contradict each other. 8 of the 234 originally baselined findings remain.
+
+Compare: [v2.0.0...v2.1.0](https://github.com/White-Wind-LLC/table/compare/v2.0.0...v2.1.0)
 
 ### 2.0.0 — 2026-07-22
 
