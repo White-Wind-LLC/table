@@ -11,6 +11,8 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
+import ua.wwind.table.filter.component.main.FilterEmission
+import ua.wwind.table.filter.component.main.applyEmission
 import ua.wwind.table.filter.data.FilterConstraint
 import ua.wwind.table.filter.data.TableFilterState
 import ua.wwind.table.filter.data.isNullCheck
@@ -89,7 +91,7 @@ internal fun <T : Enum<T>> rememberEnumFilterState(
             if (isEditing) {
                 delay(debounceMs)
                 isEditing = false
-                emitDebouncedFilter(editingValues, editingConstraint, currentOnStateChange.value)
+                applyEmission(resolveEnumFilter(editingValues, editingConstraint), currentOnStateChange.value)
             }
         }
     }
@@ -123,7 +125,7 @@ internal fun <T : Enum<T>> rememberEnumFilterState(
                 isEditing = true
             },
             applyFilter = {
-                emitAppliedFilter(editingValues, editingConstraint, currentOnStateChange.value)
+                applyEmission(resolveEnumFilter(editingValues, editingConstraint), currentOnStateChange.value)
                 isEditing = false
             },
             clearFilter = {
@@ -136,43 +138,23 @@ internal fun <T : Enum<T>> rememberEnumFilterState(
 }
 
 /**
- * Emits the filter the debounced auto-apply path settles on.
+ * Resolves the current enum selection into the single [FilterEmission] that both the debounced
+ * auto-apply path and the explicit Apply path act on, so the two can never disagree (issue #55).
  *
- * Deliberately kept separate from [emitAppliedFilter] rather than merged: the two paths do not agree
- * today, and reconciling them is a behaviour change rather than a refactor. This one clears the
- * filter on an empty selection whatever the constraint, so IS_NULL/IS_NOT_NULL never survive it.
+ * An empty selection clears the filter, except for IS_NULL/IS_NOT_NULL, which carry no values and so
+ * stay applied on an empty selection.
  */
-private fun <T : Enum<T>> emitDebouncedFilter(
+internal fun <T : Enum<T>> resolveEnumFilter(
     editingValues: List<T>,
     constraint: FilterConstraint,
-    onStateChange: (TableFilterState<*>?) -> Unit,
-) {
-    if (editingValues.isEmpty()) {
-        onStateChange(null)
-    } else {
-        onStateChange(TableFilterState(constraint, editingValues))
-    }
-}
-
-/**
- * Emits the filter an explicit Apply settles on.
- *
- * See [emitDebouncedFilter] for why the two are not one function: this one exempts
- * IS_NULL/IS_NOT_NULL from the empty-selection clear, since those constraints carry no values.
- */
-private fun <T : Enum<T>> emitAppliedFilter(
-    editingValues: List<T>,
-    constraint: FilterConstraint,
-    onStateChange: (TableFilterState<*>?) -> Unit,
-) {
+): FilterEmission<T> {
     if (editingValues.isEmpty() && !constraint.isNullCheck()) {
-        onStateChange(null)
-        return
+        return FilterEmission.Clear
     }
     val valuesToSend =
         when (constraint) {
             FilterConstraint.IS_NULL, FilterConstraint.IS_NOT_NULL -> null
             else -> editingValues.takeIf { it.isNotEmpty() }
         }
-    onStateChange(TableFilterState(constraint, valuesToSend))
+    return FilterEmission.Apply(TableFilterState(constraint, valuesToSend))
 }

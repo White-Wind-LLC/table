@@ -63,7 +63,6 @@ internal fun <T : Number> NumberFilter(
         } else {
             max
         }
-    val isRangeValid = !isBetween || filter.delegate.compare(fromValue, toValue)
 
     FilterDropdownField(
         currentValue = numberFilterState.constraint,
@@ -97,6 +96,7 @@ internal fun <T : Number> NumberFilter(
                 textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.End),
                 modifier = Modifier.weight(1f),
                 singleLine = true,
+                isError = numberFilterState.isError,
             )
 
             if (isBetween) {
@@ -113,7 +113,7 @@ internal fun <T : Number> NumberFilter(
                     textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.End),
                     modifier = Modifier.weight(1f),
                     singleLine = true,
-                    isError = !isRangeValid,
+                    isError = numberFilterState.isError,
                 )
             }
         }
@@ -134,7 +134,7 @@ internal fun <T : Number> NumberFilter(
 
     FilterPanelActions(
         autoApplyFilters = autoApplyFilters,
-        enabled = isRangeValid,
+        enabled = !numberFilterState.isError,
         onApply = numberFilterState.applyFilter,
         onClear = numberFilterState.clearFilter,
         onClose = onClose,

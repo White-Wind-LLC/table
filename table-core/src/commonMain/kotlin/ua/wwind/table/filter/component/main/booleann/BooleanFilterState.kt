@@ -11,6 +11,8 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
+import ua.wwind.table.filter.component.main.FilterEmission
+import ua.wwind.table.filter.component.main.applyEmission
 import ua.wwind.table.filter.data.FilterConstraint
 import ua.wwind.table.filter.data.TableFilterState
 
@@ -75,12 +77,7 @@ internal fun rememberBooleanFilterState(
             if (isEditing) {
                 delay(debounceMs)
                 isEditing = false
-
-                if (editingValue == null) {
-                    currentOnStateChange.value(null)
-                } else {
-                    currentOnStateChange.value(TableFilterState(FilterConstraint.EQUALS, listOf(editingValue!!)))
-                }
+                applyEmission(resolveBooleanFilter(editingValue), currentOnStateChange.value)
             }
         }
     }
@@ -94,11 +91,7 @@ internal fun rememberBooleanFilterState(
                 isEditing = true
             },
             applyFilter = {
-                if (editingValue == null) {
-                    currentOnStateChange.value(null)
-                } else {
-                    currentOnStateChange.value(TableFilterState(FilterConstraint.EQUALS, listOf(editingValue!!)))
-                }
+                applyEmission(resolveBooleanFilter(editingValue), currentOnStateChange.value)
                 isEditing = false
             },
             clearFilter = {
@@ -109,3 +102,16 @@ internal fun rememberBooleanFilterState(
         )
     }
 }
+
+/**
+ * Resolves the current boolean-filter input into the single [FilterEmission] that both the debounced
+ * auto-apply path and the explicit Apply path act on, so the two can never disagree (issue #55).
+ *
+ * A chosen value applies an EQUALS filter; the indeterminate (`null`) state clears it.
+ */
+internal fun resolveBooleanFilter(value: Boolean?): FilterEmission<Boolean> =
+    if (value == null) {
+        FilterEmission.Clear
+    } else {
+        FilterEmission.Apply(TableFilterState(FilterConstraint.EQUALS, listOf(value)))
+    }

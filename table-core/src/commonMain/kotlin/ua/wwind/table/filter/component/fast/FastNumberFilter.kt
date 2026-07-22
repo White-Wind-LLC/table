@@ -60,6 +60,7 @@ internal fun <T : Any, C, E> FastNumberFilter(
         },
         textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.End),
         singleLine = true,
+        isError = numberFilterState.isError,
         contentPadding = TableTextFieldDefaults.reducedContentPadding(),
         showBorder = false,
     )

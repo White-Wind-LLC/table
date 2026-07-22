@@ -12,9 +12,10 @@ import androidx.compose.runtime.setValue
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
 import kotlinx.datetime.LocalDate
+import ua.wwind.table.filter.component.main.FilterEmission
+import ua.wwind.table.filter.component.main.applyEmission
 import ua.wwind.table.filter.data.FilterConstraint
 import ua.wwind.table.filter.data.TableFilterState
-import ua.wwind.table.filter.data.isNullCheck
 
 /**
  * State holder for date filter components.
@@ -106,10 +107,8 @@ internal fun rememberDateFilterState(
             if (isEditing) {
                 delay(debounceMs)
                 isEditing = false
-                emitDebouncedFilter(
-                    editingFirstDate,
-                    editingSecondDate,
-                    editingConstraint,
+                applyEmission(
+                    resolveDateFilter(editingFirstDate, editingSecondDate, editingConstraint),
                     currentOnStateChange.value,
                 )
             }
@@ -138,10 +137,8 @@ internal fun rememberDateFilterState(
                 isEditing = true
             },
             applyFilter = {
-                emitAppliedFilter(
-                    editingFirstDate,
-                    editingSecondDate,
-                    editingConstraint,
+                applyEmission(
+                    resolveDateFilter(editingFirstDate, editingSecondDate, editingConstraint),
                     currentOnStateChange.value,
                 )
                 isEditing = false
@@ -180,42 +177,21 @@ private fun dateFilterValues(
     }
 
 /**
- * Emits the filter the debounced auto-apply path settles on.
+ * Resolves the current date-filter input into the single [FilterEmission] that both the debounced
+ * auto-apply path and the explicit Apply path act on, so the two can never disagree (issue #55).
  *
- * Deliberately kept separate from [emitAppliedFilter] rather than merged: the two paths do not agree
- * today, and reconciling them is a behaviour change rather than a refactor. This one also clears the
- * filter on an empty value list unless the constraint is IS_NULL/IS_NOT_NULL.
+ * Dates are picked, not typed, so there is no malformed-input state: a constraint whose required
+ * date(s) have not all been chosen simply clears the filter.
  */
-private fun emitDebouncedFilter(
+internal fun resolveDateFilter(
     firstDate: LocalDate?,
     secondDate: LocalDate?,
     constraint: FilterConstraint,
-    onStateChange: (TableFilterState<LocalDate>?) -> Unit,
-) {
+): FilterEmission<LocalDate> {
     val values = dateFilterValues(firstDate, secondDate, constraint)
-    if (values == null || (values.isEmpty() && !constraint.isNullCheck())) {
-        onStateChange(null)
+    return if (values == null) {
+        FilterEmission.Clear
     } else {
-        onStateChange(TableFilterState(constraint, values))
-    }
-}
-
-/**
- * Emits the filter an explicit Apply settles on.
- *
- * See [emitDebouncedFilter] for why the two are not one function: this one clears only when the
- * values are absent altogether, so an empty list still emits a filter.
- */
-private fun emitAppliedFilter(
-    firstDate: LocalDate?,
-    secondDate: LocalDate?,
-    constraint: FilterConstraint,
-    onStateChange: (TableFilterState<LocalDate>?) -> Unit,
-) {
-    val values = dateFilterValues(firstDate, secondDate, constraint)
-    if (values == null) {
-        onStateChange(null)
-    } else {
-        onStateChange(TableFilterState(constraint, values))
+        FilterEmission.Apply(TableFilterState(constraint, values))
     }
 }

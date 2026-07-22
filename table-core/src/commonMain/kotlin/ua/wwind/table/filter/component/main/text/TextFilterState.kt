@@ -11,6 +11,8 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
+import ua.wwind.table.filter.component.main.FilterEmission
+import ua.wwind.table.filter.component.main.applyEmission
 import ua.wwind.table.filter.data.FilterConstraint
 import ua.wwind.table.filter.data.TableFilterState
 import ua.wwind.table.filter.data.isNullCheck
@@ -86,16 +88,7 @@ internal fun rememberTextFilterState(
             if (isEditing) {
                 delay(debounceMs)
                 isEditing = false
-
-                val isNullConstraint = editingConstraint.isNullCheck()
-
-                if (editingText.isBlank() && !isNullConstraint) {
-                    currentOnStateChange.value(null)
-                } else if (isNullConstraint) {
-                    currentOnStateChange.value(TableFilterState(editingConstraint, emptyList()))
-                } else {
-                    currentOnStateChange.value(TableFilterState(editingConstraint, listOf(editingText)))
-                }
+                applyEmission(resolveTextFilter(editingText, editingConstraint), currentOnStateChange.value)
             }
         }
     }
@@ -114,15 +107,7 @@ internal fun rememberTextFilterState(
                 isEditing = true
             },
             applyFilter = {
-                val isNullConstraint = editingConstraint.isNullCheck()
-
-                if (editingText.isBlank() && !isNullConstraint) {
-                    currentOnStateChange.value(null)
-                } else if (isNullConstraint) {
-                    currentOnStateChange.value(TableFilterState(editingConstraint, emptyList()))
-                } else {
-                    currentOnStateChange.value(TableFilterState(editingConstraint, listOf(editingText)))
-                }
+                applyEmission(resolveTextFilter(editingText, editingConstraint), currentOnStateChange.value)
                 isEditing = false
             },
             clearFilter = {
@@ -131,5 +116,23 @@ internal fun rememberTextFilterState(
                 isEditing = false
             },
         )
+    }
+}
+
+/**
+ * Resolves the current text-filter input into the single [FilterEmission] that both the debounced
+ * auto-apply path and the explicit Apply path act on, so the two can never disagree (issue #55).
+ *
+ * Any non-blank text applies the filter; IS_NULL/IS_NOT_NULL apply with no value; blank text clears.
+ */
+internal fun resolveTextFilter(
+    text: String,
+    constraint: FilterConstraint,
+): FilterEmission<String> {
+    val isNullConstraint = constraint.isNullCheck()
+    return when {
+        text.isBlank() && !isNullConstraint -> FilterEmission.Clear
+        isNullConstraint -> FilterEmission.Apply(TableFilterState(constraint, emptyList()))
+        else -> FilterEmission.Apply(TableFilterState(constraint, listOf(text)))
     }
 }
