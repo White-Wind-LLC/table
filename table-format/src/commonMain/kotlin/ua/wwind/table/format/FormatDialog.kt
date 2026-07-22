@@ -317,7 +317,7 @@ public fun <E : Enum<E>, FILTER> FormatDialog(
                     }
                 Box {
                     LazyColumn(state = lazyListState, modifier = Modifier.fillMaxWidth()) {
-                        itemsIndexed(rulesState, key = { _, it -> it.id }) { index, item ->
+                        itemsIndexed(rulesState, key = { _, item -> item.id }) { index, item ->
                             ReorderableItem(state = state, key = item.id) { isDragging ->
                                 val elevation =
                                     animateDpAsState(if (isDragging) 16.dp else 0.dp)
