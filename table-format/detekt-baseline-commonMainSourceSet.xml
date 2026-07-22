@@ -1,7 +1,0 @@
-<?xml version='1.0' encoding='UTF-8'?>
-<SmellBaseline>
-  <ManuallySuppressedIssues/>
-  <CurrentIssues>
-    <ID>ComplexCondition:FormatCustomizationBuilder.kt:&lt;no name provided>$rule.enabled &amp;&amp; matches(ctx.row.item, rule.filter) &amp;&amp; (rule.columns.isEmpty() || rule.columns.contains(ctx.column))</ID>
-  </CurrentIssues>
-</SmellBaseline>

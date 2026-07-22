@@ -419,14 +419,26 @@ class SampleViewModel : ViewModel() {
         anchor: Int,
     ): Int {
         var insertAt = anchor.coerceAtMost(rest.size)
-        while (
-            insertAt > 0 && insertAt < rest.size &&
-            rest[insertAt - 1].groupId != null &&
-            rest[insertAt - 1].groupId == rest[insertAt].groupId
-        ) {
+        while (cutsGroupRun(rest, insertAt)) {
             insertAt++
         }
         return insertAt
+    }
+
+    /**
+     * Whether inserting at [index] would land inside a group run of [rest] — the rows on either
+     * side of the slot carry the same non-null id — and so cut it in two.
+     *
+     * Reading the neighbours with [getOrNull] is what makes the two ends of the list fall out on
+     * their own: before the first row there is nothing to cut, and past the last one the right-hand
+     * neighbour is absent, so the ids cannot match.
+     */
+    private fun cutsGroupRun(
+        rest: List<Person>,
+        index: Int,
+    ): Boolean {
+        val before = rest.getOrNull(index - 1)?.groupId ?: return false
+        return before == rest.getOrNull(index)?.groupId
     }
 
     /**
@@ -613,14 +625,9 @@ class SampleViewModel : ViewModel() {
         toIndex: Int,
     ) {
         updateMovements(personId) { movements ->
-            if (
-                movements.size < 2 ||
-                fromIndex !in movements.indices ||
-                toIndex !in movements.indices ||
-                fromIndex == toIndex
-            ) {
-                return@updateMovements
-            }
+            if (movements.size < 2) return@updateMovements
+            if (fromIndex !in movements.indices || toIndex !in movements.indices) return@updateMovements
+            if (fromIndex == toIndex) return@updateMovements
             movements.add(toIndex, movements.removeAt(fromIndex))
         }
     }

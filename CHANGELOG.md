@@ -41,7 +41,10 @@ so an upgrade from 1.x lands on the final names in a single pass.
   `PersonFormatFilterData.build`). The rule itself stops counting private and deprecated members, with the
   reasoning recorded in `config/detekt/detekt.yml`: a private helper is what `CyclomaticComplexMethod` and
   `LongMethod` ask a class to extract, and a deprecated member is a forwarder on its way out, so counting either
-  makes the rules contradict each other. 8 of the 234 originally baselined findings remain.
+  makes the rules contradict each other.
+- Changed: the `ComplexCondition` debt baselined in 1.11.0 is paid down too — three conditions in `table-format`
+  and `table-sample` rewritten as guard clauses or named predicates, with no behaviour or API change. Neither
+  module carries a baseline any more; the remaining 5 of the 234 findings are all in `table-core`.
 
 Compare: [v2.0.0...v2.1.0](https://github.com/White-Wind-LLC/table/compare/v2.0.0...v2.1.0)
 

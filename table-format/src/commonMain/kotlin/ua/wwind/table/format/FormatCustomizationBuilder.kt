@@ -37,7 +37,7 @@ public fun <T : Any, C, FILTER> rememberCustomization(
                 // Merge all row-wide rules (columns empty) into a single cell-style accumulator
                 var rowWideCellStyle = TableCellStyle()
                 rules.forEach { rule ->
-                    if (rule.enabled && rule.columns.isEmpty() && matches(ctx.item, rule.filter)) {
+                    if (rule.isRowWide() && matches(ctx.item, rule.filter)) {
                         rowWideCellStyle = rowWideCellStyle.merge(config = rule.cellStyle)
                     }
                 }
@@ -53,10 +53,7 @@ public fun <T : Any, C, FILTER> rememberCustomization(
             override fun resolveCellStyle(ctx: TableCellContext<T, C>): TableCellStyle {
                 var style = baseCellStyle?.invoke(ctx) ?: TableCellStyle()
                 rules.forEach { rule ->
-                    if (rule.enabled &&
-                        matches(ctx.row.item, rule.filter) &&
-                        (rule.columns.isEmpty() || rule.columns.contains(ctx.column))
-                    ) {
+                    if (rule.paints(ctx.column) && matches(ctx.row.item, rule.filter)) {
                         style = style.merge(config = rule.cellStyle)
                     }
                 }
@@ -65,6 +62,12 @@ public fun <T : Any, C, FILTER> rememberCustomization(
         }
     }
 }
+
+/** True when the rule is on and paints the row as a whole rather than columns it names. */
+private fun TableFormatRule<*, *>.isRowWide(): Boolean = enabled && columns.isEmpty()
+
+/** True when the rule is on and paints [column] — a rule that names no column paints every one. */
+private fun <C> TableFormatRule<C, *>.paints(column: C): Boolean = enabled && (columns.isEmpty() || column in columns)
 
 @Composable
 private fun TableCellStyle.merge(config: TableCellStyleConfig): TableCellStyle {
