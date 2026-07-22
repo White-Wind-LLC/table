@@ -310,15 +310,16 @@ internal class RowBlocksState<T : Any>(
      * free; placeholders are skipped because an unloaded row proves nothing about upstream order.
      */
     private fun warnAboutFragmentedIds(items: List<T?>) {
-        val finishedRuns = mutableSetOf<Any>()
+        val startedRuns = mutableSetOf<Any>()
         var runId: Any? = null
-        for (item in items) {
-            if (item == null) continue
-            val id = config.blockOf(item)
+        // Dropping the placeholders before the loop is what makes them neither close the run around
+        // them nor open one of their own. [derive] does the opposite in view space, where a
+        // placeholder really does break the run it sits in.
+        for (id in items.asSequence().filterNotNull().map(config.blockOf)) {
             if (id == runId) continue
-            runId?.let { finishedRuns += it }
             runId = id
-            if (id != null && id in finishedRuns && warnedFragmentedIds.add(id)) {
+            // A run start whose id is already recorded is by definition that id's second run.
+            if (id != null && !startedRuns.add(id) && warnedFragmentedIds.add(id)) {
                 warn(
                     "Row block id $id appears in non-adjacent runs; blocks are defined by " +
                         "adjacency — check for a foreign sort or a filter splitting block members",

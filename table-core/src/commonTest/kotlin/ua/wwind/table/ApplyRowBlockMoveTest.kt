@@ -142,11 +142,7 @@ class ApplyRowBlockMoveTest {
                     warn = { warnings += it },
                 )
             state.reconcile(view.size) { view[it] }
-            val unitCount = state.units.unitCount
-            if (unitCount < 2) continue
-            val fromUnit = random.nextInt(unitCount)
-            val toUnit = random.nextInt(unitCount)
-            if (fromUnit == toUnit) continue
+            val (fromUnit, toUnit) = drawGesture(random, state.units.unitCount) ?: continue
             state.applyUnitMove(fromUnit, toUnit)
             val move = requireNotNull(state.settle())
             val permutedView = (0 until state.itemsCount).map { requireNotNull(state.itemAt(it)) }
@@ -188,6 +184,21 @@ class ApplyRowBlockMoveTest {
         // visible moves.
         assertThat(blockMovesWithHiddenMembers).isGreaterThan(100)
         assertThat(blockMovesWithHiddenLeader).isGreaterThan(50)
+    }
+
+    /**
+     * Two distinct units to drag between, or null when this draw names no gesture: a view holding
+     * fewer than two units, or the same unit drawn twice. Both are redraws rather than failures —
+     * the filter is random, and it can leave nothing to drag.
+     */
+    private fun drawGesture(
+        random: Random,
+        unitCount: Int,
+    ): Pair<Int, Int>? {
+        if (unitCount < 2) return null
+        val fromUnit = random.nextInt(unitCount)
+        val toUnit = random.nextInt(unitCount)
+        return if (fromUnit == toUnit) null else fromUnit to toUnit
     }
 
     /** Units of 1..4 rows; roughly half standalone, half blocks with unique ids — in-contract S. */
