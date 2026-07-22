@@ -160,7 +160,6 @@ internal fun <T : Any, C, E> TableRowItem(
             Column {
                 Column(modifier = Modifier.width(state.tableWidth)) {
                     RenderTableRowItem(
-                        modifier = rowModifier,
                         state = state,
                         index = index,
                         visibleColumns = visibleColumns,
@@ -178,6 +177,7 @@ internal fun <T : Any, C, E> TableRowItem(
                         onContextMenu = onContextMenu,
                         requestTableFocus = requestTableFocus,
                         horizontalState = horizontalState,
+                        modifier = rowModifier,
                     )
                 }
                 rowEmbedded?.invoke(index, item)
@@ -199,7 +199,6 @@ internal fun <T : Any, C, E> TableRowItem(
 @Composable
 context(rowScope: TableItemScope)
 private fun <C, T : Any, E> RenderTableRowItem(
-    modifier: Modifier,
     state: TableState<C>,
     index: Int,
     visibleColumns: ImmutableList<ColumnSpec<T, C, E>>,
@@ -217,6 +216,7 @@ private fun <C, T : Any, E> RenderTableRowItem(
     onContextMenu: ((T, Offset) -> Unit)?,
     requestTableFocus: () -> Unit,
     horizontalState: ScrollState,
+    modifier: Modifier = Modifier,
 ) {
     Row(
         modifier =
