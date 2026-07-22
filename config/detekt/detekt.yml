@@ -32,6 +32,16 @@ complexity:
       - "**/commonTest/**"
       - "**/test/**"
 
+potential-bugs:
+  InvalidRange:
+    # An empty range is a bug everywhere except where it is the input under test. Both findings
+    # here are `3..2` handed to a function that must reject it, with the rejection asserted — the
+    # rule was reporting the assertion's own fixture. Scoped with the same glob pair as LongMethod
+    # above, so this file keeps one definition of what a test source is.
+    excludes:
+      - "**/commonTest/**"
+      - "**/test/**"
+
 style:
   ReturnCount:
     # detekt counts every exit equally, but a leading guard clause is not an exit a reader has to

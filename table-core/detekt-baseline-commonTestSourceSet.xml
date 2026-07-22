@@ -2,8 +2,6 @@
 <SmellBaseline>
   <ManuallySuppressedIssues/>
   <CurrentIssues>
-    <ID>InvalidRange:MoveRowGroupTest.kt:MoveRowGroupTest$3..2</ID>
-    <ID>InvalidRange:RowUnitIndexTest.kt:RowUnitIndexTest$3..2</ID>
     <ID>LargeClass:RowBlocksTableTest.kt:RowBlocksTableTest</ID>
   </CurrentIssues>
 </SmellBaseline>
