@@ -9,6 +9,6 @@ Table(
     itemAt = { index -> items[index] },
     state = state,
     columns = columns,
-    onRowClick = { _ -> state.toggleCheck(/* row index comes from key or context */) }
+    onRowClick = { _ -> state.selection.toggleCheck(/* row index comes from key or context */) }
 )
 ```

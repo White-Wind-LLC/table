@@ -24,11 +24,11 @@ class TableStateRemapTest {
                     ),
                 dimensions = TableDefaults.standardDimensions(),
             )
-        state.startEditing(item = Any(), rowIndex = 2, column = "a")
-        state.toggleSelect(3)
-        state.selectCell(3, "a")
-        state.toggleCheck(1)
-        state.toggleCheck(4)
+        state.editing.start(item = Any(), rowIndex = 2, column = "a")
+        state.selection.toggleRow(3)
+        state.selection.selectCell(3, "a")
+        state.selection.toggleCheck(1)
+        state.selection.toggleCheck(4)
 
         state.remapRowPositions { position ->
             when (position) {
@@ -40,9 +40,9 @@ class TableStateRemapTest {
             }
         }
 
-        assertThat(state.selectedIndex).isEqualTo(1)
-        assertThat(state.selectedCell).isEqualTo(TableState.SelectedCell(1, "a"))
-        assertThat(state.editingRow).isEqualTo(0)
-        assertThat(state.checkedIndices.toList()).isEqualTo(listOf(3, 2))
+        assertThat(state.selection.selectedIndex).isEqualTo(1)
+        assertThat(state.selection.selectedCell).isEqualTo(TableState.SelectedCell(1, "a"))
+        assertThat(state.editing.rowIndex).isEqualTo(0)
+        assertThat(state.selection.checkedIndices.toList()).isEqualTo(listOf(3, 2))
     }
 }

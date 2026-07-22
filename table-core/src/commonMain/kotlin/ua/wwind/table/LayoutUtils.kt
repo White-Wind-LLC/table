@@ -13,7 +13,7 @@ internal fun <C> computeAutoWidths(
     buildMap {
         visibleColumns.forEach { spec ->
             if (spec.autoWidth) {
-                val measured = state.columnContentMaxWidths[spec.key]
+                val measured = state.columns.contentMaxWidths[spec.key]
                 val fallback = spec.width ?: state.dimensions.defaultColumnWidth
                 val base = measured ?: fallback
                 val minClamped = maxOf(base, spec.minWidth)

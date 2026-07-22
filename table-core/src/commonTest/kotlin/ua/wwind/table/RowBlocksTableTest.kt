@@ -282,8 +282,8 @@ class RowBlocksTableTest {
             }
             waitForIdle()
             runOnIdle {
-                state.toggleSelect(3)
-                state.selectCell(3, "name")
+                state.selection.toggleRow(3)
+                state.selection.selectCell(3, "name")
             }
             waitForIdle()
 
@@ -306,8 +306,8 @@ class RowBlocksTableTest {
 
             // id-3 sat at view position 3; the block moved from above it to the end, so it now
             // renders one unit higher.
-            assertThat(state.selectedIndex).isEqualTo(1)
-            assertThat(state.selectedCell?.rowIndex).isEqualTo(1)
+            assertThat(state.selection.selectedIndex).isEqualTo(1)
+            assertThat(state.selection.selectedCell?.rowIndex).isEqualTo(1)
 
             // The permuted order is held optimistically after the drop: block rows render last.
             val blockTop = onNodeWithText("name-0").getBoundsInRoot().top
@@ -354,9 +354,9 @@ class RowBlocksTableTest {
                 }
             }
             waitForIdle()
-            runOnIdle { state.startEditing(items[2], 2, "name") }
+            runOnIdle { state.editing.start(items[2], 2, "name") }
             waitForIdle()
-            assertThat(state.editingRow).isEqualTo(2)
+            assertThat(state.editing.rowIndex).isEqualTo(2)
 
             // Whole-block drag starts from the header handle; its start hook cancels the edit.
             onNodeWithTag("block-handle-a", useUnmergedTree = true).performTouchInput {
@@ -366,7 +366,7 @@ class RowBlocksTableTest {
             }
             waitForIdle()
 
-            assertThat(state.editingRow).isNull()
+            assertThat(state.editing.rowIndex).isNull()
             assertThat(cancelled).isEqualTo(listOf(2))
         }
 
@@ -590,8 +590,8 @@ class RowBlocksTableTest {
             waitForIdle()
             assertThat(state !== firstState).isTrue()
             runOnIdle {
-                state.toggleSelect(3)
-                state.selectCell(3, "name")
+                state.selection.toggleRow(3)
+                state.selection.selectCell(3, "name")
             }
             waitForIdle()
 
@@ -605,8 +605,8 @@ class RowBlocksTableTest {
             assertThat(moves.size).isEqualTo(1)
             // id-3 sat at view position 3; the two-row block moved from above it to the end, so it
             // renders one unit higher — on the LIVE state.
-            assertThat(state.selectedIndex).isEqualTo(1)
-            assertThat(state.selectedCell?.rowIndex).isEqualTo(1)
+            assertThat(state.selection.selectedIndex).isEqualTo(1)
+            assertThat(state.selection.selectedCell?.rowIndex).isEqualTo(1)
         }
 
     @Test
@@ -658,8 +658,8 @@ class RowBlocksTableTest {
             }
             waitForIdle()
             runOnIdle {
-                state.toggleSelect(3)
-                state.selectCell(3, "name")
+                state.selection.toggleRow(3)
+                state.selection.selectCell(3, "name")
             }
             waitForIdle()
 
@@ -682,8 +682,8 @@ class RowBlocksTableTest {
 
             // id-3 sat at view position 3; the block moved from above it to the end, so it now
             // renders one unit higher.
-            assertThat(state.selectedIndex).isEqualTo(1)
-            assertThat(state.selectedCell?.rowIndex).isEqualTo(1)
+            assertThat(state.selection.selectedIndex).isEqualTo(1)
+            assertThat(state.selection.selectedCell?.rowIndex).isEqualTo(1)
 
             // The permuted order is held optimistically after the drop: block rows render last.
             val blockTop = onNodeWithText("name-0").getBoundsInRoot().top
@@ -970,9 +970,9 @@ class RowBlocksTableTest {
                 }
             }
             waitForIdle()
-            runOnIdle { state.startEditing(items[2], 2, "name") }
+            runOnIdle { state.editing.start(items[2], 2, "name") }
             waitForIdle()
-            assertThat(state.editingRow).isEqualTo(2)
+            assertThat(state.editing.rowIndex).isEqualTo(2)
 
             // Whole-block drag starts from the header handle; its start hook cancels the edit.
             onNodeWithTag("block-handle-a", useUnmergedTree = true).performTouchInput {
@@ -982,7 +982,7 @@ class RowBlocksTableTest {
             }
             waitForIdle()
 
-            assertThat(state.editingRow).isNull()
+            assertThat(state.editing.rowIndex).isNull()
             assertThat(cancelled).isEqualTo(listOf(2))
         }
 

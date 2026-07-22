@@ -26,20 +26,20 @@ internal fun <T : Any, C, E> rememberHeaderDerivedState(
 ): HeaderDerivedState<T, C, E> {
     val keyToSpec = remember(columns) { columns.associateBy { it.key } }
 
-    val visibleColumns by remember(columns, state.columnOrder) {
+    val visibleColumns by remember(columns, state.columns.order) {
         derivedStateOf {
-            state.columnOrder.mapNotNullToImmutable { key ->
+            state.columns.order.mapNotNullToImmutable { key ->
                 @Suppress("UNCHECKED_CAST")
                 (keyToSpec[key] as ColumnSpec<T, C, E>?)?.takeIf { it.visible }
             }
         }
     }
 
-    val widthMap by remember(columns, state.columnWidths, dimensions) {
+    val widthMap by remember(columns, state.columns.widths, dimensions) {
         derivedStateOf {
             buildMap {
                 columns.forEach { spec ->
-                    val width = state.resolveColumnWidth(spec.key, spec)
+                    val width = state.columns.resolveWidth(spec.key, spec)
                     @Suppress("UNCHECKED_CAST")
                     put(spec.key as C, width)
                 }

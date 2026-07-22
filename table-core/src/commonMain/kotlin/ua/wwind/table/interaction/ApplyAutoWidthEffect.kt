@@ -29,15 +29,15 @@ internal fun <C, T : Any, E> ApplyAutoWidthEffect(
                 itemsCount,
                 verticalState.layoutInfo.visibleItemsInfo.isNotEmpty(),
                 Triple(
-                    state.autoWidthAppliedForEmpty,
-                    state.autoWidthAppliedForData,
-                    state.columnContentMaxWidths.size,
+                    state.columns.autoWidthAppliedForEmpty,
+                    state.columns.autoWidthAppliedForData,
+                    state.columns.contentMaxWidths.size,
                 ),
             )
         }.collectLatest { (count, hasVisibleItems, appliedFlags) ->
             val (emptyApplied, dataApplied, _) = appliedFlags
             val autoColumns = visibleColumns.filter { it.autoWidth }
-            val hasAnyMeasured = autoColumns.any { state.columnContentMaxWidths.containsKey(it.key) }
+            val hasAnyMeasured = autoColumns.any { state.columns.contentMaxWidths.containsKey(it.key) }
 
             // Phase 1: empty table
             if (!emptyApplied && count == 0 && hasAnyMeasured) {
@@ -45,9 +45,9 @@ internal fun <C, T : Any, E> ApplyAutoWidthEffect(
                 val widths = computeAutoWidths(visibleColumns, state)
                 if (widths.isNotEmpty()) {
                     logger.v { "AutoWidth Phase1: applying widths=$widths" }
-                    state.setColumnWidths(widths)
+                    state.columns.setWidths(widths)
                 }
-                state.autoWidthAppliedForEmpty = true
+                state.columns.autoWidthAppliedForEmpty = true
             }
 
             // Phase 2: first visible data
@@ -56,10 +56,10 @@ internal fun <C, T : Any, E> ApplyAutoWidthEffect(
                 val widths = computeAutoWidths(visibleColumns, state)
                 if (widths.isNotEmpty()) {
                     logger.v { "AutoWidth Phase2: applying widths=$widths" }
-                    state.setColumnWidths(widths)
+                    state.columns.setWidths(widths)
                 }
-                state.autoWidthAppliedForEmpty = true
-                state.autoWidthAppliedForData = true
+                state.columns.autoWidthAppliedForEmpty = true
+                state.columns.autoWidthAppliedForData = true
             }
         }
     }
@@ -83,15 +83,15 @@ internal fun <C, T : Any, E> ApplyAutoWidthEmbeddedEffect(
             Pair(
                 itemsCount,
                 Triple(
-                    state.autoWidthAppliedForEmpty,
-                    state.autoWidthAppliedForData,
-                    state.columnContentMaxWidths.size,
+                    state.columns.autoWidthAppliedForEmpty,
+                    state.columns.autoWidthAppliedForData,
+                    state.columns.contentMaxWidths.size,
                 ),
             )
         }.collectLatest { (count, appliedFlags) ->
             val (emptyApplied, dataApplied, _) = appliedFlags
             val autoColumns = visibleColumns.filter { it.autoWidth }
-            val hasAnyMeasured = autoColumns.any { state.columnContentMaxWidths.containsKey(it.key) }
+            val hasAnyMeasured = autoColumns.any { state.columns.contentMaxWidths.containsKey(it.key) }
 
             // Phase 1: empty table
             if (!emptyApplied && count == 0 && hasAnyMeasured) {
@@ -99,26 +99,26 @@ internal fun <C, T : Any, E> ApplyAutoWidthEmbeddedEffect(
                 val widths = computeAutoWidths(visibleColumns, state)
                 if (widths.isNotEmpty()) {
                     logger.v { "AutoWidth Embedded Phase1: applying widths=$widths" }
-                    state.setColumnWidths(widths)
+                    state.columns.setWidths(widths)
                 }
-                state.autoWidthAppliedForEmpty = true
+                state.columns.autoWidthAppliedForEmpty = true
             }
 
             // Phase 2: embedded table with data - apply as soon as measurements are available
             // For embedded tables, wait until all auto-width columns have measurements
             if (!dataApplied && count > 0) {
                 val allAutoColumnsHaveMeasurements =
-                    autoColumns.all { state.columnContentMaxWidths.containsKey(it.key) }
+                    autoColumns.all { state.columns.contentMaxWidths.containsKey(it.key) }
 
                 if (allAutoColumnsHaveMeasurements && autoColumns.isNotEmpty()) {
                     logger.v { "AutoWidth Embedded Phase2: all columns measured, computing widths (count=$count)" }
                     val widths = computeAutoWidths(visibleColumns, state)
                     if (widths.isNotEmpty()) {
                         logger.v { "AutoWidth Embedded Phase2: applying widths=$widths" }
-                        state.setColumnWidths(widths)
+                        state.columns.setWidths(widths)
                     }
-                    state.autoWidthAppliedForEmpty = true
-                    state.autoWidthAppliedForData = true
+                    state.columns.autoWidthAppliedForEmpty = true
+                    state.columns.autoWidthAppliedForData = true
                 }
             }
         }

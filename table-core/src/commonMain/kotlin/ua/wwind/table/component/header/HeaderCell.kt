@@ -102,7 +102,7 @@ internal fun <T : Any, C, E> HeaderCell(
             measureKey = Triple(spec.key, "header", titleText),
             onMeasure = { measuredMinWidth ->
                 val adjusted = maxOf(measuredMinWidth, spec.minWidth)
-                state.updateMaxContentWidth(spec.key, adjusted, source = "Header")
+                state.columns.updateMaxContentWidth(spec.key, adjusted, source = "Header")
             },
         ) { _, _ ->
             HeaderMeasureContent(spec, info)

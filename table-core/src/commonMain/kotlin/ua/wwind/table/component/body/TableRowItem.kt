@@ -88,7 +88,7 @@ internal fun <T : Any, C, E> TableRowItem(
     horizontalState: ScrollState,
 ) {
     val dimensions = state.dimensions
-    val isSelected = state.selectedIndex == index
+    val isSelected = state.selection.selectedIndex == index
     val isDynamicRowHeight = state.settings.rowHeightMode == RowHeightMode.Dynamic
     val settings = state.settings
 
@@ -225,7 +225,7 @@ private fun <C, T : Any, E> RenderTableRowItem(
             },
     ) {
         visibleColumns.forEachIndexed { colIndex, spec ->
-            val width = state.resolveColumnWidth(spec.key, spec)
+            val width = state.columns.resolveWidth(spec.key, spec)
             var cellTopLeft by remember(spec.key, index) { mutableStateOf(Offset.Zero) }
             val cellStyle: TableCellStyle =
                 customization.resolveCellStyle(
@@ -246,7 +246,7 @@ private fun <C, T : Any, E> RenderTableRowItem(
                 )
 
             val isCellSelected =
-                state.selectedCell?.let { it.rowIndex == index && it.column == spec.key } ==
+                state.selection.selectedCell?.let { it.rowIndex == index && it.column == spec.key } ==
                     true
 
             val pinnedState =
@@ -291,14 +291,14 @@ private fun <C, T : Any, E> RenderTableRowItem(
                                     onFocus = {
                                         if (canMoveFocusTo(state, settings, index)) {
                                             requestTableFocus()
-                                            state.selectCell(index, spec.key)
-                                            state.focusRow(index)
+                                            state.selection.selectCell(index, spec.key)
+                                            state.selection.focusRow(index)
                                         }
                                     },
                                     useSelectAsPrimary =
                                         state.settings.selectionMode !=
                                             SelectionMode.None,
-                                    onSelect = { state.toggleSelect(index) },
+                                    onSelect = { state.selection.toggleRow(index) },
                                     onClick = { clicked ->
                                         onCellClick(state, settings, spec, item, index, clicked, onRowClick)
                                     },
@@ -316,7 +316,7 @@ private fun <C, T : Any, E> RenderTableRowItem(
                         ),
             ) {
                 // Determine if we should show edit UI for this cell
-                val isRowEditing = state.editingRow == index
+                val isRowEditing = state.editing.rowIndex == index
                 val shouldShowEditUI = isRowEditing && spec.editable && spec.editCell != null
 
                 if (spec.resizable || spec.autoWidth) {
@@ -327,7 +327,7 @@ private fun <C, T : Any, E> RenderTableRowItem(
                             measureKey = Pair(spec.key, index),
                             onMeasure = { measuredMinWidth ->
                                 val adjusted = maxOf(measuredMinWidth, spec.minWidth)
-                                state.updateMaxContentWidth(spec.key, adjusted, source = "Row[$index]")
+                                state.columns.updateMaxContentWidth(spec.key, adjusted, source = "Row[$index]")
                             },
                             content = spec.cell,
                         )
@@ -338,8 +338,8 @@ private fun <C, T : Any, E> RenderTableRowItem(
                 if (shouldShowEditUI) {
                     val focusRequester = remember { FocusRequester() }
 
-                    LaunchedEffect(state.editingColumn, state.editingRow) {
-                        val isCurrentEditingCell = state.editingColumn == spec.key && state.editingRow == index
+                    LaunchedEffect(state.editing.column, state.editing.rowIndex) {
+                        val isCurrentEditingCell = state.editing.column == spec.key && state.editing.rowIndex == index
                         if (isCurrentEditingCell) {
                             focusRequester.requestFocus()
                         }
@@ -351,7 +351,7 @@ private fun <C, T : Any, E> RenderTableRowItem(
                     ) {
                         spec.editCell.invoke(this, item, tableData) {
                             // onComplete callback - move to next editable cell
-                            state.completeCurrentCellEdit(visibleColumns)
+                            state.editing.completeCurrentCell(visibleColumns)
                         }
                     }
                 } else {
@@ -380,9 +380,9 @@ private fun <C> canMoveFocusTo(
     index: Int,
 ): Boolean =
     !settings.editingEnabled ||
-        state.editingRow == null ||
-        state.editingRow == index ||
-        state.tryCompleteEditing()
+        state.editing.rowIndex == null ||
+        state.editing.rowIndex == index ||
+        state.editing.tryComplete()
 
 /**
  * Decides what a click on a cell does: start editing it, or fall through to the row's own action.
@@ -406,7 +406,7 @@ private fun <T : Any, C, E> onCellClick(
             spec.editable &&
             (spec.canStartEdit?.invoke(item, index) ?: true)
     if (canEdit) {
-        state.startEditing(item, index, spec.key)
+        state.editing.start(item, index, spec.key)
     } else {
         onRowClick?.invoke(clicked)
     }

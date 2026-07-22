@@ -62,6 +62,8 @@ import ua.wwind.table.sample.app.components.SettingsSidebar
 import ua.wwind.table.sample.column.PersonColumn
 import ua.wwind.table.sample.column.createTableColumns
 import ua.wwind.table.sample.model.Person
+import ua.wwind.table.sample.util.PersonFilterMatcher
+import ua.wwind.table.sample.util.PersonFormatFilterData
 import ua.wwind.table.sample.viewmodel.SampleUiEvent
 import ua.wwind.table.sample.viewmodel.SampleViewModel
 import ua.wwind.table.state.rememberTableState
@@ -196,7 +198,7 @@ fun SampleApp(
             rules = viewModel.rules,
             key = viewModel.rules,
             matches = { person, ruleFilters ->
-                viewModel.matchesPerson(person, ruleFilters)
+                PersonFilterMatcher.matchesPerson(person, ruleFilters)
             },
         )
 
@@ -231,7 +233,7 @@ fun SampleApp(
             0.dp
         }
     LaunchedEffect(selectionColumnWidth) {
-        state.setColumnWidths(mapOf(PersonColumn.SELECTION to selectionColumnWidth))
+        state.columns.setWidths(mapOf(PersonColumn.SELECTION to selectionColumnWidth))
     }
 
     SampleTheme(darkTheme = isDarkTheme) {
@@ -265,7 +267,7 @@ fun SampleApp(
                                     scope.launch { drawerState.close() }
                                 },
                                 onRecalculateAutoWidthsClick = {
-                                    state.recalculateAutoWidths()
+                                    state.columns.recalculateAutoWidths()
                                     scope.launch { drawerState.close() }
                                 },
                                 onClose = { scope.launch { drawerState.close() } },
@@ -411,7 +413,7 @@ fun SampleApp(
             showDialog = viewModel.showFormatDialog,
             rules = viewModel.rules,
             onRulesChange = viewModel::updateRules,
-            buildFormatFilterData = viewModel::buildFormatFilterData,
+            buildFormatFilterData = PersonFormatFilterData::build,
             onDismissRequest = { viewModel.toggleFormatDialog(false) },
         )
 

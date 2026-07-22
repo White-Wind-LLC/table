@@ -58,14 +58,21 @@ column(PersonField.Name, valueOf = { it.name }) {
       reorder would be unobservable, so the two features cannot both apply.
     - Sorting: `state.setSort(column, order?)`; current `state.sort`.
     - Grouping: `state.groupBy(column)` to enable grouping; `state.groupBy(null)` to disable.
-    - Column order/size: `state.setColumnOrder(order)`, `state.resizeColumn(column, Set/Reset)`,
-      `state.setColumnWidths(map)`.
-    - Auto-width recalculation: `state.recalculateAutoWidths()` to manually recompute column
+    - Column layout, selection and editing live in holders of their own — `state.columns`,
+      `state.selection` and `state.editing`. The members they took over in 2.1.0 are still on
+      `state` itself, deprecated, each naming its replacement; they are removed in the next major.
+      Full mapping in the [2.0 migration guide](../getting-started/migration-2.0.md#state-holders-on-tablestate).
+    - Column order/size: `state.columns.setOrder(order)`, `state.columns.resize(column, Set/Reset)`,
+      `state.columns.setWidths(map)`; current `state.columns.order` and `state.columns.widths`.
+    - Auto-width recalculation: `state.columns.recalculateAutoWidths()` to manually recompute column
       widths based on current content measurements. Useful for deferred/paginated data loading where initial auto-width
       calculation happened on empty data.
     - Filters: `state.setFilter(column, TableFilterState(...))`; current per‑column `state.filters`.
-    - Selection: `state.toggleSelect(index)`, `state.toggleCheck(index)`, `state.toggleCheckAll(count)`,
-      `state.selectCell(row, column)`.
+    - Selection: `state.selection.toggleRow(index)`, `state.selection.toggleCheck(index)`,
+      `state.selection.toggleCheckAll(count)`, `state.selection.selectCell(row, column)`; current
+      `state.selection.selectedIndex`, `state.selection.checkedIndices`, `state.selection.selectedCell`.
+    - Editing: `state.editing.start(item, rowIndex, column)`, `state.editing.tryComplete()`,
+      `state.editing.cancel()`; current `state.editing.rowIndex` and `state.editing.column`.
 - **Settings and geometry**
     - `TableSettings`: `rowReorderEnabled`, `autoApplyFilters`, `autoFilterDebounce`, `stripedRows`,
       `showActiveFiltersHeader`, `selectionMode: None/Single/Multiple`, `groupContentAlignment`,

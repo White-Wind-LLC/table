@@ -69,10 +69,10 @@ internal fun <T : Any, C, E> TableHeader(
     var isResizing by remember { mutableStateOf(false) }
     val reorderState =
         rememberReorderableLazyListState(lazyListState) { from, to ->
-            val fullOrder = state.columnOrder.toList()
+            val fullOrder = state.columns.order.toList()
             val visibleKeys = derived.visibleColumns.map { it.key }
             val move = computeReorderMove(from.index, to.index, fullOrder, visibleKeys)
-            if (move != null) state.moveColumn(move.first, move.second)
+            if (move != null) state.columns.move(move.first, move.second)
         }
 
     Column {
@@ -98,10 +98,10 @@ internal fun <T : Any, C, E> TableHeader(
                         visibleColumns = derived.visibleColumns,
                         widthResolver = { key -> derived.widthMap[key] ?: dimensions.defaultColumnWidth },
                         dimensions = dimensions,
-                        onResize = { key, newWidth -> state.resizeColumn(key, ColumnWidthAction.Set(newWidth)) },
+                        onResize = { key, newWidth -> state.columns.resize(key, ColumnWidthAction.Set(newWidth)) },
                         onResizeStart = { isResizing = true },
                         onResizeEnd = { isResizing = false },
-                        onDoubleClick = { key -> state.setColumnWidthToMaxContent(key) },
+                        onDoubleClick = { key -> state.columns.fitToContent(key) },
                     )
                 }
             }

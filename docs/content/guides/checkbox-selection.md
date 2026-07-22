@@ -171,6 +171,6 @@ fun PeopleScreen(viewModel: MyViewModel) {
 
 - **Reactive UI**: Checkbox state updates instantly when `tableData.selectedIds` changes.
 - **Centralized state**: Selection logic lives in ViewModel, making it testable and reusable.
-- **Flexible visibility**: Show/hide the checkbox column by controlling width via `state.setColumnWidths()`.
+- **Flexible visibility**: Show/hide the checkbox column by controlling width via `state.columns.setWidths()`.
 - **Bulk operations**: Easy to implement delete, export, or other actions on selected items.
 - **Header integration**: Tri-state checkbox in header provides intuitive select-all UX.

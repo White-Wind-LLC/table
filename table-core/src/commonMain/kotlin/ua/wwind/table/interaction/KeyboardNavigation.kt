@@ -31,7 +31,7 @@ internal fun <T : Any, C> Modifier.tableKeyboardNavigation(
                 event.type != KeyEventType.KeyDown -> false
 
                 // While editing, the edit field owns cursor movement — only end the edit here.
-                state.editingRow != null -> handleEditingKey(event, state, visibleColumns)
+                state.editing.rowIndex != null -> handleEditingKey(event, state, visibleColumns)
 
                 else -> handleNavigationKey(event, itemsCount, state, visibleColumns, verticalState)
             }
@@ -44,12 +44,12 @@ private fun <C> handleEditingKey(
 ): Boolean =
     when (event.key) {
         Key.Escape -> {
-            state.cancelEditing()
+            state.editing.cancel()
             true
         }
 
         Key.Tab -> {
-            state.completeCurrentCellEdit(visibleColumns)
+            state.editing.completeCurrentCell(visibleColumns)
             true
         }
 
@@ -66,7 +66,7 @@ private fun <T : Any, C> handleNavigationKey(
     verticalState: LazyListState,
 ): Boolean {
     val colKeys = visibleColumns.map { it.key }
-    val cell = state.selectedCell
+    val cell = state.selection.selectedCell
     val (targetRow, targetColIndex) =
         navigationTarget(
             event = event,
@@ -119,9 +119,9 @@ private fun <C> TableState<C>.moveSelectionTo(
     val targetRow = row.coerceIn(0, itemsCount.coerceAtLeast(1) - 1)
     val targetColIndex = colIndex.coerceIn(0, (colKeys.size - 1).coerceAtLeast(0))
     val targetColKey = colKeys.getOrNull(targetColIndex) ?: return
-    selectCell(targetRow, targetColKey)
+    selection.selectCell(targetRow, targetColKey)
     // If selection is enabled, keep selected row in sync with focused row
-    focusRow(targetRow)
+    selection.focusRow(targetRow)
 }
 
 /**

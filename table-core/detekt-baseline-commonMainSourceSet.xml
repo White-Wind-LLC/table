@@ -3,7 +3,5 @@
   <ManuallySuppressedIssues/>
   <CurrentIssues>
     <ID>LoopWithTooManyJumpStatements:RowBlocksState.kt:RowBlocksState$for</ID>
-    <ID>TooManyFunctions:RowBlocksState.kt:RowBlocksState&lt;T : Any></ID>
-    <ID>TooManyFunctions:TableState.kt:TableState&lt;C></ID>
   </CurrentIssues>
 </SmellBaseline>

@@ -127,7 +127,7 @@ internal fun <T : Any, C> RegisterEditCallbacks(
 ) {
     val currentItemAt = rememberUpdatedState(itemAt)
     LaunchedEffect(state, onRowEditStart, onRowEditComplete, onCancelEdit) {
-        state.setEditCallbacks(
+        state.editing.setCallbacks(
             onStart =
                 onRowEditStart?.let { callback ->
                     { rowIndex: Int ->

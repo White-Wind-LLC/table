@@ -70,7 +70,7 @@ class TableWidthTest {
         state.visibleColumns = listOf(spec("a"))
         assertThat(state.tableWidth).isEqualTo(100.dp + divider)
 
-        state.columnWidths["a"] = 150.dp
+        state.columns.widths["a"] = 150.dp
         assertThat(state.tableWidth).isEqualTo(150.dp + divider)
     }
 }

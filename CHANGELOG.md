@@ -2,6 +2,40 @@
 
 All notable changes to this project will be documented in this file.
 
+### Unreleased
+
+- Added: `TableState` now composes three state holders of its own, reached as `state.columns`, `state.selection`
+  and `state.editing`. `TableColumnsState` owns column order, width overrides and the measurements auto-fit works
+  from; `TableSelectionState` owns the focused row, the checked rows and the selected cell; `TableEditingState`
+  owns the edited row and column together with the edit callbacks. Sorting, grouping and filtering stay on
+  `TableState` itself — they belong to the table as a whole rather than to one of the three. New public types:
+  `TableColumnsState`, `TableSelectionState`, `TableEditingState`.
+- Deprecated: the 31 `TableState` members those holders took over. Every one stays as a forwarder carrying a
+  `ReplaceWith` migration, so existing code keeps compiling and the IDE rewrites each call site for you; they are
+  removed in the next major. Columns: `columnOrder` → `columns.order`, `columnWidths` → `columns.widths`,
+  `columnContentMaxWidths` → `columns.contentMaxWidths`, `columnHeaderWidths` → `columns.headerWidths`,
+  `autoWidthAppliedForEmpty` and `autoWidthAppliedForData` → the same names under `columns`, `resolveColumnWidth` →
+  `columns.resolveWidth`, `moveColumn` → `columns.move`, `setColumnOrder` → `columns.setOrder`, `resizeColumn` →
+  `columns.resize`, `setColumnWidths` → `columns.setWidths`, `updateMaxContentWidth` →
+  `columns.updateMaxContentWidth`, `setColumnWidthToMaxContent` → `columns.fitToContent`, `recalculateAutoWidths` →
+  `columns.recalculateAutoWidths`. Selection: `selectedIndex`, `checkedIndices`, `selectedCell`, `focusRow`,
+  `toggleCheck`, `toggleCheckAll` and `selectCell` → the same names under `selection`, and `toggleSelect` →
+  `selection.toggleRow` (named for what it toggles, next to `toggleCheck`). Editing: `editingRow` →
+  `editing.rowIndex`, `editingColumn` → `editing.column`, `onRowEditStart`, `onRowEditComplete` and `onEditCancel`
+  → the same names under `editing`, `startEditing` → `editing.start`, `tryCompleteEditing` → `editing.tryComplete`,
+  `completeCurrentCellEdit` → `editing.completeCurrentCell`, `cancelEditing` → `editing.cancel`.
+  `TableState.SelectedCell` deliberately does not move: a nested type cannot be re-exported under a new name the
+  way a function can, so moving it would break every consumer that names it. The
+  [2.0 migration guide](https://white-wind-llc.github.io/table/getting-started/migration-2.0/) carries the full
+  mapping, so an upgrade from 1.x lands on the final names in one pass rather than two.
+- Changed: the `TooManyFunctions` detekt debt baselined in 1.11.0 is paid down rather than suppressed. The split
+  above resolves `TableState`; `SampleViewModel` gives up two stateless helpers that never read its state
+  (`matchesPerson` forwarded to `PersonFilterMatcher`, `buildFormatFilterData` is now
+  `PersonFormatFilterData.build`). The rule itself stops counting private and deprecated members, with the
+  reasoning recorded in `config/detekt/detekt.yml`: a private helper is what `CyclomaticComplexMethod` and
+  `LongMethod` ask a class to extract, and a deprecated member is a forwarder on its way out, so counting either
+  makes the rules contradict each other. 8 of the 234 originally baselined findings remain.
+
 ### 2.0.0 — 2026-07-22
 
 The API is stable. Nothing in the library carries `@ExperimentalTableApi` any more — `Table`,

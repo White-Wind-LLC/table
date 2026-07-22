@@ -55,7 +55,7 @@ val state = rememberTableState(
 ```
 
 You can also provide `initialOrder`, `initialWidths`, `initialSort` and update from outside using
-`state.setColumnOrder(...)`, `state.setColumnWidths(...)`.
+`state.columns.setOrder(...)`, `state.columns.setWidths(...)`.
 
 #### 4) Rendering (core)
 

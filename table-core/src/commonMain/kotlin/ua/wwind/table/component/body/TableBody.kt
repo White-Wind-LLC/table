@@ -190,7 +190,7 @@ internal fun <T : Any, C, E> TableBody(
                     visibleColumns = visibleColumns,
                     widthResolver = { key ->
                         val spec = visibleColumns.firstOrNull { it.key == key }
-                        state.resolveColumnWidth(key, spec)
+                        state.columns.resolveWidth(key, spec)
                     },
                     tableData = tableData,
                     footerColor = colors.footerContainerColor,
@@ -377,7 +377,7 @@ internal fun <T : Any, C, E> TableBodyEmbedded(
                 visibleColumns = visibleColumns,
                 widthResolver = { key ->
                     val spec = visibleColumns.firstOrNull { it.key == key }
-                    state.resolveColumnWidth(key, spec)
+                    state.columns.resolveWidth(key, spec)
                 },
                 tableData = tableData,
                 footerColor = colors.footerContainerColor,
@@ -563,7 +563,7 @@ private fun <T : Any, C> rowDragHooks(
         // An edit in flight validates against row positions that are about to shift.
         onBlockDragStarted =
             if (blocks != null) {
-                { if (!state.tryCompleteEditing()) state.cancelEditing() }
+                { if (!state.editing.tryComplete()) state.editing.cancel() }
             } else {
                 null
             },

@@ -116,7 +116,12 @@ public class EditableTableColumnsBuilder<T : Any, C, E> internal constructor() {
     internal fun build(): ImmutableList<ColumnSpec<T, C, E>> = specs.toImmutableList()
 }
 
-/** Builder for a single readonly [ColumnSpec]. */
+/**
+ * Builder for a single readonly [ColumnSpec].
+ *
+ * One function per declarable property of a column, so the count tracks the size of [ColumnSpec]
+ * rather than any responsibility a reader has to follow — the rule is suppressed rather than fixed.
+ */
 @Suppress("TooManyFunctions")
 public open class ReadonlyColumnBuilder<T : Any, C, E>
     internal constructor(

@@ -4,6 +4,9 @@
 to hit it. Most call sites need one or two edits; the compiler flags all of them except the one noted
 under [Parameter order](#parameter-order).
 
+The guide also covers [the `TableState` members deprecated in 2.1.0](#state-holders-on-tablestate), which followed
+one day later, so an upgrade from 1.x lands on the final names in one pass instead of two.
+
 ## No more opt-in
 
 `Table`, `EditableTable` and the `table-paging` adapter no longer carry `@ExperimentalTableApi`.
@@ -42,6 +45,90 @@ The last one is new to this release. The extension existed only to OR the new an
 flags together, so with `isDragEnabled` gone it is exactly the property it reads.
 `isInteractionLockByRowReorderEnabled` is unchanged and still available.
 
+## State holders on `TableState`
+
+`TableState` had grown to hold four unrelated jobs. Three of them now live in holders of their own,
+reached through the same state object:
+
+| Holder             | Owns                                                     |
+|--------------------|----------------------------------------------------------|
+| `state.columns`    | column order, width overrides, auto-fit measurements      |
+| `state.selection`  | focused row, checked rows, selected cell                  |
+| `state.editing`    | edited row and column, edit callbacks                     |
+
+Sorting, grouping and filtering stay on `state` itself — `setSort`, `groupBy`, `setFilter`, `sort`
+and `filters` are unchanged.
+
+Nothing breaks: every moved member is still on `TableState`, deprecated, with a `ReplaceWith` that
+the IDE applies for you (*Code → Inspect Code*, or Alt+Enter on the warning). They are removed in the
+next major, so migrate while the compiler is still pointing at each site.
+
+```kotlin title="Before"
+state.setColumnOrder(order)
+state.toggleSelect(index)
+if (state.editingRow == null) state.startEditing(item, index, column)
+```
+
+```kotlin title="After"
+state.columns.setOrder(order)
+state.selection.toggleRow(index)
+if (state.editing.rowIndex == null) state.editing.start(item, index, column)
+```
+
+**Columns** — `state.columns`:
+
+| Before                             | After                              |
+|------------------------------------|------------------------------------|
+| `columnOrder`                      | `columns.order`                    |
+| `columnWidths`                     | `columns.widths`                   |
+| `columnContentMaxWidths`           | `columns.contentMaxWidths`         |
+| `columnHeaderWidths`               | `columns.headerWidths`             |
+| `autoWidthAppliedForEmpty`         | `columns.autoWidthAppliedForEmpty` |
+| `autoWidthAppliedForData`          | `columns.autoWidthAppliedForData`  |
+| `resolveColumnWidth(key, spec)`    | `columns.resolveWidth(key, spec)`  |
+| `moveColumn(from, to)`             | `columns.move(from, to)`           |
+| `setColumnOrder(order)`            | `columns.setOrder(order)`          |
+| `resizeColumn(column, action)`     | `columns.resize(column, action)`   |
+| `setColumnWidths(map)`             | `columns.setWidths(map)`           |
+| `updateMaxContentWidth(…)`         | `columns.updateMaxContentWidth(…)` |
+| `setColumnWidthToMaxContent(col)`  | `columns.fitToContent(col)`        |
+| `recalculateAutoWidths()`          | `columns.recalculateAutoWidths()`  |
+
+**Selection** — `state.selection`:
+
+| Before                    | After                          |
+|---------------------------|--------------------------------|
+| `selectedIndex`           | `selection.selectedIndex`      |
+| `checkedIndices`          | `selection.checkedIndices`     |
+| `selectedCell`            | `selection.selectedCell`       |
+| `toggleSelect(index)`     | `selection.toggleRow(index)`   |
+| `focusRow(index)`         | `selection.focusRow(index)`    |
+| `toggleCheck(index)`      | `selection.toggleCheck(index)` |
+| `toggleCheckAll(count)`   | `selection.toggleCheckAll(count)` |
+| `selectCell(row, column)` | `selection.selectCell(row, column)` |
+
+`toggleSelect` is the one member that changes name as well as address: inside a holder called
+`selection`, "select" carried no information, and `toggleRow` next to `toggleCheck` says which of the
+two you are toggling. `TableState.SelectedCell` stays where it is — a nested type cannot be
+re-exported under a new name, so moving it would have broken every consumer that names it.
+
+**Editing** — `state.editing`:
+
+| Before                             | After                                  |
+|------------------------------------|----------------------------------------|
+| `editingRow`                       | `editing.rowIndex`                     |
+| `editingColumn`                    | `editing.column`                       |
+| `onRowEditStart`                   | `editing.onRowEditStart`               |
+| `onRowEditComplete`                | `editing.onRowEditComplete`            |
+| `onEditCancel`                     | `editing.onEditCancel`                 |
+| `startEditing(item, row, column)`  | `editing.start(item, row, column)`     |
+| `tryCompleteEditing()`             | `editing.tryComplete()`                |
+| `completeCurrentCellEdit(columns)` | `editing.completeCurrentCell(columns)` |
+| `cancelEditing()`                  | `editing.cancel()`                     |
+
+The `EditableTable` parameters that feed these callbacks — `onRowEditStart`, `onRowEditComplete`,
+`onEditCancel` — are unchanged; only the state properties they write moved.
+
 ## Renamed callbacks
 
 Event callbacks are named for the event in present tense, per the Compose convention. This breaks
@@ -50,7 +137,7 @@ Event callbacks are named for the event in present tense, per the Compose conven
 | Before                          | After                        |
 |---------------------------------|------------------------------|
 | `EditableTable(onEditCancelled = …)` | `EditableTable(onEditCancel = …)` |
-| `TableState.onEditCancelled`    | `TableState.onEditCancel`    |
+| `TableState.onEditCancelled`    | `TableState.editing.onEditCancel` (see [State holders](#state-holders-on-tablestate)) |
 | `FormatDialog(onRulesChanged = …)` | `FormatDialog(onRulesChange = …)` |
 
 ## Parameter order

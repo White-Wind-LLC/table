@@ -157,9 +157,9 @@ public fun <T : Any, C, E> EditableTable(
     onEditCancel: ((rowIndex: Int) -> Unit)? = null,
 ) {
     val dimensions = state.dimensions
-    val visibleColumns by remember(columns, state.columnOrder) {
+    val visibleColumns by remember(columns, state.columns.order) {
         derivedStateOf {
-            state.columnOrder.mapNotNullToImmutable { key ->
+            state.columns.order.mapNotNullToImmutable { key ->
                 columns.find { it.key == key && it.visible }
             }
         }
@@ -288,7 +288,7 @@ public fun <T : Any, C, E> EditableTable(
 
                     // SelectionContainer is disabled while a row is in edit mode to avoid
                     // cross-hierarchy text selection issues with popup-based editors on Desktop.
-                    if (state.settings.enableTextSelection && state.editingRow == null) {
+                    if (state.settings.enableTextSelection && state.editing.rowIndex == null) {
                         SelectionContainer { bodyContent() }
                     } else {
                         bodyContent()
@@ -718,7 +718,7 @@ private fun <T : Any, C, E> PinnedFooterOverlay(
             visibleColumns = visibleColumns,
             widthResolver = { key ->
                 val spec = columns.firstOrNull { it.key == key }
-                state.resolveColumnWidth(key, spec)
+                state.columns.resolveWidth(key, spec)
             },
             tableData = tableData,
             footerColor = colors.footerContainerColor,

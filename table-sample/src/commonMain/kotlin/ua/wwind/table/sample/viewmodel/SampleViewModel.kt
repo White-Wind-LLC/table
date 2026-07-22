@@ -18,11 +18,9 @@ import ua.wwind.table.RowWithinBlockMove
 import ua.wwind.table.applyRowBlockMove
 import ua.wwind.table.applyRowReorderWithinBlock
 import ua.wwind.table.filter.data.TableFilterState
-import ua.wwind.table.format.FormatFilterData
 import ua.wwind.table.format.data.TableFormatRule
 import ua.wwind.table.sample.column.PersonColumn
 import ua.wwind.table.sample.data.createDemoData
-import ua.wwind.table.sample.filter.filterTypes
 import ua.wwind.table.sample.model.Person
 import ua.wwind.table.sample.model.PersonEditState
 import ua.wwind.table.sample.model.PersonMovement
@@ -30,7 +28,6 @@ import ua.wwind.table.sample.model.PersonTableData
 import ua.wwind.table.sample.model.movementBlockId
 import ua.wwind.table.sample.util.DefaultFormatRulesProvider
 import ua.wwind.table.sample.util.PersonFilterMatcher
-import ua.wwind.table.sample.util.PersonFilterStateFactory
 import ua.wwind.table.sample.util.PersonSorter
 import ua.wwind.table.sample.util.PersonValidator
 import ua.wwind.table.sortedWithinRowBlocks
@@ -160,36 +157,6 @@ class SampleViewModel : ViewModel() {
     ) {
         rules = newRules
     }
-
-    /** Build `FormatFilterData` list for the dialog from current rule state. */
-    fun buildFormatFilterData(
-        rule: TableFormatRule<PersonColumn, Map<PersonColumn, TableFilterState<*>>>,
-        onApply: (TableFormatRule<PersonColumn, Map<PersonColumn, TableFilterState<*>>>) -> Unit,
-    ): List<FormatFilterData<PersonColumn>> =
-        PersonColumn.entries.map { column ->
-            val type = filterTypes.getValue(column)
-            val current: TableFilterState<*>? = rule.filter[column]
-            val defaultState: TableFilterState<*> = PersonFilterStateFactory.createDefaultState(column)
-
-            FormatFilterData(
-                field = column,
-                filterType = type,
-                filterState = current ?: defaultState,
-                onChange = { newState ->
-                    val newMap = rule.filter.toMutableMap().apply { put(column, newState) }
-                    onApply(rule.copy(filter = newMap))
-                },
-            )
-        }
-
-    /**
-     * Evaluate whether the given person matches the rule's filter map.
-     * Delegates to PersonFilterMatcher utility.
-     */
-    fun matchesPerson(
-        person: Person,
-        ruleFilters: Map<PersonColumn, TableFilterState<*>>,
-    ): Boolean = PersonFilterMatcher.matchesPerson(person, ruleFilters)
 
     /** Update filters - triggers automatic recalculation via StateFlow combination */
     fun updateFilters(filters: Map<PersonColumn, TableFilterState<*>>) {

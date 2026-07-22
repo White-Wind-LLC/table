@@ -166,11 +166,11 @@ public suspend fun <T : Any, C, E> ensureColumnFullyVisible(
     // Compute absolute left position of the target column within the content (px)
     var x = 0.dp
     visibleColumns.take(targetColIndex).forEach { spec ->
-        val width = state.resolveColumnWidth(spec.key, spec)
+        val width = state.columns.resolveWidth(spec.key, spec)
         x += width + dimensions.dividerThickness
     }
 
-    val columnWidth = state.resolveColumnWidth(targetColKey, visibleColumns[targetColIndex])
+    val columnWidth = state.columns.resolveWidth(targetColKey, visibleColumns[targetColIndex])
 
     // 1) Viewport coordinates relative to full content width
     val viewportX1Px = horizontalState.value

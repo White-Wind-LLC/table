@@ -28,7 +28,7 @@ internal fun <T : Any, C, E> EnsureSelectedCellVisibleEffect(
     val density = LocalDensity.current
     var previousSelectedRowIndex by remember { mutableStateOf<Int?>(null) }
     LaunchedEffect(state) {
-        snapshotFlow { state.selectedCell }.collectLatest { cell ->
+        snapshotFlow { state.selection.selectedCell }.collectLatest { cell ->
             if (cell == null) return@collectLatest
             val colIndex = visibleColumns.indexOfFirst { it.key == cell.column }
             if (colIndex >= 0) {
