@@ -6,10 +6,33 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.test.ComposeUiTest
+import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.v2.runComposeUiTest
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.TestResult
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import ua.wwind.table.config.TableCustomization
 import ua.wwind.table.config.TableRowContext
 import ua.wwind.table.config.TableRowStyle
+
+/**
+ * `runComposeUiTest` for the tests that drive a drag through the reorderable engine.
+ *
+ * The v2 test API composes on a `StandardTestDispatcher`, which queues coroutines instead of
+ * running them inline. The reorderable engine both starts a drag and applies every swap from a
+ * `scope.launch` inside its pointer callbacks, so under the queued dispatcher an injected gesture
+ * reorders nothing: a block dragged past the end of a non-scrolling list never crosses a single
+ * row, and the drop that should land last lands nowhere. Pumping the clock between the injected
+ * move events does not recover it. Composing on an `UnconfinedTestDispatcher` keeps those launches
+ * inline, which is the timing a real drag gets from its frames.
+ *
+ * Tests that only compose and assert use the v2 default instead.
+ */
+@OptIn(ExperimentalTestApi::class, ExperimentalCoroutinesApi::class)
+internal fun runDragUiTest(block: suspend ComposeUiTest.() -> Unit): TestResult =
+    runComposeUiTest(effectContext = UnconfinedTestDispatcher(), block = block)
 
 internal data class BlockRow(
     val id: Int,

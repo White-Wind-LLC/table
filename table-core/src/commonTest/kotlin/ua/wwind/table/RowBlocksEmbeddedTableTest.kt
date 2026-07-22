@@ -14,7 +14,7 @@ import androidx.compose.ui.test.getBoundsInRoot
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performTouchInput
-import androidx.compose.ui.test.runComposeUiTest
+import androidx.compose.ui.test.v2.runComposeUiTest
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.width
 import assertk.assertThat
@@ -38,7 +38,7 @@ import kotlin.test.Test
 class RowBlocksEmbeddedTableTest {
     @Test
     fun `drop commits one move and remaps positional state`() =
-        runComposeUiTest {
+        runDragUiTest {
             // The embedded engine reports the gesture's net result once, at drop — the commit and
             // its side effects must match the lazy path's exactly-one-event contract.
             val moves = mutableListOf<RowBlockMove>()
@@ -120,7 +120,7 @@ class RowBlocksEmbeddedTableTest {
 
     @Test
     fun `upstream change mid-gesture cancels the drag and commits nothing`() =
-        runComposeUiTest {
+        runDragUiTest {
             // Changing the rendered list mid-drag rebuilds the embedded engine, and the OLD
             // engine's disposal still delivers the dead gesture's settle — with unit indices
             // computed against the old geometry. Applying them to the new list would commit a
@@ -200,7 +200,7 @@ class RowBlocksEmbeddedTableTest {
 
     @Test
     fun `reorder without blocks still delivers per-row moves`() =
-        runComposeUiTest {
+        runDragUiTest {
             // Regression guard for the pre-blocks embedded contract: no blocks means per-row
             // onRowMove semantics, one (from, to) pair per completed gesture.
             val moves = mutableListOf<Pair<Int, Int>>()
@@ -243,7 +243,7 @@ class RowBlocksEmbeddedTableTest {
 
     @Test
     fun `same-count list change mid-gesture drops the stale settle`() =
-        runComposeUiTest {
+        runDragUiTest {
             // itemsCount is unchanged and the itemAt lambda captures the state delegate, so both
             // keep one identity across the change: only the snapshot's CONTENT can tell the settle
             // guard the engine laid out a different list. Regression for the memoized stale
@@ -307,7 +307,7 @@ class RowBlocksEmbeddedTableTest {
 
     @Test
     fun `reorder without blocks renders cleanly after an applied in-place move`() =
-        runComposeUiTest {
+        runDragUiTest {
             // The applied move changes neither itemsCount nor the itemAt identity, so only the
             // snapshot's content can rebuild the engine state; a stale snapshot would keep the
             // settled drag offsets forever and render every row doubly displaced — once by the
@@ -359,7 +359,7 @@ class RowBlocksEmbeddedTableTest {
 
     @Test
     fun `drag start completes or cancels an active cell edit`() =
-        runComposeUiTest {
+        runDragUiTest {
             val cancelled = mutableListOf<Int>()
             val items = listOf(BlockRow(0, "a"), BlockRow(1, "a"), BlockRow(2, null))
             lateinit var state: TableState<String>

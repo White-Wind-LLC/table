@@ -23,7 +23,7 @@ import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performTouchInput
-import androidx.compose.ui.test.runComposeUiTest
+import androidx.compose.ui.test.v2.runComposeUiTest
 import androidx.compose.ui.unit.dp
 import assertk.assertThat
 import assertk.assertions.isEqualTo
@@ -163,7 +163,7 @@ class RowBlocksTableTest {
 
     @Test
     fun `drop commits one move and remaps positional state`() =
-        runComposeUiTest {
+        runDragUiTest {
             val moves = mutableListOf<RowBlockMove>()
             val items =
                 listOf(
@@ -242,7 +242,7 @@ class RowBlocksTableTest {
 
     @Test
     fun `drag start completes or cancels an active cell edit`() =
-        runComposeUiTest {
+        runDragUiTest {
             val cancelled = mutableListOf<Int>()
             val items = listOf(BlockRow(0, "a"), BlockRow(1, "a"), BlockRow(2, null))
             lateinit var state: TableState<String>
@@ -297,7 +297,7 @@ class RowBlocksTableTest {
 
     @Test
     fun `groupBy suppresses blocks and their commits and is surfaced`() =
-        runComposeUiTest {
+        runDragUiTest {
             val moves = mutableListOf<RowBlockMove>()
             val rowMoves = mutableListOf<Pair<Int, Int>>()
             val items = listOf(BlockRow(0, "a"), BlockRow(1, "a"), BlockRow(2, null))
@@ -462,7 +462,7 @@ class RowBlocksTableTest {
 
     @Test
     fun `drag hooks land on a recreated TableState`() =
-        runComposeUiTest {
+        runDragUiTest {
             // rememberTableState swaps instances when dimensions change, while the reorder engine
             // keeps its per-item scopes alive across the swap. The commit side effects must reach
             // the live state, not the one captured when the scope was first built.

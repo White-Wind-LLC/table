@@ -17,7 +17,7 @@ import androidx.compose.ui.test.getBoundsInRoot
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performTouchInput
-import androidx.compose.ui.test.runComposeUiTest
+import androidx.compose.ui.test.v2.runComposeUiTest
 import androidx.compose.ui.unit.dp
 import assertk.assertThat
 import assertk.assertions.isEqualTo
@@ -130,7 +130,7 @@ class RowBlocksPagedTableTest {
 
     @Test
     fun `drop onto a placeholder cancels and a later drop onto the loaded page commits`() =
-        runComposeUiTest {
+        runDragUiTest {
             val moves = mutableListOf<RowBlockMove>()
             var loaded by mutableStateOf(
                 mapOf(
@@ -200,7 +200,7 @@ class RowBlocksPagedTableTest {
 
     @Test
     fun `embedded refused drop snaps the view back and a later drop onto the loaded page commits`() =
-        runComposeUiTest {
+        runDragUiTest {
             // Embedded twist on the paged drop policy: the embedded engine keys its drag offsets
             // on list equality alone, and a refusal is net-neutral over that list — without a
             // rebuild signal the view would keep showing the dropped order over a model that
@@ -277,7 +277,7 @@ class RowBlocksPagedTableTest {
 
     @Test
     fun `drop onto a loaded anchor commits despite a placeholder crossed en route`() =
-        runComposeUiTest {
+        runDragUiTest {
             val moves = mutableListOf<RowBlockMove>()
             val loaded =
                 mapOf(
@@ -332,7 +332,7 @@ class RowBlocksPagedTableTest {
 
     @Test
     fun `page loading mid gesture keeps the drag alive and the drop commits`() =
-        runComposeUiTest {
+        runDragUiTest {
             // The go/no-go check for paged drag: a page arriving under a held gesture replaces
             // placeholder index-keys with item keys beneath the engine. The dragged unit's own key
             // is stable, so the drag must survive the neighbour churn and settle into one commit
