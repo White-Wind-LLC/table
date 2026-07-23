@@ -39,12 +39,40 @@ FormatDialog(
     getNewRule = { id -> TableFormatRule.new<PersonField, Person>(id, Person("", 0)) },
     getTitle = { field -> field.name },
     filters = { rule, onApply -> /* return list of FormatFilterData for fields */ emptyList() },
-    entries = PersonField.entries,
+    entries = PersonField.entries.toImmutableList(),
     key = Unit,
     strings = DefaultStrings,
     onDismissRequest = { /* ... */ },
 )
 ```
+
+## Hosting the editor in your own container
+
+`FormatDialog` renders the editor inside a Material3 `AlertDialog`. To host the same UI in your own container — a
+custom dialog wrapper, a side panel, a split pane — use `FormatDialogContent`, which renders the editor without a
+dialog. The container owns visibility, scrim, background and elevation; the content applies only its title/text
+colors. Give it a bounded‑height parent (the rule list scrolls inside), and pass `onDismissRequest = null` to hide
+the close button for embedded, non‑modal placements.
+
+```kotlin
+MyAdaptiveDialogHost(visible = show, onDismissRequest = { show = false }) {
+    FormatDialogContent(
+        rules = rules,
+        onRulesChange = { /* persist */ },
+        getNewRule = { id -> TableFormatRule.new<PersonField, Person>(id, Person("", 0)) },
+        getTitle = { it.name },
+        filters = { rule, onApply -> emptyList() },
+        entries = PersonField.entries.toImmutableList(),
+        key = Unit,
+        strings = DefaultStrings,
+        onDismissRequest = { show = false },
+    )
+}
+```
+
+Colors for both `FormatDialog` and `FormatDialogContent` come from `FormatDialogColors`, defaulting to
+`FormatDialogDefaults.colors()` (the Material3 `AlertDialog` defaults). `FormatDialogContent` applies the title and
+text content colors itself and leaves the container color and elevation to its parent.
 
 `rememberCustomization` merges base styles with matching rules into a resulting `TableCustomization` (background,
 content color, text style, alignment, etc.).
@@ -126,7 +154,7 @@ FormatDialog(
     getNewRule = { id -> TableFormatRule.new<PersonField, Person>(id, Person("", 0)) },
     getTitle = { it.name },
     filters = { rule, onApply -> emptyList() }, // build `FormatFilterData` list for your fields
-    entries = PersonField.values().toList(),
+    entries = PersonField.entries.toImmutableList(),
     key = Unit,
     strings = DefaultStrings,
     onDismissRequest = { show = false }
@@ -138,6 +166,8 @@ Public API highlights:
 - `rememberCustomization<T, C, FILTER>(rules, matches = ...) : TableCustomization<T, C>`.
 - `TableFormatRule<FIELD, FILTER>` with `columns: List<FIELD>`, `cellStyle: TableCellStyleConfig`, `filter: FILTER`.
 - `FormatDialog(...)` and `FormatDialogSettings` for UX tweaks.
+- `FormatDialogContent(...)` to host the same rule editor in any container (a dialog host, side panel, split pane).
+- `FormatDialogColors` / `FormatDialogDefaults.colors()` for dialog/content colors, via a `colors` parameter on both.
 - `FormatFilterData<E>` to describe per‑field filter controls in the dialog.
 - `FilterConstraint.isNullCheck()` extension function to check for IS_NULL/IS_NOT_NULL constraints.
 - `TableFilterState.isActive()` extension function to determine if a filter is active.

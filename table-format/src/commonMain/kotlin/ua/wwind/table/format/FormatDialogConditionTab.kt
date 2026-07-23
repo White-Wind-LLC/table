@@ -92,7 +92,7 @@ public fun <E : Enum<E>, FILTER> FormatDialogConditionTab(
 ) {
     Box(
         modifier = modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center,
+        contentAlignment = Alignment.TopCenter,
     ) {
         val listState = rememberLazyListState()
         Box {
