@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file.
   base offset is now read live.
 - Fixed: the Condition tab of the formatting dialog centered its field list vertically, leaving a gap under the
   tabs when the list was shorter than the dialog; the list now top-aligns.
+- Updated: Android Gradle Plugin to 9.3.1 (from 9.3.0).
 
 Compare: [v2.1.0...v2.1.1](https://github.com/White-Wind-LLC/table/compare/v2.1.0...v2.1.1)
 
