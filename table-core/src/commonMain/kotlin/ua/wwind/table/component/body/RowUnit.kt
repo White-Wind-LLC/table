@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
@@ -155,10 +156,12 @@ internal fun <T : Any, C, E> RowUnit(
         if (onRowMoveWithinBlock != null) {
             // Embedded-style: onSettle reports the net move at drop, so the settle applies once.
             val blockItems = EmbeddedUnitList(rows.map { itemAt(it) }, withinBlockRefusalCount)
+            // Read live: ReorderableColumn freezes onSettle, but a whole-block move shifts rows.first.
+            val blockBaseOffset = rememberUpdatedState(rows.first)
             ReorderableColumn(
                 list = blockItems,
                 onSettle = { fromLocal, toLocal ->
-                    onRowMoveWithinBlock(rows.first + fromLocal, rows.first + toLocal)
+                    onRowMoveWithinBlock(blockBaseOffset.value + fromLocal, blockBaseOffset.value + toLocal)
                 },
             ) { localIndex, _, _ ->
                 val rowIndex = rows.first + localIndex

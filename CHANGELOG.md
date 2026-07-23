@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+### 2.1.1 — 2026-07-23
+
+- Added: `FormatDialogContent` — the conditional-formatting editor as portable content, so it can be hosted in any
+  container (a custom dialog host, a side panel, a split pane) instead of only the built-in `AlertDialog`.
+  `FormatDialog` is unchanged; both reuse the same internal title, buttons and body blocks.
+- Added: `FormatDialogColors` and `FormatDialogDefaults.colors()` (defaulting to the Material3 `AlertDialog`
+  defaults), and a `colors` parameter on `FormatDialog` and `FormatDialogContent`. `FormatDialogContent` applies the
+  title and text content colors itself; the container owns background and elevation.
+- Fixed: reordering a row within a block stopped committing once the block had been moved as a whole. The nested
+  reorderable's `onSettle` captured a stale base offset, so the move mapped outside the block and was rejected; the
+  base offset is now read live.
+- Fixed: the Condition tab of the formatting dialog centered its field list vertically, leaving a gap under the
+  tabs when the list was shorter than the dialog; the list now top-aligns.
+
+Compare: [v2.1.0...v2.1.1](https://github.com/White-Wind-LLC/table/compare/v2.1.0...v2.1.1)
+
 ### 2.1.0 — 2026-07-22
 
 `TableState` splits into state holders. It had grown to carry four unrelated jobs at once, and the detekt debt
