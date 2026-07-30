@@ -175,6 +175,7 @@ private fun renderFile(
         appendLine("import androidx.compose.ui.graphics.Color")
         appendLine("import androidx.compose.ui.graphics.SolidColor")
         appendLine("import androidx.compose.ui.graphics.vector.ImageVector")
+        appendLine("import androidx.compose.ui.graphics.vector.path")
         appendLine("import androidx.compose.ui.unit.dp")
         appendLine()
         appendLine(kdoc)
