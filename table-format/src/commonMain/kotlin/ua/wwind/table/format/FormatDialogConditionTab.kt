@@ -18,10 +18,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.SwapHoriz
-import androidx.compose.material.icons.rounded.ArrowDropUp
-import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -74,6 +70,7 @@ import ua.wwind.table.filter.data.toUiString
 import ua.wwind.table.format.data.TableFormatRule
 import ua.wwind.table.format.scrollbar.VerticalScrollbarRenderer
 import ua.wwind.table.format.scrollbar.VerticalScrollbarState
+import ua.wwind.table.icon.TableIcons
 import ua.wwind.table.strings.StringProvider
 import ua.wwind.table.strings.UiString
 import kotlin.time.ExperimentalTime
@@ -138,7 +135,7 @@ public fun <E : Enum<E>, FILTER> FormatDialogConditionTab(
                                         label = "expand condition",
                                     )
                                     Icon(
-                                        imageVector = Icons.Rounded.ArrowDropUp,
+                                        imageVector = TableIcons.ArrowDropUp,
                                         contentDescription = null,
                                         modifier = Modifier.rotate(rotation),
                                     )
@@ -156,7 +153,7 @@ public fun <E : Enum<E>, FILTER> FormatDialogConditionTab(
                                             },
                                         ) {
                                             Icon(
-                                                imageVector = Icons.Rounded.Close,
+                                                imageVector = TableIcons.Close,
                                                 contentDescription = "Remove Filter",
                                                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                             )
@@ -710,7 +707,7 @@ private fun <T : Number> FormatNumberFilter(
             )
             if (isBetween) {
                 Icon(
-                    imageVector = Icons.Filled.SwapHoriz,
+                    imageVector = TableIcons.SwapHoriz,
                     contentDescription = strings.get(UiString.FilterRangeIconDescription),
                 )
                 OutlinedTextField(

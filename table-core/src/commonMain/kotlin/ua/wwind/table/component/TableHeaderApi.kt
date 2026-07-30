@@ -1,11 +1,5 @@
 package ua.wwind.table.component
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.Sort
-import androidx.compose.material.icons.outlined.FilterAlt
-import androidx.compose.material.icons.rounded.ArrowDownward
-import androidx.compose.material.icons.rounded.ArrowUpward
-import androidx.compose.material.icons.rounded.FilterAlt
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.ProvidableCompositionLocal
@@ -14,6 +8,7 @@ import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.vector.ImageVector
 import ua.wwind.table.data.SortOrder
+import ua.wwind.table.icon.TableIcons
 
 /** Icons used by table header for sort and filter affordances. */
 @Immutable
@@ -29,11 +24,11 @@ public object TableHeaderDefaults {
     /** Factory for [TableHeaderIcons] with sensible defaults. */
     @Composable
     public fun icons(
-        sortAsc: ImageVector = Icons.Rounded.ArrowUpward,
-        sortDesc: ImageVector = Icons.Rounded.ArrowDownward,
-        sortNeutral: ImageVector = Icons.AutoMirrored.Outlined.Sort,
-        filterActive: ImageVector = Icons.Rounded.FilterAlt,
-        filterInactive: ImageVector = Icons.Outlined.FilterAlt,
+        sortAsc: ImageVector = TableIcons.ArrowUpward,
+        sortDesc: ImageVector = TableIcons.ArrowDownward,
+        sortNeutral: ImageVector = TableIcons.Sort,
+        filterActive: ImageVector = TableIcons.FilterAltFilled,
+        filterInactive: ImageVector = TableIcons.FilterAltOutlined,
     ): TableHeaderIcons =
         TableHeaderIcons(
             sortAsc = sortAsc,
@@ -65,11 +60,11 @@ public val LocalTableHeaderCellInfo: ProvidableCompositionLocal<TableHeaderCellI
 public val LocalTableHeaderIcons: ProvidableCompositionLocal<TableHeaderIcons> =
     staticCompositionLocalOf {
         TableHeaderIcons(
-            sortAsc = Icons.Rounded.ArrowUpward,
-            sortDesc = Icons.Rounded.ArrowDownward,
-            sortNeutral = Icons.AutoMirrored.Outlined.Sort,
-            filterActive = Icons.Rounded.FilterAlt,
-            filterInactive = Icons.Outlined.FilterAlt,
+            sortAsc = TableIcons.ArrowUpward,
+            sortDesc = TableIcons.ArrowDownward,
+            sortNeutral = TableIcons.Sort,
+            filterActive = TableIcons.FilterAltFilled,
+            filterInactive = TableIcons.FilterAltOutlined,
         )
     }
 

@@ -4,12 +4,6 @@ import androidx.compose.foundation.layout.Arrangement.spacedBy
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.rounded.ContentCopy
-import androidx.compose.material.icons.rounded.Delete
-import androidx.compose.material.icons.rounded.Save
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -24,6 +18,7 @@ import kotlinx.collections.immutable.toPersistentList
 import ua.wwind.table.format.component.FormatDialogState
 import ua.wwind.table.format.data.EditFormatRule
 import ua.wwind.table.format.data.TableFormatRule
+import ua.wwind.table.icon.TableIcons
 
 @Composable
 @Suppress("LongMethod")
@@ -48,7 +43,7 @@ internal fun <E : Enum<E>, FILTER> FormatDialogButtons(
             shape = CircleShape,
         ) {
             Icon(
-                imageVector = Icons.Rounded.Add,
+                imageVector = TableIcons.Add,
                 contentDescription = "Add",
             )
         }
@@ -71,7 +66,7 @@ internal fun <E : Enum<E>, FILTER> FormatDialogButtons(
                     },
                 ) {
                     Icon(
-                        imageVector = Icons.Rounded.Delete,
+                        imageVector = TableIcons.Delete,
                         contentDescription = "Delete",
                         tint = MaterialTheme.colorScheme.error,
                     )
@@ -91,7 +86,7 @@ internal fun <E : Enum<E>, FILTER> FormatDialogButtons(
                     },
                 ) {
                     Icon(
-                        imageVector = Icons.Rounded.ContentCopy,
+                        imageVector = TableIcons.ContentCopy,
                         contentDescription = "Copy",
                     )
                 }
@@ -102,7 +97,7 @@ internal fun <E : Enum<E>, FILTER> FormatDialogButtons(
                 },
             ) {
                 Icon(
-                    imageVector = Icons.Rounded.Close,
+                    imageVector = TableIcons.Close,
                     contentDescription = "Close",
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -122,7 +117,7 @@ internal fun <E : Enum<E>, FILTER> FormatDialogButtons(
                 },
             ) {
                 Icon(
-                    imageVector = Icons.Rounded.Save,
+                    imageVector = TableIcons.Save,
                     contentDescription = "Save",
                 )
             }

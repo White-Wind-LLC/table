@@ -7,10 +7,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowLeft
-import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
-import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.InputChip
@@ -29,6 +25,7 @@ import ua.wwind.table.filter.data.TableFilterState
 import ua.wwind.table.filter.data.TableFilterType
 import ua.wwind.table.filter.data.isActive
 import ua.wwind.table.filter.data.isNullCheck
+import ua.wwind.table.icon.TableIcons
 import ua.wwind.table.state.TableState
 import ua.wwind.table.strings.DefaultStrings
 import ua.wwind.table.strings.StringProvider
@@ -78,7 +75,7 @@ public fun <T : Any, C, E> TableActiveFilters(
                 label = { Text(strings.get(UiString.FilterClear)) },
                 trailingIcon = {
                     Icon(
-                        imageVector = Icons.Rounded.Close,
+                        imageVector = TableIcons.Close,
                         contentDescription = null,
                     )
                 },
@@ -99,7 +96,7 @@ public fun <T : Any, C, E> TableActiveFilters(
                 modifier = Modifier.padding(end = 4.dp),
             ) {
                 Icon(
-                    imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowLeft,
+                    imageVector = TableIcons.KeyboardArrowLeft,
                     contentDescription = null,
                 )
             }
@@ -125,7 +122,7 @@ public fun <T : Any, C, E> TableActiveFilters(
                             label = { Text("$title: $text") },
                             trailingIcon = {
                                 Icon(
-                                    imageVector = Icons.Rounded.Close,
+                                    imageVector = TableIcons.Close,
                                     contentDescription = null,
                                 )
                             },
@@ -150,7 +147,7 @@ public fun <T : Any, C, E> TableActiveFilters(
                 modifier = Modifier.padding(start = 4.dp),
             ) {
                 Icon(
-                    imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                    imageVector = TableIcons.KeyboardArrowRight,
                     contentDescription = null,
                 )
             }
