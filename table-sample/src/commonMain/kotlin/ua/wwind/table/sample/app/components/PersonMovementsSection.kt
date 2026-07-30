@@ -7,8 +7,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DragIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -29,6 +27,7 @@ import ua.wwind.table.config.SelectionMode
 import ua.wwind.table.config.TableDefaults
 import ua.wwind.table.config.TableSettings
 import ua.wwind.table.draggableHandle
+import ua.wwind.table.icon.TableIcons
 import ua.wwind.table.sample.column.createMovementColumns
 import ua.wwind.table.sample.model.Person
 import ua.wwind.table.sample.model.PersonMovement
@@ -105,7 +104,7 @@ fun PersonMovementsSection(
                                 modifier = Modifier.width(handleColumnWidth),
                             ) {
                                 Icon(
-                                    imageVector = Icons.Default.DragIndicator,
+                                    imageVector = TableIcons.DragIndicator,
                                     contentDescription = "Drag year $blockId",
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                     modifier = Modifier.size(18.dp).draggableHandle(),

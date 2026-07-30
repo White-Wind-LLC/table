@@ -12,8 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -35,6 +33,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import ua.wwind.table.config.PinnedSide
 import ua.wwind.table.sample.column.PersonColumn
+import ua.wwind.table.sample.icon.SampleIcons
 
 // Dims a switch that stays composed while its section fades out.
 private const val DISABLED_CONTROL_ALPHA = 0.5f
@@ -79,7 +78,7 @@ fun SettingsSidebar(
                     fontWeight = FontWeight.Bold,
                 )
                 IconButton(onClick = onClose) {
-                    Icon(Icons.Default.Close, contentDescription = "Close settings")
+                    Icon(SampleIcons.Close, contentDescription = "Close settings")
                 }
             }
 

@@ -8,11 +8,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ExpandLess
-import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material.icons.filled.Reorder
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -47,6 +42,7 @@ import ua.wwind.table.editableTableColumns
 import ua.wwind.table.sample.config.CellPadding
 import ua.wwind.table.sample.filter.createSalaryRangeFilter
 import ua.wwind.table.sample.filter.filterTypes
+import ua.wwind.table.sample.icon.SampleIcons
 import ua.wwind.table.sample.model.Person
 import ua.wwind.table.sample.model.PersonMovement
 import ua.wwind.table.sample.model.PersonMovementColumn
@@ -103,7 +99,7 @@ fun createTableColumns(
                             modifier = Modifier.fillMaxSize().draggableHandle(),
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Reorder,
+                                imageVector = SampleIcons.Reorder,
                                 contentDescription = "Drag to reorder",
                                 modifier = Modifier.size(24.dp),
                             )
@@ -146,12 +142,12 @@ fun createTableColumns(
                     ) {
                         if (item.expandedMovement) {
                             Icon(
-                                imageVector = Icons.Filled.ExpandLess,
+                                imageVector = SampleIcons.ExpandLess,
                                 contentDescription = "Collapse movements",
                             )
                         } else {
                             Icon(
-                                imageVector = Icons.Filled.ExpandMore,
+                                imageVector = SampleIcons.ExpandMore,
                                 contentDescription = "Expand movements",
                             )
                         }
@@ -422,7 +418,7 @@ fun createTableColumns(
                     ) {
                         repeat(item.rating) {
                             Icon(
-                                imageVector = Icons.Filled.Star,
+                                imageVector = SampleIcons.Star,
                                 contentDescription = null,
                                 modifier = Modifier.size(16.dp),
                             )
@@ -514,7 +510,7 @@ fun createMovementColumns(
                         modifier = Modifier.fillMaxSize().draggableHandle(),
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Reorder,
+                            imageVector = SampleIcons.Reorder,
                             contentDescription = "Drag to reorder",
                             modifier = Modifier.size(20.dp),
                         )

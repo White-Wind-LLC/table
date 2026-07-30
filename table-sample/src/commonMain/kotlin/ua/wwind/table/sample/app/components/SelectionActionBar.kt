@@ -10,11 +10,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Link
-import androidx.compose.material.icons.filled.LinkOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -28,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.github.fletchmckee.liquid.LiquidState
 import io.github.fletchmckee.liquid.liquid
+import ua.wwind.table.sample.icon.SampleIcons
 
 /**
  * Floating action bar shown at the bottom when items are selected.
@@ -80,7 +76,7 @@ fun SelectionActionBar(
             ) {
                 IconButton(onClick = onClearSelection) {
                     Icon(
-                        imageVector = Icons.Default.Close,
+                        imageVector = SampleIcons.Close,
                         contentDescription = "Clear selection",
                         tint = MaterialTheme.colorScheme.onSurface,
                     )
@@ -103,7 +99,7 @@ fun SelectionActionBar(
                         shape = RoundedCornerShape(16.dp),
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Link,
+                            imageVector = SampleIcons.Link,
                             contentDescription = null,
                             modifier = Modifier.padding(end = 8.dp),
                         )
@@ -122,7 +118,7 @@ fun SelectionActionBar(
                         shape = RoundedCornerShape(16.dp),
                     ) {
                         Icon(
-                            imageVector = Icons.Default.LinkOff,
+                            imageVector = SampleIcons.LinkOff,
                             contentDescription = null,
                             modifier = Modifier.padding(end = 8.dp),
                         )
@@ -139,7 +135,7 @@ fun SelectionActionBar(
                     shape = RoundedCornerShape(16.dp),
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Delete,
+                        imageVector = SampleIcons.Delete,
                         contentDescription = null,
                         modifier = Modifier.padding(end = 8.dp),
                     )
