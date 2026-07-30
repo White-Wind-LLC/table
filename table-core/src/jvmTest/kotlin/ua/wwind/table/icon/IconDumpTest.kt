@@ -79,6 +79,8 @@ private val SAMPLE_ICONS: List<IconSpec> =
         IconSpec("Reorder", Icons.Filled.Reorder),
         IconSpec("Star", Icons.Filled.Star),
         IconSpec("BarChart", Icons.Filled.BarChart),
+        IconSpec("Close", Icons.Filled.Close),
+        IconSpec("Delete", Icons.Filled.Delete),
     )
 
 /** Same-name icons used in two styles. If a pair matches, one vendored entry serves both. */
