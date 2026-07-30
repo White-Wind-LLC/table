@@ -98,6 +98,7 @@ internal fun <T : Any, C, E> TableHeader(
                         visibleColumns = derived.visibleColumns,
                         widthResolver = { key -> derived.widthMap[key] ?: dimensions.defaultColumnWidth },
                         dimensions = dimensions,
+                        horizontalState = horizontalState,
                         onResize = { key, newWidth -> state.columns.resize(key, ColumnWidthAction.Set(newWidth)) },
                         onResizeStart = { isResizing = true },
                         onResizeEnd = { isResizing = false },

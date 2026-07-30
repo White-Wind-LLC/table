@@ -4,7 +4,9 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyListState
@@ -240,71 +242,78 @@ public fun <T : Any, C, E> EditableTable(
                     }
                 }
 
-            Box(modifier = innerModifier) {
-                Column {
-                    if (state.settings.showActiveFiltersHeader) {
-                        ActiveFiltersHeader(columns = columns, state = state, strings = strings)
-                    }
-
-                    TableHeader(
+            Column {
+                if (state.settings.showActiveFiltersHeader) {
+                    ActiveFiltersHeader(
                         columns = columns,
                         state = state,
-                        tableData = tableData,
-                        headerColor = colors.headerContainerColor,
-                        headerContentColor = colors.headerContentColor,
-                        rowContainerColor = colors.rowContainerColor,
-                        dimensions = dimensions,
                         strings = strings,
-                        icons = icons,
-                        horizontalState = horizontalState,
+                        modifier = activeFiltersModifier(embedded, state.tableWidth),
                     )
-
-                    val bodyContent: @Composable () -> Unit = {
-                        TableBodySection(
-                            embedded = embedded,
-                            itemsCount = itemsCount,
-                            itemAt = effectiveItemAt,
-                            rowKey = effectiveRowKey,
-                            visibleColumns = visibleColumns,
-                            state = state,
-                            colors = colors,
-                            customization = customization,
-                            tableData = tableData,
-                            rowEmbedded = rowEmbedded,
-                            placeholderRow = placeholderRow,
-                            onRowClick = onRowClick,
-                            onRowLongClick = onRowLongClick,
-                            onRowMove = effectiveOnRowMove,
-                            blocks = activeBlocks,
-                            onContextMenu = onContextMenuHandler,
-                            rowUnits = rowUnits,
-                            verticalState = verticalState,
-                            horizontalState = horizontalState,
-                            requestTableFocus = { tableFocusRequester.requestFocus() },
-                            enableScrolling = enableScrolling,
-                            pinnedFooterHeight = pinnedFooterHeight,
-                        )
-                    }
-
-                    // SelectionContainer is disabled while a row is in edit mode to avoid
-                    // cross-hierarchy text selection issues with popup-based editors on Desktop.
-                    if (state.settings.enableTextSelection && state.editing.rowIndex == null) {
-                        SelectionContainer { bodyContent() }
-                    } else {
-                        bodyContent()
-                    }
                 }
 
-                if (showPinnedFooter) {
-                    PinnedFooterOverlay(
-                        state = state,
-                        visibleColumns = visibleColumns,
-                        columns = columns,
-                        tableData = tableData,
-                        colors = colors,
-                        horizontalState = horizontalState,
-                        modifier = Modifier.align(Alignment.BottomStart),
-                    )
+                Box(modifier = scrollAreaModifier(embedded, innerModifier)) {
+                    Column {
+                        TableHeader(
+                            columns = columns,
+                            state = state,
+                            tableData = tableData,
+                            headerColor = colors.headerContainerColor,
+                            headerContentColor = colors.headerContentColor,
+                            rowContainerColor = colors.rowContainerColor,
+                            dimensions = dimensions,
+                            strings = strings,
+                            icons = icons,
+                            horizontalState = horizontalState,
+                        )
+
+                        val bodyContent: @Composable () -> Unit = {
+                            TableBodySection(
+                                embedded = embedded,
+                                itemsCount = itemsCount,
+                                itemAt = effectiveItemAt,
+                                rowKey = effectiveRowKey,
+                                visibleColumns = visibleColumns,
+                                state = state,
+                                colors = colors,
+                                customization = customization,
+                                tableData = tableData,
+                                rowEmbedded = rowEmbedded,
+                                placeholderRow = placeholderRow,
+                                onRowClick = onRowClick,
+                                onRowLongClick = onRowLongClick,
+                                onRowMove = effectiveOnRowMove,
+                                blocks = activeBlocks,
+                                onContextMenu = onContextMenuHandler,
+                                rowUnits = rowUnits,
+                                verticalState = verticalState,
+                                horizontalState = horizontalState,
+                                requestTableFocus = { tableFocusRequester.requestFocus() },
+                                enableScrolling = enableScrolling,
+                                pinnedFooterHeight = pinnedFooterHeight,
+                            )
+                        }
+
+                        // SelectionContainer is disabled while a row is in edit mode to avoid
+                        // cross-hierarchy text selection issues with popup-based editors on Desktop.
+                        if (state.settings.enableTextSelection && state.editing.rowIndex == null) {
+                            SelectionContainer { bodyContent() }
+                        } else {
+                            bodyContent()
+                        }
+                    }
+
+                    if (showPinnedFooter) {
+                        PinnedFooterOverlay(
+                            state = state,
+                            visibleColumns = visibleColumns,
+                            columns = columns,
+                            tableData = tableData,
+                            colors = colors,
+                            horizontalState = horizontalState,
+                            modifier = Modifier.align(Alignment.BottomStart),
+                        )
+                    }
                 }
             }
         }
@@ -549,6 +558,18 @@ private fun rememberBlockParentScrollConnection(): NestedScrollConnection =
             ): Velocity = available
         }
     }
+
+/** Viewport-wide, except when embedded: that parent measures with an unbounded width. */
+private fun activeFiltersModifier(
+    embedded: Boolean,
+    tableWidth: Dp,
+): Modifier = if (embedded) Modifier.width(tableWidth) else Modifier.fillMaxWidth()
+
+/** An embedded table renders at its intrinsic height; a scrolling one claims what the header left. */
+private fun ColumnScope.scrollAreaModifier(
+    embedded: Boolean,
+    innerModifier: Modifier,
+): Modifier = if (embedded) innerModifier else Modifier.weight(1f).then(innerModifier)
 
 /**
  * Resolves the border stroke based on the provided border parameter and table defaults.
