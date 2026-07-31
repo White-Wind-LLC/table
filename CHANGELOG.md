@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+### Unreleased
+
+- Added: `TableIcons` — the icon set the library draws, vendored and public, so the defaults behind
+  `TableHeaderDefaults.icons()` can be referenced and reused directly.
+- Removed: the dependency on `org.jetbrains.compose.material:material-icons-extended`. It was pinned
+  at 1.7.3, is deprecated upstream and no longer tracks Compose releases; it also shipped roughly two
+  thousand icons so the table could draw seventeen. Icons render exactly as before — the vendored
+  path data is copied from that artifact, not redrawn.
+
 ### 2.1.1 — 2026-07-23
 
 - Added: `FormatDialogContent` — the conditional-formatting editor as portable content, so it can be hosted in any

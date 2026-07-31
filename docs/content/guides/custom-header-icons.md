@@ -19,3 +19,16 @@ Table(
     icons = icons
 )
 ```
+
+The defaults come from `TableIcons`, the icon set the library vendors so that it needs no icon
+dependency of its own. It is public, so you can reuse the defaults you are not overriding:
+
+```kotlin
+import ua.wwind.table.icon.TableIcons
+
+val icons = TableHeaderDefaults.icons(
+    sortNeutral = MySort,
+    filterActive = TableIcons.FilterAltFilled,
+    filterInactive = TableIcons.FilterAltOutlined
+)
+```

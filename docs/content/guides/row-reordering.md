@@ -19,6 +19,10 @@ by [Reorderable](https://github.com/Calvin-LL/Reorderable).
 
 Example:
 
+!!! note
+    `Icons.Default.Reorder` comes from your own icon dependency — the table no longer ships one.
+    Substitute any `ImageVector` you like.
+
 ```kotlin
 data class Person(val id: Int, val name: String)
 
