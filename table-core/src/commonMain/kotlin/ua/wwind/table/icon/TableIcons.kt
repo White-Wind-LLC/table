@@ -4,6 +4,10 @@
  *
  * Generated from org.jetbrains.compose.material:material-icons-extended:1.7.3, which is deprecated
  * and no longer tracks Compose releases. Do not edit by hand.
+ *
+ * To add an icon: restore the generator and the dependency from commit 9e41031
+ * (`git show 9e41031:table-core/src/jvmTest/kotlin/ua/wwind/table/icon/IconDumpTest.kt`), or
+ * transcribe the 24x24 path from https://github.com/google/material-design-icons.
  */
 
 package ua.wwind.table.icon
@@ -14,9 +18,18 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.unit.dp
 
-/** Icons drawn by the table. Vendored so the library ships no icon dependency. */
+/**
+ * Icons drawn by the table. Vendored so the library ships no icon dependency.
+ *
+ * Naming convention: each property is named after the plain Material icon (e.g. [Close], [Add]).
+ * A suffix is added only where two variants of the same icon are both needed in the table, as with
+ * [FilterAltFilled] and [FilterAltOutlined]; the suffix describes the glyph's appearance (solid vs.
+ * outline), not the Material style family — Rounded, Filled, Outlined — the glyph was drawn from. See
+ * each property's doc comment for its exact Material source.
+ */
 @Suppress("VariableNaming", "ktlint:standard:property-naming")
 public object TableIcons {
+    /** Material `Icons.Rounded.Close`. */
     public val Close: ImageVector by lazy {
         ImageVector
             .Builder(
@@ -49,6 +62,7 @@ public object TableIcons {
             }.build()
     }
 
+    /** Material `Icons.AutoMirrored.Rounded.KeyboardArrowLeft`. */
     public val KeyboardArrowLeft: ImageVector by lazy {
         ImageVector
             .Builder(
@@ -75,6 +89,7 @@ public object TableIcons {
             }.build()
     }
 
+    /** Material `Icons.AutoMirrored.Rounded.KeyboardArrowRight`. */
     public val KeyboardArrowRight: ImageVector by lazy {
         ImageVector
             .Builder(
@@ -101,6 +116,7 @@ public object TableIcons {
             }.build()
     }
 
+    /** Material `Icons.Rounded.ArrowUpward`. */
     public val ArrowUpward: ImageVector by lazy {
         ImageVector
             .Builder(
@@ -130,6 +146,7 @@ public object TableIcons {
             }.build()
     }
 
+    /** Material `Icons.Rounded.ArrowDownward`. */
     public val ArrowDownward: ImageVector by lazy {
         ImageVector
             .Builder(
@@ -159,6 +176,7 @@ public object TableIcons {
             }.build()
     }
 
+    /** Material `Icons.AutoMirrored.Outlined.Sort`. */
     public val Sort: ImageVector by lazy {
         ImageVector
             .Builder(
@@ -192,6 +210,11 @@ public object TableIcons {
             }.build()
     }
 
+    /**
+     * Material `Icons.Rounded.FilterAlt`.
+     *
+     * Solid glyph, shown when a column filter is active.
+     */
     public val FilterAltFilled: ImageVector by lazy {
         ImageVector
             .Builder(
@@ -218,6 +241,11 @@ public object TableIcons {
             }.build()
     }
 
+    /**
+     * Material `Icons.Outlined.FilterAlt`.
+     *
+     * Outline glyph, shown when a column filter is inactive.
+     */
     public val FilterAltOutlined: ImageVector by lazy {
         ImageVector
             .Builder(
@@ -249,6 +277,7 @@ public object TableIcons {
             }.build()
     }
 
+    /** Material `Icons.Filled.DragIndicator` (the Rounded variant is byte-identical). */
     public val DragIndicator: ImageVector by lazy {
         ImageVector
             .Builder(
@@ -299,6 +328,7 @@ public object TableIcons {
             }.build()
     }
 
+    /** Material `Icons.Filled.SwapHoriz`. */
     public val SwapHoriz: ImageVector by lazy {
         ImageVector
             .Builder(
@@ -331,6 +361,7 @@ public object TableIcons {
             }.build()
     }
 
+    /** Material `Icons.Rounded.Add`. */
     public val Add: ImageVector by lazy {
         ImageVector
             .Builder(
@@ -363,6 +394,7 @@ public object TableIcons {
             }.build()
     }
 
+    /** Material `Icons.Rounded.Delete`. */
     public val Delete: ImageVector by lazy {
         ImageVector
             .Builder(
@@ -401,6 +433,7 @@ public object TableIcons {
             }.build()
     }
 
+    /** Material `Icons.Rounded.ContentCopy`. */
     public val ContentCopy: ImageVector by lazy {
         ImageVector
             .Builder(
@@ -444,6 +477,7 @@ public object TableIcons {
             }.build()
     }
 
+    /** Material `Icons.Rounded.Save`. */
     public val Save: ImageVector by lazy {
         ImageVector
             .Builder(
@@ -484,6 +518,7 @@ public object TableIcons {
             }.build()
     }
 
+    /** Material `Icons.Rounded.ArrowDropUp`. */
     public val ArrowDropUp: ImageVector by lazy {
         ImageVector
             .Builder(
@@ -506,6 +541,7 @@ public object TableIcons {
             }.build()
     }
 
+    /** Material `Icons.Rounded.Check`. */
     public val Check: ImageVector by lazy {
         ImageVector
             .Builder(
@@ -531,6 +567,7 @@ public object TableIcons {
             }.build()
     }
 
+    /** Material `Icons.Filled.FormatColorReset`. */
     public val FormatColorReset: ImageVector by lazy {
         ImageVector
             .Builder(

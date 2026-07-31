@@ -4,6 +4,10 @@
  *
  * Generated from org.jetbrains.compose.material:material-icons-extended:1.7.3, which is deprecated
  * and no longer tracks Compose releases. Do not edit by hand.
+ *
+ * To add an icon: restore the generator and the dependency from commit 9e41031
+ * (`git show 9e41031:table-core/src/jvmTest/kotlin/ua/wwind/table/icon/IconDumpTest.kt`), or
+ * transcribe the 24x24 path from https://github.com/google/material-design-icons.
  */
 
 package ua.wwind.table.sample.icon
@@ -14,7 +18,11 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.unit.dp
 
-/** Icons used only by the sample app. Deliberately not part of the library's public API. */
+/**
+ * Icons used only by the sample app. Deliberately not part of the library's public API.
+ *
+ * All 11 icons are `Icons.Filled.*` from Material.
+ */
 @Suppress("VariableNaming", "ktlint:standard:property-naming")
 internal object SampleIcons {
     public val Settings: ImageVector by lazy {
