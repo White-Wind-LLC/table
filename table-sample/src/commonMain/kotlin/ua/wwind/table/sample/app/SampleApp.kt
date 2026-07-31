@@ -13,9 +13,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CornerSize
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DragIndicator
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -52,6 +49,7 @@ import ua.wwind.table.config.TableSettings
 import ua.wwind.table.draggableHandle
 import ua.wwind.table.filter.data.TableFilterState
 import ua.wwind.table.format.rememberCustomization
+import ua.wwind.table.icon.TableIcons
 import ua.wwind.table.sample.app.components.AppToolbar
 import ua.wwind.table.sample.app.components.ConditionalFormattingDialog
 import ua.wwind.table.sample.app.components.GroupRenameDialog
@@ -61,6 +59,7 @@ import ua.wwind.table.sample.app.components.SelectionActionBar
 import ua.wwind.table.sample.app.components.SettingsSidebar
 import ua.wwind.table.sample.column.PersonColumn
 import ua.wwind.table.sample.column.createTableColumns
+import ua.wwind.table.sample.icon.SampleIcons
 import ua.wwind.table.sample.model.Person
 import ua.wwind.table.sample.util.PersonFilterMatcher
 import ua.wwind.table.sample.util.PersonFormatFilterData
@@ -163,7 +162,7 @@ fun SampleApp(
                                 modifier = Modifier.width(handleColumnWidth),
                             ) {
                                 Icon(
-                                    imageVector = Icons.Default.DragIndicator,
+                                    imageVector = TableIcons.DragIndicator,
                                     contentDescription = "Drag group $blockId",
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                     modifier = Modifier.size(18.dp).draggableHandle(),
@@ -181,7 +180,7 @@ fun SampleApp(
                                     },
                             )
                             Icon(
-                                imageVector = Icons.Default.Edit,
+                                imageVector = SampleIcons.Edit,
                                 contentDescription = "Rename group $blockId",
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.size(16.dp),

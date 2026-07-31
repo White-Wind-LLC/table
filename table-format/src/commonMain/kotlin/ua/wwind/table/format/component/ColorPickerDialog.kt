@@ -21,9 +21,6 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.FormatColorReset
-import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -54,6 +51,7 @@ import com.github.skydoves.colorpicker.compose.rememberColorPickerController
 import ua.wwind.table.format.scrollbar.VerticalScrollbarRenderer
 import ua.wwind.table.format.scrollbar.VerticalScrollbarState
 import ua.wwind.table.format.toColor
+import ua.wwind.table.icon.TableIcons
 import ua.wwind.table.strings.StringProvider
 import ua.wwind.table.strings.UiString
 
@@ -101,7 +99,7 @@ internal fun ColorPickerDialog(
                                     },
                                 ) {
                                     Icon(
-                                        imageVector = Icons.Rounded.Check,
+                                        imageVector = TableIcons.Check,
                                         contentDescription = null,
                                     )
                                 }
@@ -122,7 +120,7 @@ internal fun ColorPickerDialog(
                                     horizontalArrangement = spacedBy(8.dp),
                                 ) {
                                     Icon(
-                                        imageVector = Icons.Filled.FormatColorReset,
+                                        imageVector = TableIcons.FormatColorReset,
                                         contentDescription = null,
                                     )
                                     Text(text = strings.get(UiString.FormatResetColor))

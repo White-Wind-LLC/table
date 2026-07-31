@@ -12,6 +12,10 @@ state.groupBy = PersonField.Department
 
 Customize group header appearance and content:
 
+!!! note
+    `Icons.Default.Group` comes from your own icon dependency — the table no longer ships one.
+    Substitute any `ImageVector` you like.
+
 ```kotlin
 column(PersonField.Department, valueOf = { it.department }) {
     header("Department")

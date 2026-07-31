@@ -3,8 +3,6 @@ package ua.wwind.table.format
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
@@ -16,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import ua.wwind.table.format.component.FormatDialogState
+import ua.wwind.table.icon.TableIcons
 import ua.wwind.table.strings.StringProvider
 import ua.wwind.table.strings.UiString
 
@@ -38,7 +37,7 @@ internal fun <E : Enum<E>, FILTER> FormatDialogTitle(
             )
             if (state.editItem == null && onDismissRequest != null) {
                 IconButton(onClick = onDismissRequest) {
-                    Icon(imageVector = Icons.Rounded.Close, contentDescription = "Close")
+                    Icon(imageVector = TableIcons.Close, contentDescription = "Close")
                 }
             }
         }

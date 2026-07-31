@@ -112,7 +112,7 @@ Dragging is split across two levels:
 blockHeader = { blockId, _ ->
     Row(verticalAlignment = Alignment.CenterVertically) {
         Icon(
-            Icons.Default.DragIndicator,
+            TableIcons.DragIndicator,
             contentDescription = "Drag block",
             modifier = Modifier.draggableHandle(),
         )
@@ -124,6 +124,10 @@ blockHeader = { blockId, _ ->
 - **A row within a block** is dragged from a handle in its own cell. Every row carries one; the
   drag is constrained to its block — a row can never leave it, and the move reports through
   `onRowReorderWithinBlock`. The same cell handle drives a standalone row's move among units:
+
+!!! note
+    `Icons.Default.Reorder` comes from your own icon dependency — the table no longer ships one.
+    Substitute any `ImageVector` you like.
 
 ```kotlin
 cell { _, _ ->
@@ -270,7 +274,7 @@ fun BlockedPeopleTable() {
                 blockHeader = { blockId, _ ->
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
-                            imageVector = Icons.Default.DragIndicator,
+                            imageVector = TableIcons.DragIndicator,
                             contentDescription = "Drag block",
                             modifier = Modifier.draggableHandle(),
                         )

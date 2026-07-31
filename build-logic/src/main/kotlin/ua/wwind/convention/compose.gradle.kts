@@ -17,7 +17,6 @@ kotlin {
                 implementation(libs.findLibrary("compose-runtime").get())
                 implementation(libs.findLibrary("compose-foundation").get())
                 implementation(libs.findLibrary("compose-material3").get())
-                implementation(libs.findLibrary("compose-material-icons-extended").get())
                 implementation(libs.findLibrary("compose-ui-tooling-preview").get())
                 implementation(libs.findLibrary("collections-immutable").get())
             }

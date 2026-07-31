@@ -11,12 +11,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.Sort
-import androidx.compose.material.icons.outlined.FilterAlt
-import androidx.compose.material.icons.rounded.ArrowDownward
-import androidx.compose.material.icons.rounded.ArrowUpward
-import androidx.compose.material.icons.rounded.FilterAlt
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -38,6 +32,7 @@ import ua.wwind.table.component.header.rememberHeaderDerivedState
 import ua.wwind.table.config.TableDimensions
 import ua.wwind.table.filter.component.fast.FastFiltersRow
 import ua.wwind.table.filter.data.TableFilterType
+import ua.wwind.table.icon.TableIcons
 import ua.wwind.table.state.ColumnWidthAction
 import ua.wwind.table.state.TableState
 import ua.wwind.table.strings.StringProvider
@@ -56,11 +51,11 @@ internal fun <T : Any, C, E> TableHeader(
     horizontalState: ScrollState,
     icons: TableHeaderIcons =
         TableHeaderIcons(
-            sortAsc = Icons.Rounded.ArrowUpward,
-            sortDesc = Icons.Rounded.ArrowDownward,
-            sortNeutral = Icons.AutoMirrored.Outlined.Sort,
-            filterActive = Icons.Rounded.FilterAlt,
-            filterInactive = Icons.Outlined.FilterAlt,
+            sortAsc = TableIcons.ArrowUpward,
+            sortDesc = TableIcons.ArrowDownward,
+            sortNeutral = TableIcons.Sort,
+            filterActive = TableIcons.FilterAltFilled,
+            filterInactive = TableIcons.FilterAltOutlined,
         ),
 ) {
     val lazyListState = remember { LazyListState() }

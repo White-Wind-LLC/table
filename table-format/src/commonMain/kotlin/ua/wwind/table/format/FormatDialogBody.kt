@@ -8,8 +8,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.DragIndicator
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -52,6 +50,7 @@ import ua.wwind.table.format.data.FormatDialogSettings
 import ua.wwind.table.format.data.TableFormatRule
 import ua.wwind.table.format.scrollbar.VerticalScrollbarRenderer
 import ua.wwind.table.format.scrollbar.VerticalScrollbarState
+import ua.wwind.table.icon.TableIcons
 import ua.wwind.table.strings.StringProvider
 import ua.wwind.table.strings.UiString
 import kotlin.time.Duration.Companion.milliseconds
@@ -246,7 +245,7 @@ internal fun <E : Enum<E>, FILTER> FormatDialogBody(
                                     },
                                     trailingContent = {
                                         Icon(
-                                            imageVector = Icons.Rounded.DragIndicator,
+                                            imageVector = TableIcons.DragIndicator,
                                             contentDescription = null,
                                         )
                                     },

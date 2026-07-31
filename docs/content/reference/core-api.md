@@ -5,8 +5,9 @@
     - **Slots**: `placeholderRow()`.
     - **UX**: `onRowClick`, `onRowLongClick`, `onRowMove`, `rowBlocks` (supersedes `onRowMove` — see Row blocks
       below), `contextMenu(item, pos, dismiss)`.
-    - **Look**: `customization`, `colors = TableDefaults.colors()`, `icons = TableHeaderDefaults.icons()`, `strings`,
-      `shape`, `border` (outer border; `null` = theme default, `TableDefaults.NoBorder` = no border).
+    - **Look**: `customization`, `colors = TableDefaults.colors()`, `icons = TableHeaderDefaults.icons()` (defaults
+      from the public `TableIcons` set — see the [Custom header icons](../guides/custom-header-icons.md) guide),
+      `strings`, `shape`, `border` (outer border; `null` = theme default, `TableDefaults.NoBorder` = no border).
     - **Scroll**: optional `verticalState`, `horizontalState`.
     - **Embedded content**: `embedded` flag and `rowEmbedded` slot let you render nested detail content or even a
       secondary table inside each row, while still reusing the same table state, filters and formatting rules.

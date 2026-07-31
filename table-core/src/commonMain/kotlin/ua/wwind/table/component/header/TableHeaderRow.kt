@@ -13,8 +13,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DragIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -29,6 +27,7 @@ import kotlinx.collections.immutable.ImmutableList
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.ReorderableLazyListState
 import ua.wwind.table.ColumnSpec
+import ua.wwind.table.icon.TableIcons
 import ua.wwind.table.platform.getPlatform
 import ua.wwind.table.platform.isMobile
 import ua.wwind.table.state.TableState
@@ -148,7 +147,7 @@ internal fun <T : Any, C, E> TableHeaderRow(
 
                             if (showDragHandle) {
                                 Icon(
-                                    imageVector = Icons.Filled.DragIndicator,
+                                    imageVector = TableIcons.DragIndicator,
                                     contentDescription = "Drag column",
                                     modifier =
                                         Modifier

@@ -3,8 +3,6 @@ package ua.wwind.table.filter.component.main.number
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.RangeSlider
@@ -22,6 +20,7 @@ import ua.wwind.table.filter.data.FilterConstraint
 import ua.wwind.table.filter.data.TableFilterState
 import ua.wwind.table.filter.data.TableFilterType
 import ua.wwind.table.filter.data.isNullCheck
+import ua.wwind.table.icon.TableIcons
 import ua.wwind.table.strings.StringProvider
 import ua.wwind.table.strings.UiString
 
@@ -101,7 +100,7 @@ internal fun <T : Number> NumberFilter(
 
             if (isBetween) {
                 Icon(
-                    imageVector = Icons.Filled.SwapHoriz,
+                    imageVector = TableIcons.SwapHoriz,
                     contentDescription = strings.get(UiString.FilterRangeIconDescription),
                 )
                 TableTextField(
