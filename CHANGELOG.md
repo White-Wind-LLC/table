@@ -2,7 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
-### Unreleased
+### 2.2.0 — 2026-07-31
+
+The table stops depending on `material-icons-extended` and draws its own set instead. That artifact is
+deprecated upstream, pinned at 1.7.3 and no longer tracking Compose releases, and it shipped roughly two
+thousand icons so the table could draw seventeen; those seventeen are now vendored as `TableIcons` and
+public, so the defaults behind `TableHeaderDefaults.icons()` can be referenced and reused. Nothing renders
+differently. Alongside it, two long-standing viewport bugs are fixed: the active-filter chips no longer
+scroll away with the content, and the last column's resize strip stays reachable as the column grows.
 
 - Added: `TableIcons` — the icon set the library draws, vendored and public, so the defaults behind
   `TableHeaderDefaults.icons()` can be referenced and reused directly.
@@ -12,6 +19,18 @@ All notable changes to this project will be documented in this file.
   path data is copied from that artifact, not redrawn. It was an `implementation` dependency, so it
   was never on any consumer's compile classpath and this cannot break a build; if you relied on it
   reaching your runtime classpath transitively, declare it yourself going forward.
+- Fixed: the active-filters header scrolled with the table. It was laid out inside the horizontally
+  scrolling container and sized to the table width, so scrolling a wide table right carried the chips past
+  the left edge and its overflow arrows never appeared; it is now a sibling of the scroll container, sized
+  to the viewport. The header also renders nothing at all when no filter is active, instead of leaving a
+  bare divider above the table.
+- Fixed: widening the last column pushed its resize strip out of reach. The boundary sits at the right edge
+  of the content, so the growth happened off screen and the pointer ran out of travel within a few pixels of
+  the window edge; the overshoot is now dispatched to the horizontal scroll, and holding the pointer within
+  24dp of that edge keeps growing the column and scrolling under it. The last strip is also 6dp wide rather
+  than 3dp, having no content to its right to hang over.
+
+Compare: [v2.1.1...v2.2.0](https://github.com/White-Wind-LLC/table/compare/v2.1.1...v2.2.0)
 
 ### 2.1.1 — 2026-07-23
 
