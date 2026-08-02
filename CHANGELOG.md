@@ -2,6 +2,31 @@
 
 All notable changes to this project will be documented in this file.
 
+### 2.3.0 — 2026-08-02
+
+The paged table stops recomposing on every pager emission. `paging-core` is built without the Compose
+compiler plugin — that is what keeps it usable from plain Kotlin and free of a Compose runtime
+dependency — and the compiler infers stability only for classes it compiles itself, so it treated
+`PagingData` and the types around it as unstable. Strong skipping compares an unstable parameter by
+instance rather than by value, and the pagers publish a fresh snapshot per state change, so the paged
+`Table` overloads recomposed on every emission however little of the window had actually changed.
+paging-core 2.3.0 ships a stability configuration declaring those types stable; `table-paging` now
+compiles against it, and nothing about the API or what you see changes.
+
+- Fixed: the paged `Table` overloads recomposed on every emission from a pager. `table-paging` now
+  compiles with a Compose stability configuration for the `paging-core` types, which puts `items` back
+  on value comparison under strong skipping. A stability configuration governs only the module doing
+  the compiling, so composables of your own that take a `PagingData` — a screen, a view-model-bound
+  wrapper, a `LazyColumn` using `handleLoadState` — need the same file in your build; the
+  [table-paging docs](docs/content/modules/table-paging.md) show how to wire it up.
+- Updated: `ua.wwind.paging:paging-core` to 2.3.0 (from 2.2.7). It is an `implementation` dependency,
+  so you declare your own version and this does not force the upgrade; the types `table-paging`
+  consumes are unchanged between the two. Note that 2.3.0 does carry breaking changes of its own —
+  `Pager` gained positional parameters and a `concurrency = 4` default, and the `macosX64` target was
+  dropped — none of which this library touches.
+
+Compare: [v2.2.0...v2.3.0](https://github.com/White-Wind-LLC/table/compare/v2.2.0...v2.3.0)
+
 ### 2.2.0 — 2026-07-31
 
 The table stops depending on `material-icons-extended` and draws its own set instead. That artifact is
