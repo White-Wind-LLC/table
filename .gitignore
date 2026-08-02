@@ -27,3 +27,7 @@ docs/superpowers/plans/
 # MkDocs local build
 /.venv-docs/
 /site/
+
+# Claude Code local state (worktrees and machine-specific settings)
+/.claude/worktrees/
+/.claude/settings.local.json
