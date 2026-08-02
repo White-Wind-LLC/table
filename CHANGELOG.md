@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file.
 
+### Unreleased
+
+- Fixed: the table resolved a row for every key a lazy list asked for, and Compose asks over its
+  nearest range — 130 rows from the top of the list, against the twenty on screen. On a paged table
+  that turned a key lookup into a data read: `PagingMap.get` is what tells a pager where the viewport
+  is, so the table reported a viewport of ~130 rows, the pager streamed and cached around it, and the
+  rows actually being looked at were evicted and re-read in a loop (69 portion requests, 63 of them
+  cancelled, from a stationary viewport). A key that does not need the item no longer resolves one,
+  and the paged adapter answers a custom `rowKey` from the rows already loaded in the paging map —
+  the same row the accessor would return, minus the access the pager acts on. Building the list no
+  longer resolves a row the table is not rendering
+  ([#60](https://github.com/White-Wind-LLC/table/issues/60)).
+- Added: `rowKeyAt(index)` on the core table entry points — a key-by-index lookup that supersedes
+  `rowKey` wherever the table needs a key, so no row is resolved to produce one. Pass it (answering
+  the same key `rowKey` would) when a read from your loader has a side effect the table should not
+  trigger while keying rows. The paged overloads set it themselves and gained no parameter.
+- Updated: `ua.wwind.paging:paging-core` to 2.3.1 (from 2.3.0), which fixes the pager half of the
+  same loop — a window oscillating between the two ends of a read span wider than it
+  ([paging-kmp#45](https://github.com/White-Wind-LLC/paging-kmp/issues/45)). It is an
+  `implementation` dependency, so you declare your own version; either fix alone stops the loop.
+
 ### 2.3.0 — 2026-08-02
 
 The paged table stops recomposing on every pager emission. `paging-core` is built without the Compose

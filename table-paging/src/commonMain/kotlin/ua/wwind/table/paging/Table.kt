@@ -8,7 +8,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Shape
@@ -53,6 +55,28 @@ private fun WarnOnDefaultRowKeyWithBlocks(
                 "rowBlocks requires a stable rowKey: RowBlockMove anchors are row keys, " +
                     "and the default positional key cannot survive a move"
             }
+        }
+    }
+}
+
+/**
+ * [rowKey] answered by index, without the access the pager acts on as a viewport position (#60).
+ *
+ * Loaded rows are already in the paging map, so reading `values` yields the same row the accessor
+ * would; an unloaded one is `null` either way.
+ */
+@Composable
+private fun <T : Any> rememberPagedRowKeyAt(
+    items: PagingData<T>?,
+    rowKey: (item: T?, index: Int) -> Any,
+): (index: Int) -> Any {
+    // Keyed on `items` this would be a new lookup per emission, rebuilding a block table's state.
+    val currentItems by rememberUpdatedState(items)
+    return remember<(Int) -> Any>(rowKey) {
+        if (rowKey === DefaultPagedRowKey) {
+            { index -> index }
+        } else {
+            { index -> rowKey(currentItems?.data?.values?.get(index), index) }
         }
     }
 }
@@ -123,6 +147,7 @@ public fun <T : Any, C, E> Table(
     WarnOnDefaultRowKeyWithBlocks(rowBlocks, rowKey)
     val itemsCount = remember(items) { items?.data?.size ?: 0 }
     val itemAt = remember(items) { { index: Int -> items?.data?.get(index)?.getOrNull() } }
+    val rowKeyAt = rememberPagedRowKeyAt(items, rowKey)
 
     Table(
         itemsCount = itemsCount,
@@ -133,6 +158,7 @@ public fun <T : Any, C, E> Table(
         modifier = modifier,
         placeholderRow = placeholderRow,
         rowKey = rowKey,
+        rowKeyAt = rowKeyAt,
         onRowClick = onRowClick,
         onRowLongClick = onRowLongClick,
         rowBlocks = rowBlocks,
@@ -211,6 +237,7 @@ public fun <T : Any, C> Table(
     WarnOnDefaultRowKeyWithBlocks(rowBlocks, rowKey)
     val itemsCount = remember(items) { items?.data?.size ?: 0 }
     val itemAt = remember(items) { { index: Int -> items?.data?.get(index)?.getOrNull() } }
+    val rowKeyAt = rememberPagedRowKeyAt(items, rowKey)
 
     Table(
         itemsCount = itemsCount,
@@ -220,6 +247,7 @@ public fun <T : Any, C> Table(
         modifier = modifier,
         placeholderRow = placeholderRow,
         rowKey = rowKey,
+        rowKeyAt = rowKeyAt,
         onRowClick = onRowClick,
         onRowLongClick = onRowLongClick,
         rowBlocks = rowBlocks,

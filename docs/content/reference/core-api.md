@@ -9,6 +9,12 @@
       from the public `TableIcons` set — see the [Custom header icons](../guides/custom-header-icons.md) guide),
       `strings`, `shape`, `border` (outer border; `null` = theme default, `TableDefaults.NoBorder` = no border).
     - **Scroll**: optional `verticalState`, `horizontalState`.
+    - **Row identity**: `rowKey(item, index)` keys a row; it defaults to the row's position, and the table
+      resolves no row to key one by position. `rowKeyAt(index)` is an optional key-by-index lookup that
+      supersedes `rowKey` wherever a key is needed and must answer the same key — pass it when resolving a row
+      has a side effect the table should not trigger for a key. A lazy list asks for keys over a range far wider
+      than the viewport (130 rows from the top of the list), so a source that loads on access — a pager — reads
+      keying through `itemAt` as a viewport many times the real one.
     - **Embedded content**: `embedded` flag and `rowEmbedded` slot let you render nested detail content or even a
       secondary table inside each row, while still reusing the same table state, filters and formatting rules.
 - **Composable `Table<T, C, E>`**: overload that accepts custom table data for headers, footers, and edit cells.

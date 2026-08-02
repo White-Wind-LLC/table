@@ -27,13 +27,15 @@ import ua.wwind.table.state.TableState
 internal fun <T : Any> WarnRowBlocksMisuse(
     rowBlocks: RowBlocks<T>?,
     rowKey: (item: T?, index: Int) -> Any,
+    rowKeyAt: ((index: Int) -> Any)?,
     rowBlocksSuppressed: Boolean,
 ) {
     LaunchedEffect(rowBlocksSuppressed) {
         if (rowBlocksSuppressed) Logger.w { "rowBlocks ignored while groupBy is active" }
     }
-    LaunchedEffect(rowBlocks, rowKey) {
-        if (rowBlocks != null && rowKey === DefaultRowKey) {
+    // A declared rowKeyAt is the identity, so the default rowKey behind it says nothing.
+    LaunchedEffect(rowBlocks, rowKey, rowKeyAt) {
+        if (rowBlocks != null && rowKeyAt == null && rowKey === DefaultRowKey) {
             Logger.w {
                 "rowBlocks requires a stable rowKey: RowBlockMove anchors are row keys, " +
                     "and the default positional key cannot survive a move"
@@ -56,6 +58,7 @@ internal class EffectiveRowSource<T : Any>(
     val blocks: RowBlocksState<T>?,
     val itemAt: (Int) -> T?,
     val rowKey: (item: T?, index: Int) -> Any,
+    val rowKeyAt: ((index: Int) -> Any)?,
     val onRowMove: ((fromIndex: Int, toIndex: Int) -> Unit)?,
     val suppressedByGroupBy: Boolean,
 )
@@ -73,12 +76,20 @@ internal fun <T : Any, C> rememberEffectiveRowSource(
     state: TableState<C>,
     rowBlocks: RowBlocks<T>?,
     rowKey: (item: T?, index: Int) -> Any,
+    rowKeyAt: ((index: Int) -> Any)?,
     onRowMove: ((fromIndex: Int, toIndex: Int) -> Unit)?,
     itemsCount: Int,
     itemAt: (Int) -> T?,
 ): EffectiveRowSource<T> {
+    // rowKeyAt supersedes rowKey everywhere, block anchors included: one identity per table.
+    val declaredRowKey: (item: T?, index: Int) -> Any =
+        remember(rowKey, rowKeyAt) {
+            if (rowKeyAt == null) rowKey else { _, index -> rowKeyAt(index) }
+        }
     val blocksState =
-        rowBlocks?.let { blocks -> remember(blocks, rowKey) { RowBlocksState(blocks, rowKey) } }
+        rowBlocks?.let { blocks ->
+            remember(blocks, declaredRowKey) { RowBlocksState(blocks, declaredRowKey) }
+        }
     // Feed the state the same snapshot this composition renders: block extents are derived here,
     // never declared, so they cannot lag behind an asynchronously filtered list.
     blocksState?.reconcile(itemsCount, itemAt)
@@ -95,11 +106,20 @@ internal fun <T : Any, C> rememberEffectiveRowSource(
                 if (activeBlocks != null) activeBlocks::itemAt else itemAt
             },
         rowKey =
-            remember(activeBlocks, rowKey) {
+            remember(activeBlocks, declaredRowKey) {
                 if (activeBlocks == null) {
-                    rowKey
+                    declaredRowKey
                 } else {
-                    { item, viewIndex -> rowKey(item, activeBlocks.upstreamIndexOf(viewIndex)) }
+                    { item, viewIndex -> declaredRowKey(item, activeBlocks.upstreamIndexOf(viewIndex)) }
+                }
+            },
+        // Same view-to-upstream translation as `rowKey` above.
+        rowKeyAt =
+            remember(activeBlocks, rowKeyAt) {
+                if (activeBlocks == null || rowKeyAt == null) {
+                    rowKeyAt
+                } else {
+                    { viewIndex -> rowKeyAt(activeBlocks.upstreamIndexOf(viewIndex)) }
                 }
             },
         // Gate on blocksState, not activeBlocks: declaring rowBlocks retires onRowMove outright, and
