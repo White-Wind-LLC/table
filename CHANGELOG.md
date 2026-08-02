@@ -2,7 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
-### Unreleased
+### 2.3.1 — 2026-08-03
+
+Keying a row no longer reads it. Compose asks a lazy list for keys across its nearest range — some 130
+rows around a twenty-row viewport — and the table answered each one by resolving the row. On a paged
+table that made every key lookup a data read, and since `PagingMap.get` is also what tells a pager
+where the viewport is, the table reported a viewport six times the real one: the pager streamed and
+cached around it, evicted the rows actually on screen, and re-read them in a loop that never settled.
+Keys now come from the index, and the paged adapter answers a custom `rowKey` from the rows the paging
+map already holds. `rowKeyAt(index)` is the new public entry point for that; `rowKey` still works and
+the paged overloads gained no parameter.
 
 - Fixed: the table resolved a row for every key a lazy list asked for, and Compose asks over its
   nearest range — 130 rows from the top of the list, against the twenty on screen. On a paged table
@@ -22,6 +31,8 @@ All notable changes to this project will be documented in this file.
   same loop — a window oscillating between the two ends of a read span wider than it
   ([paging-kmp#45](https://github.com/White-Wind-LLC/paging-kmp/issues/45)). It is an
   `implementation` dependency, so you declare your own version; either fix alone stops the loop.
+
+Compare: [v2.3.0...v2.3.1](https://github.com/White-Wind-LLC/table/compare/v2.3.0...v2.3.1)
 
 ### 2.3.0 — 2026-08-02
 
