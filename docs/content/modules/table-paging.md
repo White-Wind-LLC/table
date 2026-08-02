@@ -66,3 +66,35 @@ Table(
 
 As in the core table, blocks require a stable `rowKey` (the default positional key triggers a
 warning), and `RowBlocks` should be held in `remember`.
+
+## Compose stability
+
+`paging-core` is built without the Compose compiler plugin — that is what keeps it usable from
+plain Kotlin and free of a Compose runtime dependency. The compiler only infers stability for
+classes it compiles itself, so left alone it treats `PagingData` and everything around it as
+**unstable**, and strong skipping then compares such a parameter by instance instead of by value.
+The pagers publish a fresh snapshot per state change, so a composable taking one recomposes on
+every emission however little of the window actually changed.
+
+`table-paging` declares those types stable for its own compilation, so the `Table` overloads above
+are already covered. A stability configuration only governs the module doing the compiling, so if
+your own composables take a `PagingData` — a screen, a view-model-bound wrapper, a `LazyColumn`
+using `handleLoadState` — you need the same file in your build.
+
+`paging-core` ships it as
+[`compose_compiler_config.conf`](https://github.com/White-Wind-LLC/paging-kmp/blob/main/compose_compiler_config.conf)
+since 2.3.0. Copy it into your repository and point the Compose compiler at it from every module
+that touches a pager:
+
+```kotlin
+composeCompiler {
+    stabilityConfigurationFiles.add(
+        rootProject.layout.projectDirectory.file("compose_compiler_config.conf"),
+    )
+}
+```
+
+Your row type still has to be stable in its own right for a row to be skippable, which it is by
+default for a `data class` of `val`s compiled in your own module. To check what the compiler makes
+of it, set `composeCompiler { reportsDestination.set(...) }` and read the generated
+`*-composables.txt`: `items` should read `stable items: PagingData<T>?`.
