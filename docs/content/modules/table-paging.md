@@ -15,6 +15,24 @@ fun PeoplePagingTable(paging: PagingData<Person>) {
 
 There is also `LazyListScope.handleLoadState(...)` to render loading/empty states.
 
+## Row keys never move the pager
+
+`PagingMap.get` is what tells a pager where the viewport is, and a lazy list asks for row keys over a
+range far wider than the viewport — Compose's nearest range is 130 rows from the top of the list,
+against the twenty or so on screen. A table that resolved a row to build each key therefore reported
+a viewport that wide, and the pager streamed and cached around it: with a window narrower than the
+range being read, the two ends evicted each other and the table reloaded forever.
+
+Nothing to configure — the adapter keys rows without touching the accessor the pager acts on:
+
+- the default positional key needs no row at all;
+- a `rowKey` of your own is answered from the rows already loaded in the paging map, so it sees
+  exactly what the accessor would return, minus the access.
+
+Keying the list no longer reports a viewport at all. The other half of that loop was a pager bug and
+is fixed in `paging-core` 2.3.1 ([paging-kmp#45](https://github.com/White-Wind-LLC/paging-kmp/issues/45));
+either fix alone stops the reload loop, and `table-paging` is built against 2.3.1.
+
 ## Row blocks
 
 The adapter forwards the same `rowBlocks: RowBlocks<T>?` parameter as the core table, with the same

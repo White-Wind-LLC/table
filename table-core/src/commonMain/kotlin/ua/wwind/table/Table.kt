@@ -128,6 +128,13 @@ public fun <T : Any, C, E> EditableTable(
     modifier: Modifier = Modifier,
     placeholderRow: (@Composable () -> Unit)? = null,
     rowKey: (item: T?, index: Int) -> Any = DefaultRowKey,
+    /**
+     * Row key by index, superseding [rowKey] wherever a key is needed; it must answer the same key.
+     *
+     * Pass it when resolving a row has a side effect: a lazy list asks for keys over ~130 rows from
+     * the top of the list, and a paged source reads every one of those as a viewport position.
+     */
+    rowKeyAt: ((index: Int) -> Any)? = null,
     onRowClick: ((T) -> Unit)? = null,
     onRowLongClick: ((T) -> Unit)? = null,
     onRowMove: ((fromIndex: Int, toIndex: Int) -> Unit)? = null,
@@ -169,12 +176,13 @@ public fun <T : Any, C, E> EditableTable(
 
     state.visibleColumns = visibleColumns
 
-    val source = rememberEffectiveRowSource(state, rowBlocks, rowKey, onRowMove, itemsCount, itemAt)
+    val source = rememberEffectiveRowSource(state, rowBlocks, rowKey, rowKeyAt, onRowMove, itemsCount, itemAt)
     val activeBlocks = source.blocks
     val effectiveOnRowMove = source.onRowMove
     val effectiveItemAt = source.itemAt
     val effectiveRowKey = source.rowKey
-    WarnRowBlocksMisuse(rowBlocks, rowKey, source.suppressedByGroupBy)
+    val effectiveRowKeyAt = source.rowKeyAt
+    WarnRowBlocksMisuse(rowBlocks, rowKey, rowKeyAt, source.suppressedByGroupBy)
 
     val rowUnits = activeBlocks?.units ?: remember(itemsCount) { buildRowUnitIndex(itemsCount, null) }
     state.rowUnits = rowUnits
@@ -273,6 +281,7 @@ public fun <T : Any, C, E> EditableTable(
                                 itemsCount = itemsCount,
                                 itemAt = effectiveItemAt,
                                 rowKey = effectiveRowKey,
+                                rowKeyAt = effectiveRowKeyAt,
                                 visibleColumns = visibleColumns,
                                 state = state,
                                 colors = colors,
@@ -378,6 +387,13 @@ public fun <T : Any, C> Table(
     modifier: Modifier = Modifier,
     placeholderRow: (@Composable () -> Unit)? = null,
     rowKey: (item: T?, index: Int) -> Any = DefaultRowKey,
+    /**
+     * Row key by index, superseding [rowKey] wherever a key is needed; it must answer the same key.
+     *
+     * Pass it when resolving a row has a side effect: a lazy list asks for keys over ~130 rows from
+     * the top of the list, and a paged source reads every one of those as a viewport position.
+     */
+    rowKeyAt: ((index: Int) -> Any)? = null,
     onRowClick: ((T) -> Unit)? = null,
     onRowLongClick: ((T) -> Unit)? = null,
     onRowMove: ((fromIndex: Int, toIndex: Int) -> Unit)? = null,
@@ -408,6 +424,7 @@ public fun <T : Any, C> Table(
         modifier = modifier,
         placeholderRow = placeholderRow,
         rowKey = rowKey,
+        rowKeyAt = rowKeyAt,
         onRowClick = onRowClick,
         onRowLongClick = onRowLongClick,
         onRowMove = onRowMove,
@@ -478,6 +495,13 @@ public fun <T : Any, C, E> Table(
     modifier: Modifier = Modifier,
     placeholderRow: (@Composable () -> Unit)? = null,
     rowKey: (item: T?, index: Int) -> Any = DefaultRowKey,
+    /**
+     * Row key by index, superseding [rowKey] wherever a key is needed; it must answer the same key.
+     *
+     * Pass it when resolving a row has a side effect: a lazy list asks for keys over ~130 rows from
+     * the top of the list, and a paged source reads every one of those as a viewport position.
+     */
+    rowKeyAt: ((index: Int) -> Any)? = null,
     onRowClick: ((T) -> Unit)? = null,
     onRowLongClick: ((T) -> Unit)? = null,
     onRowMove: ((fromIndex: Int, toIndex: Int) -> Unit)? = null,
@@ -508,6 +532,7 @@ public fun <T : Any, C, E> Table(
         modifier = modifier,
         placeholderRow = placeholderRow,
         rowKey = rowKey,
+        rowKeyAt = rowKeyAt,
         onRowClick = onRowClick,
         onRowLongClick = onRowLongClick,
         onRowMove = onRowMove,
@@ -635,6 +660,7 @@ private fun <T : Any, C, E> TableBodySection(
     itemsCount: Int,
     itemAt: (Int) -> T?,
     rowKey: (item: T?, index: Int) -> Any,
+    rowKeyAt: ((index: Int) -> Any)?,
     visibleColumns: ImmutableList<ColumnSpec<T, C, E>>,
     state: TableState<C>,
     colors: TableColors,
@@ -662,6 +688,7 @@ private fun <T : Any, C, E> TableBodySection(
                 itemsCount = itemsCount,
                 itemAt = itemAt,
                 rowKey = rowKey,
+                rowKeyAt = rowKeyAt,
                 visibleColumns = visibleColumns,
                 state = state,
                 colors = colors,
@@ -683,6 +710,7 @@ private fun <T : Any, C, E> TableBodySection(
                 itemsCount = itemsCount,
                 itemAt = itemAt,
                 rowKey = rowKey,
+                rowKeyAt = rowKeyAt,
                 visibleColumns = visibleColumns,
                 state = state,
                 colors = colors,

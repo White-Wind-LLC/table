@@ -20,6 +20,7 @@ import sh.calvin.reorderable.ReorderableColumn
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 import ua.wwind.table.ColumnSpec
+import ua.wwind.table.DefaultRowKey
 import ua.wwind.table.DefaultTableItemScope
 import ua.wwind.table.TableItemDragScope
 import ua.wwind.table.TableItemListDragScope
@@ -37,6 +38,7 @@ internal fun <T : Any, C, E> TableBody(
     itemsCount: Int,
     itemAt: (Int) -> T?,
     rowKey: (item: T?, index: Int) -> Any,
+    rowKeyAt: ((index: Int) -> Any)?,
     visibleColumns: ImmutableList<ColumnSpec<T, C, E>>,
     state: TableState<C>,
     colors: TableColors,
@@ -95,7 +97,7 @@ internal fun <T : Any, C, E> TableBody(
         // Stable per-row key, drawn from the same snapshot as everything else the drag reads. Also
         // serves as the nested within-block column's node identity.
         val keyOf: (Int) -> Any =
-            if (snap != null) snap::keyAt else { row -> rowKey(itemAt(row), row) }
+            if (snap != null) snap::keyAt else rowKeyResolver(rowKey, rowKeyAt, itemAt)
         items(
             count = units.unitCount,
             key = { unit -> keyOf(units.rowsOf(unit).first) },
@@ -227,6 +229,7 @@ internal fun <T : Any, C, E> TableBodyEmbedded(
     itemsCount: Int,
     itemAt: (Int) -> T?,
     rowKey: (item: T?, index: Int) -> Any,
+    rowKeyAt: ((index: Int) -> Any)?,
     visibleColumns: ImmutableList<ColumnSpec<T, C, E>>,
     state: TableState<C>,
     colors: TableColors,
@@ -271,7 +274,7 @@ internal fun <T : Any, C, E> TableBodyEmbedded(
     val currentOnRowMoveWithinBlock = rememberUpdatedState(hooks.onRowMoveWithinBlock)
 
     // Stable per-row key for the nested within-block column's node identity.
-    val rowKeyAt: (Int) -> Any = { i -> rowKey(itemAt(i), i) }
+    val keyOf: (Int) -> Any = rowKeyResolver(rowKey, rowKeyAt, itemAt)
 
     Column {
         if (rowReorderEnabled) {
@@ -283,7 +286,7 @@ internal fun <T : Any, C, E> TableBodyEmbedded(
             ) { unitIndex, leadingItem, _ ->
                 val rows = rowUnits.rowsOf(unitIndex)
                 val isGroup = rowUnits.isGroup(unitIndex)
-                key(rowKey(leadingItem, rows.first)) {
+                key(keyOf(rows.first)) {
                     ReorderableItem {
                         val rowScope: TableItemScope =
                             remember(this) {
@@ -313,7 +316,7 @@ internal fun <T : Any, C, E> TableBodyEmbedded(
                                         null
                                     },
                                 onWithinBlockDragStart = { currentOnBlockDragStarted.value?.invoke() },
-                                rowKeyAt = rowKeyAt,
+                                rowKeyAt = keyOf,
                                 withinBlockRefusalCount = withinBlockRefusalCount,
                                 itemAt = itemAt,
                                 visibleColumns = visibleColumns,
@@ -348,7 +351,7 @@ internal fun <T : Any, C, E> TableBodyEmbedded(
                         blockHeader = blockHeader,
                         onRowMoveWithinBlock = null,
                         onWithinBlockDragStart = null,
-                        rowKeyAt = rowKeyAt,
+                        rowKeyAt = keyOf,
                         withinBlockRefusalCount = withinBlockRefusalCount,
                         itemAt = itemAt,
                         visibleColumns = visibleColumns,
@@ -480,6 +483,23 @@ internal fun <T : Any, C, E> TableBodyRow(
         )
     }
 }
+
+/**
+ * Keys a row, resolving it only when the key cannot be had without it.
+ *
+ * A lazy list asks for keys over ~130 rows from the top of the list and rebuilds that map on every
+ * item-provider change, so keying through [itemAt] reads rows nobody is looking at (issue #60).
+ */
+private fun <T : Any> rowKeyResolver(
+    rowKey: (item: T?, index: Int) -> Any,
+    rowKeyAt: ((index: Int) -> Any)?,
+    itemAt: (Int) -> T?,
+): (Int) -> Any =
+    when {
+        rowKeyAt != null -> rowKeyAt
+        rowKey === DefaultRowKey -> { row -> row }
+        else -> { row -> rowKey(itemAt(row), row) }
+    }
 
 /**
  * The embedded engine's input list. A refused drop restores the view order, so the elements alone

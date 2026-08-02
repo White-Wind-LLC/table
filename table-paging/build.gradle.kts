@@ -4,6 +4,7 @@ plugins {
     id("ua.wwind.convention.compose")
     id("ua.wwind.convention.logging")
     id("ua.wwind.convention.publishing")
+    id("ua.wwind.convention.test")
 }
 
 // `paging-core` ships without the Compose compiler plugin, so the compiler infers no stability for
@@ -23,6 +24,12 @@ kotlin {
         commonMain.dependencies {
             implementation(project(":table-core"))
             implementation(libs.paging.core)
+        }
+        commonTest.dependencies {
+            implementation(libs.compose.ui.test)
+        }
+        jvmTest.dependencies {
+            implementation(compose.desktop.currentOs)
         }
     }
 }
