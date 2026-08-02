@@ -18,7 +18,8 @@ compiles against it, and nothing about the API or what you see changes.
   on value comparison under strong skipping. A stability configuration governs only the module doing
   the compiling, so composables of your own that take a `PagingData` — a screen, a view-model-bound
   wrapper, a `LazyColumn` using `handleLoadState` — need the same file in your build; the
-  [table-paging docs](docs/content/modules/table-paging.md) show how to wire it up.
+  [table-paging docs](https://white-wind-llc.github.io/table/modules/table-paging/) show how to wire
+  it up.
 - Updated: `ua.wwind.paging:paging-core` to 2.3.0 (from 2.2.7). It is an `implementation` dependency,
   so you declare your own version and this does not force the upgrade; the types `table-paging`
   consumes are unchanged between the two. Note that 2.3.0 does carry breaking changes of its own —
