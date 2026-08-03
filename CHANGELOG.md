@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+### 2.3.2 — 2026-08-03
+
+Column resizing works again with vertical dividers turned off. Column geometry counted a divider after
+every column whether or not one is drawn, so the resize strips drifted further right with each column.
+No API change.
+
+- Fixed: with `showVerticalDividers` off, the resize strip for column *i* sat *i* divider widths right
+  of its boundary, over the next column's header, and dragging the visible boundary did nothing. The
+  table width and the scroll-into-view target were off by the same phantom dividers
+  ([#62](https://github.com/White-Wind-LLC/table/pull/62)).
+- Fixed: a column stopped resizing after any change to the table settings. The gesture outlives the
+  composition that started it and kept writing into the state holder those settings replaced.
+
+Compare: [v2.3.1...v2.3.2](https://github.com/White-Wind-LLC/table/compare/v2.3.1...v2.3.2)
+
 ### 2.3.1 — 2026-08-03
 
 Keying a row no longer reads it. Compose asks a lazy list for keys across its nearest range — some 130
