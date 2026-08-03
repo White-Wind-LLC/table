@@ -9,6 +9,7 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.state.TableState
+import ua.wwind.table.state.dividerWidthAfterColumn
 
 /**
  * Ensure that the given [index] row becomes fully visible in the viewport (supports dynamic row heights).
@@ -163,11 +164,10 @@ public suspend fun <T : Any, C, E> ensureColumnFullyVisible(
 ) {
     val dimensions = state.dimensions
 
-    // Compute absolute left position of the target column within the content (px)
     var x = 0.dp
-    visibleColumns.take(targetColIndex).forEach { spec ->
-        val width = state.columns.resolveWidth(spec.key, spec)
-        x += width + dimensions.dividerThickness
+    visibleColumns.take(targetColIndex).forEachIndexed { index, spec ->
+        x += state.columns.resolveWidth(spec.key, spec) +
+            dividerWidthAfterColumn(index, visibleColumns.size, state.settings, dimensions)
     }
 
     val columnWidth = state.columns.resolveWidth(targetColKey, visibleColumns[targetColIndex])
