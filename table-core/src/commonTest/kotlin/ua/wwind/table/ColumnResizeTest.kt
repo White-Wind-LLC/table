@@ -5,6 +5,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Text
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.test.ExperimentalTestApi
@@ -19,6 +23,7 @@ import assertk.assertions.isLessThan
 import assertk.assertions.isNotNull
 import kotlinx.collections.immutable.persistentListOf
 import ua.wwind.table.component.header.resizeScrollPullback
+import ua.wwind.table.config.TableSettings
 import ua.wwind.table.state.TableState
 import ua.wwind.table.state.rememberTableState
 import kotlin.test.Test
@@ -128,6 +133,44 @@ class ColumnResizeTest {
             val resized = state.columns.widths["b"]
             assertThat(resized).isNotNull()
             assertThat(resized!!.value).isLessThan(500f)
+        }
+
+    @Test
+    fun `a drag lands on the table state that replaced the one composed first`() =
+        runComposeUiTest {
+            var compact by mutableStateOf(false)
+            lateinit var state: TableState<String>
+
+            setContent {
+                val settings = remember(compact) { TableSettings(stripedRows = compact) }
+                state = rememberTableState(columns = persistentListOf("a", "b"), settings = settings)
+                Box(Modifier.size(1200.dp, 400.dp)) {
+                    Table(
+                        itemsCount = 1,
+                        itemAt = { "row" },
+                        state = state,
+                        columns = columns,
+                    )
+                }
+            }
+
+            waitForIdle()
+            compact = true
+            waitForIdle()
+
+            val boundaryPx = with(density) { 500.dp.toPx() }
+            val grabY = with(density) { (state.dimensions.headerHeight / 2).toPx() }
+            onRoot().performMouseInput {
+                moveTo(Offset(boundaryPx - with(density) { 1.dp.toPx() }, grabY))
+                press()
+                repeat(4) { moveBy(Offset(15f, 0f)) }
+                release()
+            }
+            waitForIdle()
+
+            val resized = state.columns.widths["a"]
+            assertThat(resized).isNotNull()
+            assertThat(resized!!.value).isGreaterThan(500f)
         }
 
     @Test

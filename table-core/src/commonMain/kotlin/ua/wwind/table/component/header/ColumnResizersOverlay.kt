@@ -34,6 +34,7 @@ import kotlinx.collections.immutable.ImmutableList
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.config.TableDimensions
 import ua.wwind.table.state.currentTableState
+import ua.wwind.table.state.dividerWidthAfterColumn
 
 private const val OVERLAY_REACH_DP = 3
 
@@ -84,7 +85,8 @@ internal fun <T : Any, C, E> ColumnResizersOverlay(
                     onDoubleClick = onDoubleClick,
                 )
             }
-            cumulativeX += dimensions.dividerThickness
+            cumulativeX +=
+                dividerWidthAfterColumn(index, visibleColumns.size, state.settings, dimensions)
         }
     }
 }
@@ -111,15 +113,23 @@ private fun <C> ResizeHandle(
     val isHovered by interaction.collectIsHoveredAsState()
     val drag = remember(columnKey) { ColumnResizeDrag() }
 
-    // pointerInput is keyed on the column alone, so its block never sees a later composition:
-    // read the geometry a gesture starts from live, or every drag restarts from the first width.
+    // pointerInput is keyed on the column, so its block outlives the composition that started it:
+    // stale geometry restarts every drag from the first width, a stale callback writes to a dead state.
     val currentBoundaryX by rememberUpdatedState(boundaryX)
     val currentWidth by rememberUpdatedState(widthResolver(columnKey))
+    val currentMinWidth by rememberUpdatedState(minWidth)
+    val currentOnResize by rememberUpdatedState(onResize)
+    val currentOnResizeStart by rememberUpdatedState(onResizeStart)
+    val currentOnResizeEnd by rememberUpdatedState(onResizeEnd)
+    val currentOnDoubleClick by rememberUpdatedState(onDoubleClick)
 
     fun grow(deltaPx: Float) {
         val start = drag.startWidth ?: return
         drag.accumulatedPx += deltaPx
-        onResize(columnKey, (start + with(density) { drag.accumulatedPx.toDp() }).coerceAtLeast(minWidth))
+        currentOnResize(
+            columnKey,
+            (start + with(density) { drag.accumulatedPx.toDp() }).coerceAtLeast(currentMinWidth),
+        )
         val pullback = resizeScrollPullback(drag.boundaryPx, horizontalState.value, horizontalState.viewportSize)
         if (pullback > 0f) horizontalState.dispatchRawDelta(pullback)
     }
@@ -134,21 +144,21 @@ private fun <C> ResizeHandle(
                 .offset(x = boundaryX - reach, y = 0.dp)
                 .hoverable(interactionSource = interaction)
                 .pointerInput(columnKey) {
-                    detectTapGestures(onDoubleTap = { onDoubleClick(columnKey) })
-                }.combinedClickable(onDoubleClick = { onDoubleClick(columnKey) }) {}
+                    detectTapGestures(onDoubleTap = { currentOnDoubleClick(columnKey) })
+                }.combinedClickable(onDoubleClick = { currentOnDoubleClick(columnKey) }) {}
                 .pointerInput(columnKey) {
                     detectHorizontalDragGestures(
                         onDragStart = {
                             drag.begin(with(density) { currentBoundaryX.toPx() }, currentWidth)
-                            onResizeStart()
+                            currentOnResizeStart()
                         },
                         onDragEnd = {
                             drag.end()
-                            onResizeEnd()
+                            currentOnResizeEnd()
                         },
                         onDragCancel = {
                             drag.end()
-                            onResizeEnd()
+                            currentOnResizeEnd()
                         },
                     ) { change, dragAmount ->
                         val handleLeftPx = drag.boundaryPx - with(density) { reach.toPx() }

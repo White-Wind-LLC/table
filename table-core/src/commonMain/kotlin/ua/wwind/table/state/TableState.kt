@@ -126,34 +126,11 @@ public class TableState<C>
             computeTableWidth(visibleColumns)
         }
 
-        /**
-         * Computes the total table width from visible columns and dividers.
-         */
-        private fun computeTableWidth(columnSpecs: List<ColumnSpec<*, C, *>>): Dp {
-            val effectivePinnedCount =
-                if (settings.pinnedColumnsCount >= columnSpecs.size) 0 else settings.pinnedColumnsCount
-
-            // Sum column widths (use stored widths, spec width or default)
-            val columnsTotal: Dp =
-                columnSpecs.fold(0.dp) { acc, spec ->
-                    val w = columns.resolveWidth(spec.key, spec)
-                    acc + w
-                }
-
-            // Calculate divider contribution:
-            // - If there are no pinned columns: each column has its regular divider (count = columns)
-            // - If there are pinned columns: all but one divider are regular, and one between pinned and scrollable is
-            //   thicker
-            val dividerTotal: Dp =
-                if (effectivePinnedCount == 0) {
-                    dimensions.dividerThickness * columnSpecs.size
-                } else {
-                    // total dividers = columns count, but one of them uses pinnedColumnDividerThickness
-                    dimensions.dividerThickness * (columnSpecs.size - 1) + dimensions.pinnedColumnDividerThickness
-                }
-
-            return columnsTotal + dividerTotal
-        }
+        private fun computeTableWidth(columnSpecs: List<ColumnSpec<*, C, *>>): Dp =
+            columnSpecs.foldIndexed(0.dp) { index, acc, spec ->
+                acc + columns.resolveWidth(spec.key, spec) +
+                    dividerWidthAfterColumn(index, columnSpecs.size, settings, dimensions)
+            }
 
         // Sorting
         public var sort: SortState<C>? by mutableStateOf(initialSort)
