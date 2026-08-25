@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+### Unreleased
+
+Text selection no longer picks up rows and cells that are not on screen. Auto-width measures a copy of
+each cell, and the prefetcher measures a whole page of rows ahead of the viewport; both are composed
+and never placed. Compose registers a text with the enclosing `SelectionContainer` when it composes,
+and sorts what it registered by layout position — which an unplaced copy does not have, so every one of
+them sorted to offset zero, ahead of the first real row. No API change.
+
+- Fixed: with `enableTextSelection` on, selecting or copying could pull in text from off-screen rows
+  and from the invisible measurement copies of cells, and selection bounds jumped over rows that are
+  visible. Both measurement paths now compose their content inside `DisableSelection`, so it never
+  enters the selection registry.
+
 ### 2.3.2 — 2026-08-03
 
 Column resizing works again with vertical dividers turned off. Column geometry counted a divider after
