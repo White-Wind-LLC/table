@@ -2,6 +2,7 @@ package ua.wwind.table
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.text.selection.DisableSelection
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -18,6 +19,9 @@ import ua.wwind.table.state.LocalTableState
  * This is used for both table body cells and header cells to compute a column's
  * max content width. The measurement is deferred to the next frame to avoid
  * feedback loops with composition and measurement.
+ *
+ * The measured copy is composed but never placed, so it is kept out of any enclosing
+ * SelectionContainer - see [DisableSelection] below.
  */
 @Composable
 internal fun <T, E> MeasureCellMinWidth(
@@ -37,7 +41,11 @@ internal fun <T, E> MeasureCellMinWidth(
     SubcomposeLayout {
         val measurables =
             subcompose("measure") {
-                Box { context(DefaultTableCellScope) { content(item, tableData) } }
+                // Never placed, so this copy has no coordinates to sort selectables by: an enclosing
+                // SelectionContainer would file its text at offset zero, ahead of every real row.
+                DisableSelection {
+                    Box { context(DefaultTableCellScope) { content(item, tableData) } }
+                }
             }
         holder[0] = measurables.maxOfOrNull { it.maxIntrinsicWidth(0) } ?: 0
         layout(0, 0) {}

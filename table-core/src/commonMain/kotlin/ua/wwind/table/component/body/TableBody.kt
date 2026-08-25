@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.text.selection.DisableSelection
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
@@ -207,20 +208,24 @@ internal fun <T : Any, C, E> TableBody(
             }
         }
     }
-    // Offscreen prefetch of the next viewport to make PgDn precise with dynamic row heights
-    TableViewportPrefetcher(
-        itemsCount = itemsCount,
-        itemAt = itemAt,
-        visibleColumns = visibleColumns,
-        state = state,
-        colors = colors,
-        customization = customization,
-        tableData = tableData,
-        placeholderRow = placeholderRow,
-        verticalState = verticalState,
-        requestTableFocus = requestTableFocus,
-        horizontalState = horizontalState,
-    )
+    // Offscreen prefetch of the next viewport to make PgDn precise with dynamic row heights.
+    // A whole page of rows is composed here and never placed; without DisableSelection an enclosing
+    // SelectionContainer would collect that offscreen text into selections and copies.
+    DisableSelection {
+        TableViewportPrefetcher(
+            itemsCount = itemsCount,
+            itemAt = itemAt,
+            visibleColumns = visibleColumns,
+            state = state,
+            colors = colors,
+            customization = customization,
+            tableData = tableData,
+            placeholderRow = placeholderRow,
+            verticalState = verticalState,
+            requestTableFocus = requestTableFocus,
+            horizontalState = horizontalState,
+        )
+    }
 }
 
 @Composable

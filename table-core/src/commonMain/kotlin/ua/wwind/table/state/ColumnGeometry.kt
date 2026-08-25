@@ -25,7 +25,9 @@ internal fun dividerWidthAfterColumn(
     return when {
         // A pinned block always draws its own edge, whatever the vertical-divider setting says.
         bordersPinnedBlock -> dimensions.pinnedColumnDividerThickness
+
         settings.showVerticalDividers -> dimensions.dividerThickness
+
         else -> 0.dp
     }
 }
