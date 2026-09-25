@@ -8,7 +8,6 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.selection.LocalTextSelectionColors
 import androidx.compose.foundation.text.selection.TextSelectionColors
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -57,7 +56,6 @@ import androidx.compose.ui.unit.dp
  * standard padding or [TableTextFieldDefaults.reducedContentPadding] for compact appearance
  * @param showBorder when false, the border/outline of the text field will be hidden
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 public fun TableTextField(
     value: String,
@@ -156,7 +154,7 @@ public fun TableTextField(
                 colors = effectiveColors,
                 contentPadding = contentPadding,
                 container = {
-                    OutlinedTextFieldDefaults.ContainerBox(
+                    OutlinedTextFieldDefaults.Container(
                         enabled = enabled,
                         isError = isError,
                         interactionSource = interactionSource,
@@ -184,7 +182,7 @@ public object TableTextFieldDefaults {
         end: Dp = 16.dp,
         bottom: Dp = 16.dp,
     ): PaddingValues =
-        OutlinedTextFieldDefaults.contentPadding(
+        OutlinedTextFieldDefaults.contentPaddingWithoutLabel(
             start = start,
             top = top,
             end = end,
@@ -202,7 +200,7 @@ public object TableTextFieldDefaults {
         end: Dp = 8.dp,
         bottom: Dp = 8.dp,
     ): PaddingValues =
-        OutlinedTextFieldDefaults.contentPadding(
+        OutlinedTextFieldDefaults.contentPaddingWithoutLabel(
             start = start,
             top = top,
             end = end,
