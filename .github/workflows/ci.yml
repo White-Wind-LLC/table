@@ -1,0 +1,154 @@
+name: CI
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+# Superseded PR runs are cancelled. Other events get a group per run: a shared group would still
+# drop a queued main run once a third push arrives.
+concurrency:
+  group: ci-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  CI: true
+
+jobs:
+  detekt:
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up JDK
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Detekt
+        run: ./gradlew --no-daemon --continue detekt
+
+      - name: Upload detekt reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: detekt-reports
+          path: '**/build/reports/detekt/'
+          if-no-files-found: ignore
+
+  spotless:
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up JDK
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Spotless
+        run: ./gradlew --no-daemon --continue spotlessCheck
+
+  test-linux:
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    env:
+      GRADLE_FLAGS: --no-daemon --continue -PexcludeSamples=true -PenableIos=false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up JDK
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      # The committed locks include the samples' npm packages; without the samples they mismatch.
+      - name: Upgrade Kotlin Yarn lockfiles
+        run: ./gradlew ${{ env.GRADLE_FLAGS }} kotlinUpgradeYarnLock kotlinWasmUpgradeYarnLock
+
+      - name: JVM and wasmJs tests
+        run: ./gradlew ${{ env.GRADLE_FLAGS }} jvmTest wasmJsBrowserTest
+
+      # jsBrowserTest is skipped: Skiko does not load under karma.
+      - name: Compile JS, Android and common metadata
+        run: ./gradlew ${{ env.GRADLE_FLAGS }} compileKotlinJs compileAndroidMain compileCommonMainKotlinMetadata
+
+      - name: Coverage report
+        run: ./gradlew ${{ env.GRADLE_FLAGS }} coverageReport
+
+      - name: Upload test reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports-linux
+          path: '**/build/reports/tests/'
+          if-no-files-found: ignore
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: build/reports/kover/
+
+  test-ios:
+    timeout-minutes: 30
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up JDK
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: iOS simulator tests
+        run: ./gradlew --no-daemon --continue -PexcludeSamples=true iosSimulatorArm64Test
+
+      - name: Upload test reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports-ios
+          path: '**/build/reports/tests/'
+          if-no-files-found: ignore
