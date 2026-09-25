@@ -8,16 +8,16 @@ android-version-code = "50"
 android-compileSdk = "37"
 android-minSdk = "24"
 android-targetSdk = "37"
-agp = "9.3.1"
+agp = "9.4.1"
 
 # --- Kotlin Toolchain & Compose ---
-kotlin = "2.4.10"
-compose-multiplatform = "1.11.1"
-compose-material3 = "1.11.0-alpha07"
+kotlin = "2.4.20"
+compose-multiplatform = "1.12.0"
+compose-material3 = "1.12.0-alpha03"
 
 # --- Core AndroidX ---
-androidx-core = "1.17.0"
-androidx-appcompat = "1.7.1"
+androidx-core = "1.19.0"
+androidx-appcompat = "1.8.0"
 androidx-activityCompose = "1.13.0"
 androidx-lifecycle = "2.11.0"
 
@@ -33,8 +33,8 @@ slf4j = "2.0.18"
 
 # --- UI & UX ---
 reorderable = "3.1.0"
-paging = "2.3.1"
-colorpicker = "1.2.0"
+paging = "2.3.3"
+colorpicker = "1.3.0"
 liquid = "1.1.1"
 fastscroller = "0.3.2"
 
@@ -43,14 +43,14 @@ assertk = "0.28.1"
 turbine = "1.2.1"
 hotReload = "1.1.1"
 buildKonfig = "0.22.0"
-detekt = "2.0.0-alpha.5"
-compose-rules = "0.6.3"
-spotless = "8.8.0"
+detekt = "2.0.0-alpha.6"
+compose-rules = "0.6.6"
+spotless = "8.10.2"
 ktlint = "1.8.0"
 kover = "0.9.8"
 dokka = "2.2.0"
 mavenPublish = "0.37.0"
-stability-analyzer = "0.10.0"
+stability-analyzer = "0.14.0"
 
 [libraries]
 # --- AndroidX Core & Lifecycle ---
