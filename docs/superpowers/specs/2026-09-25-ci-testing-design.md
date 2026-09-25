@@ -41,8 +41,11 @@ One new file: `.github/workflows/ci.yml`, with four jobs that run in parallel an
 
 - `on`: `pull_request` (branches: `main`), `push` (branches: `main`), `workflow_dispatch`.
 - `permissions: contents: read`.
-- `concurrency`: group `ci-${{ github.ref }}`, `cancel-in-progress` only for `pull_request`
-  events, so a new push to a PR cancels its superseded run while every `main` commit keeps its own.
+- `concurrency`: pull requests share group `ci-${{ github.ref }}` with `cancel-in-progress`, so a new
+  push to a PR cancels its superseded run. Every other run gets its own group (`github.run_id`):
+  GitHub keeps one pending run per group, so a shared group would drop queued `main` runs.
+- `timeout-minutes`: 15 for `detekt` and `spotless`, 30 for the test jobs (observed ~3.5 and ~11 min),
+  so a hung browser or simulator cannot bill hours of macOS time.
 - Every job repeats the setup the existing workflows use: `actions/checkout@v5`,
   `actions/setup-java@v5` (temurin 17), `chmod +x ./gradlew`, `gradle/actions/setup-gradle@v6`.
   setup-gradle writes its cache only from the default branch; PR runs read it.

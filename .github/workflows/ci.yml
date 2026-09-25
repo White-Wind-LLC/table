@@ -12,9 +12,10 @@ on:
 permissions:
   contents: read
 
-# Superseded PR runs are cancelled; every main commit keeps its own run.
+# Superseded PR runs are cancelled. Other events get a group per run: a shared group would still
+# drop a queued main run once a third push arrives.
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ci-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
@@ -22,6 +23,7 @@ env:
 
 jobs:
   detekt:
+    timeout-minutes: 15
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -51,6 +53,7 @@ jobs:
           if-no-files-found: ignore
 
   spotless:
+    timeout-minutes: 15
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -72,6 +75,7 @@ jobs:
         run: ./gradlew --no-daemon --continue spotlessCheck
 
   test-linux:
+    timeout-minutes: 30
     runs-on: ubuntu-latest
     env:
       GRADLE_FLAGS: --no-daemon --continue -PexcludeSamples=true -PenableIos=false
@@ -120,6 +124,7 @@ jobs:
           path: build/reports/kover/
 
   test-ios:
+    timeout-minutes: 30
     runs-on: macos-latest
     steps:
       - name: Checkout
