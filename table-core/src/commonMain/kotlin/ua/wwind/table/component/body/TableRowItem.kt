@@ -298,7 +298,9 @@ private fun <C, T : Any, E> RenderTableRowItem(
                                     useSelectAsPrimary =
                                         state.settings.selectionMode !=
                                             SelectionMode.None,
-                                    onSelect = { state.selection.toggleRow(index) },
+                                    // Select, not toggle: onFocus has already selected the row, and a
+                                    // double click delivers this twice.
+                                    onSelect = { state.selection.focusRow(index) },
                                     onClick = { clicked ->
                                         onCellClick(state, settings, spec, item, index, clicked, onRowClick)
                                     },

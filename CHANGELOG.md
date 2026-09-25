@@ -14,6 +14,13 @@ them sorted to offset zero, ahead of the first real row. No API change.
   and from the invisible measurement copies of cells, and selection bounds jumped over rows that are
   visible. Both measurement paths now compose their content inside `DisableSelection`, so it never
   enters the selection registry.
+- Fixed: on desktop and web with row selection on, a click selected the row only after the double-click
+  window (300 ms on skiko) had passed, and two clicks further apart than that never opened the row.
+  Selection now happens on the click itself, and a double click opens the row with a gap of up to
+  500 ms, or the platform window if that is longer
+  ([#64](https://github.com/White-Wind-LLC/table/issues/64)).
+- Fixed: in `SelectionMode.Single` a click on a row left no row selected, because the click focused
+  the row and then toggled that same selection off. A click now selects the row.
 
 ### 2.3.2 — 2026-08-03
 
