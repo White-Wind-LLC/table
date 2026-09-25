@@ -53,7 +53,7 @@ class DividerWidthTest {
     }
 
     @Test
-    fun `pinning every column pins none, so no divider survives hiding`() {
+    fun `pinning every column pins none so no divider survives hiding`() {
         val settings =
             TableSettings(
                 showVerticalDividers = false,

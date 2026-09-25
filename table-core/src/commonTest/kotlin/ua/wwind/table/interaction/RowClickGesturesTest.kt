@@ -18,6 +18,8 @@ import kotlinx.collections.immutable.persistentListOf
 import ua.wwind.table.Table
 import ua.wwind.table.config.SelectionMode
 import ua.wwind.table.config.TableSettings
+import ua.wwind.table.platform.getPlatform
+import ua.wwind.table.platform.isNonMobile
 import ua.wwind.table.state.TableState
 import ua.wwind.table.state.rememberTableState
 import ua.wwind.table.tableColumns
@@ -27,7 +29,8 @@ import kotlin.test.Test
  * Row clicks on desktop with selection on: selection must not wait for the double-click window, and
  * the window must cover the usual OS double-click time (500 ms) even though skiko reports 300 ms.
  *
- * The test clock is driven by hand, so "immediately" means within a frame of the release.
+ * The test clock is driven by hand, so "immediately" means within a frame of the release. Mobile rows
+ * have no double click by design, so the tests run on non-mobile platforms only.
  */
 @OptIn(ExperimentalTestApi::class)
 class RowClickGesturesTest {
@@ -65,13 +68,18 @@ class RowClickGesturesTest {
         return { state }
     }
 
+    private fun desktopOnlyTest(block: suspend ComposeUiTest.() -> Unit) =
+        runComposeUiTest {
+            if (getPlatform().isNonMobile()) block()
+        }
+
     private fun ComposeUiTest.clickRow(text: String) {
         onNodeWithText(text).performMouseInput { click() }
     }
 
     @Test
     fun `a single click selects the row without waiting for the double-click window`() =
-        runComposeUiTest {
+        desktopOnlyTest {
             val opened = mutableListOf<String>()
             val state = showTable(SelectionMode.Single, opened)
 
@@ -85,7 +93,7 @@ class RowClickGesturesTest {
 
     @Test
     fun `two clicks 400 ms apart open the row`() =
-        runComposeUiTest {
+        desktopOnlyTest {
             val opened = mutableListOf<String>()
             val state = showTable(SelectionMode.Single, opened)
 
@@ -100,7 +108,7 @@ class RowClickGesturesTest {
 
     @Test
     fun `two clicks further apart than the window stay single clicks`() =
-        runComposeUiTest {
+        desktopOnlyTest {
             val opened = mutableListOf<String>()
             val state = showTable(SelectionMode.Multiple, opened)
 
@@ -115,7 +123,7 @@ class RowClickGesturesTest {
 
     @Test
     fun `a click on another row between two clicks is not a double click`() =
-        runComposeUiTest {
+        desktopOnlyTest {
             val opened = mutableListOf<String>()
             val state = showTable(SelectionMode.Single, opened)
 
@@ -130,7 +138,7 @@ class RowClickGesturesTest {
 
     @Test
     fun `without selection a single click opens the row at once`() =
-        runComposeUiTest {
+        desktopOnlyTest {
             val opened = mutableListOf<String>()
             showTable(SelectionMode.None, opened)
 
