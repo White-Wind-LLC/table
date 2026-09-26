@@ -1,12 +1,17 @@
 package ua.wwind.table.interaction
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.click
+import androidx.compose.ui.test.doubleClick
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performMouseInput
 import androidx.compose.ui.test.v2.runComposeUiTest
@@ -14,7 +19,9 @@ import androidx.compose.ui.unit.dp
 import assertk.assertThat
 import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
-import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toPersistentList
+import ua.wwind.table.ColumnSpec
 import ua.wwind.table.Table
 import ua.wwind.table.config.SelectionMode
 import ua.wwind.table.config.TableSettings
@@ -45,12 +52,13 @@ class RowClickGesturesTest {
     private fun ComposeUiTest.showTable(
         selectionMode: SelectionMode,
         opened: MutableList<String>,
+        columns: ImmutableList<ColumnSpec<String, String, Unit>> = this@RowClickGesturesTest.columns,
     ): () -> TableState<String> {
         lateinit var state: TableState<String>
         setContent {
             state =
                 rememberTableState(
-                    columns = persistentListOf("name"),
+                    columns = columns.map { it.key }.toPersistentList(),
                     settings = TableSettings(selectionMode = selectionMode),
                 )
             Box(Modifier.size(400.dp, 400.dp)) {
@@ -146,5 +154,60 @@ class RowClickGesturesTest {
             mainClock.advanceTimeByFrame()
 
             assertThat(opened).isEqualTo(listOf("row-1"))
+        }
+
+    @Test
+    fun `a double click handled by a clickable inside a cell does not open the row`() =
+        desktopOnlyTest {
+            val opened = mutableListOf<String>()
+            val descended = mutableListOf<String>()
+            val columns =
+                tableColumns<String, String, Unit> {
+                    column("icon", valueOf = { it }) {
+                        header("Icon")
+                        // A resizable column also composes the cell off-screen to measure it.
+                        resizable(false)
+                        cell { item, _ ->
+                            Box(
+                                Modifier
+                                    .size(40.dp)
+                                    .testTag("icon-$item")
+                                    .combinedClickable(onClick = {}, onDoubleClick = { descended += item }),
+                            )
+                        }
+                    }
+                }
+            showTable(SelectionMode.Single, opened, columns)
+
+            onNodeWithTag("icon-row-1").performMouseInput { doubleClick() }
+            mainClock.advanceTimeBy(1_000)
+
+            assertThat(descended).isEqualTo(listOf("row-1"))
+            assertThat(opened).isEmpty()
+        }
+
+    @Test
+    fun `two clicks on a clickable inside a cell do not open the row`() =
+        desktopOnlyTest {
+            val opened = mutableListOf<String>()
+            val columns =
+                tableColumns<String, String, Unit> {
+                    column("button", valueOf = { it }) {
+                        header("Button")
+                        // A resizable column also composes the cell off-screen to measure it.
+                        resizable(false)
+                        cell { item, _ ->
+                            Box(Modifier.size(40.dp).testTag("button-$item").clickable {})
+                        }
+                    }
+                }
+            showTable(SelectionMode.Single, opened, columns)
+
+            onNodeWithTag("button-row-1").performMouseInput { click() }
+            mainClock.advanceTimeBy(150)
+            onNodeWithTag("button-row-1").performMouseInput { click() }
+            mainClock.advanceTimeBy(1_000)
+
+            assertThat(opened).isEmpty()
         }
 }

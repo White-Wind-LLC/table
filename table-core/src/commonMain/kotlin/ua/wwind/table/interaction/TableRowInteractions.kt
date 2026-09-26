@@ -81,8 +81,6 @@ private fun <T : Any> Modifier.desktopRowInteractions(
 ): Modifier =
     this
         .then(
-            if (onDoubleClick == null) Modifier else Modifier.then(DoubleClickElement { onDoubleClick(item) }),
-        ).then(
             // No onDoubleClick here: combinedClickable would hold every click back for the whole
             // double-tap window to rule out a second one, delaying selection.
             Modifier.combinedClickable(
@@ -93,6 +91,10 @@ private fun <T : Any> Modifier.desktopRowInteractions(
                 },
                 onLongClick = onLongClick?.let { { it(item) } },
             ),
+        ).then(
+            // Chained inside the clickable so that it sees the Main pass after the cell content but before
+            // the row's clickable consumes the click, which tells a child's click apart from the row's own.
+            if (onDoubleClick == null) Modifier else Modifier.then(DoubleClickElement { onDoubleClick(item) }),
         )
 
 /**
@@ -102,7 +104,7 @@ private fun <T : Any> Modifier.desktopRowInteractions(
 private const val MIN_DOUBLE_CLICK_TIMEOUT_MILLIS = 500L
 
 /**
- * Detects a double click without delaying the single click, which the sibling clickable handles as
+ * Detects a double click without delaying the single click, which the enclosing clickable handles as
  * usual. Kept as a node so the timestamp of the previous click survives the recomposition the first
  * click causes.
  */
@@ -132,15 +134,18 @@ private class DoubleClickNode(
     private suspend fun PointerInputScope.detectDoubleClicks() {
         val timeout = maxOf(viewConfiguration.doubleTapTimeoutMillis, MIN_DOUBLE_CLICK_TIMEOUT_MILLIS)
         awaitEachGesture {
-            // Observe only: the clickable consumes these events, and it must keep doing so.
+            // Observe only: the row's clickable consumes these events, and it must keep doing so.
             val down = awaitFirstDown(requireUnconsumed = false)
+            // A click the cell content consumed belongs to that content, not to the row. Read it now: the
+            // change is shared, and the row's clickable consumes it later in this same pass.
+            val downConsumedByContent = down.isConsumed
             if (!currentEvent.buttons.isPrimaryPressed) return@awaitEachGesture
             var up: PointerInputChange
             do {
                 val event = awaitPointerEvent()
                 up = event.changes.firstOrNull { it.id == down.id } ?: return@awaitEachGesture
             } while (up.pressed)
-            if (up.isOutOfBounds(size, extendedTouchPadding)) {
+            if (downConsumedByContent || up.isConsumed || up.isOutOfBounds(size, extendedTouchPadding)) {
                 lastClickUptime = null
                 return@awaitEachGesture
             }
