@@ -1,8 +1,8 @@
 [versions]
 # --- Project metadata ---
-version-name = "2.4.0"
+version-name = "2.4.1"
 version-date = "26.09.2026"
-android-version-code = "51"
+android-version-code = "52"
 
 # --- Android SDK & AGP ---
 android-compileSdk = "37"
