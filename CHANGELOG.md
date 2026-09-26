@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+### 2.4.1 — 2026-09-26
+
+Clicks that a cell's own content handles no longer open the row. The double-click detector that 2.4.0
+added for row selection watched every click on the row without checking whether something inside the
+cell had already taken it. No API change.
+
+- Fixed: on desktop and web with row selection on, a double click on a clickable inside a cell — an
+  `IconButton`, or a `combinedClickable` with its own `onDoubleClick` — also fired `onRowClick`, and so
+  did two quick clicks on a plain button in a cell. The row now ignores clicks its cell content
+  consumed, as it did in 2.3.2, and selection still happens on the click itself
+  ([#69](https://github.com/White-Wind-LLC/table/issues/69)).
+
+Compare: [v2.4.0...v2.4.1](https://github.com/White-Wind-LLC/table/compare/v2.4.0...v2.4.1)
+
 ### 2.4.0 — 2026-09-26
 
 Text selection no longer picks up rows and cells that are not on screen. Auto-width measures a copy of
