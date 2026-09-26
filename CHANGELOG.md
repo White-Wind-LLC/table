@@ -2,13 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
-### Unreleased
+### 2.4.0 — 2026-09-26
 
 Text selection no longer picks up rows and cells that are not on screen. Auto-width measures a copy of
 each cell, and the prefetcher measures a whole page of rows ahead of the viewport; both are composed
 and never placed. Compose registers a text with the enclosing `SelectionContainer` when it composes,
 and sorts what it registered by layout position — which an unplaced copy does not have, so every one of
-them sorted to offset zero, ahead of the first real row. No API change.
+them sorted to offset zero, ahead of the first real row. No API change, but the library now builds
+against Kotlin 2.4.20 and Compose Multiplatform 1.12.0, so consuming projects need those versions or
+newer.
 
 - Fixed: with `enableTextSelection` on, selecting or copying could pull in text from off-screen rows
   and from the invisible measurement copies of cells, and selection bounds jumped over rows that are
@@ -21,6 +23,8 @@ them sorted to offset zero, ahead of the first real row. No API change.
   ([#64](https://github.com/White-Wind-LLC/table/issues/64)).
 - Fixed: in `SelectionMode.Single` a click on a row left no row selected, because the click focused
   the row and then toggled that same selection off. A click now selects the row.
+
+Compare: [v2.3.2...v2.4.0](https://github.com/White-Wind-LLC/table/compare/v2.3.2...v2.4.0)
 
 ### 2.3.2 — 2026-08-03
 
