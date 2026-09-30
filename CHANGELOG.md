@@ -12,6 +12,9 @@ All notable changes to this project will be documented in this file.
   text from conditional-format rules now shows in cells. An `alignment` other than the default
   `CenterStart` overrides the column's alignment
   ([#73](https://github.com/White-Wind-LLC/table/issues/73)).
+- Fixed: in the conditional-format dialog, changing only the operator of a text, enum or number
+  condition was not saved; the rule kept the old operator until the value was edited too
+  ([#74](https://github.com/White-Wind-LLC/table/issues/74)).
 
 ### 2.4.1 — 2026-09-26
 
