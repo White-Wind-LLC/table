@@ -17,6 +17,13 @@ All notable changes to this project will be documented in this file.
   ([#74](https://github.com/White-Wind-LLC/table/issues/74)).
 - Fixed: picking a text colour in the format dialog printed the colour to standard output
   ([#75](https://github.com/White-Wind-LLC/table/issues/75)).
+- Fixed: the format dialog no longer loses work without asking. A back press, Escape or a click outside
+  the dialog is ignored while a rule is being edited; close the editor or save the rule first. A new
+  rule order is reported even if a rule is opened or the dialog is closed within the one-second
+  debounce. Deleting a rule now asks for confirmation. The confirmation adds three `UiString` keys,
+  `FormatDeleteRuleTitle`, `FormatDeleteRuleConfirm` and `FormatDeleteRuleCancel`; a custom
+  `StringProvider` with an exhaustive `when` and no `else` branch has to cover them
+  ([#76](https://github.com/White-Wind-LLC/table/issues/76)).
 
 ### 2.4.1 — 2026-09-26
 

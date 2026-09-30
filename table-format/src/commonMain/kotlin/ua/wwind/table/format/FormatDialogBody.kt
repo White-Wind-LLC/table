@@ -19,6 +19,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -139,13 +140,24 @@ internal fun <E : Enum<E>, FILTER> FormatDialogBody(
             }
         } ?: run {
             var rulesState by remember(key) { mutableStateOf(rules) }
+            val reportedRules = remember(key) { mutableStateOf(rules) }
             val currentOnRulesChange = rememberUpdatedState(onRulesChange)
             LaunchedEffect(key) {
                 snapshotFlow { rulesState }
                     .drop(1)
                     .debounce(RULES_CHANGE_DEBOUNCE_MS.milliseconds)
                     .distinctUntilChanged()
-                    .collect { currentOnRulesChange.value(it) }
+                    .collect {
+                        reportedRules.value = it
+                        currentOnRulesChange.value(it)
+                    }
+            }
+            // Opening a rule or closing the dialog disposes the list inside the debounce window; report
+            // the order it still holds instead of dropping it.
+            DisposableEffect(key) {
+                onDispose {
+                    if (rulesState != reportedRules.value) currentOnRulesChange.value(rulesState)
+                }
             }
             val reorderableState =
                 rememberReorderableLazyListState(state.lazyListState) { from, to ->
@@ -237,6 +249,7 @@ internal fun <E : Enum<E>, FILTER> FormatDialogBody(
                                                                     enabled = enabled,
                                                                 )
                                                         }
+                                                    reportedRules.value = rulesState
                                                     onRulesChange(rulesState)
                                                 }
                                             },
