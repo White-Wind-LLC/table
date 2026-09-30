@@ -497,7 +497,8 @@ private fun DateField(
                             onDateSelect(
                                 Instant
                                     .fromEpochMilliseconds(it)
-                                    .toLocalDateTime(TimeZone.currentSystemDefault())
+                                    // The picker reports UTC midnight; the system zone would shift the day.
+                                    .toLocalDateTime(TimeZone.UTC)
                                     .date,
                             )
                         }

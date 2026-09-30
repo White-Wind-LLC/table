@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+### Unreleased
+
+- Fixed: in time zones west of UTC, the date filter and the date condition in the format dialog stored
+  the day before the one picked. The picker reports the chosen day as UTC midnight, and the value was
+  read back in the system time zone ([#72](https://github.com/White-Wind-LLC/table/issues/72)).
+
 ### 2.4.1 — 2026-09-26
 
 Clicks that a cell's own content handles no longer open the row. The double-click detector that 2.4.0
