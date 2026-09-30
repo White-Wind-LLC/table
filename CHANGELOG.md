@@ -7,6 +7,11 @@ All notable changes to this project will be documented in this file.
 - Fixed: in time zones west of UTC, the date filter and the date condition in the format dialog stored
   the day before the one picked. The picker reports the chosen day as UTC midnight, and the value was
   read back in the system time zone ([#72](https://github.com/White-Wind-LLC/table/issues/72)).
+- Fixed: body cells ignored the `textStyle`, `alignment` and `modifier` of the `TableCellStyle`
+  returned by `TableCustomization.resolveCellStyle`; only the colours were applied. Bold or italic
+  text from conditional-format rules now shows in cells. An `alignment` other than the default
+  `CenterStart` overrides the column's alignment
+  ([#73](https://github.com/White-Wind-LLC/table/issues/73)).
 
 ### 2.4.1 — 2026-09-26
 
