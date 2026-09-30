@@ -10,7 +10,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Surface
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
@@ -58,9 +60,14 @@ internal fun TableCell(
     // slot's remembered state survives; the pinned/non-pinned branches wrap around this call.
     val cellContent: @Composable BoxScope.() -> Unit = {
         CompositionLocalProvider(LocalContentColor provides resolvedContentColor) {
-            content()
+            // merge(null) returns the ambient style unchanged.
+            ProvideTextStyle(LocalTextStyle.current.merge(cellStyle.textStyle)) { content() }
         }
     }
+
+    // Both the style and the column default to CenterStart, so only a style that asks for something
+    // else overrides the column's alignment.
+    val resolvedAlignment = if (cellStyle.alignment != Alignment.CenterStart) cellStyle.alignment else alignment
 
     Row(modifier = modifier) {
         if (showLeftDivider) {
@@ -90,11 +97,12 @@ internal fun TableCell(
                     Modifier
                         .width(width)
                         .then(if (height != null) Modifier.height(height) else Modifier.fillMaxHeight())
+                        .then(cellStyle.modifier)
                         .then(selectionBorderModifier),
             ) {
                 Box(
                     modifier = Modifier.fillMaxHeight(),
-                    contentAlignment = alignment,
+                    contentAlignment = resolvedAlignment,
                 ) {
                     cellContent()
                 }
@@ -113,8 +121,9 @@ internal fun TableCell(
                         .width(width)
                         .then(if (height != null) Modifier.height(height) else Modifier.fillMaxHeight())
                         .then(backgroundModifier)
+                        .then(cellStyle.modifier)
                         .then(selectionBorderModifier),
-                contentAlignment = alignment,
+                contentAlignment = resolvedAlignment,
             ) {
                 cellContent()
             }

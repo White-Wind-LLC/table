@@ -18,6 +18,11 @@ internal class FormatDialogState<E : Enum<E>, FILTER>(
 ) {
     var editItem: EditFormatRule<E, FILTER>? by mutableStateOf(null)
     var itemCopyIndex: Int? by mutableStateOf(null)
+
+    /** A back press, Escape or outside click must not discard a rule that is being edited. */
+    fun dismissUnlessEditing(onDismissRequest: () -> Unit) {
+        if (editItem == null) onDismissRequest()
+    }
 }
 
 @Composable

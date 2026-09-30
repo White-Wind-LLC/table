@@ -34,12 +34,12 @@ public fun <E : Enum<E>, FILTER> FormatDialog(
     if (!showDialog) return
     val state = rememberFormatDialogState<E, FILTER>(settings)
     AlertDialog(
-        onDismissRequest = onDismissRequest,
+        onDismissRequest = { state.dismissUnlessEditing(onDismissRequest) },
         containerColor = colors.containerColor,
         titleContentColor = colors.titleContentColor,
         textContentColor = colors.textContentColor,
         tonalElevation = colors.tonalElevation,
-        confirmButton = { FormatDialogButtons(state, rules, onRulesChange, getNewRule) },
+        confirmButton = { FormatDialogButtons(state, rules, onRulesChange, getNewRule, strings) },
         title = { FormatDialogTitle(state, strings, colors.titleContentColor, onDismissRequest) },
         properties =
             DialogProperties(

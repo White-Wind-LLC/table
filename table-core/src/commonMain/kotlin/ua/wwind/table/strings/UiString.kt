@@ -118,6 +118,12 @@ public sealed class UiString {
 
     public object FormatAlwaysApply : UiString()
 
+    public object FormatDeleteRuleTitle : UiString()
+
+    public object FormatDeleteRuleConfirm : UiString()
+
+    public object FormatDeleteRuleCancel : UiString()
+
     // Grouping menu
     public object GroupBy : UiString()
 
@@ -259,6 +265,12 @@ public object DefaultStrings : StringProvider {
             UiString.FormatResetColor -> "Reset color"
 
             UiString.FormatAlwaysApply -> "Always"
+
+            UiString.FormatDeleteRuleTitle -> "Delete this rule?"
+
+            UiString.FormatDeleteRuleConfirm -> "Delete"
+
+            UiString.FormatDeleteRuleCancel -> "Cancel"
 
             // Grouping menu
             UiString.GroupBy -> "Group by"

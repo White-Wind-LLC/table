@@ -70,7 +70,7 @@ public fun <E : Enum<E>, FILTER> FormatDialogContent(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.End,
         ) {
-            FormatDialogButtons(state, rules, onRulesChange, getNewRule)
+            FormatDialogButtons(state, rules, onRulesChange, getNewRule, strings)
         }
     }
 }

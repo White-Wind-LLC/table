@@ -136,7 +136,7 @@ internal fun DateField(
 
     val datePickerState =
         rememberDatePickerState(
-            initialSelectedDateMillis = value?.atStartOfDayIn(TimeZone.UTC)?.epochSeconds?.times(1000),
+            initialSelectedDateMillis = value?.toDatePickerMillis(),
             yearRange = IntRange(1, 2100),
             selectableDates =
                 object : SelectableDates {
@@ -170,12 +170,7 @@ internal fun DateField(
                     onClick = {
                         showDatePickerDialog = false
                         datePickerState.selectedDateMillis?.let {
-                            onDateSelect(
-                                Instant
-                                    .fromEpochMilliseconds(it)
-                                    .toLocalDateTime(TimeZone.currentSystemDefault())
-                                    .date,
-                            )
+                            onDateSelect(datePickerMillisToLocalDate(it))
                         }
                     },
                     enabled = confirmEnabled,
@@ -207,6 +202,14 @@ internal fun DateField(
         }
     }
 }
+
+// DatePickerState works in UTC midnights; reading them in the system zone shifts the day west of UTC.
+@OptIn(ExperimentalTime::class)
+internal fun LocalDate.toDatePickerMillis(): Long = atStartOfDayIn(TimeZone.UTC).toEpochMilliseconds()
+
+@OptIn(ExperimentalTime::class)
+internal fun datePickerMillisToLocalDate(millis: Long): LocalDate =
+    Instant.fromEpochMilliseconds(millis).toLocalDateTime(TimeZone.UTC).date
 
 internal fun LocalDate.toFormatString(): String =
     this.format(

@@ -255,7 +255,7 @@ public fun <E : Enum<E>, FILTER> FormatDialogConditionTab(
 @OptIn(FlowPreview::class)
 @Suppress("FunctionNaming", "LongParameterList")
 @Composable
-private fun FormatTextFilter(
+internal fun FormatTextFilter(
     filter: TableFilterType.TextTableFilter,
     state: TableFilterState<String>,
     onChange: (TableFilterState<String>) -> Unit,
@@ -265,11 +265,11 @@ private fun FormatTextFilter(
     var searchText by remember { mutableStateOf(state.values?.firstOrNull() ?: "") }
     val currentOnChange = rememberUpdatedState(onChange)
     LaunchedEffect(Unit) {
-        snapshotFlow { searchText }
+        snapshotFlow { constraint to searchText }
             .drop(1)
             .distinctUntilChanged()
-            .collect {
-                currentOnChange.value(TableFilterState(constraint, listOf(searchText)))
+            .collect { (currentConstraint, currentText) ->
+                currentOnChange.value(TableFilterState(currentConstraint, listOf(currentText)))
             }
     }
     FlowRow(
@@ -497,7 +497,8 @@ private fun DateField(
                             onDateSelect(
                                 Instant
                                     .fromEpochMilliseconds(it)
-                                    .toLocalDateTime(TimeZone.currentSystemDefault())
+                                    // The picker reports UTC midnight; the system zone would shift the day.
+                                    .toLocalDateTime(TimeZone.UTC)
                                     .date,
                             )
                         }
@@ -546,7 +547,7 @@ private fun LocalDate.toFormatString(): String =
 @OptIn(FlowPreview::class)
 @Suppress("FunctionNaming", "LongParameterList")
 @Composable
-private fun FormatEnumFilter(
+internal fun FormatEnumFilter(
     filter: TableFilterType.EnumTableFilter<*>,
     state: TableFilterState<*>,
     onChange: (TableFilterState<*>) -> Unit,
@@ -556,11 +557,11 @@ private fun FormatEnumFilter(
     var selectedValues: List<Enum<*>> by remember { mutableStateOf((state.values as? List<Enum<*>>).orEmpty()) }
     val currentOnChange = rememberUpdatedState(onChange)
     LaunchedEffect(Unit) {
-        snapshotFlow { selectedValues }
+        snapshotFlow { constraint to selectedValues }
             .drop(1)
             .distinctUntilChanged()
-            .collect {
-                currentOnChange.value(TableFilterState(constraint, selectedValues.takeIf { it.isNotEmpty() }))
+            .collect { (currentConstraint, currentValues) ->
+                currentOnChange.value(TableFilterState(currentConstraint, currentValues.takeIf { it.isNotEmpty() }))
             }
     }
     FlowRow(
@@ -633,7 +634,7 @@ private fun FormatEnumFilter(
 @OptIn(FlowPreview::class)
 @Suppress("FunctionNaming", "LongParameterList", "LongMethod", "CyclomaticComplexMethod")
 @Composable
-private fun <T : Number> FormatNumberFilter(
+internal fun <T : Number> FormatNumberFilter(
     filter: TableFilterType.NumberTableFilter<T>,
     state: TableFilterState<T>,
     onChange: (TableFilterState<T>) -> Unit,
@@ -652,19 +653,19 @@ private fun <T : Number> FormatNumberFilter(
     val isBetween = constraint == FilterConstraint.BETWEEN
     val isRangeValid = filter.delegate.compare(fromValue, toValue)
     val currentOnChange = rememberUpdatedState(onChange)
-    LaunchedEffect(isBetween) {
-        snapshotFlow { firstText to secondText }
+    LaunchedEffect(Unit) {
+        snapshotFlow { Triple(constraint, firstText, secondText) }
             .drop(1)
             .distinctUntilChanged()
-            .collect { (from, to) ->
+            .collect { (currentConstraint, from, to) ->
                 val fromVal = filter.delegate.parse(from)
-                if (isBetween) {
+                if (currentConstraint == FilterConstraint.BETWEEN) {
                     val toVal = filter.delegate.parse(to)
                     if (fromVal != null && toVal != null && filter.delegate.compare(fromVal, toVal)) {
-                        currentOnChange.value(TableFilterState(constraint, listOf(fromVal, toVal)))
+                        currentOnChange.value(TableFilterState(currentConstraint, listOf(fromVal, toVal)))
                     }
                 } else {
-                    currentOnChange.value(TableFilterState(constraint, fromVal?.let { listOf(it) }))
+                    currentOnChange.value(TableFilterState(currentConstraint, fromVal?.let { listOf(it) }))
                 }
             }
     }
