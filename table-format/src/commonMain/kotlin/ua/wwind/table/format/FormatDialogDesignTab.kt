@@ -48,7 +48,6 @@ public fun <E : Enum<E>, FILTER> FormatDialogDesignTab(
             color = item.cellStyle.contentColor?.toColor(),
             label = strings.get(UiString.FormatContentColor),
             onClick = { color ->
-                println(color)
                 onChange(item.copy(cellStyle = item.cellStyle.copy(contentColor = color?.toArgb())))
             },
             modifier = Modifier.fillMaxWidth(),

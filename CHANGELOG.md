@@ -15,6 +15,8 @@ All notable changes to this project will be documented in this file.
 - Fixed: in the conditional-format dialog, changing only the operator of a text, enum or number
   condition was not saved; the rule kept the old operator until the value was edited too
   ([#74](https://github.com/White-Wind-LLC/table/issues/74)).
+- Fixed: picking a text colour in the format dialog printed the colour to standard output
+  ([#75](https://github.com/White-Wind-LLC/table/issues/75)).
 
 ### 2.4.1 — 2026-09-26
 
