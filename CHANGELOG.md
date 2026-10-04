@@ -24,6 +24,8 @@ All notable changes to this project will be documented in this file.
   `FormatDeleteRuleTitle`, `FormatDeleteRuleConfirm` and `FormatDeleteRuleCancel`; a custom
   `StringProvider` with an exhaustive `when` and no `else` branch has to cover them
   ([#76](https://github.com/White-Wind-LLC/table/issues/76)).
+- Changed: the table is a single Tab stop with a visible focus ring; hover and press highlight the
+  whole row ([#81](https://github.com/White-Wind-LLC/table/issues/81)).
 
 ### 2.4.1 — 2026-09-26
 

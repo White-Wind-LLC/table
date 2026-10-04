@@ -1,6 +1,8 @@
 package ua.wwind.table.component.body
 
 import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.indication
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -9,8 +11,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.contentColorFor
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -218,11 +222,14 @@ private fun <C, T : Any, E> RenderTableRowItem(
     horizontalState: ScrollState,
     modifier: Modifier = Modifier,
 ) {
+    // Every cell reports hover and press here, so the state layer spans the row rather than the cell.
+    val rowInteractionSource = remember { MutableInteractionSource() }
     Row(
         modifier =
-            modifier.onGloballyPositioned { coordinates ->
-                state.updateRowHeight(index, coordinates.size.height)
-            },
+            modifier
+                .onGloballyPositioned { coordinates ->
+                    state.updateRowHeight(index, coordinates.size.height)
+                }.indication(rowInteractionSource, ripple(color = MaterialTheme.colorScheme.onSurface)),
     ) {
         visibleColumns.forEachIndexed { colIndex, spec ->
             val width = state.columns.resolveWidth(spec.key, spec)
@@ -274,6 +281,7 @@ private fun <C, T : Any, E> RenderTableRowItem(
                 cellStyle = appearance.cellStyle,
                 alignment = spec.alignment,
                 isSelected = isCellSelected,
+                isTableFocused = state.isFocused,
                 showLeftDivider = pinnedState.isFirstRightPinned,
                 leftDividerThickness = dimensions.pinnedColumnDividerThickness,
                 showRightDivider = appearance.showRightDivider,
@@ -288,6 +296,7 @@ private fun <C, T : Any, E> RenderTableRowItem(
                             Modifier
                                 .tableRowInteractions(
                                     item = item,
+                                    interactionSource = rowInteractionSource,
                                     onFocus = {
                                         if (canMoveFocusTo(state, settings, index)) {
                                             requestTableFocus()
