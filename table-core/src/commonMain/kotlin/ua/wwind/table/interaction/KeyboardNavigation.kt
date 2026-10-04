@@ -5,6 +5,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.focusTarget
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.key.KeyEventType
@@ -25,6 +26,7 @@ internal fun <T : Any, C> Modifier.tableKeyboardNavigation(
 ): Modifier =
     this
         .focusRequester(focusRequester)
+        .onFocusChanged { state.isFocused = it.isFocused }
         .focusTarget()
         .onPreviewKeyEvent { event ->
             when {

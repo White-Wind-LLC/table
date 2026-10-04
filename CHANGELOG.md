@@ -24,6 +24,12 @@ All notable changes to this project will be documented in this file.
   `FormatDeleteRuleTitle`, `FormatDeleteRuleConfirm` and `FormatDeleteRuleCancel`; a custom
   `StringProvider` with an exhaustive `when` and no `else` branch has to cover them
   ([#76](https://github.com/White-Wind-LLC/table/issues/76)).
+- Changed: the table is a single Tab stop. Tab moves focus into the table and the next Tab moves it
+  out; the arrow keys move between cells inside it. Before, every body cell and every column resize
+  handle was a Tab stop of its own. While the table has focus, the selected cell is outlined in the
+  theme's `primary` colour instead of `outline`. Hover and press feedback now covers the whole row
+  instead of the single cell under the pointer
+  ([#81](https://github.com/White-Wind-LLC/table/issues/81)).
 
 ### 2.4.1 — 2026-09-26
 

@@ -3,7 +3,9 @@ package ua.wwind.table.interaction
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.PointerInputChange
@@ -23,10 +25,16 @@ import ua.wwind.table.platform.isMobile
  * - Desktop/Web: single click -> select (or click), double click -> open (if select is primary),
  *   right click -> context menu
  * - Mobile: tap -> select (if requested) or open, long press if provided
+ *
+ * The clickable never takes focus itself: the table is a single Tab stop whose own focus target
+ * handles the arrow keys, so a focusable cell would only add a Tab stop per cell. Nor does it draw
+ * an indication: it reports hover and press to [interactionSource], which the row shares across its
+ * cells and draws as one state layer.
  */
 @Suppress("LongParameterList")
 internal fun <T : Any> Modifier.tableRowInteractions(
     item: T?,
+    interactionSource: MutableInteractionSource,
     onFocus: ((T) -> Unit)? = null,
     useSelectAsPrimary: Boolean,
     onSelect: ((T) -> Unit)?,
@@ -39,10 +47,11 @@ internal fun <T : Any> Modifier.tableRowInteractions(
         // Mobile has no double click, so a row that only wants selection but has no [onSelect]
         // falls back to [onClick] rather than losing the action entirely.
         val onTap = (if (useSelectAsPrimary) onSelect else null) ?: onClick
-        mobileRowInteractions(item, onFocus, onTap, onLongClick)
+        mobileRowInteractions(item, interactionSource, onFocus, onTap, onLongClick)
     } else {
         desktopRowInteractions(
             item = item,
+            interactionSource = interactionSource,
             onFocus = onFocus,
             onPrimary = if (useSelectAsPrimary) onSelect else onClick,
             // Selection took the single click, so opening the row moves to the double click.
@@ -54,6 +63,7 @@ internal fun <T : Any> Modifier.tableRowInteractions(
 
 private fun <T : Any> Modifier.mobileRowInteractions(
     item: T,
+    interactionSource: MutableInteractionSource,
     onFocus: ((T) -> Unit)?,
     onTap: ((T) -> Unit)?,
     onLongClick: ((T) -> Unit)?,
@@ -61,7 +71,9 @@ private fun <T : Any> Modifier.mobileRowInteractions(
     // With nothing to invoke there is no reason to make the row clickable at all.
     if (onTap == null && onLongClick == null) return this
     return this.then(
-        Modifier.combinedClickable(
+        Modifier.focusProperties { canFocus = false }.combinedClickable(
+            interactionSource = interactionSource,
+            indication = null,
             onClick = {
                 onFocus?.invoke(item)
                 onTap?.invoke(item)
@@ -74,6 +86,7 @@ private fun <T : Any> Modifier.mobileRowInteractions(
 @Suppress("LongParameterList")
 private fun <T : Any> Modifier.desktopRowInteractions(
     item: T,
+    interactionSource: MutableInteractionSource,
     onFocus: ((T) -> Unit)?,
     onPrimary: ((T) -> Unit)?,
     onDoubleClick: ((T) -> Unit)?,
@@ -83,7 +96,9 @@ private fun <T : Any> Modifier.desktopRowInteractions(
         .then(
             // No onDoubleClick here: combinedClickable would hold every click back for the whole
             // double-tap window to rule out a second one, delaying selection.
-            Modifier.combinedClickable(
+            Modifier.focusProperties { canFocus = false }.combinedClickable(
+                interactionSource = interactionSource,
+                indication = null,
                 // The row stays clickable even without a primary action, so that a click still moves focus.
                 onClick = {
                     onFocus?.invoke(item)

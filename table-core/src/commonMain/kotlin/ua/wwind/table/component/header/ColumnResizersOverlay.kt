@@ -23,6 +23,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
@@ -145,7 +146,10 @@ private fun <C> ResizeHandle(
                 .hoverable(interactionSource = interaction)
                 .pointerInput(columnKey) {
                     detectTapGestures(onDoubleTap = { currentOnDoubleClick(columnKey) })
-                }.combinedClickable(onDoubleClick = { currentOnDoubleClick(columnKey) }) {}
+                }
+                // A pointer-only affordance: as a Tab stop it would break the table's single stop.
+                .focusProperties { canFocus = false }
+                .combinedClickable(onDoubleClick = { currentOnDoubleClick(columnKey) }) {}
                 .pointerInput(columnKey) {
                     detectHorizontalDragGestures(
                         onDragStart = {

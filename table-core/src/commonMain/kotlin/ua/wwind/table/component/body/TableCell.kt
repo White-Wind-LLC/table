@@ -34,6 +34,8 @@ internal fun TableCell(
     alignment: Alignment,
     modifier: Modifier = Modifier,
     isSelected: Boolean = false,
+    /** Whether the table holds keyboard focus, which turns the selection border into a focus ring. */
+    isTableFocused: Boolean = false,
     showLeftDivider: Boolean = false,
     leftDividerThickness: Dp = dividerThickness,
     showRightDivider: Boolean = true,
@@ -44,7 +46,8 @@ internal fun TableCell(
         if (isSelected) {
             Modifier.border(
                 2.dp,
-                MaterialTheme.colorScheme.outline,
+                // primary keeps the 3:1 contrast a focus indicator needs against the row containers.
+                if (isTableFocused) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
                 RoundedCornerShape(2.dp),
             )
         } else {

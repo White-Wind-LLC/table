@@ -119,6 +119,13 @@ public class TableState<C>
         internal var rowBlocksNonEmpty: Boolean by mutableStateOf(false)
 
         /**
+         * True while the table's own focus target holds focus — the table is a single Tab stop, so
+         * this is when the arrow keys drive the selection and the selected cell shows a focus ring.
+         * An edit field focused inside a cell does not count: it draws its own indicator.
+         */
+        internal var isFocused: Boolean by mutableStateOf(false)
+
+        /**
          * Current table width computed from visible columns and their widths.
          * Automatically recalculates when column order, widths, or visibleColumns change.
          */
