@@ -3,6 +3,7 @@ package ua.wwind.table.component.header
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -34,6 +35,7 @@ import ua.wwind.table.MeasureCellMinWidth
 import ua.wwind.table.component.LocalTableHeaderCellInfo
 import ua.wwind.table.component.LocalTableHeaderIcons
 import ua.wwind.table.component.TableHeaderCellInfo
+import ua.wwind.table.config.TableDimensions
 import ua.wwind.table.config.isInteractionLockByRowReorderEnabled
 import ua.wwind.table.data.SortOrder
 import ua.wwind.table.filter.component.main.FilterPanel
@@ -42,6 +44,7 @@ import ua.wwind.table.filter.data.TableFilterType
 import ua.wwind.table.filter.data.isActive
 import ua.wwind.table.state.TableState
 import ua.wwind.table.strings.StringProvider
+import ua.wwind.table.strings.UiString
 
 @Composable
 internal fun <T : Any, C, E> HeaderCell(
@@ -58,6 +61,7 @@ internal fun <T : Any, C, E> HeaderCell(
     showLeftDivider: Boolean = false,
     leftDividerThickness: Dp = dividerThickness,
     showRightDivider: Boolean = true,
+    onOpenMenu: (() -> Unit)? = null,
 ) {
     val interactionLocked = state.settings.isInteractionLockByRowReorderEnabled
     val sortOrder: SortOrder? = state.sort?.takeIf { it.column == spec.key }?.order
@@ -107,7 +111,7 @@ internal fun <T : Any, C, E> HeaderCell(
                 state.columns.updateMaxContentWidth(spec.key, adjusted, source = "Header")
             },
         ) { _, _ ->
-            HeaderMeasureContent(spec, info)
+            HeaderMeasureContent(spec, info, showMenuButton = onOpenMenu != null, dimensions = state.dimensions)
         }
     }
 
@@ -133,6 +137,7 @@ internal fun <T : Any, C, E> HeaderCell(
                 tableData = tableData,
                 onDismissFilter = onDismissFilter,
                 strings = strings,
+                onOpenMenu = onOpenMenu,
             )
         }
         if (showRightDivider) {
@@ -202,6 +207,7 @@ private fun <C, E> HeaderContent(
     tableData: E,
     onDismissFilter: () -> Unit,
     strings: StringProvider,
+    onOpenMenu: (() -> Unit)?,
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -226,6 +232,15 @@ private fun <C, E> HeaderContent(
             }
         }
         if (spec.headerDecorations) {
+            if (onOpenMenu != null) {
+                val title = spec.title?.invoke()
+                val options = strings.get(UiString.ColumnMenuOptions)
+                ColumnMenuButton(
+                    contentDescription = if (title != null) "$options: $title" else options,
+                    targetSize = state.dimensions.headerIconTargetSize,
+                    onClick = onOpenMenu,
+                )
+            }
             Box {
                 DefaultFilterIcon(info)
 
@@ -254,6 +269,8 @@ private fun <C, E> HeaderContent(
 private fun HeaderMeasureContent(
     spec: ColumnSpec<*, *, *>,
     info: TableHeaderCellInfo<Any?>,
+    showMenuButton: Boolean,
+    dimensions: TableDimensions,
 ) {
     // Do not render any popups inside measured content!
     Row(
@@ -262,6 +279,7 @@ private fun HeaderMeasureContent(
         spec.title?.invoke()?.let { Text(it) }
         if (spec.headerDecorations) {
             info.sortIcon.invoke()
+            if (showMenuButton) Spacer(Modifier.width(dimensions.headerIconTargetSize))
             DefaultFilterIcon(info)
         }
     }

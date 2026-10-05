@@ -112,7 +112,7 @@ internal fun <T : Any, C, E> TableHeaderRow(
                         state = state,
                         context = ColumnMenuContext.Header,
                         onOpenFilter = { onFilterColumnChange(spec.key) },
-                    ) { _ ->
+                    ) { openMenu ->
                         Box(
                             modifier =
                                 Modifier
@@ -147,6 +147,7 @@ internal fun <T : Any, C, E> TableHeaderRow(
                                 showRightDivider =
                                     !pinnedState.isLastBeforeRightPinned &&
                                         (state.settings.showVerticalDividers || pinnedState.isLastLeftPinned),
+                                onOpenMenu = openMenu.takeIf { state.settings.showColumnMenuButton },
                             )
 
                             if (showDragHandle) {

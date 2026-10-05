@@ -15,6 +15,7 @@ import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onLast
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performMouseInput
@@ -33,6 +34,7 @@ import ua.wwind.table.component.ColumnMenuDefaults
 import ua.wwind.table.component.ColumnMenuItem
 import ua.wwind.table.component.ColumnMenuItemId
 import ua.wwind.table.component.ColumnMenuSection
+import ua.wwind.table.config.TableSettings
 import ua.wwind.table.data.SortOrder
 import ua.wwind.table.platform.getPlatform
 import ua.wwind.table.platform.isNonMobile
@@ -64,10 +66,11 @@ class ColumnHeaderMenuTest {
 
     private fun ComposeUiTest.showTable(
         columnMenu: ColumnMenuBuilder<String> = ColumnMenuDefaults.builder(),
+        settings: TableSettings = TableSettings(),
     ): () -> TableState<String> {
         lateinit var state: TableState<String>
         setContent {
-            state = rememberTableState(columns = persistentListOf("name", "copy"))
+            state = rememberTableState(columns = persistentListOf("name", "copy"), settings = settings)
             Box(Modifier.size(400.dp, 300.dp)) {
                 Table(itemsCount = 2, itemAt = { "row-$it" }, state = state, columns = columns, columnMenu = columnMenu)
             }
@@ -190,5 +193,31 @@ class ColumnHeaderMenuTest {
             waitForIdle()
 
             onAllNodesWithText("Ungroup").assertCountEquals(1)
+        }
+
+    @Test
+    fun `the menu button is off by default`() =
+        desktopOnlyTest {
+            showTable()
+            onNodeWithContentDescription("Column options: Name").assertDoesNotExist()
+        }
+
+    @Test
+    fun `the menu button opens the menu`() =
+        desktopOnlyTest {
+            showTable(settings = TableSettings(showColumnMenuButton = true))
+            onNodeWithContentDescription("Column options: Name").performClick()
+            waitForIdle()
+            onNodeWithText("Sort ascending").assertExists()
+        }
+
+    @Test
+    fun `no menu means no menu button`() =
+        desktopOnlyTest {
+            showTable(
+                settings = TableSettings(showColumnMenuButton = true),
+                columnMenu = ColumnMenuBuilder { _, _ -> emptyList() },
+            )
+            onNodeWithContentDescription("Column options: Name").assertDoesNotExist()
         }
 }

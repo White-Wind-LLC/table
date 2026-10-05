@@ -59,6 +59,11 @@ public data class TableSettings(
     val showHeaderDivider: Boolean = true,
     /** Show horizontal divider below the fast filters row */
     val showFastFiltersDivider: Boolean = true,
+    /**
+     * Show a ⋮ button in each header that opens the column menu. The menu is always reachable by
+     * right-click, long-press and Shift+F10 / the Menu key; the button only makes it visible.
+     */
+    val showColumnMenuButton: Boolean = false,
 )
 
 /**
