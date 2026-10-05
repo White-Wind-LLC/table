@@ -27,7 +27,11 @@ private val logger = Logger.withTag("TableAutoWidth")
  * Reached as [TableState.columns]. Every member here has a deprecated forwarder on [TableState]
  * itself, kept for one release so existing call sites compile with a warning that names the
  * replacement; the forwarders go away in the next major.
+ *
+ * `TooManyFunctions` is suppressed because this is the single holder for column layout operations
+ * (order, widths, pinning, visibility); splitting it would scatter one concept.
  */
+@Suppress("TooManyFunctions")
 @Stable
 public class TableColumnsState<C>
     internal constructor(

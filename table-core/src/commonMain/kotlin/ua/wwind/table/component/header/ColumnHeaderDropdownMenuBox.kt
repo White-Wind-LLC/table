@@ -55,6 +55,7 @@ internal fun <T : Any, C, E> ColumnHeaderDropdownMenuBox(
     content: @Composable (openMenu: (() -> Unit)?) -> Unit,
 ) {
     val density = LocalDensity.current
+    val instance = remember { Any() }
     var anchorHeight by remember { mutableStateOf(0.dp) }
     val strings = currentStrings()
 
@@ -66,17 +67,20 @@ internal fun <T : Any, C, E> ColumnHeaderDropdownMenuBox(
             .filter { it.items.isNotEmpty() }
     val hasMenu = sections.isNotEmpty()
     val request = state.columnMenuRequest
-    val expanded = hasMenu && request.isFor(spec.key, context)
+    val expanded = hasMenu && request.isFor(spec.key, context, instance)
 
     val openAt by rememberUpdatedState { position: Offset? ->
         if (hasMenu) {
             val offset = position?.let { with(density) { DpOffset(it.x.toDp(), it.y.toDp() - anchorHeight) } }
-            state.columnMenuRequest = ColumnMenuRequest(spec.key, context, offset, fromKeyboard = false)
+            state.columnMenuRequest =
+                ColumnMenuRequest(spec.key, context, offset, fromKeyboard = false, anchor = instance)
         }
     }
-    val sortOnTap by rememberUpdatedState(
-        spec.sortable && spec.headerClickToSort && !state.settings.isInteractionLockByRowReorderEnabled,
-    )
+    val onTap by rememberUpdatedState {
+        if (spec.sortable && spec.headerClickToSort && !state.settings.isInteractionLockByRowReorderEnabled) {
+            state.setSort(spec.key)
+        }
+    }
 
     Box(
         modifier =
@@ -85,7 +89,7 @@ internal fun <T : Any, C, E> ColumnHeaderDropdownMenuBox(
                 .columnMenuGestures(
                     state = state,
                     openAt = { openAt(it) },
-                    onTap = { if (sortOnTap) state.setSort(spec.key) },
+                    onTap = { onTap() },
                 ).then(
                     if (context == ColumnMenuContext.Header) {
                         Modifier.columnMenuActions(sections.flatMap { it.items })
@@ -138,7 +142,8 @@ private fun ColumnMenuItemRow(
 private fun <C> ColumnMenuRequest<C>?.isFor(
     column: C,
     context: ColumnMenuContext,
-): Boolean = this != null && this.column == column && this.context == context
+    instance: Any,
+): Boolean = this != null && this.column == column && this.context == context && (anchor == null || anchor === instance)
 
 /** Right-click and long-press open the menu; a primary tap runs [onTap]. */
 private fun Modifier.columnMenuGestures(

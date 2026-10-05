@@ -13,6 +13,7 @@ import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasAnyDescendant
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onLast
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -156,5 +157,38 @@ class ColumnHeaderMenuTest {
 
             onNodeWithText("Sort ascending").assertDoesNotExist()
             onAllNodes(headerWithActions).assertCountEquals(0)
+        }
+
+    @Test
+    fun `a group header right click opens exactly one menu`() =
+        desktopOnlyTest {
+            val groupColumns =
+                tableColumns<String, String, Unit> {
+                    column("kind", valueOf = { it.substringBefore('-') }) {
+                        header("Kind")
+                        cell { item, _ -> Text(item) }
+                        groupHeader { Text("Group $it") }
+                    }
+                }
+            lateinit var state: TableState<String>
+            setContent {
+                state = rememberTableState(columns = persistentListOf("kind"))
+                Box(Modifier.size(400.dp, 300.dp)) {
+                    Table(
+                        itemsCount = 4,
+                        itemAt = { listOf("a-1", "a-2", "b-1", "b-2")[it] },
+                        state = state,
+                        columns = groupColumns,
+                    )
+                }
+            }
+            waitForIdle()
+            state.groupBy("kind")
+            waitForIdle()
+
+            onAllNodesWithText("Group a").onFirst().performMouseInput { rightClick() }
+            waitForIdle()
+
+            onAllNodesWithText("Ungroup").assertCountEquals(1)
         }
 }

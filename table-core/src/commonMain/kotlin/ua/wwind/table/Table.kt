@@ -175,7 +175,7 @@ public fun <T : Any, C, E> EditableTable(
     val visibleColumns by remember(columns, state.columns.order) {
         derivedStateOf {
             state.columns.order.mapNotNullToImmutable { key ->
-                columns.find { it.key == key && it.visible && key !in state.columns.hidden }
+                columns.find { it.key == key && it.isShownIn(state) }
             }
         }
     }
@@ -796,3 +796,6 @@ private fun <T : Any, C, E> PinnedFooterOverlay(
 }
 
 // endregion
+
+private fun <T : Any, C, E> ColumnSpec<T, C, E>.isShownIn(state: TableState<C>): Boolean =
+    visible && key !in state.columns.hidden
