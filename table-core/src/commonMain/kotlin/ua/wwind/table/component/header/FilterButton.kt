@@ -7,10 +7,16 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.max
 import ua.wwind.table.component.TableHeaderIcons
 
+/** The filter button's compact size; a larger target size (touch) widens it. */
+private const val MIN_FILTER_BUTTON_SIZE_DP = 32
+
 @Composable
+@Suppress("LongParameterList")
 internal fun FilterButton(
     enabled: Boolean,
     active: Boolean,
@@ -18,13 +24,14 @@ internal fun FilterButton(
     isOpen: Boolean,
     onOpen: () -> Unit,
     onDismiss: () -> Unit,
+    targetSize: Dp,
 ) {
     if (!enabled) return
     Box {
         if (active) {
             FilledTonalIconButton(
                 onClick = { if (!isOpen) onOpen() else onDismiss() },
-                modifier = Modifier.size(32.dp),
+                modifier = Modifier.size(max(MIN_FILTER_BUTTON_SIZE_DP.dp, targetSize)),
             ) {
                 Icon(
                     imageVector = icons.filterActive,
@@ -35,7 +42,7 @@ internal fun FilterButton(
         } else {
             IconButton(
                 onClick = { if (!isOpen) onOpen() else onDismiss() },
-                modifier = Modifier.size(32.dp),
+                modifier = Modifier.size(max(MIN_FILTER_BUTTON_SIZE_DP.dp, targetSize)),
             ) {
                 Icon(
                     imageVector = icons.filterInactive,

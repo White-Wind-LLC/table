@@ -78,6 +78,7 @@ internal fun <T : Any, C, E> HeaderCell(
                     icons = LocalTableHeaderIcons.current,
                     onToggle = onToggleSort,
                     clickable = !spec.headerClickToSort,
+                    targetSize = state.dimensions.headerIconTargetSize,
                 )
             },
             filterIcon = {
@@ -88,6 +89,7 @@ internal fun <T : Any, C, E> HeaderCell(
                     isOpen = isFilterOpen,
                     onOpen = onOpenFilter,
                     onDismiss = onDismissFilter,
+                    targetSize = state.dimensions.headerIconTargetSize,
                 )
             },
         )
