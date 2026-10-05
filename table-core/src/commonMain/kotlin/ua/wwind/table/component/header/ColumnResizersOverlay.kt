@@ -91,7 +91,13 @@ internal fun <T : Any, C, E> ColumnResizersOverlay(
                 )
             }
             cumulativeX +=
-                dividerWidthAfterColumn(index, visibleColumns.size, state.settings, dimensions)
+                dividerWidthAfterColumn(
+                    index,
+                    visibleColumns.size,
+                    state.columns.pinnedCount,
+                    state.settings,
+                    dimensions,
+                )
         }
     }
 }

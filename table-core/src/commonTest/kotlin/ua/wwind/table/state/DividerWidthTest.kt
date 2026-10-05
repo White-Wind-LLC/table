@@ -14,7 +14,15 @@ class DividerWidthTest {
     private fun widths(
         settings: TableSettings,
         columns: Int = 8,
-    ) = (0 until columns).map { dividerWidthAfterColumn(it, columns, settings, dimensions) }
+    ) = (0 until columns).map {
+        dividerWidthAfterColumn(
+            it,
+            columns,
+            settings.pinnedColumnsCount,
+            settings,
+            dimensions,
+        )
+    }
 
     @Test
     fun `every column carries a divider while they are shown`() {

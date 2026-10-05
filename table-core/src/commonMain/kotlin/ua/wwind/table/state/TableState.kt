@@ -71,6 +71,8 @@ public class TableState<C>
                 initialOrder = initialOrder.ifEmpty { initialColumns },
                 initialWidths = initialWidths,
                 dimensions = dimensions,
+                initialPinnedCount = settings.pinnedColumnsCount,
+                pinnedSide = settings.pinnedColumnsSide,
             )
 
         /** Focused row, checked rows and the selected cell. */
@@ -87,6 +89,10 @@ public class TableState<C>
          * some *other* tracked read — a [TableColumnsState.widths] write — happened to invalidate it.
          */
         internal var visibleColumns: List<ColumnSpec<*, C, *>> by mutableStateOf(emptyList())
+
+        init {
+            columns.renderedKeys = { visibleColumns.map { it.key } }
+        }
 
         /**
          * Row-to-unit mapping for the current data set. Identity unless the consumer passed
@@ -136,7 +142,7 @@ public class TableState<C>
         private fun computeTableWidth(columnSpecs: List<ColumnSpec<*, C, *>>): Dp =
             columnSpecs.foldIndexed(0.dp) { index, acc, spec ->
                 acc + columns.resolveWidth(spec.key, spec) +
-                    dividerWidthAfterColumn(index, columnSpecs.size, settings, dimensions)
+                    dividerWidthAfterColumn(index, columnSpecs.size, columns.pinnedCount, settings, dimensions)
             }
 
         // Sorting

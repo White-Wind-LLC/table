@@ -167,7 +167,7 @@ public suspend fun <T : Any, C, E> ensureColumnFullyVisible(
     var x = 0.dp
     visibleColumns.take(targetColIndex).forEachIndexed { index, spec ->
         x += state.columns.resolveWidth(spec.key, spec) +
-            dividerWidthAfterColumn(index, visibleColumns.size, state.settings, dimensions)
+            dividerWidthAfterColumn(index, visibleColumns.size, state.columns.pinnedCount, state.settings, dimensions)
     }
 
     val columnWidth = state.columns.resolveWidth(targetColKey, visibleColumns[targetColIndex])
