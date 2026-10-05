@@ -43,13 +43,17 @@ import androidx.compose.ui.unit.dp
 import co.touchlab.kermit.Logger
 import kotlinx.collections.immutable.ImmutableList
 import ua.wwind.table.component.ActiveFiltersHeader
+import ua.wwind.table.component.ColumnMenuBuilder
+import ua.wwind.table.component.ColumnMenuDefaults
 import ua.wwind.table.component.ContextMenuHost
+import ua.wwind.table.component.LocalColumnMenuBuilder
 import ua.wwind.table.component.TableHeader
 import ua.wwind.table.component.TableHeaderDefaults
 import ua.wwind.table.component.TableHeaderIcons
 import ua.wwind.table.component.body.GroupStickyOverlay
 import ua.wwind.table.component.body.TableBody
 import ua.wwind.table.component.body.TableBodyEmbedded
+import ua.wwind.table.component.erased
 import ua.wwind.table.component.footer.TableFooter
 import ua.wwind.table.config.DefaultTableCustomization
 import ua.wwind.table.config.TableColors
@@ -110,6 +114,7 @@ internal val DefaultRowKey: (Any?, Int) -> Any = { _, index -> index }
  * @param verticalState list scroll state
  * @param horizontalState horizontal scroll state of the whole table
  * @param icons header icons used for sort and filter affordances
+ * @param columnMenu shapes the column header menu; receives the default sections per column
  * @param shape surface shape of the table
  * @param border outer border stroke; `null` uses theme default, [TableDefaults.NoBorder] disables border
  * @param embedded When `true`, the table renders at its full intrinsic height with no internal
@@ -151,6 +156,7 @@ public fun <T : Any, C, E> EditableTable(
     verticalState: LazyListState = rememberLazyListState(),
     horizontalState: ScrollState = rememberScrollState(),
     icons: TableHeaderIcons = TableHeaderDefaults.icons(),
+    columnMenu: ColumnMenuBuilder<C> = ColumnMenuDefaults.builder(),
     shape: Shape = RoundedCornerShape(4.dp),
     border: BorderStroke? = null,
     rowEmbedded: (@Composable (rowIndex: Int, item: T) -> Unit)? = null,
@@ -206,6 +212,7 @@ public fun <T : Any, C, E> EditableTable(
     CompositionLocalProvider(
         LocalTableState provides state,
         LocalStringProvider provides strings,
+        LocalColumnMenuBuilder provides columnMenu.erased(),
     ) {
         EnsureSelectedCellVisibleEffect(
             visibleColumns = visibleColumns,
@@ -370,6 +377,7 @@ public fun <T : Any, C, E> EditableTable(
  * @param verticalState list scroll state
  * @param horizontalState horizontal scroll state of the whole table
  * @param icons header icons used for sort and filter affordances
+ * @param columnMenu shapes the column header menu; receives the default sections per column
  * @param shape surface shape of the table
  * @param border outer border stroke; `null` uses theme default, [TableDefaults.NoBorder] disables border
  * @param embedded When `true`, the table renders at its full intrinsic height with no internal
@@ -410,6 +418,7 @@ public fun <T : Any, C> Table(
     verticalState: LazyListState = rememberLazyListState(),
     horizontalState: ScrollState = rememberScrollState(),
     icons: TableHeaderIcons = TableHeaderDefaults.icons(),
+    columnMenu: ColumnMenuBuilder<C> = ColumnMenuDefaults.builder(),
     shape: Shape = RoundedCornerShape(4.dp),
     border: BorderStroke? = null,
     rowEmbedded: (@Composable (rowIndex: Int, item: T) -> Unit)? = null,
@@ -436,6 +445,7 @@ public fun <T : Any, C> Table(
         verticalState = verticalState,
         horizontalState = horizontalState,
         icons = icons,
+        columnMenu = columnMenu,
         shape = shape,
         border = border,
         rowEmbedded = rowEmbedded,
@@ -477,6 +487,7 @@ public fun <T : Any, C> Table(
  * @param verticalState list scroll state
  * @param horizontalState horizontal scroll state of the whole table
  * @param icons header icons used for sort and filter affordances
+ * @param columnMenu shapes the column header menu; receives the default sections per column
  * @param shape surface shape of the table
  * @param border outer border stroke; `null` uses theme default, [TableDefaults.NoBorder] disables border
  * @param embedded When `true`, the table renders at its full intrinsic height with no internal
@@ -518,6 +529,7 @@ public fun <T : Any, C, E> Table(
     verticalState: LazyListState = rememberLazyListState(),
     horizontalState: ScrollState = rememberScrollState(),
     icons: TableHeaderIcons = TableHeaderDefaults.icons(),
+    columnMenu: ColumnMenuBuilder<C> = ColumnMenuDefaults.builder(),
     shape: Shape = RoundedCornerShape(4.dp),
     border: BorderStroke? = null,
     rowEmbedded: (@Composable (rowIndex: Int, item: T) -> Unit)? = null,
@@ -544,6 +556,7 @@ public fun <T : Any, C, E> Table(
         verticalState = verticalState,
         horizontalState = horizontalState,
         icons = icons,
+        columnMenu = columnMenu,
         shape = shape,
         border = border,
         rowEmbedded = rowEmbedded,

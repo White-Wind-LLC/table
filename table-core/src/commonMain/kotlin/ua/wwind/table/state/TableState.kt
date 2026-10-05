@@ -131,6 +131,13 @@ public class TableState<C>
          */
         internal var isFocused: Boolean by mutableStateOf(false)
 
+        /** The open column menu, if any. One menu is open per table at a time. */
+        internal var columnMenuRequest: ColumnMenuRequest<C>? by mutableStateOf(null)
+
+        internal fun closeColumnMenu() {
+            columnMenuRequest = null
+        }
+
         /**
          * Current table width computed from visible columns and their widths.
          * Automatically recalculates when column order, widths, or visibleColumns change.

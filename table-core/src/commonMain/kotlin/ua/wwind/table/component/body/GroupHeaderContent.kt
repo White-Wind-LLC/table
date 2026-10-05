@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.Dp
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.DefaultTableCellScope
 import ua.wwind.table.component.header.ColumnHeaderDropdownMenuBox
+import ua.wwind.table.component.header.ColumnMenuContext
 import ua.wwind.table.config.TableCellStyle
 import ua.wwind.table.config.TableColors
 import ua.wwind.table.config.TableCustomization
@@ -43,7 +44,8 @@ internal fun <T : Any, C, E> GroupHeaderCell(
             ColumnHeaderDropdownMenuBox(
                 spec = spec,
                 state = state,
-            ) {
+                context = ColumnMenuContext.GroupHeader,
+            ) { _ ->
                 Box(
                     contentAlignment = state.settings.groupContentAlignment,
                     modifier =

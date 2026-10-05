@@ -110,7 +110,9 @@ internal fun <T : Any, C, E> TableHeaderRow(
                     ColumnHeaderDropdownMenuBox(
                         spec = spec,
                         state = state,
-                    ) {
+                        context = ColumnMenuContext.Header,
+                        onOpenFilter = { onFilterColumnChange(spec.key) },
+                    ) { _ ->
                         Box(
                             modifier =
                                 Modifier
