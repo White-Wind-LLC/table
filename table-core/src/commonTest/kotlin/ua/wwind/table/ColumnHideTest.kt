@@ -70,11 +70,34 @@ class ColumnHideTest {
             }
             runOnIdle {
                 state.columns.hide("b")
-                state.columns.showAll()
             }
+            waitForIdle()
+            runOnIdle { state.columns.showAll() }
             waitForIdle()
 
             onNodeWithText("B").assertExists()
             onNodeWithText("C").assertDoesNotExist()
+        }
+
+    @Test
+    fun `hiding every column in one snapshot keeps one visible`() =
+        runComposeUiTest {
+            lateinit var state: TableState<String>
+            setContent {
+                state = rememberTableState(columns = persistentListOf("a", "b", "c"))
+                Box(Modifier.size(400.dp)) {
+                    Table(itemsCount = 1, itemAt = { "row" }, state = state, columns = columns)
+                }
+            }
+            waitForIdle()
+            runOnIdle {
+                state.columns.hide("a")
+                state.columns.hide("b")
+            }
+            waitForIdle()
+
+            onNodeWithText("B").assertExists()
+            onNodeWithText("A").assertDoesNotExist()
+            assertThat(state.columns.visibleKeys().size).isEqualTo(1)
         }
 }

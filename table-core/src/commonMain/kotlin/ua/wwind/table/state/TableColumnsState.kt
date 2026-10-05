@@ -144,11 +144,14 @@ public class TableColumnsState<C>
         /**
          * Keys of the columns the table renders, in order. `TableState` wires this to the columns
          * `Table` composed; before the first composition it falls back to [order].
+         *
+         * The composed list lags one frame behind [hide], so [visibleKeys] also filters [hidden].
          */
         internal var renderedKeys: (() -> List<C>)? = null
 
         internal fun visibleKeys(): List<C> =
-            renderedKeys?.invoke()?.takeIf { it.isNotEmpty() } ?: order.filterNot { it in hidden }
+            renderedKeys?.invoke()?.filterNot { it in hidden }?.takeIf { it.isNotEmpty() }
+                ?: order.filterNot { it in hidden }
 
         /**
          * Columns hidden at runtime, e.g. from the column menu. A column renders when its spec is
