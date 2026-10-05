@@ -43,4 +43,19 @@ class TableStateSortLockTest {
         state.setSort("a")
         assertThat(state.sort).isNull()
     }
+
+    @Test
+    fun `clearSort removes the sort`() {
+        val state = stateWith(TableSettings())
+        state.setSort("a", SortOrder.DESCENDING)
+        state.clearSort()
+        assertThat(state.sort).isNull()
+    }
+
+    @Test
+    fun `clearSort is a no-op while row reorder is enabled`() {
+        val state = stateWith(TableSettings(rowReorderEnabled = true))
+        state.clearSort()
+        assertThat(state.sort).isNull()
+    }
 }

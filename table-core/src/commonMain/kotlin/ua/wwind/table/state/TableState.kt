@@ -194,6 +194,12 @@ public class TableState<C>
                 }
         }
 
+        /** Remove sorting. A no-op while row reorder is enabled, matching [setSort]. */
+        public fun clearSort() {
+            if (settings.rowReorderEnabled) return
+            sort = null
+        }
+
         /** Enable or disable grouping by a [column] */
         public fun groupBy(column: C?) {
             groupBy = column

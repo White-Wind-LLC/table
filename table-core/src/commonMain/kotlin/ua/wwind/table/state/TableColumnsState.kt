@@ -232,6 +232,32 @@ public class TableColumnsState<C>
             pinnedCount = pinned - 1
         }
 
+        /**
+         * Whether [moveBy] would move [column] by [delta] visible positions: the target exists and
+         * sits in the same block (pinned or unpinned) as the column.
+         */
+        public fun canMoveBy(
+            column: C,
+            delta: Int,
+        ): Boolean {
+            val keys = visibleKeys()
+            val from = keys.indexOf(column)
+            if (from < 0 || delta == 0) return false
+            val to = from + delta
+            return to in keys.indices && isPinned(column) == isPinned(keys[to])
+        }
+
+        /** Move [column] by [delta] positions among visible columns, staying inside its block. */
+        public fun moveBy(
+            column: C,
+            delta: Int,
+        ) {
+            if (!canMoveBy(column, delta)) return
+            val keys = visibleKeys()
+            val from = keys.indexOf(column)
+            moveVisible(keys, from, from + delta)
+        }
+
         /** Moves the visible column at [from] to visible index [to], mapping both onto [order]. */
         private fun moveVisible(
             keys: List<C>,
