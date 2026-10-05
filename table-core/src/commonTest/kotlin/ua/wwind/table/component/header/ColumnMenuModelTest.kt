@@ -1,4 +1,3 @@
-// coreTest/component/header/ColumnMenuModelTest.kt
 package ua.wwind.table.component.header
 
 import androidx.compose.material3.Text
@@ -120,6 +119,22 @@ class ColumnMenuModelTest {
         assertThat(sections.entry(Ids.SortAscending).disabledReason).isEqualTo(UiString.ColumnMenuReasonRowReorder)
         assertThat(sections.entry(Ids.GroupBy).disabledReason).isEqualTo(UiString.ColumnMenuReasonRowReorder)
         assertThat(sections.entry(Ids.OpenFilter).enabled).isTrue()
+    }
+
+    @Test
+    fun `clear sort is disabled with a reason under the row reorder lock`() {
+        val state =
+            TableState(
+                initialColumns = listOf("full", "plain", "last"),
+                initialSort = SortState("full", SortOrder.ASCENDING),
+                initialOrder = listOf("full", "plain", "last"),
+                initialWidths = emptyMap(),
+                settings = TableSettings(rowReorderEnabled = true),
+                dimensions = TableDefaults.standardDimensions(),
+            )
+        val entry = model(state, "full").entry(Ids.ClearSort)
+        assertThat(entry.enabled).isFalse()
+        assertThat(entry.disabledReason).isEqualTo(UiString.ColumnMenuReasonRowReorder)
     }
 
     @Test

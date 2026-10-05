@@ -1,4 +1,3 @@
-// core/component/header/ColumnMenuModel.kt
 package ua.wwind.table.component.header
 
 import androidx.compose.runtime.Composable
@@ -55,7 +54,7 @@ internal fun <C> columnMenuModel(
     onOpenFilter: () -> Unit,
 ): List<ColumnMenuEntrySection> =
     when (context) {
-        ColumnMenuContext.Header ->
+        ColumnMenuContext.Header -> {
             listOfNotNull(
                 sortSection(spec, state),
                 filterSection(spec, state, onOpenFilter),
@@ -63,8 +62,11 @@ internal fun <C> columnMenuModel(
                 groupSection(spec, state),
                 visibilitySection(spec, state),
             )
+        }
 
-        ColumnMenuContext.GroupHeader -> listOfNotNull(sortSection(spec, state), groupSection(spec, state))
+        ColumnMenuContext.GroupHeader -> {
+            listOfNotNull(sortSection(spec, state), groupSection(spec, state))
+        }
     }
 
 private fun <C> sortSection(
@@ -97,7 +99,15 @@ private fun <C> sortSection(
                 ) { state.setSort(spec.key, SortOrder.DESCENDING) },
             )
             if (current != null) {
-                add(ColumnMenuEntry(Ids.ClearSort, UiString.ColumnMenuClearSort, TableIcons.Close) { state.clearSort() })
+                add(
+                    ColumnMenuEntry(
+                        id = Ids.ClearSort,
+                        label = UiString.ColumnMenuClearSort,
+                        icon = TableIcons.Close,
+                        enabled = reason == null,
+                        disabledReason = reason,
+                    ) { state.clearSort() },
+                )
             }
         }
     return ColumnMenuEntrySection(Sections.Sort, entries)
@@ -112,7 +122,14 @@ private fun <C> filterSection(
     if (filter == null || filter is TableFilterType.DisabledTableFilter) return null
     val entries =
         buildList {
-            add(ColumnMenuEntry(Ids.OpenFilter, UiString.ColumnMenuOpenFilter, TableIcons.FilterAltOutlined, onClick = onOpenFilter))
+            add(
+                ColumnMenuEntry(
+                    Ids.OpenFilter,
+                    UiString.ColumnMenuOpenFilter,
+                    TableIcons.FilterAltOutlined,
+                    onClick = onOpenFilter,
+                ),
+            )
             if (state.filters[spec.key]?.isActive() == true) {
                 add(
                     ColumnMenuEntry(Ids.ClearFilter, UiString.ColumnMenuClearFilter, TableIcons.Close) {

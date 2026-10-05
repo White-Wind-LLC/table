@@ -1,4 +1,3 @@
-// core/component/ColumnMenuApi.kt
 package ua.wwind.table.component
 
 import androidx.compose.runtime.Composable
@@ -9,12 +8,14 @@ import kotlin.jvm.JvmInline
 /** Stable identifier of a column menu item. Built-in items use the values in [ColumnMenuDefaults.Ids]. */
 @JvmInline
 public value class ColumnMenuItemId(
+    /** Raw identifier string. */
     public val value: String,
 )
 
 /**
  * One entry of the column header menu.
  *
+ * @property id stable identifier, see [ColumnMenuDefaults.Ids]
  * @property label text shown in the menu and used as the accessibility action label
  * @property icon leading icon, or null for none
  * @property enabled whether the item can be activated right now
@@ -33,7 +34,12 @@ public data class ColumnMenuItem(
     val onClick: () -> Unit,
 )
 
-/** A group of [items] separated from its neighbours by a divider. Built-in ids are in [ColumnMenuDefaults.Sections]. */
+/**
+ * A group of [items] separated from its neighbours by a divider.
+ *
+ * @property id section identifier; built-in ids are in [ColumnMenuDefaults.Sections]
+ * @property items items of the section, in display order
+ */
 @Immutable
 public data class ColumnMenuSection(
     val id: String,
@@ -47,8 +53,15 @@ public data class ColumnMenuSection(
  *
  * The same list feeds the dropdown and the header cell's accessibility custom actions, so the two
  * never disagree.
+ *
+ * @param C column key type
  */
 public fun interface ColumnMenuBuilder<C> {
+    /**
+     * @param column key of the column the menu belongs to
+     * @param defaults default sections for [column]
+     * @return the sections to show; empty removes the menu for that column
+     */
     @Composable
     public fun build(
         column: C,
@@ -60,29 +73,49 @@ public fun interface ColumnMenuBuilder<C> {
 public object ColumnMenuDefaults {
     /** Ids of the built-in items. */
     public object Ids {
+        /** Sort ascending. */
         public val SortAscending: ColumnMenuItemId = ColumnMenuItemId("sort-ascending")
+        /** Sort descending. */
         public val SortDescending: ColumnMenuItemId = ColumnMenuItemId("sort-descending")
+        /** Clear the sort. */
         public val ClearSort: ColumnMenuItemId = ColumnMenuItemId("clear-sort")
+        /** Open the column filter. */
         public val OpenFilter: ColumnMenuItemId = ColumnMenuItemId("open-filter")
+        /** Clear the column filter. */
         public val ClearFilter: ColumnMenuItemId = ColumnMenuItemId("clear-filter")
+        /** Pin the column. */
         public val Pin: ColumnMenuItemId = ColumnMenuItemId("pin")
+        /** Unpin the column. */
         public val Unpin: ColumnMenuItemId = ColumnMenuItemId("unpin")
+        /** Move the column one step left. */
         public val MoveLeft: ColumnMenuItemId = ColumnMenuItemId("move-left")
+        /** Move the column one step right. */
         public val MoveRight: ColumnMenuItemId = ColumnMenuItemId("move-right")
+        /** Fit the column width to its content. */
         public val AutoFit: ColumnMenuItemId = ColumnMenuItemId("auto-fit")
+        /** Reset the column width. */
         public val ResetWidth: ColumnMenuItemId = ColumnMenuItemId("reset-width")
+        /** Group rows by the column. */
         public val GroupBy: ColumnMenuItemId = ColumnMenuItemId("group-by")
+        /** Remove grouping. */
         public val Ungroup: ColumnMenuItemId = ColumnMenuItemId("ungroup")
+        /** Hide the column. */
         public val Hide: ColumnMenuItemId = ColumnMenuItemId("hide")
+        /** Show all hidden columns. */
         public val ShowHidden: ColumnMenuItemId = ColumnMenuItemId("show-hidden")
     }
 
     /** Ids of the built-in sections, in their default order. */
     public object Sections {
+        /** Sort section: sort direction and clear sort. */
         public const val Sort: String = "sort"
+        /** Filter section: open and clear the filter. */
         public const val Filter: String = "filter"
+        /** Layout section: pin, move and width items. */
         public const val Layout: String = "layout"
+        /** Group section: group by and ungroup. */
         public const val Group: String = "group"
+        /** Visibility section: hide and show columns. */
         public const val Visibility: String = "visibility"
     }
 
