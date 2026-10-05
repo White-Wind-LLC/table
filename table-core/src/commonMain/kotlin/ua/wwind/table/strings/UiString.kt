@@ -129,6 +129,55 @@ public sealed class UiString {
 
     public object Ungroup : UiString()
 
+    // Column menu
+    public object ColumnMenuSortAscending : UiString()
+
+    public object ColumnMenuSortDescending : UiString()
+
+    public object ColumnMenuClearSort : UiString()
+
+    public object ColumnMenuOpenFilter : UiString()
+
+    public object ColumnMenuClearFilter : UiString()
+
+    public object ColumnMenuPinLeft : UiString()
+
+    public object ColumnMenuPinRight : UiString()
+
+    public object ColumnMenuUnpin : UiString()
+
+    public object ColumnMenuMoveLeft : UiString()
+
+    public object ColumnMenuMoveRight : UiString()
+
+    public object ColumnMenuAutoFit : UiString()
+
+    public object ColumnMenuResetWidth : UiString()
+
+    public object ColumnMenuHide : UiString()
+
+    public object ColumnMenuShowHidden : UiString()
+
+    public object ColumnMenuOptions : UiString()
+
+    public object ColumnMenuReasonRowReorder : UiString()
+
+    public object ColumnMenuReasonRowBlocks : UiString()
+
+    public object ColumnMenuReasonFirst : UiString()
+
+    public object ColumnMenuReasonLast : UiString()
+
+    public object ColumnMenuReasonPinnedEdge : UiString()
+
+    public object ColumnMenuReasonDefaultWidth : UiString()
+
+    public object ColumnMenuReasonNothingToFit : UiString()
+
+    public object ColumnMenuReasonLastVisible : UiString()
+
+    public object ColumnMenuReasonLastUnpinned : UiString()
+
     // Tooltip actions
     public object TooltipDismiss : UiString()
 }
@@ -276,6 +325,55 @@ public object DefaultStrings : StringProvider {
             UiString.GroupBy -> "Group by"
 
             UiString.Ungroup -> "Ungroup"
+
+            // Column menu
+            UiString.ColumnMenuSortAscending -> "Sort ascending"
+
+            UiString.ColumnMenuSortDescending -> "Sort descending"
+
+            UiString.ColumnMenuClearSort -> "Clear sort"
+
+            UiString.ColumnMenuOpenFilter -> "Filter…"
+
+            UiString.ColumnMenuClearFilter -> "Clear filter"
+
+            UiString.ColumnMenuPinLeft -> "Pin left"
+
+            UiString.ColumnMenuPinRight -> "Pin right"
+
+            UiString.ColumnMenuUnpin -> "Unpin"
+
+            UiString.ColumnMenuMoveLeft -> "Move left"
+
+            UiString.ColumnMenuMoveRight -> "Move right"
+
+            UiString.ColumnMenuAutoFit -> "Auto-fit width"
+
+            UiString.ColumnMenuResetWidth -> "Reset width"
+
+            UiString.ColumnMenuHide -> "Hide column"
+
+            UiString.ColumnMenuShowHidden -> "Show hidden columns"
+
+            UiString.ColumnMenuOptions -> "Column options"
+
+            UiString.ColumnMenuReasonRowReorder -> "Unavailable while rows can be reordered"
+
+            UiString.ColumnMenuReasonRowBlocks -> "Unavailable while row blocks are shown"
+
+            UiString.ColumnMenuReasonFirst -> "Already first"
+
+            UiString.ColumnMenuReasonLast -> "Already last"
+
+            UiString.ColumnMenuReasonPinnedEdge -> "Already at the pinned edge"
+
+            UiString.ColumnMenuReasonDefaultWidth -> "Already at default width"
+
+            UiString.ColumnMenuReasonNothingToFit -> "No content to fit yet"
+
+            UiString.ColumnMenuReasonLastVisible -> "The last visible column can't be hidden"
+
+            UiString.ColumnMenuReasonLastUnpinned -> "At least one column must stay unpinned"
 
             // Tooltip actions
             UiString.TooltipDismiss -> "Dismiss"
