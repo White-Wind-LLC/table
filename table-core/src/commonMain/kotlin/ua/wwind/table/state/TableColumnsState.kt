@@ -6,9 +6,11 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableStateSetOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.snapshots.SnapshotStateMap
+import androidx.compose.runtime.snapshots.SnapshotStateSet
 import androidx.compose.ui.unit.Dp
 import co.touchlab.kermit.Logger
 import ua.wwind.table.ColumnSpec
@@ -145,7 +147,37 @@ public class TableColumnsState<C>
          */
         internal var renderedKeys: (() -> List<C>)? = null
 
-        internal fun visibleKeys(): List<C> = renderedKeys?.invoke()?.takeIf { it.isNotEmpty() } ?: order.toList()
+        internal fun visibleKeys(): List<C> =
+            renderedKeys?.invoke()?.takeIf { it.isNotEmpty() } ?: order.filterNot { it in hidden }
+
+        /**
+         * Columns hidden at runtime, e.g. from the column menu. A column renders when its spec is
+         * `visible` and its key is not in this set; [showAll] never reveals a column the spec hides.
+         */
+        public val hidden: SnapshotStateSet<C> = mutableStateSetOf()
+
+        /** Whether [hide] would hide [column]: it is visible and not the last visible column. */
+        public fun canHide(column: C): Boolean {
+            val keys = visibleKeys()
+            return column in keys && keys.size > 1
+        }
+
+        /** Hide [column]. A pinned column leaves the pinned block, which shrinks by one. */
+        public fun hide(column: C) {
+            if (!canHide(column)) return
+            if (isPinned(column)) pinnedCount = effectivePinnedCount() - 1
+            hidden.add(column)
+        }
+
+        /** Show a column hidden by [hide]. */
+        public fun show(column: C) {
+            hidden.remove(column)
+        }
+
+        /** Show every column hidden by [hide]. */
+        public fun showAll() {
+            hidden.clear()
+        }
 
         /** The pinned block size as rendered: a count covering every visible column pins none. */
         internal fun effectivePinnedCount(visibleCount: Int = visibleKeys().size): Int =

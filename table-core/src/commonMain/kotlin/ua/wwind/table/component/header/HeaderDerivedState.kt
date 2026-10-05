@@ -30,7 +30,7 @@ internal fun <T : Any, C, E> rememberHeaderDerivedState(
         derivedStateOf {
             state.columns.order.mapNotNullToImmutable { key ->
                 @Suppress("UNCHECKED_CAST")
-                (keyToSpec[key] as ColumnSpec<T, C, E>?)?.takeIf { it.visible }
+                (keyToSpec[key] as ColumnSpec<T, C, E>?)?.takeIf { it.visible && key !in state.columns.hidden }
             }
         }
     }

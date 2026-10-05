@@ -169,7 +169,7 @@ public fun <T : Any, C, E> EditableTable(
     val visibleColumns by remember(columns, state.columns.order) {
         derivedStateOf {
             state.columns.order.mapNotNullToImmutable { key ->
-                columns.find { it.key == key && it.visible }
+                columns.find { it.key == key && it.visible && key !in state.columns.hidden }
             }
         }
     }
