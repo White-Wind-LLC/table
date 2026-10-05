@@ -20,6 +20,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
@@ -28,6 +29,7 @@ import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.ReorderableLazyListState
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.icon.TableIcons
+import ua.wwind.table.platform.ColumnGrabPointerIcon
 import ua.wwind.table.platform.getPlatform
 import ua.wwind.table.platform.isMobile
 import ua.wwind.table.state.TableState
@@ -146,16 +148,22 @@ internal fun <T : Any, C, E> TableHeaderRow(
                             )
 
                             if (showDragHandle) {
-                                Icon(
-                                    imageVector = TableIcons.DragIndicator,
-                                    contentDescription = "Drag column",
+                                // The glyph stays 16.dp in the top-left corner; the target around it is larger.
+                                Box(
+                                    contentAlignment = Alignment.TopStart,
                                     modifier =
                                         Modifier
                                             .align(Alignment.TopStart)
-                                            .padding(start = 2.dp, top = 2.dp)
-                                            .size(16.dp)
+                                            .size(style.dimensions.columnDragHandleSize)
+                                            .pointerHoverIcon(ColumnGrabPointerIcon)
                                             .draggableHandle(enabled = true),
-                                )
+                                ) {
+                                    Icon(
+                                        imageVector = TableIcons.DragIndicator,
+                                        contentDescription = "Drag column",
+                                        modifier = Modifier.padding(start = 2.dp, top = 2.dp).size(16.dp),
+                                    )
+                                }
                             }
                         }
                     }

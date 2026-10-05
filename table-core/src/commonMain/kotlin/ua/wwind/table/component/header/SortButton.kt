@@ -1,12 +1,16 @@
 package ua.wwind.table.component.header
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import ua.wwind.table.component.TableHeaderIcons
 import ua.wwind.table.data.SortOrder
@@ -18,6 +22,7 @@ internal fun SortButton(
     icons: TableHeaderIcons,
     onToggle: () -> Unit,
     clickable: Boolean,
+    targetSize: Dp,
 ) {
     if (!enabled) return
     val sortIcon =
@@ -26,12 +31,11 @@ internal fun SortButton(
             SortOrder.ASCENDING -> icons.sortAsc
             null -> icons.sortNeutral
         }
-    Icon(
-        imageVector = sortIcon,
-        contentDescription = null,
+    Box(
+        contentAlignment = Alignment.Center,
         modifier =
             Modifier
-                .size(24.dp)
+                .sizeIn(minWidth = targetSize, minHeight = targetSize)
                 .then(
                     if (clickable) {
                         Modifier.clickable(role = Role.Button) {
@@ -40,6 +44,12 @@ internal fun SortButton(
                     } else {
                         Modifier
                     },
-                ).padding(start = 4.dp),
-    )
+                ),
+    ) {
+        Icon(
+            imageVector = sortIcon,
+            contentDescription = null,
+            modifier = Modifier.size(24.dp).padding(start = 4.dp),
+        )
+    }
 }

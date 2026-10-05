@@ -97,7 +97,9 @@ column(PersonField.Name, valueOf = { it.name }) {
       travel with it when the move is applied via `applyRowBlockMove` — see
       [Row blocks](../guides/row-blocks.md#filtering-hidden-members-travel-with-the-block).
     - `TableDimensions`: `defaultColumnWidth`, `defaultRowHeight`, `footerHeight`, `checkBoxColumnWidth`,
-      `verticalDividerThickness`, `verticalDividerPaddingHorizontal`, `rowBlockSpacing`.
+      `verticalDividerThickness`, `verticalDividerPaddingHorizontal`, `rowBlockSpacing`, and the pointer targets
+      `columnResizeHandleWidth` (8.dp, 24.dp on touch), `headerIconTargetSize` (24.dp, 48.dp on touch) and
+      `columnDragHandleSize` (24.dp).
     - `TableColors`: via `TableDefaults.colors(...)`.
 - **Row blocks**: `rowBlocks = RowBlocks(blockOf, onCommit, blockHeader, onRowReorderWithinBlock)` makes adjacent
   rows sharing a non-null `blockOf` id render and drag as one unit — see

@@ -1,7 +1,6 @@
 package ua.wwind.table.component.header
 
 import androidx.compose.foundation.ScrollState
-import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -23,24 +22,25 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.focus.focusProperties
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.max
 import kotlinx.collections.immutable.ImmutableList
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.config.TableDimensions
+import ua.wwind.table.platform.ColumnResizePointerIcon
 import ua.wwind.table.state.currentTableState
 import ua.wwind.table.state.dividerWidthAfterColumn
 
-private const val OVERLAY_REACH_DP = 3
-
-/** The last strip has no room to hang over the boundary, so it takes that width back on the left. */
-private const val LAST_OVERLAY_REACH_DP = 6
+/** The hover line is at least this wide, so a 1.dp divider still shows which boundary will move. */
+private const val HOVER_LINE_MIN_WIDTH_DP = 2
 
 private const val EDGE_ZONE_DP = 24
 private const val EDGE_GROWTH_DP_PER_SECOND = 200f
@@ -70,13 +70,17 @@ internal fun <T : Any, C, E> ColumnResizersOverlay(
             cumulativeX += widthResolver(spec.key)
 
             if (spec.resizable) {
-                val isLast = index == visibleColumns.size - 1
                 ResizeHandle(
                     columnKey = spec.key,
                     boundaryX = cumulativeX,
                     minWidth = spec.minWidth,
-                    reach = if (isLast) LAST_OVERLAY_REACH_DP.dp else OVERLAY_REACH_DP.dp,
-                    overhang = if (isLast) 0.dp else OVERLAY_REACH_DP.dp,
+                    span =
+                        resizeHandleSpan(
+                            boundaryX = cumulativeX,
+                            handleWidth = dimensions.columnResizeHandleWidth,
+                            dividerThickness = dimensions.dividerThickness,
+                            isLast = index == visibleColumns.size - 1,
+                        ),
                     dividerThickness = dimensions.dividerThickness,
                     widthResolver = widthResolver,
                     horizontalState = horizontalState,
@@ -92,15 +96,14 @@ internal fun <T : Any, C, E> ColumnResizersOverlay(
     }
 }
 
-/** Grab strip [reach] wide to the left of one column boundary; dragging resizes and scrolls after it. */
+/** Grab strip [span] around one column boundary; dragging resizes and scrolls after it. */
 @Composable
 @Suppress("LongParameterList")
 private fun <C> ResizeHandle(
     columnKey: C,
     boundaryX: Dp,
     minWidth: Dp,
-    reach: Dp,
-    overhang: Dp,
+    span: ResizeHandleSpan,
     dividerThickness: Dp,
     widthResolver: (C) -> Dp,
     horizontalState: ScrollState,
@@ -117,6 +120,8 @@ private fun <C> ResizeHandle(
     // pointerInput is keyed on the column, so its block outlives the composition that started it:
     // stale geometry restarts every drag from the first width, a stale callback writes to a dead state.
     val currentBoundaryX by rememberUpdatedState(boundaryX)
+    // Where the strip starts relative to the boundary; fixed for a column while the dimensions hold.
+    val currentLeadPx by rememberUpdatedState(with(density) { (boundaryX - span.left).toPx() })
     val currentWidth by rememberUpdatedState(widthResolver(columnKey))
     val currentMinWidth by rememberUpdatedState(minWidth)
     val currentOnResize by rememberUpdatedState(onResize)
@@ -138,11 +143,16 @@ private fun <C> ResizeHandle(
     GrowWhileHeldAtEdge(drag, ::grow)
     SettleScrollAfterDrag(drag, horizontalState) { with(density) { currentBoundaryX.toPx() } }
 
+    val hoverLineColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.9f)
+    val hoverLineWidth = max(dividerThickness, HOVER_LINE_MIN_WIDTH_DP.dp)
+    // Centred on the divider, so a wide touch strip still draws a line as thin as the boundary.
+    val hoverLineLeft = boundaryX - span.left + (dividerThickness - hoverLineWidth) / 2
+
     Box(
         modifier =
             Modifier
                 .fillMaxHeight()
-                .offset(x = boundaryX - reach, y = 0.dp)
+                .offset(x = span.left, y = 0.dp)
                 .hoverable(interactionSource = interaction)
                 .pointerInput(columnKey) {
                     detectTapGestures(onDoubleTap = { currentOnDoubleClick(columnKey) })
@@ -165,7 +175,7 @@ private fun <C> ResizeHandle(
                             currentOnResizeEnd()
                         },
                     ) { change, dragAmount ->
-                        val handleLeftPx = drag.boundaryPx - with(density) { reach.toPx() }
+                        val handleLeftPx = drag.boundaryPx - currentLeadPx
                         drag.onDrag(
                             dragAmount = dragAmount,
                             pointerViewportPx = handleLeftPx - horizontalState.value + change.position.x,
@@ -174,16 +184,17 @@ private fun <C> ResizeHandle(
                         )
                         grow(dragAmount)
                     }
-                }.pointerHoverIcon(PointerIcon.Hand)
-                .width(reach + dividerThickness + overhang)
-                .background(
-                    color =
-                        if (isHovered) {
-                            MaterialTheme.colorScheme.outline.copy(alpha = 0.9f)
-                        } else {
-                            Color.Transparent
-                        },
-                ),
+                }.pointerHoverIcon(ColumnResizePointerIcon)
+                .width(span.width)
+                .drawBehind {
+                    if (isHovered) {
+                        drawRect(
+                            color = hoverLineColor,
+                            topLeft = Offset(hoverLineLeft.toPx(), 0f),
+                            size = Size(hoverLineWidth.toPx(), size.height),
+                        )
+                    }
+                },
     )
 }
 
