@@ -169,21 +169,54 @@ public class TableColumnsState<C>
             return column in keys && keys.size > 1
         }
 
-        /** Hide [column]. A pinned column leaves the pinned block, which shrinks by one. */
+        /**
+         * Hide [column]. A pinned column is unpinned first: it moves just outside the pinned block,
+         * which shrinks by one.
+         */
         public fun hide(column: C) {
             if (!canHide(column)) return
-            if (isPinned(column)) pinnedCount = effectivePinnedCount() - 1
+            unpin(column)
             hidden.add(column)
         }
 
-        /** Show a column hidden by [hide]. */
+        /**
+         * Show a column hidden by [hide]. A column whose place in [order] falls inside the pinned
+         * block lands at the block's outer edge instead, so it never takes a pinned column's slot.
+         */
         public fun show(column: C) {
-            hidden.remove(column)
+            if (column !in hidden) return
+            reveal(column, visibleKeys())
         }
 
-        /** Show every column hidden by [hide]. */
+        /** Show every column hidden by [hide], each one placed as [show] places it. */
         public fun showAll() {
+            var visible = visibleKeys()
+            order.filter { it in hidden }.forEach { visible = reveal(it, visible) }
             hidden.clear()
+        }
+
+        /**
+         * Removes [column] from [hidden] and moves it out of the pinned block if it would land
+         * inside. [visible] is the visible list without [column]: the rendered keys lag a frame, so
+         * they cannot be read back here. Returns the visible list including [column].
+         */
+        private fun reveal(
+            column: C,
+            visible: List<C>,
+        ): List<C> {
+            hidden.remove(column)
+            val visibleSet = visible.toSet()
+            val keys = order.filter { it == column || it in visibleSet }
+            val pinned = effectivePinnedCount(keys.size)
+            val index = keys.indexOf(column)
+            // The block's outer edge, when the column would otherwise land inside the block.
+            val target =
+                when (pinnedSide) {
+                    PinnedSide.Left -> pinned.takeIf { index < pinned }
+                    PinnedSide.Right -> (keys.size - pinned - 1).takeIf { index >= keys.size - pinned }
+                } ?: return keys
+            moveVisible(keys, index, target)
+            return order.filter { it == column || it in visibleSet }
         }
 
         /** The pinned block size as rendered: a count covering every visible column pins none. */
