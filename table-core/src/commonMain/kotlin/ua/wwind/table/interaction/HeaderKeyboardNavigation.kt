@@ -33,6 +33,8 @@ internal fun <C> Modifier.tableHeaderKeyboardNavigation(
         .focusRequester(state.headerFocusRequester)
         .onFocusChanged { focus ->
             state.isHeaderFocused = focus.isFocused
+            // The next arrival is a keyboard one unless a pointer says otherwise when it focuses the header.
+            if (!focus.isFocused) state.isHeaderFocusFromKeyboard = true
             if (focus.isFocused) {
                 val keys = visibleColumns.map { it.key }
                 if (state.focusedHeaderColumn !in keys) {
@@ -44,7 +46,10 @@ internal fun <C> Modifier.tableHeaderKeyboardNavigation(
             }
         }.focusTarget()
         .onPreviewKeyEvent { event ->
-            event.type == KeyEventType.KeyDown && handleHeaderKey(event, state, visibleColumns, onEnterBody)
+            val handled =
+                event.type == KeyEventType.KeyDown && handleHeaderKey(event, state, visibleColumns, onEnterBody)
+            if (handled) state.isHeaderFocusFromKeyboard = true
+            handled
         }
 
 /** ↑ from the body: focus the header on [column] (or the header's current column when null). */
@@ -90,7 +95,7 @@ private fun <C> handleHeaderKey(
     val current = state.focusedHeaderColumn?.takeIf { it in keys } ?: keys.firstOrNull() ?: return false
     val index = keys.indexOf(current)
     return when {
-        event.isColumnMenuKey() || (event.key == Key.DirectionDown && event.isAltPressed) -> {
+        event.opensHeaderMenu() -> {
             state.openColumnMenuFromKeyboard(current)
             true
         }
@@ -100,7 +105,7 @@ private fun <C> handleHeaderKey(
             true
         }
 
-        event.key == Key.Enter || event.key == Key.NumPadEnter || event.key == Key.Spacebar -> {
+        event.isSortKey() -> {
             val spec = visibleColumns[index]
             if (spec.sortable && !state.settings.isInteractionLockByRowReorderEnabled) state.setSort(current)
             true
@@ -113,6 +118,12 @@ private fun <C> handleHeaderKey(
         }
     }
 }
+
+/** Shift+F10 / Menu, or Alt+↓ as in a combo box: open the focused column's menu. */
+private fun KeyEvent.opensHeaderMenu(): Boolean = isColumnMenuKey() || (key == Key.DirectionDown && isAltPressed)
+
+/** Enter or Space: toggle the focused column's sort. */
+private fun KeyEvent.isSortKey(): Boolean = key == Key.Enter || key == Key.NumPadEnter || key == Key.Spacebar
 
 private fun headerTarget(
     key: Key,

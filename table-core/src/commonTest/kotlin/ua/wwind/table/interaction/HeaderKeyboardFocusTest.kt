@@ -1,5 +1,6 @@
 package ua.wwind.table.interaction
 
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,12 +11,18 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.click
 import androidx.compose.ui.test.isRoot
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onLast
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performKeyInput
@@ -27,8 +34,11 @@ import androidx.compose.ui.unit.dp
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isFalse
+import assertk.assertions.isGreaterThan
 import assertk.assertions.isTrue
+import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toPersistentList
+import ua.wwind.table.ColumnSpec
 import ua.wwind.table.Table
 import ua.wwind.table.config.SelectionMode
 import ua.wwind.table.config.TableSettings
@@ -60,14 +70,34 @@ class HeaderKeyboardFocusTest {
             }
         }
 
-    private fun ComposeUiTest.showTable(): () -> TableState<String> {
+    /** Six 150.dp columns in a 400.dp viewport: "c2" is cut by the right edge, "c3".."c5" are off-screen. */
+    private val wideColumns =
+        tableColumns<String, String, Unit> {
+            (0..5).forEach { index ->
+                column("c$index", valueOf = { it }) {
+                    header("C$index")
+                    width(150.dp, 150.dp)
+                    cell { item, _ -> Text("$item $index") }
+                }
+            }
+        }
+
+    private fun ComposeUiTest.showTable(
+        tableColumns: ImmutableList<ColumnSpec<String, String, Unit>> = columns,
+        horizontalState: ScrollState = ScrollState(0),
+        showColumnMenuButton: Boolean = false,
+    ): () -> TableState<String> {
         lateinit var state: TableState<String>
         val before = FocusRequester()
         setContent {
             state =
                 rememberTableState(
-                    columns = columns.map { it.key }.toPersistentList(),
-                    settings = TableSettings(selectionMode = SelectionMode.Single),
+                    columns = tableColumns.map { it.key }.toPersistentList(),
+                    settings =
+                        TableSettings(
+                            selectionMode = SelectionMode.Single,
+                            showColumnMenuButton = showColumnMenuButton,
+                        ),
                 )
             Column {
                 Box(
@@ -78,7 +108,13 @@ class HeaderKeyboardFocusTest {
                         .focusable(),
                 )
                 Box(Modifier.size(400.dp, 300.dp)) {
-                    Table(itemsCount = 3, itemAt = { "row-$it" }, state = state, columns = columns)
+                    Table(
+                        itemsCount = 3,
+                        itemAt = { "row-$it" },
+                        state = state,
+                        columns = tableColumns,
+                        horizontalState = horizontalState,
+                    )
                 }
                 Box(Modifier.size(10.dp).testTag("after").focusable())
             }
@@ -243,5 +279,94 @@ class HeaderKeyboardFocusTest {
 
             press(Key.F10, modifier = Key.ShiftLeft)
             assertThat(state().columnMenuRequest?.column).isEqualTo("name")
+        }
+
+    /** Excludes the header's zero-size measuring copy of its content. */
+    private val isLaidOut = SemanticsMatcher("has a size") { it.boundsInRoot.width > 0f }
+
+    /** The header's role-button nodes without a content description: each column's sort, then filter button. */
+    private fun ComposeUiTest.sortAndFilterButtons() =
+        onAllNodes(
+            SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Button) and
+                !SemanticsMatcher.keyIsDefined(SemanticsProperties.ContentDescription) and
+                isLaidOut,
+        )
+
+    @Test
+    fun `pointer clicks on the sort, filter and menu buttons focus the header on their column`() =
+        desktopOnlyTest {
+            val state = showTable(showColumnMenuButton = true)
+            sortAndFilterButtons().assertCountEquals(2)
+
+            runOnIdle { state().focusedHeaderColumn = "copy" }
+            sortAndFilterButtons()[0].performMouseInput { click() }
+            waitForIdle()
+            assertThat(state().focusedHeaderColumn).isEqualTo("name")
+            assertThat(state().isHeaderFocused).isTrue()
+
+            runOnIdle { state().focusedHeaderColumn = "copy" }
+            sortAndFilterButtons()[1].performMouseInput { click() }
+            waitForIdle()
+            assertThat(state().focusedHeaderColumn).isEqualTo("name")
+            onNodeWithText("Clear").performMouseInput { click() }
+            waitForIdle()
+
+            runOnIdle { state().focusedHeaderColumn = "copy" }
+            onNodeWithContentDescription("Column options: Name").performMouseInput { click() }
+            waitForIdle()
+            assertThat(state().focusedHeaderColumn).isEqualTo("name")
+        }
+
+    @Test
+    fun `keyboard focus on the header shows the focus ring`() =
+        desktopOnlyTest {
+            val state = showTable()
+            press(Key.Tab)
+            assertThat(state().showsHeaderFocusRing("name")).isTrue()
+
+            press(Key.DirectionRight)
+            assertThat(state().showsHeaderFocusRing("name")).isFalse()
+            assertThat(state().showsHeaderFocusRing("copy")).isTrue()
+        }
+
+    @Test
+    fun `a click on a header focuses it without the focus ring until a key is pressed`() =
+        desktopOnlyTest {
+            val state = showTable()
+            onAllNodesWithText("Copy").onLast().performMouseInput { click() }
+            waitForIdle()
+            assertThat(state().isHeaderFocused).isTrue()
+            assertThat(state().focusedHeaderColumn).isEqualTo("copy")
+            assertThat(state().showsHeaderFocusRing("copy")).isFalse()
+
+            press(Key.DirectionLeft)
+            assertThat(state().showsHeaderFocusRing("name")).isTrue()
+        }
+
+    @Test
+    fun `left and right scroll an off-screen column into view`() =
+        desktopOnlyTest {
+            val scroll = ScrollState(0)
+            val state = showTable(wideColumns, scroll)
+            press(Key.Tab)
+            repeat(5) { press(Key.DirectionRight) }
+            assertThat(state().focusedHeaderColumn).isEqualTo("c5")
+            assertThat(scroll.value).isGreaterThan(0)
+
+            repeat(5) { press(Key.DirectionLeft) }
+            assertThat(state().focusedHeaderColumn).isEqualTo("c0")
+            assertThat(scroll.value).isEqualTo(0)
+        }
+
+    @Test
+    fun `a click on a partly visible header does not scroll it into view`() =
+        desktopOnlyTest {
+            val scroll = ScrollState(0)
+            val state = showTable(wideColumns, scroll)
+            onAllNodesWithText("C2").onLast().performMouseInput { click() }
+            waitForIdle()
+            assertThat(state().isHeaderFocused).isTrue()
+            assertThat(state().focusedHeaderColumn).isEqualTo("c2")
+            assertThat(scroll.value).isEqualTo(0)
         }
 }

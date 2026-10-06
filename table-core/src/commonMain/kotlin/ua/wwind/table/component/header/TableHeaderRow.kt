@@ -126,7 +126,7 @@ internal fun <T : Any, C, E> TableHeaderRow(
                                             Modifier.hoverable(interactionSource = headerHoverInteraction)
                                         },
                                     ).fillMaxSize()
-                                    .headerFocusRing(state.isHeaderFocused && state.focusedHeaderColumn == spec.key),
+                                    .headerFocusRing(state.showsHeaderFocusRing(spec.key)),
                         ) {
                             val dividerThickness =
                                 if (pinnedState.isLastLeftPinned) {

@@ -139,6 +139,24 @@ public class TableState<C>
         /** True while the header Tab stop holds focus. */
         internal var isHeaderFocused: Boolean by mutableStateOf(false)
 
+        /**
+         * Focus-visible for the header: false while the header holds focus a pointer gave it, true
+         * once it is reached or driven from the keyboard. Only keyboard focus draws the focus ring
+         * and scrolls the focused column into view.
+         */
+        internal var isHeaderFocusFromKeyboard: Boolean by mutableStateOf(true)
+
+        /** Whether [column]'s header cell shows the keyboard focus ring. */
+        internal fun showsHeaderFocusRing(column: C): Boolean =
+            isHeaderFocused && isHeaderFocusFromKeyboard && focusedHeaderColumn == column
+
+        /** A pointer on [column]'s header: move the header Tab stop there without the focus ring. */
+        internal fun focusHeaderFromPointer(column: C) {
+            isHeaderFocusFromKeyboard = false
+            focusedHeaderColumn = column
+            headerFocusRequester.requestFocus()
+        }
+
         /** Focus requester of the header Tab stop. */
         internal val headerFocusRequester: FocusRequester = FocusRequester()
 

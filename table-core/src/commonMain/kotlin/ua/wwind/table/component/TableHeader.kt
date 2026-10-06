@@ -80,10 +80,12 @@ internal fun <T : Any, C, E> TableHeader(
             if (move != null) state.columns.move(move.first, move.second)
         }
 
-    // Keep the keyboard-focused header column scrolled into view.
+    // Keep the keyboard-focused header column scrolled into view. A pointer focuses a column already on screen.
     val density = LocalDensity.current
     LaunchedEffect(state, derived.visibleColumns) {
-        snapshotFlow { if (state.isHeaderFocused) state.focusedHeaderColumn else null }.collectLatest { column ->
+        snapshotFlow {
+            if (state.isHeaderFocused && state.isHeaderFocusFromKeyboard) state.focusedHeaderColumn else null
+        }.collectLatest { column ->
             val index = derived.visibleColumns.indexOfFirst { it.key == column }
             if (column != null && index >= 0) {
                 ensureColumnFullyVisible(index, column, derived.visibleColumns, state, horizontalState, density)

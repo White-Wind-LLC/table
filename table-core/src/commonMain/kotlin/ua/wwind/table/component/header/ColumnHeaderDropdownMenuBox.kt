@@ -76,12 +76,10 @@ internal fun <T : Any, C, E> ColumnHeaderDropdownMenuBox(
     val expanded = hasMenu && request.isFor(spec.key, context, instance)
     val isMobile = remember { getPlatform().isMobile() }
 
-    // A pointer on a column header moves the header Tab stop there, so the keyboard picks up where the mouse was.
+    // A pointer press anywhere on a column header, its sort, filter and menu buttons included, moves the
+    // header Tab stop there, so the keyboard picks up where the mouse was.
     val focusHeader by rememberUpdatedState {
-        if (context == ColumnMenuContext.Header && !isMobile) {
-            state.focusedHeaderColumn = spec.key
-            state.headerFocusRequester.requestFocus()
-        }
+        if (context == ColumnMenuContext.Header && !isMobile) state.focusHeaderFromPointer(spec.key)
     }
     val openAt by rememberUpdatedState { position: Offset? ->
         if (hasMenu) {
@@ -91,7 +89,6 @@ internal fun <T : Any, C, E> ColumnHeaderDropdownMenuBox(
         }
     }
     val onTap by rememberUpdatedState {
-        focusHeader()
         if (spec.sortable && spec.headerClickToSort && !state.settings.isInteractionLockByRowReorderEnabled) {
             state.setSort(spec.key)
         }
@@ -104,7 +101,7 @@ internal fun <T : Any, C, E> ColumnHeaderDropdownMenuBox(
                 .columnMenuGestures(
                     state = state,
                     openAt = { openAt(it) },
-                    onSecondaryPress = { focusHeader() },
+                    onPress = { focusHeader() },
                     onTap = { onTap() },
                 ).then(
                     if (context == ColumnMenuContext.Header) {
@@ -239,20 +236,23 @@ private fun <C> ColumnMenuRequest<C>?.isFor(
     instance: Any,
 ): Boolean = this != null && this.column == column && this.context == context && (anchor == null || anchor === instance)
 
-/** Right-click (after [onSecondaryPress]) and long-press open the menu; a primary tap runs [onTap]. */
+/**
+ * Every press runs [onPress] first, including one a child button consumes. Right-click and long-press
+ * then open the menu; a primary tap runs [onTap].
+ */
 private fun Modifier.columnMenuGestures(
     state: TableState<*>,
     openAt: (Offset?) -> Unit,
-    onSecondaryPress: () -> Unit,
+    onPress: () -> Unit,
     onTap: () -> Unit,
 ): Modifier =
     pointerInput(state) {
         awaitPointerEventScope {
             while (true) {
                 val event = awaitPointerEvent()
-                if (event.type == PointerEventType.Press && event.buttons.isSecondaryPressed) {
-                    onSecondaryPress()
-                    openAt(event.changes.firstOrNull()?.position)
+                if (event.type == PointerEventType.Press) {
+                    onPress()
+                    if (event.buttons.isSecondaryPressed) openAt(event.changes.firstOrNull()?.position)
                 }
             }
         }
