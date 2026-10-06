@@ -142,7 +142,7 @@ class HeaderKeyboardFocusTest {
         }
 
     @Test
-    fun `tab visits the header, then the body, then leaves`() =
+    fun `tab visits the header then the body then leaves`() =
         desktopOnlyTest {
             val state = showTable()
             press(Key.Tab)
@@ -168,7 +168,7 @@ class HeaderKeyboardFocusTest {
         }
 
     @Test
-    fun `arrows, home and end move the focused header`() =
+    fun `arrows home and end move the focused header`() =
         desktopOnlyTest {
             val state = showTable()
             press(Key.Tab)
@@ -295,7 +295,7 @@ class HeaderKeyboardFocusTest {
         )
 
     @Test
-    fun `pointer clicks on the sort, filter and menu buttons focus the header on their column`() =
+    fun `pointer clicks on the sort filter and menu buttons focus the header on their column`() =
         desktopOnlyTest {
             val state = showTable(showColumnMenuButton = true)
             sortAndFilterButtons().assertCountEquals(2)

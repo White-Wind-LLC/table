@@ -103,7 +103,7 @@ class ColumnMenuModelTest {
     }
 
     @Test
-    fun `clear sort, clear filter, unpin, ungroup and show hidden appear with their state`() {
+    fun `clear sort clear filter unpin ungroup and show hidden appear with their state`() {
         val state = stateWith(TableSettings(pinnedColumnsCount = 1))
         state.setSort("full", SortOrder.DESCENDING)
         state.setFilter("full", TableFilterState(constraint = null, values = listOf("x")))

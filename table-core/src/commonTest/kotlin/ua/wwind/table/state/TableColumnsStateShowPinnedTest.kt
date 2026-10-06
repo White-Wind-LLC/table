@@ -128,7 +128,7 @@ class TableColumnsStateShowPinnedTest {
     }
 
     @Test
-    fun `the documented restore recipe brings back order, hidden and pins on the left`() {
+    fun `the documented restore recipe brings back order hidden and pins on the left`() {
         val original = stateWith(pinned = 1, keys = listOf("a", "b", "c", "d", "e"))
         original.columns.hide("b")
         original.columns.pin("d")
@@ -138,7 +138,7 @@ class TableColumnsStateShowPinnedTest {
     }
 
     @Test
-    fun `the documented restore recipe brings back order, hidden and pins on the right`() {
+    fun `the documented restore recipe brings back order hidden and pins on the right`() {
         val original = stateWith(pinned = 1, side = PinnedSide.Right, keys = listOf("a", "b", "c", "d", "e"))
         original.columns.hide("d")
         original.columns.pin("b")

@@ -149,7 +149,7 @@ class TableFocusTest {
         }
 
     @Test
-    fun `shift tab from after the table walks body, header, then leaves`() =
+    fun `shift tab from after the table walks body then header then leaves`() =
         desktopOnlyTest {
             val fixture = showTableBetweenFocusables()
             press(Key.Tab)
