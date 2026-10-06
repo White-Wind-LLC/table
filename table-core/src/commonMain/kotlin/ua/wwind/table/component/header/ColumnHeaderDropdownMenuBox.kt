@@ -26,7 +26,9 @@ import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.changedToDownIgnoreConsumed
 import androidx.compose.ui.input.pointer.isSecondaryPressed
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -237,8 +239,9 @@ private fun <C> ColumnMenuRequest<C>?.isFor(
 ): Boolean = this != null && this.column == column && this.context == context && (anchor == null || anchor === instance)
 
 /**
- * Every press runs [onPress] first, including one a child button consumes. Right-click and long-press
- * then open the menu; a primary tap runs [onTap].
+ * Every press runs [onPress] first, including one a child button consumes, but not one that starts
+ * on a handle marked with [headerHandlePress]. Right-click and long-press then open the menu; a
+ * primary tap runs [onTap].
  */
 private fun Modifier.columnMenuGestures(
     state: TableState<*>,
@@ -251,13 +254,32 @@ private fun Modifier.columnMenuGestures(
             while (true) {
                 val event = awaitPointerEvent()
                 if (event.type == PointerEventType.Press) {
-                    onPress()
+                    // A press that started on a drag or resize handle drags; it does not count as one on the header.
+                    if (event.changes.none { it.id == state.handlePressPointer }) onPress()
                     if (event.buttons.isSecondaryPressed) openAt(event.changes.firstOrNull()?.position)
                 }
             }
         }
     }.pointerInput(state) {
         detectTapGestures(onTap = { onTap() }, onLongPress = { offset -> openAt(offset) })
+    }
+
+/**
+ * Records a press that starts on this column handle (drag or resize) in
+ * [TableState.handlePressPointer], so the header's press listener, which sees the press after it in
+ * the main pass, leaves header focus alone.
+ */
+internal fun Modifier.headerHandlePress(state: TableState<*>): Modifier =
+    pointerInput(state) {
+        awaitPointerEventScope {
+            while (true) {
+                val event = awaitPointerEvent(PointerEventPass.Initial)
+                if (event.type == PointerEventType.Press) {
+                    val down = event.changes.firstOrNull { it.changedToDownIgnoreConsumed() }
+                    if (down != null) state.handlePressPointer = down.id
+                }
+            }
+        }
     }
 
 /** Marks the header and exposes the enabled [items] as accessibility custom actions. */

@@ -160,6 +160,7 @@ private fun <C> ResizeHandle(
                 .fillMaxHeight()
                 .offset(x = span.left, y = 0.dp)
                 .hoverable(interactionSource = interaction)
+                .headerHandlePress(currentTableState())
                 .pointerInput(columnKey) {
                     detectTapGestures(onDoubleTap = { currentOnDoubleClick(columnKey) })
                 }

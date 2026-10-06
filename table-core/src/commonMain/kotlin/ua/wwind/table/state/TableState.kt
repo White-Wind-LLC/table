@@ -12,6 +12,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.input.pointer.PointerId
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import co.touchlab.kermit.Logger
@@ -146,8 +147,18 @@ public class TableState<C>
         internal fun showsHeaderFocusRing(column: C): Boolean =
             isHeaderFocused && isHeaderFocusFromKeyboard && focusedHeaderColumn == column
 
-        /** A pointer on [column]'s header: move the header Tab stop there without the focus ring. */
+        /**
+         * The pointer whose press started on a column's resize or drag handle. The header's press
+         * listener sees the same press after the handle and leaves header focus alone for it.
+         */
+        internal var handlePressPointer: PointerId? = null
+
+        /**
+         * A pointer on [column]'s header: move the header Tab stop there without the focus ring.
+         * Does nothing while a row is edited, so the edit field keeps focus.
+         */
         internal fun focusHeaderFromPointer(column: C) {
+            if (editing.rowIndex != null) return
             isHeaderFocusFromKeyboard = false
             focusedHeaderColumn = column
             headerFocusRequester.requestFocus()

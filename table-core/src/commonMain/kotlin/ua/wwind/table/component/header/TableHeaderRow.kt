@@ -163,6 +163,7 @@ internal fun <T : Any, C, E> TableHeaderRow(
                                             .align(Alignment.TopStart)
                                             .size(style.dimensions.columnDragHandleSize)
                                             .pointerHoverIcon(ColumnGrabPointerIcon)
+                                            .headerHandlePress(state)
                                             .draggableHandle(enabled = true),
                                 ) {
                                     Icon(
