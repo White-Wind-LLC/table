@@ -146,29 +146,16 @@ public class TableColumnsState<C>
             private set
 
         /**
-         * Keys of the columns the table renders, in order. `TableState` wires this to the columns
-         * `Table` composed; before the first composition it falls back to [order].
-         *
-         * The composed list lags one frame behind [hide], so [visibleKeys] also filters [hidden].
+         * Keys of the columns whose spec is `visible`, ignoring [hidden]. `Table` sets it from the
+         * column specs it composes; before the first composition it is `null` and every key in
+         * [order] counts.
          */
-        internal var renderedKeys: (() -> List<C>)? = null
+        internal var specVisibleKeys: Set<C>? by mutableStateOf(null)
 
-        /**
-         * Columns [reveal] showed since the rendered list last changed, and the rendered list they
-         * were shown against. The composed list lags a frame behind [show], so a second [show] in the
-         * same frame would not see the first; these keep it visible until the list catches up.
-         */
-        private var pendingShown: Set<C> = emptySet()
-        private var pendingBase: List<C>? = null
-
+        /** Keys of the visible columns in render order: spec-visible and not in [hidden]. */
         internal fun visibleKeys(): List<C> {
-            val rendered =
-                renderedKeys?.invoke()?.takeIf { it.isNotEmpty() }
-                    ?: return order.filterNot { it in hidden }
-            val shown = if (rendered == pendingBase) pendingShown else emptySet()
-            if (shown.isEmpty()) return rendered.filterNot { it in hidden }
-            val known = rendered.toSet() + shown
-            return order.filter { it in known && it !in hidden }
+            val specVisible = specVisibleKeys
+            return order.filter { (specVisible == null || it in specVisible) && it !in hidden }
         }
 
         /**
@@ -190,7 +177,6 @@ public class TableColumnsState<C>
         public fun hide(column: C) {
             if (!canHide(column)) return
             unpin(column)
-            pendingShown = pendingShown - column
             hidden.add(column)
         }
 
@@ -217,19 +203,12 @@ public class TableColumnsState<C>
 
         /**
          * Removes [column] from [hidden] and moves it out of the pinned block if it would land
-         * inside. The rendered keys lag a frame, so the columns revealed meanwhile are remembered in
-         * [pendingShown] and counted as visible.
+         * inside. A column the spec hides stays hidden, so it is only removed from [hidden].
          */
         private fun reveal(column: C) {
-            val rendered = renderedKeys?.invoke()?.takeIf { it.isNotEmpty() }
-            if (rendered != pendingBase) {
-                pendingShown = emptySet()
-                pendingBase = rendered
-            }
-            val visibleSet = visibleKeys().toSet()
             hidden.remove(column)
-            pendingShown = pendingShown + column
-            val keys = order.filter { it == column || it in visibleSet }
+            val keys = visibleKeys()
+            if (column !in keys) return
             val pinned = effectivePinnedCount(keys.size)
             val index = keys.indexOf(column)
             // The block's outer edge, when the column would otherwise land inside the block.

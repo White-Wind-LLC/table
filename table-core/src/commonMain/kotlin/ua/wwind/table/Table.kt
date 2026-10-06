@@ -184,6 +184,7 @@ public fun <T : Any, C, E> EditableTable(
     }
 
     state.visibleColumns = visibleColumns
+    state.columns.specVisibleKeys = remember(columns) { columns.filter { it.visible }.mapTo(HashSet()) { it.key } }
 
     val source = rememberEffectiveRowSource(state, rowBlocks, rowKey, rowKeyAt, onRowMove, itemsCount, itemAt)
     val activeBlocks = source.blocks

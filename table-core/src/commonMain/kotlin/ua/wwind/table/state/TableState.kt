@@ -92,10 +92,6 @@ public class TableState<C>
          */
         internal var visibleColumns: List<ColumnSpec<*, C, *>> by mutableStateOf(emptyList())
 
-        init {
-            columns.renderedKeys = { visibleColumns.map { it.key } }
-        }
-
         /**
          * Row-to-unit mapping for the current data set. Identity unless the consumer passed
          * `rowBlocks`. Assigned by `Table` during composition, read by scroll/keyboard effects.

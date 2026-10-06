@@ -107,7 +107,7 @@ class TableColumnsStateShowPinnedTest {
                 dimensions = TableDefaults.standardDimensions(),
             )
         // Spec-hidden columns are not rendered, so they are not in the rendered list either.
-        restored.columns.renderedKeys = { savedOrder.filterNot { it in specHidden } }
+        restored.columns.specVisibleKeys = savedOrder.filterNot { it in specHidden }.toSet()
         savedHidden.forEach { restored.columns.hide(it) }
         val visible = savedOrder.filter { it !in specHidden && it !in savedHidden }
         when (side) {
@@ -150,7 +150,7 @@ class TableColumnsStateShowPinnedTest {
     @Test
     fun `the restore recipe counts only rendered columns when the spec hides one`() {
         val original = stateWith(pinned = 0, side = PinnedSide.Right, keys = listOf("a", "b", "c", "d"))
-        original.columns.renderedKeys = { listOf("a", "c", "d") }
+        original.columns.specVisibleKeys = setOf("a", "c", "d")
         original.columns.pin("d")
         original.columns.pin("c")
         val restored = restore(original, PinnedSide.Right, specHidden = setOf("b"))
@@ -160,15 +160,13 @@ class TableColumnsStateShowPinnedTest {
     }
 
     @Test
-    fun `show works while the rendered list still omits the shown column`() {
+    fun `show works with the spec-visible keys set`() {
         val state = stateWith(pinned = 1)
+        state.columns.specVisibleKeys = setOf("a", "b", "c", "d")
         state.columns.hide("b")
         state.columns.pin("c")
-        // The composed list lags a frame: it still omits "b" when show runs.
-        state.columns.renderedKeys = { listOf("a", "c", "d") }
         state.columns.show("b")
         assertThat(state.columns.order.toList()).containsExactly("a", "c", "b", "d")
-        state.columns.renderedKeys = null
         assertThat(state.columns.isPinned("c")).isTrue()
     }
 
@@ -196,27 +194,51 @@ class TableColumnsStateShowPinnedTest {
     }
 
     @Test
-    fun `two shows in one frame place columns as if a frame passed between them`() {
+    fun `two shows back to back place columns as two separate shows do`() {
         fun prepared() =
             stateWith(pinned = 1, keys = listOf("a", "b", "c", "d", "e")).also {
+                it.columns.specVisibleKeys = setOf("a", "b", "c", "d", "e")
                 it.columns.hide("b")
                 it.columns.hide("c")
                 it.columns.pin("d")
             }
-        val stale = prepared()
-        val rendered = listOf("a", "d", "e")
-        stale.columns.renderedKeys = { rendered }
-        stale.columns.show("b")
-        stale.columns.show("c")
+        val backToBack = prepared()
+        backToBack.columns.show("b")
+        backToBack.columns.show("c")
 
-        val framed = prepared()
-        framed.columns.renderedKeys = { rendered }
-        framed.columns.show("b")
-        framed.columns.renderedKeys = { listOf("a", "d", "b", "e") }
-        framed.columns.show("c")
+        val separate = prepared()
+        separate.columns.show("b")
+        assertThat(separate.columns.visibleKeys()).containsExactly("a", "d", "b", "e")
+        separate.columns.show("c")
 
-        assertThat(stale.columns.order.toList()).containsExactly(*framed.columns.order.toTypedArray())
-        assertThat(stale.columns.order.toList()).containsExactly("a", "d", "c", "b", "e")
-        assertThat(stale.columns.pinnedCount).isEqualTo(2)
+        assertThat(backToBack.columns.order.toList()).containsExactly(*separate.columns.order.toTypedArray())
+        assertThat(backToBack.columns.order.toList()).containsExactly("a", "d", "c", "b", "e")
+        assertThat(backToBack.columns.pinnedCount).isEqualTo(2)
+    }
+
+    @Test
+    fun `a shown column the spec later hides is not counted as visible`() {
+        val state = stateWith(pinned = 0)
+        state.columns.specVisibleKeys = setOf("a", "b", "c", "d")
+        state.columns.hide("b")
+        state.columns.show("b")
+        // The consumer then marks "b" invisible in its spec.
+        state.columns.specVisibleKeys = setOf("a", "c", "d")
+        assertThat(state.columns.visibleKeys()).containsExactly("a", "c", "d")
+        state.columns.pin("c")
+        assertThat(state.pinnedKeys()).containsExactly("c")
+        assertThat(state.columns.canMoveBy("c", 1)).isFalse()
+    }
+
+    @Test
+    fun `showing a spec-hidden column does not make it visible`() {
+        val state = stateWith(pinned = 0)
+        // "b" is hidden at runtime and by its spec.
+        state.columns.hidden.add("b")
+        state.columns.specVisibleKeys = setOf("a", "c", "d")
+        state.columns.showAll()
+        assertThat(state.columns.visibleKeys()).containsExactly("a", "c", "d")
+        assertThat(state.columns.hidden.toList()).isEmpty()
+        assertThat(state.columns.effectivePinnedCount()).isEqualTo(0)
     }
 }
