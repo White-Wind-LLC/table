@@ -232,4 +232,20 @@ class HeaderPointerFocusTest {
             assertThat(state().isHeaderFocused).isTrue()
             assertThat(state().focusedHeaderColumn).isEqualTo("name")
         }
+
+    @Test
+    fun `tab into the header after a pointer focus that did not land shows the focus ring`() =
+        desktopOnlyTest {
+            var hold = true
+            val state = showTable(holdFocus = { hold })
+            runOnIdle { state().focusHeaderFromPointer("copy") }
+            waitForIdle()
+            onNodeWithTag("before").assertIsFocused()
+
+            hold = false
+            onNodeWithTag("before").performKeyInput { pressKey(Key.Tab) }
+            waitForIdle()
+            assertThat(state().isHeaderFocused).isTrue()
+            assertThat(state().showsHeaderFocusRing("copy")).isTrue()
+        }
 }

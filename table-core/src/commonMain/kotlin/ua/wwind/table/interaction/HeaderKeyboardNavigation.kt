@@ -33,8 +33,8 @@ internal fun <C> Modifier.tableHeaderKeyboardNavigation(
         .focusRequester(state.headerFocusRequester)
         .onFocusChanged { focus ->
             state.isHeaderFocused = focus.isFocused
-            // The next arrival is a keyboard one unless a pointer says otherwise when it focuses the header.
-            if (!focus.isFocused) state.isHeaderFocusFromKeyboard = true
+            // An arrival is a keyboard one unless a pointer is focusing the header right now.
+            if (focus.isFocused && !state.isPointerFocusingHeader) state.isHeaderFocusFromKeyboard = true
             if (focus.isFocused) {
                 val keys = visibleColumns.map { it.key }
                 if (state.focusedHeaderColumn !in keys) {

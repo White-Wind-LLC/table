@@ -148,6 +148,13 @@ public class TableState<C>
             isHeaderFocused && isHeaderFocusFromKeyboard && focusedHeaderColumn == column
 
         /**
+         * True while [focusHeaderFromPointer] requests focus, so the header's focus listener knows
+         * the arrival is not a keyboard one.
+         */
+        internal var isPointerFocusingHeader: Boolean = false
+            private set
+
+        /**
          * The pointer whose press started on a column's resize or drag handle. The header's press
          * listener sees the same press after the handle and leaves header focus alone for it.
          */
@@ -159,9 +166,16 @@ public class TableState<C>
          */
         internal fun focusHeaderFromPointer(column: C) {
             if (editing.rowIndex != null) return
-            isHeaderFocusFromKeyboard = false
             focusedHeaderColumn = column
-            headerFocusRequester.requestFocus()
+            isPointerFocusingHeader = true
+            try {
+                headerFocusRequester.requestFocus()
+            } finally {
+                isPointerFocusingHeader = false
+            }
+            // Only a request that landed hides the ring; after one that did not, the next arrival
+            // is still a keyboard one.
+            if (isHeaderFocused) isHeaderFocusFromKeyboard = false
         }
 
         /** Focus requester of the header Tab stop. */
