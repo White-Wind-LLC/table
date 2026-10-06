@@ -139,6 +139,13 @@ internal fun <T : Any, C, E> HeaderCell(
                 strings = strings,
                 onOpenMenu = onOpenMenu,
             )
+            // Without decorations there is no filter icon to anchor the panel to, so it opens at the
+            // end of the cell. This keeps "Filter…" in the column menu and custom filter icons working.
+            if (isFilterOpen && !spec.headerDecorations) {
+                Box(Modifier.align(Alignment.CenterEnd).fillMaxHeight()) {
+                    HeaderFilterPanel(spec, state, tableData, strings, onDismissFilter)
+                }
+            }
         }
         if (showRightDivider) {
             VerticalDivider(
@@ -244,25 +251,33 @@ private fun <C, E> HeaderContent(
             Box {
                 DefaultFilterIcon(info)
 
-                if (isFilterOpen) {
-                    @Suppress("UNCHECKED_CAST")
-                    FilterPanel(
-                        type = spec.filter as? TableFilterType<Any?>,
-                        state = state.filters[spec.key] as? TableFilterState<Any?>,
-                        tableData = tableData,
-                        expanded = true,
-                        onDismissRequest = onDismissFilter,
-                        strings = strings,
-                        autoApplyFilters = state.settings.autoApplyFilters,
-                        autoFilterDebounce = state.settings.autoFilterDebounce,
-                        onChange = { newState ->
-                            state.setFilter(spec.key, newState)
-                        },
-                    )
-                }
+                if (isFilterOpen) HeaderFilterPanel(spec, state, tableData, strings, onDismissFilter)
             }
         }
     }
+}
+
+/** The filter dropdown of [spec]'s column, anchored to the enclosing layout. */
+@Composable
+private fun <C, E> HeaderFilterPanel(
+    spec: ColumnSpec<*, C, E>,
+    state: TableState<C>,
+    tableData: E,
+    strings: StringProvider,
+    onDismissFilter: () -> Unit,
+) {
+    @Suppress("UNCHECKED_CAST")
+    FilterPanel(
+        type = spec.filter as? TableFilterType<Any?>,
+        state = state.filters[spec.key] as? TableFilterState<Any?>,
+        tableData = tableData,
+        expanded = true,
+        onDismissRequest = onDismissFilter,
+        strings = strings,
+        autoApplyFilters = state.settings.autoApplyFilters,
+        autoFilterDebounce = state.settings.autoFilterDebounce,
+        onChange = { newState -> state.setFilter(spec.key, newState) },
+    )
 }
 
 @Composable

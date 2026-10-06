@@ -220,6 +220,21 @@ class HeaderKeyboardFocusTest {
         }
 
     @Test
+    fun `shift f10 in the body falls back to the first column when the selected one is hidden`() =
+        desktopOnlyTest {
+            val state = showTable()
+            onNodeWithText("row-1 copy").performMouseInput { click() }
+            waitForIdle()
+            runOnIdle { state().columns.hide("copy") }
+            waitForIdle()
+            assertThat(state().selection.selectedCell?.column).isEqualTo("copy")
+
+            press(Key.F10, modifier = Key.ShiftLeft)
+            assertThat(state().columnMenuRequest?.column).isEqualTo("name")
+            onNodeWithText("Sort ascending").assertExists()
+        }
+
+    @Test
     fun `shift f10 in the body without a selection opens the first column menu`() =
         desktopOnlyTest {
             val state = showTable()

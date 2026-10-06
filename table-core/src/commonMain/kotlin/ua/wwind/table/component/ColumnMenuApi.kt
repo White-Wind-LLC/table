@@ -56,6 +56,9 @@ public data class ColumnMenuSection(
  * The same list feeds the dropdown and the header cell's accessibility custom actions, so the two
  * never disagree.
  *
+ * The builder shapes the column-header menu only. The menu of a sticky group header (Sort and
+ * Ungroup) always shows its default items and is not customizable.
+ *
  * @param C column key type
  */
 public fun interface ColumnMenuBuilder<C> {

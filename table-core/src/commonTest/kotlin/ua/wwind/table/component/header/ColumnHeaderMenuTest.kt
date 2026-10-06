@@ -36,6 +36,7 @@ import ua.wwind.table.component.ColumnMenuItemId
 import ua.wwind.table.component.ColumnMenuSection
 import ua.wwind.table.config.TableSettings
 import ua.wwind.table.data.SortOrder
+import ua.wwind.table.filter.data.TableFilterType
 import ua.wwind.table.platform.getPlatform
 import ua.wwind.table.platform.isNonMobile
 import ua.wwind.table.state.SortState
@@ -193,6 +194,77 @@ class ColumnHeaderMenuTest {
             waitForIdle()
 
             onAllNodesWithText("Ungroup").assertCountEquals(1)
+        }
+
+    @Test
+    fun `a custom builder shapes the column header menu but not the group header menu`() =
+        desktopOnlyTest {
+            val groupColumns =
+                tableColumns<String, String, Unit> {
+                    column("kind", valueOf = { it.substringBefore('-') }) {
+                        header("Kind")
+                        cell { item, _ -> Text(item) }
+                        groupHeader { Text("Group $it") }
+                    }
+                }
+            val addItem =
+                ColumnMenuBuilder<String> { _, defaults ->
+                    val custom = ColumnMenuItem(ColumnMenuItemId("x"), "Do X", icon = null) {}
+                    defaults + ColumnMenuSection(id = "custom", items = listOf(custom))
+                }
+            lateinit var state: TableState<String>
+            setContent {
+                state = rememberTableState(columns = persistentListOf("kind"))
+                Box(Modifier.size(400.dp, 300.dp)) {
+                    Table(
+                        itemsCount = 4,
+                        itemAt = { listOf("a-1", "a-2", "b-1", "b-2")[it] },
+                        state = state,
+                        columns = groupColumns,
+                        columnMenu = addItem,
+                    )
+                }
+            }
+            waitForIdle()
+            state.groupBy("kind")
+            waitForIdle()
+
+            rightClickHeader("Kind")
+            onNodeWithText("Do X").assertExists()
+            state.closeColumnMenu()
+            waitForIdle()
+
+            onAllNodesWithText("Group a").onFirst().performMouseInput { rightClick() }
+            waitForIdle()
+            onAllNodesWithText("Ungroup").assertCountEquals(1)
+            onNodeWithText("Do X").assertDoesNotExist()
+        }
+
+    @Test
+    fun `Filter opens the panel on a column without header decorations`() =
+        desktopOnlyTest {
+            val plainColumns =
+                tableColumns<String, String, Unit> {
+                    column("name", valueOf = { it }) {
+                        header("Name")
+                        headerDecorations(false)
+                        filter(TableFilterType.TextTableFilter())
+                        cell { item, _ -> Text(item) }
+                    }
+                }
+            setContent {
+                val state = rememberTableState(columns = persistentListOf("name"))
+                Box(Modifier.size(400.dp, 300.dp)) {
+                    Table(itemsCount = 2, itemAt = { "row-$it" }, state = state, columns = plainColumns)
+                }
+            }
+            waitForIdle()
+
+            rightClickHeader("Name")
+            onNodeWithText("Filter…").performClick()
+            waitForIdle()
+
+            onNodeWithText("Search...").assertExists()
         }
 
     @Test

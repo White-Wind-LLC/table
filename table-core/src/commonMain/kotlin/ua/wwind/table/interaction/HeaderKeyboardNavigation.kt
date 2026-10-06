@@ -53,11 +53,15 @@ internal fun <C> TableState<C>.focusHeaderFromBody(column: C?) {
     headerFocusRequester.requestFocus()
 }
 
-/** Shift+F10 / Menu in the body: focus the header on [column] and open its menu. */
+/**
+ * Shift+F10 / Menu in the body: focus the header on [column] and open its menu. A [column] that is
+ * no longer visible (e.g. the selected cell's column was hidden) falls back to the first visible one.
+ */
 internal fun <C> TableState<C>.openColumnMenuFromBody(column: C?) {
-    if (column == null) return
+    val visible = columns.visibleKeys()
+    val target = column?.takeIf { it in visible } ?: visible.firstOrNull() ?: return
     headerFocusRequester.requestFocus()
-    openColumnMenuFromKeyboard(column)
+    openColumnMenuFromKeyboard(target)
 }
 
 /**

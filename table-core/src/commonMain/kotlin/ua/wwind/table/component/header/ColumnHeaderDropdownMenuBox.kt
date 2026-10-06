@@ -68,14 +68,7 @@ internal fun <T : Any, C, E> ColumnHeaderDropdownMenuBox(
     val density = LocalDensity.current
     val instance = remember { Any() }
     var anchorHeight by remember { mutableStateOf(0.dp) }
-    val strings = currentStrings()
-
-    @Suppress("UNCHECKED_CAST")
-    val builder = LocalColumnMenuBuilder.current as ColumnMenuBuilder<C>
-    val sections =
-        builder
-            .build(spec.key, columnMenuModel(spec, state, context, onOpenFilter).resolve(strings))
-            .filter { it.items.isNotEmpty() }
+    val sections = columnMenuSections(spec, state, context, onOpenFilter)
     val hasMenu = sections.isNotEmpty()
     val request = state.columnMenuRequest
     val expanded = hasMenu && request.isFor(spec.key, context, instance)
@@ -133,6 +126,32 @@ internal fun <T : Any, C, E> ColumnHeaderDropdownMenuBox(
             }
         }
     }
+}
+
+/**
+ * The non-empty sections of [spec]'s menu. The table's [ColumnMenuBuilder] shapes the column-header
+ * menu only; a group-header menu shows its defaults unchanged.
+ */
+@Composable
+private fun <C> columnMenuSections(
+    spec: ColumnSpec<*, C, *>,
+    state: TableState<C>,
+    context: ColumnMenuContext,
+    onOpenFilter: () -> Unit,
+): List<ColumnMenuSection> {
+    val defaults = columnMenuModel(spec, state, context, onOpenFilter).resolve(currentStrings())
+    val sections =
+        when (context) {
+            ColumnMenuContext.Header -> {
+                @Suppress("UNCHECKED_CAST")
+                (LocalColumnMenuBuilder.current as ColumnMenuBuilder<C>).build(spec.key, defaults)
+            }
+
+            ColumnMenuContext.GroupHeader -> {
+                defaults
+            }
+        }
+    return sections.filter { it.items.isNotEmpty() }
 }
 
 /**
