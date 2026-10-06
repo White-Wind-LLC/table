@@ -126,6 +126,7 @@ fun MainTable(
                                             label = "Reset all widths",
                                             icon = TableIcons.SettingsBackupRestore,
                                             enabled = state.columns.widths.isNotEmpty(),
+                                            disabledReason = "No custom column widths",
                                         ) {
                                             state.columns.setWidths(
                                                 state.columns.widths.keys
