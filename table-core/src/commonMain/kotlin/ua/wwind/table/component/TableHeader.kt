@@ -19,11 +19,13 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Dp
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.flow.collectLatest
 import sh.calvin.reorderable.rememberReorderableLazyListState
@@ -89,6 +91,13 @@ internal fun <T : Any, C, E> TableHeader(
         }
     }
 
+    // A stable resolver that reads the current widths when a header cell asks, so a resize drag
+    // invalidates the cells' width reads instead of re-creating (and recomposing) every header.
+    val widthMap by rememberUpdatedState(derived.widthMap)
+    val headerWidthResolver: (
+        C,
+    ) -> Dp = remember(dimensions) { { key -> widthMap[key] ?: dimensions.defaultColumnWidth } }
+
     Column {
         Surface(color = headerColor, contentColor = headerContentColor) {
             CompositionLocalProvider(LocalTableHeaderIcons provides icons) {
@@ -101,7 +110,7 @@ internal fun <T : Any, C, E> TableHeader(
                         lazyListState = lazyListState,
                         reorderState = reorderState,
                         visibleColumns = derived.visibleColumns,
-                        widthResolver = { key -> derived.widthMap[key] ?: dimensions.defaultColumnWidth },
+                        widthResolver = headerWidthResolver,
                         style = TableHeaderStyle(headerColor, headerContentColor, dimensions, icons),
                         state = state,
                         tableData = tableData,

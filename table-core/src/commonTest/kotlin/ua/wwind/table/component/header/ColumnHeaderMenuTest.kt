@@ -3,14 +3,20 @@ package ua.wwind.table.component.header
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasAnyDescendant
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onFirst
@@ -25,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import assertk.assertThat
 import assertk.assertions.contains
 import assertk.assertions.doesNotContain
+import assertk.assertions.isCloseTo
 import assertk.assertions.isEqualTo
 import assertk.assertions.isTrue
 import kotlinx.collections.immutable.persistentListOf
@@ -39,6 +46,7 @@ import ua.wwind.table.data.SortOrder
 import ua.wwind.table.filter.data.TableFilterType
 import ua.wwind.table.platform.getPlatform
 import ua.wwind.table.platform.isNonMobile
+import ua.wwind.table.state.ColumnWidthAction
 import ua.wwind.table.state.SortState
 import ua.wwind.table.state.TableState
 import ua.wwind.table.state.rememberTableState
@@ -291,5 +299,130 @@ class ColumnHeaderMenuTest {
                 columnMenu = ColumnMenuBuilder { _, _ -> emptyList() },
             )
             onNodeWithContentDescription("Column options: Name").assertDoesNotExist()
+        }
+
+    @Test
+    fun `a disabled item exposes its reason as state description`() =
+        desktopOnlyTest {
+            showTable()
+            rightClickHeader("Name")
+
+            onNode(
+                SemanticsMatcher.expectValue(SemanticsProperties.StateDescription, "Already first"),
+            ).assertExists()
+        }
+
+    @Test
+    fun `only the active sort direction shows the trailing check`() =
+        desktopOnlyTest {
+            val state = showTable()
+            val checked = hasTestTag(CHECKED_ITEM_TAG)
+
+            rightClickHeader("Name")
+            onAllNodes(checked, useUnmergedTree = true).assertCountEquals(0)
+            state().closeColumnMenu()
+            waitForIdle()
+
+            state().setSort("name", SortOrder.ASCENDING)
+            waitForIdle()
+            rightClickHeader("Name")
+            onAllNodes(checked, useUnmergedTree = true).assertCountEquals(1)
+            onNodeWithText("Sort ascending").assertExists()
+            onNodeWithText("Clear sort").assertExists()
+        }
+
+    @Test
+    fun `with row reorder sort and group are disabled with the reason while the rest stays enabled`() =
+        desktopOnlyTest {
+            val filtered =
+                tableColumns<String, String, Unit> {
+                    column("name", valueOf = { it }) {
+                        header("Name")
+                        sortable()
+                        filter(TableFilterType.TextTableFilter())
+                        cell { item, _ -> Text(item) }
+                    }
+                    column("copy", valueOf = { it }) {
+                        header("Copy")
+                        cell { item, _ -> Text("$item copy") }
+                    }
+                }
+            setContent {
+                val state =
+                    rememberTableState(
+                        columns = persistentListOf("name", "copy"),
+                        settings = TableSettings(rowReorderEnabled = true),
+                    )
+                Box(Modifier.size(400.dp, 300.dp)) {
+                    Table(itemsCount = 2, itemAt = { "row-$it" }, state = state, columns = filtered)
+                }
+            }
+            waitForIdle()
+            rightClickHeader("Name")
+
+            val reason = "Unavailable while rows can be reordered"
+            onNodeWithText("Sort ascending", substring = true).assertIsNotEnabled()
+            onNodeWithText("Group by", substring = true).assertIsNotEnabled()
+            onAllNodes(SemanticsMatcher.expectValue(SemanticsProperties.StateDescription, reason))
+                .assertCountEquals(3)
+            onNodeWithText("Filter…").assertIsEnabled()
+            onNodeWithText("Move right", substring = true).assertIsEnabled()
+            onNodeWithText("Hide column", substring = true).assertIsEnabled()
+        }
+
+    @Test
+    fun `a width drag does not rebuild the menu for every width`() =
+        desktopOnlyTest {
+            var builds = 0
+            val state =
+                showTable(
+                    columnMenu =
+                        ColumnMenuBuilder { _, defaults ->
+                            builds++
+                            defaults
+                        },
+                )
+            state().columns.resize("name", ColumnWidthAction.Set(150.dp))
+            waitForIdle()
+            val afterOverride = builds
+            (1..5).forEach { step ->
+                state().columns.resize("name", ColumnWidthAction.Set((150 + step * 10).dp))
+                waitForIdle()
+            }
+            assertThat(builds).isEqualTo(afterOverride)
+        }
+
+    @Test
+    fun `auto-fit width grows by the menu button once the menu appears`() =
+        desktopOnlyTest {
+            var menuOn by mutableStateOf(false)
+            val wide =
+                tableColumns<String, String, Unit> {
+                    column("name", valueOf = { it }) {
+                        header("Name")
+                        width(8.dp)
+                        cell { item, _ -> Text(item.take(1)) }
+                    }
+                }
+            lateinit var state: TableState<String>
+            setContent {
+                state =
+                    rememberTableState(
+                        columns = persistentListOf("name"),
+                        settings = TableSettings(showColumnMenuButton = true),
+                    )
+                val builder =
+                    ColumnMenuBuilder<String> { _, defaults -> if (menuOn) defaults else emptyList() }
+                Box(Modifier.size(400.dp, 300.dp)) {
+                    Table(itemsCount = 1, itemAt = { "r" }, state = state, columns = wide, columnMenu = builder)
+                }
+            }
+            waitUntil { state.columns.headerWidths["name"] != null }
+            val without = state.columns.headerWidths["name"]!!
+
+            menuOn = true
+            waitUntil { state.columns.headerWidths["name"]!! > without }
+            val grown = state.columns.headerWidths["name"]!! - without
+            assertThat(grown.value).isCloseTo(state.dimensions.headerIconTargetSize.value, 1f)
         }
 }

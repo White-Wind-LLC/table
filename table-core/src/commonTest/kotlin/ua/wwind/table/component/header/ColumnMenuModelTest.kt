@@ -1,8 +1,11 @@
 package ua.wwind.table.component.header
 
 import androidx.compose.material3.Text
+import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.v2.runComposeUiTest
 import androidx.compose.ui.unit.dp
 import assertk.assertThat
+import assertk.assertions.contains
 import assertk.assertions.containsAll
 import assertk.assertions.containsExactly
 import assertk.assertions.doesNotContain
@@ -24,6 +27,7 @@ import ua.wwind.table.state.ColumnWidthAction
 import ua.wwind.table.state.SortState
 import ua.wwind.table.state.TableState
 import ua.wwind.table.strings.UiString
+import ua.wwind.table.strings.currentStrings
 import ua.wwind.table.tableColumns
 import kotlin.test.Test
 
@@ -180,6 +184,43 @@ class ColumnMenuModelTest {
         val state = stateWith(TableSettings(pinnedColumnsSide = PinnedSide.Right))
         assertThat(model(state, "full").entry(Ids.Pin).label).isEqualTo(UiString.ColumnMenuPinRight)
     }
+
+    @Test
+    fun `pin label is Pin left on the left side`() {
+        val state = stateWith(TableSettings(pinnedColumnsSide = PinnedSide.Left))
+        assertThat(model(state, "full").entry(Ids.Pin).label).isEqualTo(UiString.ColumnMenuPinLeft)
+    }
+
+    @Test
+    fun `a disabled filter gets no filter section`() {
+        val disabled =
+            tableColumns<String, String, Unit> {
+                column("off", valueOf = { it }) {
+                    header("Off")
+                    filter(TableFilterType.DisabledTableFilter)
+                    cell { item, _ -> Text(item) }
+                }
+            }.single()
+        val state = stateWith()
+        val sections = columnMenuModel(disabled, state, ColumnMenuContext.Header, onOpenFilter = {})
+        assertThat(sections.map { it.id }).doesNotContain(Sections.Filter)
+        assertThat(sections.ids()).doesNotContain(Ids.OpenFilter)
+    }
+
+    @Test
+    @OptIn(ExperimentalTestApi::class)
+    fun `show hidden is labelled with the hidden count`() =
+        runComposeUiTest {
+            val state = stateWith()
+            state.columns.hide("plain")
+            state.columns.hide("last")
+            lateinit var labels: List<String>
+            setContent {
+                labels = model(state, "full").resolve(currentStrings()).flatMap { s -> s.items.map { it.label } }
+            }
+            waitForIdle()
+            assertThat(labels).contains("Show hidden columns (2)")
+        }
 
     @Test
     fun `hide explains why the last visible column stays`() {

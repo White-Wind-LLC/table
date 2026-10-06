@@ -38,6 +38,7 @@ internal data class ColumnMenuEntry(
     val onClick: () -> Unit,
 )
 
+@Immutable
 internal data class ColumnMenuEntrySection(
     val id: String,
     val entries: List<ColumnMenuEntry>,
@@ -46,19 +47,24 @@ internal data class ColumnMenuEntrySection(
 /**
  * The default menu for [spec]. Items the column can never do are left out; items the current state
  * blocks stay in, disabled, with a reason.
+ *
+ * [hasWidthOverride] and [canAutoFit] default to reading the column state. A caller that wants to
+ * recompose only when they flip, not on every width change of a resize drag, passes derived values.
  */
 internal fun <C> columnMenuModel(
     spec: ColumnSpec<*, C, *>,
     state: TableState<C>,
     context: ColumnMenuContext,
     onOpenFilter: () -> Unit,
+    hasWidthOverride: Boolean = spec.key in state.columns.widths,
+    canAutoFit: Boolean = spec.key in state.columns.contentMaxWidths,
 ): List<ColumnMenuEntrySection> =
     when (context) {
         ColumnMenuContext.Header -> {
             listOfNotNull(
                 sortSection(spec, state),
                 filterSection(spec, state, onOpenFilter),
-                layoutSection(spec, state),
+                layoutSection(spec, state, hasWidthOverride, canAutoFit),
                 groupSection(spec, state),
                 visibilitySection(spec, state),
             )
@@ -144,6 +150,8 @@ private fun <C> filterSection(
 private fun <C> layoutSection(
     spec: ColumnSpec<*, C, *>,
     state: TableState<C>,
+    hasWidthOverride: Boolean,
+    canFit: Boolean,
 ): ColumnMenuEntrySection {
     val columns = state.columns
     val key = spec.key
@@ -153,7 +161,6 @@ private fun <C> layoutSection(
             add(moveEntry(columns, key, -1))
             add(moveEntry(columns, key, 1))
             if (spec.resizable) {
-                val canFit = key in columns.contentMaxWidths
                 add(
                     ColumnMenuEntry(
                         id = Ids.AutoFit,
@@ -163,7 +170,7 @@ private fun <C> layoutSection(
                         disabledReason = UiString.ColumnMenuReasonNothingToFit.takeUnless { canFit },
                     ) { columns.fitToContent(key) },
                 )
-                val canReset = key in columns.widths
+                val canReset = hasWidthOverride
                 add(
                     ColumnMenuEntry(
                         id = Ids.ResetWidth,

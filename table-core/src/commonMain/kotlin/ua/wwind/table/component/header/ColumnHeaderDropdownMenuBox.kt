@@ -11,6 +11,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -30,6 +31,7 @@ import androidx.compose.ui.input.pointer.isSecondaryPressed
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.heading
@@ -139,7 +141,12 @@ private fun <C> columnMenuSections(
     context: ColumnMenuContext,
     onOpenFilter: () -> Unit,
 ): List<ColumnMenuSection> {
-    val defaults = columnMenuModel(spec, state, context, onOpenFilter).resolve(currentStrings())
+    // Derived so a resize drag, which rewrites the width on every frame, recomposes the menu only when
+    // one of these flips.
+    val hasWidthOverride by remember(state, spec.key) { derivedStateOf { spec.key in state.columns.widths } }
+    val canAutoFit by remember(state, spec.key) { derivedStateOf { spec.key in state.columns.contentMaxWidths } }
+    val defaults =
+        columnMenuModel(spec, state, context, onOpenFilter, hasWidthOverride, canAutoFit).resolve(currentStrings())
     val sections =
         when (context) {
             ColumnMenuContext.Header -> {
@@ -196,6 +203,9 @@ private fun Modifier.closeOnEscape(onClose: () -> Unit): Modifier =
         }
     }
 
+/** Test tag of the trailing check on a checked menu item. */
+internal const val CHECKED_ITEM_TAG: String = "column-menu-checked"
+
 @Composable
 private fun ColumnMenuItemRow(
     item: ColumnMenuItem,
@@ -213,7 +223,12 @@ private fun ColumnMenuItemRow(
         onClick = onClick,
         enabled = item.enabled,
         leadingIcon = item.icon?.let { icon -> { Icon(icon, contentDescription = null) } },
-        trailingIcon = if (item.checked) ({ Icon(TableIcons.Check, contentDescription = null) }) else null,
+        trailingIcon =
+            if (item.checked) {
+                { Icon(TableIcons.Check, contentDescription = null, modifier = Modifier.testTag(CHECKED_ITEM_TAG)) }
+            } else {
+                null
+            },
         modifier = if (reason != null) modifier.semantics { stateDescription = reason } else modifier,
     )
 }

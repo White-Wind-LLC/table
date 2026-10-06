@@ -101,7 +101,6 @@ internal fun <T : Any, C, E> TableHeaderRow(
                             Modifier
                         },
                 ) {
-                    val width = widthResolver(spec.key)
                     val headerHoverInteraction = remember(spec.key) { MutableInteractionSource() }
                     val isHeaderHovered =
                         if (isMobilePlatform) {
@@ -141,7 +140,7 @@ internal fun <T : Any, C, E> TableHeaderRow(
                                 state = state,
                                 tableData = tableData,
                                 strings = strings,
-                                width = width,
+                                width = widthResolver(spec.key),
                                 dividerThickness = dividerThickness,
                                 isFilterOpen = filterColumn == spec.key,
                                 onOpenFilter = { onFilterColumnChange(spec.key) },
