@@ -22,6 +22,8 @@ import ua.wwind.paging.core.getOrNull
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.RowBlocks
 import ua.wwind.table.Table
+import ua.wwind.table.component.ColumnMenuBuilder
+import ua.wwind.table.component.ColumnMenuDefaults
 import ua.wwind.table.component.TableHeaderDefaults
 import ua.wwind.table.component.TableHeaderIcons
 import ua.wwind.table.config.DefaultTableCustomization
@@ -118,6 +120,7 @@ private fun <T : Any> rememberPagedRowKeyAt(
  * @param verticalState list scroll state
  * @param horizontalState horizontal scroll state of the whole table
  * @param icons header icons used for sort and filter affordances
+ * @param columnMenu shapes the column header menu; receives the default sections per column
  * @param shape surface shape of the table
  * @param border outer border stroke; `null` uses theme default, [TableDefaults.NoBorder] disables border
  */
@@ -141,6 +144,7 @@ public fun <T : Any, C, E> Table(
     verticalState: LazyListState = rememberLazyListState(),
     horizontalState: ScrollState = rememberScrollState(),
     icons: TableHeaderIcons = TableHeaderDefaults.icons(),
+    columnMenu: ColumnMenuBuilder<C> = ColumnMenuDefaults.builder(),
     shape: Shape = RoundedCornerShape(4.dp),
     border: BorderStroke? = null,
 ) {
@@ -169,6 +173,7 @@ public fun <T : Any, C, E> Table(
         verticalState = verticalState,
         horizontalState = horizontalState,
         icons = icons,
+        columnMenu = columnMenu,
         shape = shape,
         border = border,
     )
@@ -209,6 +214,7 @@ public fun <T : Any, C, E> Table(
  * @param verticalState list scroll state
  * @param horizontalState horizontal scroll state of the whole table
  * @param icons header icons used for sort and filter affordances
+ * @param columnMenu shapes the column header menu; receives the default sections per column
  * @param shape surface shape of the table
  * @param border outer border stroke; `null` uses theme default, [TableDefaults.NoBorder] disables border
  */
@@ -231,6 +237,7 @@ public fun <T : Any, C> Table(
     verticalState: LazyListState = rememberLazyListState(),
     horizontalState: ScrollState = rememberScrollState(),
     icons: TableHeaderIcons = TableHeaderDefaults.icons(),
+    columnMenu: ColumnMenuBuilder<C> = ColumnMenuDefaults.builder(),
     shape: Shape = RoundedCornerShape(4.dp),
     border: BorderStroke? = null,
 ) {
@@ -258,6 +265,7 @@ public fun <T : Any, C> Table(
         verticalState = verticalState,
         horizontalState = horizontalState,
         icons = icons,
+        columnMenu = columnMenu,
         shape = shape,
         border = border,
     )

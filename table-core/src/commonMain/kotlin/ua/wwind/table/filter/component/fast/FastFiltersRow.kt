@@ -70,7 +70,7 @@ internal fun <T : Any, C, E> FastFiltersRow(
                     calculatePinnedColumnState(
                         columnIndex = index,
                         totalVisibleColumns = visibleColumns.size,
-                        pinnedColumnsCount = settings.pinnedColumnsCount,
+                        pinnedColumnsCount = state.columns.pinnedCount,
                         pinnedColumnsSide = settings.pinnedColumnsSide,
                         horizontalState = horizontalState,
                     )

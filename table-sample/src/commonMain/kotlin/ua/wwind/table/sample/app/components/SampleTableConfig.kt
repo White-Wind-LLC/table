@@ -19,6 +19,7 @@ data class SampleTableConfig(
     val enableRowBlocks: Boolean = false,
     val pinnedColumnsCount: Int = 0,
     val pinnedColumnsSide: PinnedSide = PinnedSide.Left,
+    val showColumnMenuButton: Boolean = false,
     val enableEditing: Boolean = false,
     val useCompactMode: Boolean = true,
     val showFooter: Boolean = true,

@@ -260,7 +260,7 @@ private fun <C, T : Any, E> RenderTableRowItem(
                 calculatePinnedColumnState(
                     columnIndex = colIndex,
                     totalVisibleColumns = visibleColumns.size,
-                    pinnedColumnsCount = settings.pinnedColumnsCount,
+                    pinnedColumnsCount = state.columns.pinnedCount,
                     pinnedColumnsSide = settings.pinnedColumnsSide,
                     horizontalState = horizontalState,
                 )

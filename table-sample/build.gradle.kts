@@ -2,7 +2,7 @@
 
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
-import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
+import ua.wwind.convention.util.configureSampleBrowser
 
 plugins {
     id("ua.wwind.convention.kmp.target.android")
@@ -28,21 +28,7 @@ kotlin {
 
     js {
         outputModuleName = jsOutputModuleName
-        browser {
-            commonWebpackConfig {
-                outputFileName = jsOutputFileName
-                // Disable webpack source maps to avoid Safari warnings about invalid sourcesContent
-                sourceMaps = false
-                devServer = devServer?.copy() ?: KotlinWebpackConfig.DevServer()
-            }
-            testTask {
-                useKarma {
-                    useChrome()
-                    useChromeHeadless()
-                    useFirefox()
-                }
-            }
-        }
+        browser { configureSampleBrowser(jsOutputFileName) }
         // Also disable Kotlin/JS compiler source maps to prevent inlined data source maps
         @OptIn(ExperimentalKotlinGradlePluginApi::class)
         compilerOptions {
@@ -53,21 +39,7 @@ kotlin {
 
     wasmJs {
         outputModuleName = jsOutputModuleName
-        browser {
-            commonWebpackConfig {
-                outputFileName = jsOutputFileName
-                // Disable webpack source maps to avoid Safari warnings about invalid sourcesContent
-                sourceMaps = false
-                devServer = devServer?.copy() ?: KotlinWebpackConfig.DevServer()
-            }
-            testTask {
-                useKarma {
-                    useChrome()
-                    useChromeHeadless()
-                    useFirefox()
-                }
-            }
-        }
+        browser { configureSampleBrowser(jsOutputFileName) }
         // Also disable Kotlin/JS compiler source maps to prevent inlined data source maps
         @OptIn(ExperimentalKotlinGradlePluginApi::class)
         compilerOptions {

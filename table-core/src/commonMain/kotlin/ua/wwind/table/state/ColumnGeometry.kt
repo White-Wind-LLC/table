@@ -10,11 +10,11 @@ import ua.wwind.table.config.TableSettings
 internal fun dividerWidthAfterColumn(
     columnIndex: Int,
     totalVisibleColumns: Int,
+    pinnedColumnsCount: Int,
     settings: TableSettings,
     dimensions: TableDimensions,
 ): Dp {
-    val pinnedCount =
-        if (settings.pinnedColumnsCount >= totalVisibleColumns) 0 else settings.pinnedColumnsCount
+    val pinnedCount = if (pinnedColumnsCount >= totalVisibleColumns) 0 else pinnedColumnsCount
     val bordersPinnedBlock =
         pinnedCount > 0 &&
             when (settings.pinnedColumnsSide) {

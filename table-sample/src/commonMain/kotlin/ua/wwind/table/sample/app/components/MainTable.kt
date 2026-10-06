@@ -14,6 +14,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,8 +34,13 @@ import ua.wwind.table.EditableTable
 import ua.wwind.table.RowBlockMove
 import ua.wwind.table.RowBlocks
 import ua.wwind.table.RowWithinBlockMove
+import ua.wwind.table.component.ColumnMenuBuilder
+import ua.wwind.table.component.ColumnMenuItem
+import ua.wwind.table.component.ColumnMenuItemId
+import ua.wwind.table.component.ColumnMenuSection
 import ua.wwind.table.config.TableCustomization
 import ua.wwind.table.filter.data.TableFilterState
+import ua.wwind.table.icon.TableIcons
 import ua.wwind.table.sample.column.PersonColumn
 import ua.wwind.table.sample.model.Person
 import ua.wwind.table.sample.model.PersonTableData
@@ -99,6 +105,10 @@ fun MainTable(
         }
     }
 
+    // Derived, so a resize drag, which rewrites a width every frame, re-runs the menu builder below only
+    // when the first override appears or the last one goes.
+    val hasCustomWidths by remember(state) { derivedStateOf { state.columns.widths.isNotEmpty() } }
+
     Box(modifier = modifier) {
         EditableTable(
             itemsCount = tableData.displayedPeople.size,
@@ -108,6 +118,30 @@ fun MainTable(
             columns = columns,
             customization = customization,
             strings = DefaultStrings,
+            columnMenu =
+                remember(state) {
+                    ColumnMenuBuilder<PersonColumn> { _, defaults ->
+                        defaults +
+                            ColumnMenuSection(
+                                id = "sample",
+                                items =
+                                    listOf(
+                                        ColumnMenuItem(
+                                            id = ColumnMenuItemId("sample-reset-widths"),
+                                            label = "Reset all widths",
+                                            icon = TableIcons.SettingsBackupRestore,
+                                            enabled = hasCustomWidths,
+                                            disabledReason = "No custom column widths",
+                                        ) {
+                                            state.columns.setWidths(
+                                                state.columns.widths.keys
+                                                    .associateWith { null },
+                                            )
+                                        },
+                                    ),
+                            )
+                    }
+                },
             verticalState = verticalState,
             horizontalState = horizontalState,
             rowKey = { person, index -> person?.id?.toString() ?: "_$index" },

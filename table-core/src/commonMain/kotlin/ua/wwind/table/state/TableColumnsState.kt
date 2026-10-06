@@ -2,15 +2,20 @@ package ua.wwind.table.state
 
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableStateSetOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.snapshots.SnapshotStateMap
+import androidx.compose.runtime.snapshots.SnapshotStateSet
 import androidx.compose.ui.unit.Dp
 import co.touchlab.kermit.Logger
 import ua.wwind.table.ColumnSpec
+import ua.wwind.table.component.header.computeReorderMove
+import ua.wwind.table.config.PinnedSide
 import ua.wwind.table.config.TableDimensions
 
 private val logger = Logger.withTag("TableAutoWidth")
@@ -22,13 +27,19 @@ private val logger = Logger.withTag("TableAutoWidth")
  * Reached as [TableState.columns]. Every member here has a deprecated forwarder on [TableState]
  * itself, kept for one release so existing call sites compile with a warning that names the
  * replacement; the forwarders go away in the next major.
+ *
+ * `TooManyFunctions` is suppressed because this is the single holder for column layout operations
+ * (order, widths, pinning, visibility); splitting it would scatter one concept.
  */
+@Suppress("TooManyFunctions")
 @Stable
 public class TableColumnsState<C>
     internal constructor(
         initialOrder: List<C>,
         initialWidths: Map<C, Dp>,
         private val dimensions: TableDimensions,
+        initialPinnedCount: Int = 0,
+        private val pinnedSide: PinnedSide = PinnedSide.Left,
     ) {
         /** Column keys in render order. */
         public val order: SnapshotStateList<C> =
@@ -123,6 +134,177 @@ public class TableColumnsState<C>
             newWidths.forEach { (col, width) ->
                 if (width == null) widths.remove(col) else widths[col] = width
             }
+        }
+
+        /**
+         * Number of pinned columns, counted among visible columns from the
+         * [ua.wwind.table.config.TableSettings.pinnedColumnsSide] edge. Starts at
+         * [ua.wwind.table.config.TableSettings.pinnedColumnsCount]; [pin] and [unpin] change it at
+         * runtime. Pinning every visible column pins none.
+         */
+        public var pinnedCount: Int by mutableIntStateOf(initialPinnedCount.coerceAtLeast(0))
+            private set
+
+        /**
+         * Keys of the columns whose spec is `visible`, ignoring [hidden]. `Table` sets it from the
+         * column specs it composes; before the first composition it is `null` and every key in
+         * [order] counts.
+         */
+        internal var specVisibleKeys: Set<C>? by mutableStateOf(null)
+
+        /** Keys of the visible columns in render order: spec-visible and not in [hidden]. */
+        internal fun visibleKeys(): List<C> {
+            val specVisible = specVisibleKeys
+            return order.filter { (specVisible == null || it in specVisible) && it !in hidden }
+        }
+
+        /**
+         * Columns hidden at runtime, e.g. from the column menu. A column renders when its spec is
+         * `visible` and its key is not in this set; [showAll] never reveals a column the spec hides.
+         */
+        public val hidden: SnapshotStateSet<C> = mutableStateSetOf()
+
+        /** Whether [hide] would hide [column]: it is visible and not the last visible column. */
+        public fun canHide(column: C): Boolean {
+            val keys = visibleKeys()
+            return column in keys && keys.size > 1
+        }
+
+        /**
+         * Hide [column]. A pinned column is unpinned first: it moves just outside the pinned block,
+         * which shrinks by one.
+         */
+        public fun hide(column: C) {
+            if (!canHide(column)) return
+            unpin(column)
+            hidden.add(column)
+        }
+
+        /**
+         * Show a column hidden by [hide]. A column whose place in [order] falls inside the pinned
+         * block lands at the block's outer edge instead, so it never takes a pinned column's slot.
+         */
+        public fun show(column: C) {
+            if (column !in hidden) return
+            reveal(column)
+        }
+
+        /**
+         * Show every column hidden by [hide], each one placed as [show] places it. Columns that all
+         * land at the pinned block's outer edge keep their relative order.
+         */
+        public fun showAll() {
+            val toShow = order.filter { it in hidden }
+            // Each column lands at the edge, ahead of those placed before it on the left, behind them
+            // on the right; walking against that direction keeps the original order.
+            val sequence = if (pinnedSide == PinnedSide.Left) toShow.asReversed() else toShow
+            sequence.forEach { reveal(it) }
+        }
+
+        /**
+         * Removes [column] from [hidden] and moves it out of the pinned block if it would land
+         * inside. A column the spec hides stays hidden, so it is only removed from [hidden].
+         */
+        private fun reveal(column: C) {
+            hidden.remove(column)
+            val keys = visibleKeys()
+            if (column !in keys) return
+            val pinned = effectivePinnedCount(keys.size)
+            val index = keys.indexOf(column)
+            // The block's outer edge, when the column would otherwise land inside the block.
+            val target =
+                when (pinnedSide) {
+                    PinnedSide.Left -> pinned.takeIf { index < pinned }
+                    PinnedSide.Right -> (keys.size - pinned - 1).takeIf { index >= keys.size - pinned }
+                } ?: return
+            moveVisible(keys, index, target)
+        }
+
+        /** The pinned block size as rendered: a count covering every visible column pins none. */
+        internal fun effectivePinnedCount(visibleCount: Int = visibleKeys().size): Int =
+            if (pinnedCount >= visibleCount) 0 else pinnedCount
+
+        /** Whether [column] is visible and inside the pinned block. */
+        public fun isPinned(column: C): Boolean {
+            val keys = visibleKeys()
+            val index = keys.indexOf(column)
+            if (index < 0) return false
+            val pinned = effectivePinnedCount(keys.size)
+            return when (pinnedSide) {
+                PinnedSide.Left -> index < pinned
+                PinnedSide.Right -> index >= keys.size - pinned
+            }
+        }
+
+        /** Whether [pin] would pin [column]: it is visible, unpinned, and one column would stay unpinned. */
+        public fun canPin(column: C): Boolean {
+            val keys = visibleKeys()
+            return column in keys && !isPinned(column) && effectivePinnedCount(keys.size) + 1 < keys.size
+        }
+
+        /** Move [column] to the inner edge of the pinned block and grow the block by one. */
+        public fun pin(column: C) {
+            if (!canPin(column)) return
+            val keys = visibleKeys()
+            val pinned = effectivePinnedCount(keys.size)
+            val target =
+                when (pinnedSide) {
+                    PinnedSide.Left -> pinned
+                    PinnedSide.Right -> keys.size - pinned - 1
+                }
+            moveVisible(keys, keys.indexOf(column), target)
+            pinnedCount = pinned + 1
+        }
+
+        /** Move [column] just outside the pinned block and shrink the block by one. */
+        public fun unpin(column: C) {
+            if (!isPinned(column)) return
+            val keys = visibleKeys()
+            val pinned = effectivePinnedCount(keys.size)
+            val target =
+                when (pinnedSide) {
+                    PinnedSide.Left -> pinned - 1
+                    PinnedSide.Right -> keys.size - pinned
+                }
+            moveVisible(keys, keys.indexOf(column), target)
+            pinnedCount = pinned - 1
+        }
+
+        /**
+         * Whether [moveBy] would move [column] by [delta] visible positions: the target exists and
+         * sits in the same block (pinned or unpinned) as the column.
+         */
+        public fun canMoveBy(
+            column: C,
+            delta: Int,
+        ): Boolean {
+            val keys = visibleKeys()
+            val from = keys.indexOf(column)
+            if (from < 0 || delta == 0) return false
+            val to = from + delta
+            return to in keys.indices && isPinned(column) == isPinned(keys[to])
+        }
+
+        /** Move [column] by [delta] positions among visible columns, staying inside its block. */
+        public fun moveBy(
+            column: C,
+            delta: Int,
+        ) {
+            if (!canMoveBy(column, delta)) return
+            val keys = visibleKeys()
+            val from = keys.indexOf(column)
+            moveVisible(keys, from, from + delta)
+        }
+
+        /** Moves the visible column at [from] to visible index [to], mapping both onto [order]. */
+        private fun moveVisible(
+            keys: List<C>,
+            from: Int,
+            to: Int,
+        ) {
+            if (from == to) return
+            val step = computeReorderMove(from, to, order.toList(), keys) ?: return
+            move(step.first, step.second)
         }
 
         /**

@@ -2,6 +2,7 @@ package ua.wwind.table.component.header
 
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.border
 import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
@@ -13,7 +14,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -48,6 +51,7 @@ internal fun <T : Any, C, E> TableHeaderRow(
     strings: StringProvider,
     filterColumn: C?,
     onFilterColumnChange: (C?) -> Unit,
+    onOpenFilterFromMenu: (C) -> Unit,
     isResizing: Boolean,
     horizontalState: ScrollState,
 ) {
@@ -66,7 +70,7 @@ internal fun <T : Any, C, E> TableHeaderRow(
                 calculatePinnedColumnState(
                     columnIndex = index,
                     totalVisibleColumns = visibleColumns.size,
-                    pinnedColumnsCount = settings.pinnedColumnsCount,
+                    pinnedColumnsCount = state.columns.pinnedCount,
                     pinnedColumnsSide = settings.pinnedColumnsSide,
                     horizontalState = horizontalState,
                 )
@@ -97,7 +101,6 @@ internal fun <T : Any, C, E> TableHeaderRow(
                             Modifier
                         },
                 ) {
-                    val width = widthResolver(spec.key)
                     val headerHoverInteraction = remember(spec.key) { MutableInteractionSource() }
                     val isHeaderHovered =
                         if (isMobilePlatform) {
@@ -110,7 +113,9 @@ internal fun <T : Any, C, E> TableHeaderRow(
                     ColumnHeaderDropdownMenuBox(
                         spec = spec,
                         state = state,
-                    ) {
+                        context = ColumnMenuContext.Header,
+                        onOpenFilter = { onOpenFilterFromMenu(spec.key) },
+                    ) { openMenu ->
                         Box(
                             modifier =
                                 Modifier
@@ -120,7 +125,8 @@ internal fun <T : Any, C, E> TableHeaderRow(
                                         } else {
                                             Modifier.hoverable(interactionSource = headerHoverInteraction)
                                         },
-                                    ).fillMaxSize(),
+                                    ).fillMaxSize()
+                                    .headerFocusRing(state.showsHeaderFocusRing(spec.key)),
                         ) {
                             val dividerThickness =
                                 if (pinnedState.isLastLeftPinned) {
@@ -134,7 +140,7 @@ internal fun <T : Any, C, E> TableHeaderRow(
                                 state = state,
                                 tableData = tableData,
                                 strings = strings,
-                                width = width,
+                                width = widthResolver(spec.key),
                                 dividerThickness = dividerThickness,
                                 isFilterOpen = filterColumn == spec.key,
                                 onOpenFilter = { onFilterColumnChange(spec.key) },
@@ -145,6 +151,7 @@ internal fun <T : Any, C, E> TableHeaderRow(
                                 showRightDivider =
                                     !pinnedState.isLastBeforeRightPinned &&
                                         (state.settings.showVerticalDividers || pinnedState.isLastLeftPinned),
+                                onOpenMenu = openMenu.takeIf { state.settings.showColumnMenuButton },
                             )
 
                             if (showDragHandle) {
@@ -156,6 +163,7 @@ internal fun <T : Any, C, E> TableHeaderRow(
                                             .align(Alignment.TopStart)
                                             .size(style.dimensions.columnDragHandleSize)
                                             .pointerHoverIcon(ColumnGrabPointerIcon)
+                                            .headerHandlePress(state)
                                             .draggableHandle(enabled = true),
                                 ) {
                                     Icon(
@@ -172,3 +180,8 @@ internal fun <T : Any, C, E> TableHeaderRow(
         }
     }
 }
+
+/** The keyboard focus ring of a header cell: the same 2.dp primary border a focused body cell shows. */
+@Composable
+private fun Modifier.headerFocusRing(focused: Boolean): Modifier =
+    if (focused) border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(2.dp)) else this

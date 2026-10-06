@@ -7,10 +7,10 @@
  * org.jetbrains.compose.material:material-icons-extended:1.7.3, which is deprecated and no longer
  * tracks Compose releases.
  *
- * To add an icon: restore the generator and the dependency from commit 9e41031
- * (`git show 9e41031:table-core/src/jvmTest/kotlin/ua/wwind/table/icon/IconDumpTest.kt`), put the
- * builder it emits in `vector/<Name>.kt`, and add a forwarding property below. Failing that,
- * transcribe the 24x24 path from https://github.com/google/material-design-icons.
+ * To add an icon: copy the `d` attribute of the icon's 24px SVG from
+ * https://github.com/google/material-design-icons (src/<category>/<name>/<style>/24px.svg) into a
+ * `vector/<Name>.kt` file built with `addPathNodes`, as `vector/PushPin.kt` does, and add a
+ * forwarding property below. Keep `PathFillType.EvenOdd` when the SVG says `fill-rule="evenodd"`.
  */
 
 package ua.wwind.table.icon
@@ -30,9 +30,17 @@ import ua.wwind.table.icon.vector.FilterAltOutlinedIcon
 import ua.wwind.table.icon.vector.FormatColorResetIcon
 import ua.wwind.table.icon.vector.KeyboardArrowLeftIcon
 import ua.wwind.table.icon.vector.KeyboardArrowRightIcon
+import ua.wwind.table.icon.vector.MoreVertIcon
+import ua.wwind.table.icon.vector.PushPinIcon
+import ua.wwind.table.icon.vector.PushPinOutlinedIcon
 import ua.wwind.table.icon.vector.SaveIcon
+import ua.wwind.table.icon.vector.SettingsBackupRestoreIcon
+import ua.wwind.table.icon.vector.SettingsEthernetIcon
 import ua.wwind.table.icon.vector.SortIcon
 import ua.wwind.table.icon.vector.SwapHorizIcon
+import ua.wwind.table.icon.vector.TableRowsIcon
+import ua.wwind.table.icon.vector.VisibilityIcon
+import ua.wwind.table.icon.vector.VisibilityOffIcon
 
 /**
  * Icons drawn by the table. Vendored so the library ships no icon dependency.
@@ -95,4 +103,28 @@ public object TableIcons {
 
     /** Material `Icons.Filled.FormatColorReset`. */
     public val FormatColorReset: ImageVector get() = FormatColorResetIcon
+
+    /** Material `Icons.Rounded.PushPin`. */
+    public val PushPin: ImageVector get() = PushPinIcon
+
+    /** Material `Icons.Outlined.PushPin`. */
+    public val PushPinOutlined: ImageVector get() = PushPinOutlinedIcon
+
+    /** Material `Icons.Rounded.Visibility`. */
+    public val Visibility: ImageVector get() = VisibilityIcon
+
+    /** Material `Icons.Rounded.VisibilityOff`. */
+    public val VisibilityOff: ImageVector get() = VisibilityOffIcon
+
+    /** Material `Icons.Rounded.SettingsEthernet`. */
+    public val SettingsEthernet: ImageVector get() = SettingsEthernetIcon
+
+    /** Material `Icons.Rounded.SettingsBackupRestore`. */
+    public val SettingsBackupRestore: ImageVector get() = SettingsBackupRestoreIcon
+
+    /** Material `Icons.Rounded.TableRows`. */
+    public val TableRows: ImageVector get() = TableRowsIcon
+
+    /** Material `Icons.Rounded.MoreVert`. */
+    public val MoreVert: ImageVector get() = MoreVertIcon
 }

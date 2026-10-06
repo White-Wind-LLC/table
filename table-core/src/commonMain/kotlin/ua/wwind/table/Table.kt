@@ -43,13 +43,17 @@ import androidx.compose.ui.unit.dp
 import co.touchlab.kermit.Logger
 import kotlinx.collections.immutable.ImmutableList
 import ua.wwind.table.component.ActiveFiltersHeader
+import ua.wwind.table.component.ColumnMenuBuilder
+import ua.wwind.table.component.ColumnMenuDefaults
 import ua.wwind.table.component.ContextMenuHost
+import ua.wwind.table.component.LocalColumnMenuBuilder
 import ua.wwind.table.component.TableHeader
 import ua.wwind.table.component.TableHeaderDefaults
 import ua.wwind.table.component.TableHeaderIcons
 import ua.wwind.table.component.body.GroupStickyOverlay
 import ua.wwind.table.component.body.TableBody
 import ua.wwind.table.component.body.TableBodyEmbedded
+import ua.wwind.table.component.erased
 import ua.wwind.table.component.footer.TableFooter
 import ua.wwind.table.config.DefaultTableCustomization
 import ua.wwind.table.config.TableColors
@@ -61,6 +65,9 @@ import ua.wwind.table.interaction.ApplyAutoWidthEmbeddedEffect
 import ua.wwind.table.interaction.ContextMenuState
 import ua.wwind.table.interaction.EnsureSelectedCellVisibleEffect
 import ua.wwind.table.interaction.draggableTable
+import ua.wwind.table.interaction.enterBodyFromHeader
+import ua.wwind.table.interaction.focusHeaderFromBody
+import ua.wwind.table.interaction.openColumnMenuFromBody
 import ua.wwind.table.interaction.tableKeyboardNavigation
 import ua.wwind.table.platform.getPlatform
 import ua.wwind.table.platform.isMobile
@@ -110,6 +117,7 @@ internal val DefaultRowKey: (Any?, Int) -> Any = { _, index -> index }
  * @param verticalState list scroll state
  * @param horizontalState horizontal scroll state of the whole table
  * @param icons header icons used for sort and filter affordances
+ * @param columnMenu shapes the column header menu; receives the default sections per column
  * @param shape surface shape of the table
  * @param border outer border stroke; `null` uses theme default, [TableDefaults.NoBorder] disables border
  * @param embedded When `true`, the table renders at its full intrinsic height with no internal
@@ -151,6 +159,7 @@ public fun <T : Any, C, E> EditableTable(
     verticalState: LazyListState = rememberLazyListState(),
     horizontalState: ScrollState = rememberScrollState(),
     icons: TableHeaderIcons = TableHeaderDefaults.icons(),
+    columnMenu: ColumnMenuBuilder<C> = ColumnMenuDefaults.builder(),
     shape: Shape = RoundedCornerShape(4.dp),
     border: BorderStroke? = null,
     rowEmbedded: (@Composable (rowIndex: Int, item: T) -> Unit)? = null,
@@ -169,12 +178,13 @@ public fun <T : Any, C, E> EditableTable(
     val visibleColumns by remember(columns, state.columns.order) {
         derivedStateOf {
             state.columns.order.mapNotNullToImmutable { key ->
-                columns.find { it.key == key && it.visible }
+                columns.find { it.key == key && it.isShownIn(state) }
             }
         }
     }
 
     state.visibleColumns = visibleColumns
+    state.columns.specVisibleKeys = remember(columns) { columns.filter { it.visible }.mapTo(HashSet()) { it.key } }
 
     val source = rememberEffectiveRowSource(state, rowBlocks, rowKey, rowKeyAt, onRowMove, itemsCount, itemAt)
     val activeBlocks = source.blocks
@@ -206,6 +216,7 @@ public fun <T : Any, C, E> EditableTable(
     CompositionLocalProvider(
         LocalTableState provides state,
         LocalStringProvider provides strings,
+        LocalColumnMenuBuilder provides columnMenu.erased(),
     ) {
         EnsureSelectedCellVisibleEffect(
             visibleColumns = visibleColumns,
@@ -228,10 +239,6 @@ public fun <T : Any, C, E> EditableTable(
                         enableScrolling = enableScrolling,
                         enableDragToScroll = state.settings.enableDragToScroll,
                         coroutineScope = coroutineScope,
-                        tableFocusRequester = tableFocusRequester,
-                        itemsCount = itemsCount,
-                        state = state,
-                        visibleColumns = visibleColumns,
                     ).clipToBounds()
 
             val pinnedFooterHeight =
@@ -273,6 +280,7 @@ public fun <T : Any, C, E> EditableTable(
                             strings = strings,
                             icons = icons,
                             horizontalState = horizontalState,
+                            onEnterBody = { state.enterBodyFromHeader(itemsCount, tableFocusRequester) },
                         )
 
                         val bodyContent: @Composable () -> Unit = {
@@ -305,10 +313,22 @@ public fun <T : Any, C, E> EditableTable(
 
                         // SelectionContainer is disabled while a row is in edit mode to avoid
                         // cross-hierarchy text selection issues with popup-based editors on Desktop.
-                        if (state.settings.enableTextSelection && state.editing.rowIndex == null) {
-                            SelectionContainer { bodyContent() }
-                        } else {
-                            bodyContent()
+                        Box(
+                            Modifier.tableKeyboardNavigation(
+                                focusRequester = tableFocusRequester,
+                                itemsCount = itemsCount,
+                                state = state,
+                                visibleColumns = visibleColumns,
+                                verticalState = verticalState,
+                                onExitToHeader = state::focusHeaderFromBody,
+                                onOpenColumnMenu = state::openColumnMenuFromBody,
+                            ),
+                        ) {
+                            if (state.settings.enableTextSelection && state.editing.rowIndex == null) {
+                                SelectionContainer { bodyContent() }
+                            } else {
+                                bodyContent()
+                            }
                         }
                     }
 
@@ -370,6 +390,7 @@ public fun <T : Any, C, E> EditableTable(
  * @param verticalState list scroll state
  * @param horizontalState horizontal scroll state of the whole table
  * @param icons header icons used for sort and filter affordances
+ * @param columnMenu shapes the column header menu; receives the default sections per column
  * @param shape surface shape of the table
  * @param border outer border stroke; `null` uses theme default, [TableDefaults.NoBorder] disables border
  * @param embedded When `true`, the table renders at its full intrinsic height with no internal
@@ -410,6 +431,7 @@ public fun <T : Any, C> Table(
     verticalState: LazyListState = rememberLazyListState(),
     horizontalState: ScrollState = rememberScrollState(),
     icons: TableHeaderIcons = TableHeaderDefaults.icons(),
+    columnMenu: ColumnMenuBuilder<C> = ColumnMenuDefaults.builder(),
     shape: Shape = RoundedCornerShape(4.dp),
     border: BorderStroke? = null,
     rowEmbedded: (@Composable (rowIndex: Int, item: T) -> Unit)? = null,
@@ -436,6 +458,7 @@ public fun <T : Any, C> Table(
         verticalState = verticalState,
         horizontalState = horizontalState,
         icons = icons,
+        columnMenu = columnMenu,
         shape = shape,
         border = border,
         rowEmbedded = rowEmbedded,
@@ -477,6 +500,7 @@ public fun <T : Any, C> Table(
  * @param verticalState list scroll state
  * @param horizontalState horizontal scroll state of the whole table
  * @param icons header icons used for sort and filter affordances
+ * @param columnMenu shapes the column header menu; receives the default sections per column
  * @param shape surface shape of the table
  * @param border outer border stroke; `null` uses theme default, [TableDefaults.NoBorder] disables border
  * @param embedded When `true`, the table renders at its full intrinsic height with no internal
@@ -518,6 +542,7 @@ public fun <T : Any, C, E> Table(
     verticalState: LazyListState = rememberLazyListState(),
     horizontalState: ScrollState = rememberScrollState(),
     icons: TableHeaderIcons = TableHeaderDefaults.icons(),
+    columnMenu: ColumnMenuBuilder<C> = ColumnMenuDefaults.builder(),
     shape: Shape = RoundedCornerShape(4.dp),
     border: BorderStroke? = null,
     rowEmbedded: (@Composable (rowIndex: Int, item: T) -> Unit)? = null,
@@ -544,6 +569,7 @@ public fun <T : Any, C, E> Table(
         verticalState = verticalState,
         horizontalState = horizontalState,
         icons = icons,
+        columnMenu = columnMenu,
         shape = shape,
         border = border,
         rowEmbedded = rowEmbedded,
@@ -611,10 +637,10 @@ private fun resolveBorderStroke(
     }
 
 /**
- * Creates a modifier chain for table interaction handling including dragging and keyboard navigation.
+ * Creates a modifier chain for drag-to-scroll; keyboard navigation lives on the header and body focus targets.
  */
 @Composable
-private fun <T : Any, C, E> Modifier.tableInteractionModifiers(
+private fun Modifier.tableInteractionModifiers(
     embedded: Boolean,
     horizontalState: ScrollState,
     verticalState: LazyListState,
@@ -623,10 +649,6 @@ private fun <T : Any, C, E> Modifier.tableInteractionModifiers(
     enableScrolling: Boolean,
     enableDragToScroll: Boolean,
     coroutineScope: kotlinx.coroutines.CoroutineScope,
-    tableFocusRequester: FocusRequester,
-    itemsCount: Int,
-    state: TableState<C>,
-    visibleColumns: ImmutableList<ColumnSpec<T, C, E>>,
 ): Modifier =
     this
         .then(
@@ -643,12 +665,6 @@ private fun <T : Any, C, E> Modifier.tableInteractionModifiers(
                     coroutineScope = coroutineScope,
                 )
             },
-        ).tableKeyboardNavigation(
-            focusRequester = tableFocusRequester,
-            itemsCount = itemsCount,
-            state = state,
-            visibleColumns = visibleColumns,
-            verticalState = verticalState,
         )
 
 /**
@@ -775,7 +791,7 @@ private fun <T : Any, C, E> PinnedFooterOverlay(
             dimensions = dimensions,
             horizontalState = horizontalState,
             tableWidth = state.tableWidth,
-            pinnedColumnsCount = state.settings.pinnedColumnsCount,
+            pinnedColumnsCount = state.columns.pinnedCount,
             pinnedColumnsSide = state.settings.pinnedColumnsSide,
             showVerticalDividers = state.settings.showVerticalDividers,
         )
@@ -783,3 +799,6 @@ private fun <T : Any, C, E> PinnedFooterOverlay(
 }
 
 // endregion
+
+private fun <T : Any, C, E> ColumnSpec<T, C, E>.isShownIn(state: TableState<C>): Boolean =
+    visible && key !in state.columns.hidden

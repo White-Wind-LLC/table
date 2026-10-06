@@ -67,6 +67,7 @@ nav:
       - Drag-to-scroll: guides/drag-to-scroll.md
       - Embedded tables: guides/embedded.md
       - Custom header icons: guides/custom-header-icons.md
+      - Column menu: guides/column-menu.md
   - Modules:
       - table-core: modules/table-core.md
       - table-paging: modules/table-paging.md

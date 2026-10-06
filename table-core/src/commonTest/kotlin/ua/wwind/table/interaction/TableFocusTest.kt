@@ -40,7 +40,8 @@ import ua.wwind.table.tableColumns
 import kotlin.test.Test
 
 /**
- * Keyboard focus: the table body is a single Tab stop, and the arrow keys move the selection inside it.
+ * Keyboard focus: the header and the body are one Tab stop each, and the arrow keys move the
+ * selection inside the body.
  *
  * Tab traversal is a hardware-keyboard concern, so the tests run on non-mobile platforms only.
  */
@@ -65,7 +66,7 @@ class TableFocusTest {
         fun selectedCell(): Pair<Int, String>? = state().selection.selectedCell?.let { it.rowIndex to it.column }
     }
 
-    private fun ComposeUiTest.showTableBetweenFocusables(): Fixture {
+    private fun ComposeUiTest.showTableBetweenFocusables(embedded: Boolean = false): Fixture {
         lateinit var state: TableState<String>
         var tableHasFocus = false
         val before = FocusRequester()
@@ -89,6 +90,7 @@ class TableFocusTest {
                         itemAt = { "row-$it" },
                         state = state,
                         columns = columns,
+                        embedded = embedded,
                     )
                 }
                 Box(Modifier.size(10.dp).testTag("after").focusable())
@@ -104,15 +106,25 @@ class TableFocusTest {
         waitForIdle()
     }
 
+    private fun ComposeUiTest.pressShiftTab() {
+        onRoot().performKeyInput {
+            withKeyDown(Key.ShiftLeft) { pressKey(Key.Tab) }
+        }
+        waitForIdle()
+    }
+
     private fun desktopOnlyTest(block: suspend ComposeUiTest.() -> Unit) =
         runComposeUiTest {
             if (getPlatform().isNonMobile()) block()
         }
 
     @Test
-    fun `tab enters the table once and the next tab leaves it`() =
+    fun `tab passes the header and the body and then leaves`() =
         desktopOnlyTest {
             val fixture = showTableBetweenFocusables()
+
+            press(Key.Tab)
+            assertThat(fixture.tableHasFocus()).isTrue()
 
             press(Key.Tab)
             assertThat(fixture.tableHasFocus()).isTrue()
@@ -129,6 +141,7 @@ class TableFocusTest {
             assertThat(fixture.state().isFocused).isFalse()
 
             press(Key.Tab)
+            press(Key.Tab)
             assertThat(fixture.state().isFocused).isTrue()
 
             press(Key.Tab)
@@ -136,23 +149,45 @@ class TableFocusTest {
         }
 
     @Test
-    fun `shift tab from after the table enters it once`() =
+    fun `shift tab from after the table walks body then header then leaves`() =
         desktopOnlyTest {
             val fixture = showTableBetweenFocusables()
             press(Key.Tab)
             press(Key.Tab)
+            press(Key.Tab)
             onNodeWithTag("after").assertIsFocused()
 
-            onRoot().performKeyInput {
-                withKeyDown(Key.ShiftLeft) { pressKey(Key.Tab) }
-            }
-            waitForIdle()
-            assertThat(fixture.tableHasFocus()).isTrue()
+            pressShiftTab()
+            assertThat(fixture.state().isFocused).isTrue()
 
-            onRoot().performKeyInput {
-                withKeyDown(Key.ShiftLeft) { pressKey(Key.Tab) }
-            }
-            waitForIdle()
+            pressShiftTab()
+            assertThat(fixture.state().isHeaderFocused).isTrue()
+
+            pressShiftTab()
+            onNodeWithTag("before").assertIsFocused()
+        }
+
+    @Test
+    fun `an embedded table keeps the header then body tab order both ways`() =
+        desktopOnlyTest {
+            val fixture = showTableBetweenFocusables(embedded = true)
+
+            press(Key.Tab)
+            assertThat(fixture.state().isHeaderFocused).isTrue()
+
+            press(Key.Tab)
+            assertThat(fixture.state().isFocused).isTrue()
+
+            press(Key.Tab)
+            onNodeWithTag("after").assertIsFocused()
+
+            pressShiftTab()
+            assertThat(fixture.state().isFocused).isTrue()
+
+            pressShiftTab()
+            assertThat(fixture.state().isHeaderFocused).isTrue()
+
+            pressShiftTab()
             onNodeWithTag("before").assertIsFocused()
         }
 
@@ -160,6 +195,7 @@ class TableFocusTest {
     fun `arrow keys move the selected cell while the table has focus`() =
         desktopOnlyTest {
             val fixture = showTableBetweenFocusables()
+            press(Key.Tab)
             press(Key.Tab)
 
             press(Key.DirectionDown)

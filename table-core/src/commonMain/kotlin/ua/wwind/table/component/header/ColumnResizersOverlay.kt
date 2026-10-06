@@ -91,7 +91,13 @@ internal fun <T : Any, C, E> ColumnResizersOverlay(
                 )
             }
             cumulativeX +=
-                dividerWidthAfterColumn(index, visibleColumns.size, state.settings, dimensions)
+                dividerWidthAfterColumn(
+                    index,
+                    visibleColumns.size,
+                    state.columns.pinnedCount,
+                    state.settings,
+                    dimensions,
+                )
         }
     }
 }
@@ -154,6 +160,7 @@ private fun <C> ResizeHandle(
                 .fillMaxHeight()
                 .offset(x = span.left, y = 0.dp)
                 .hoverable(interactionSource = interaction)
+                .headerHandlePress(currentTableState())
                 .pointerInput(columnKey) {
                     detectTapGestures(onDoubleTap = { currentOnDoubleClick(columnKey) })
                 }

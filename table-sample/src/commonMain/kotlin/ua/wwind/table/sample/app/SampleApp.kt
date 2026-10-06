@@ -96,6 +96,7 @@ fun SampleApp(
                 enableDragToScroll = tableConfig.enableDragToScroll,
                 pinnedColumnsCount = tableConfig.pinnedColumnsCount,
                 pinnedColumnsSide = tableConfig.pinnedColumnsSide,
+                showColumnMenuButton = tableConfig.showColumnMenuButton,
                 editingEnabled = tableConfig.enableEditing,
                 showFooter = tableConfig.showFooter,
                 footerPinned = tableConfig.footerPinned,

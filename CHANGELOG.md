@@ -29,6 +29,15 @@ All notable changes to this project will be documented in this file.
 - Changed: larger pointer targets for the column resizer, sort and filter buttons and the drag handle, set via
   `TableDimensions`; the resizer shows a resize cursor on desktop and Android
   ([#83](https://github.com/White-Wind-LLC/table/issues/83)).
+- Added: a header column menu with sort, filter, pin, move, auto-fit, reset width, group and hide,
+  customizable through `columnMenu` and reachable by keyboard; its new `UiString` keys must be
+  covered by a custom `StringProvider` with an exhaustive `when` and no `else`
+  ([#82](https://github.com/White-Wind-LLC/table/issues/82)).
+- Changed: the header row is now a separate Tab stop before the body, and a header click moves
+  keyboard focus to the header ([#82](https://github.com/White-Wind-LLC/table/issues/82)).
+- Changed: the new `columnMenu` parameter of `Table`, `EditableTable` and paging `Table` and the new
+  `TableSettings.showColumnMenuButton` change JVM signatures; recompile code built against 2.4.x
+  ([#82](https://github.com/White-Wind-LLC/table/issues/82)).
 
 ### 2.4.1 — 2026-09-26
 
