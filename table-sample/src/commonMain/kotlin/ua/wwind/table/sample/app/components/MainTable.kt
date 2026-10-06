@@ -33,8 +33,13 @@ import ua.wwind.table.EditableTable
 import ua.wwind.table.RowBlockMove
 import ua.wwind.table.RowBlocks
 import ua.wwind.table.RowWithinBlockMove
+import ua.wwind.table.component.ColumnMenuBuilder
+import ua.wwind.table.component.ColumnMenuItem
+import ua.wwind.table.component.ColumnMenuItemId
+import ua.wwind.table.component.ColumnMenuSection
 import ua.wwind.table.config.TableCustomization
 import ua.wwind.table.filter.data.TableFilterState
+import ua.wwind.table.icon.TableIcons
 import ua.wwind.table.sample.column.PersonColumn
 import ua.wwind.table.sample.model.Person
 import ua.wwind.table.sample.model.PersonTableData
@@ -108,6 +113,29 @@ fun MainTable(
             columns = columns,
             customization = customization,
             strings = DefaultStrings,
+            columnMenu =
+                remember(state) {
+                    ColumnMenuBuilder<PersonColumn> { _, defaults ->
+                        defaults +
+                            ColumnMenuSection(
+                                id = "sample",
+                                items =
+                                    listOf(
+                                        ColumnMenuItem(
+                                            id = ColumnMenuItemId("sample-reset-widths"),
+                                            label = "Reset all widths",
+                                            icon = TableIcons.SettingsBackupRestore,
+                                            enabled = state.columns.widths.isNotEmpty(),
+                                        ) {
+                                            state.columns.setWidths(
+                                                state.columns.widths.keys
+                                                    .associateWith { null },
+                                            )
+                                        },
+                                    ),
+                            )
+                    }
+                },
             verticalState = verticalState,
             horizontalState = horizontalState,
             rowKey = { person, index -> person?.id?.toString() ?: "_$index" },

@@ -206,6 +206,12 @@ fun SettingsSidebar(
 
                 // Columns Section
                 SettingsSection(title = "Columns") {
+                    SettingSwitch(
+                        label = "Column menu button",
+                        checked = config.showColumnMenuButton,
+                        onCheckedChange = { onConfigChange(config.copy(showColumnMenuButton = it)) },
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
                     // Pinned columns count
                     Row(
                         modifier = Modifier.fillMaxWidth(),
