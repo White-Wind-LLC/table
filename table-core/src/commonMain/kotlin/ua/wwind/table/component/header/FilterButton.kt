@@ -40,7 +40,7 @@ internal fun FilterButton(
                 Icon(
                     imageVector = icons.filterActive,
                     contentDescription = null,
-                    modifier = Modifier.size(24.dp),
+                    modifier = Modifier.size(HeaderIconSize),
                 )
             }
         } else {
@@ -51,7 +51,7 @@ internal fun FilterButton(
                 Icon(
                     imageVector = icons.filterInactive,
                     contentDescription = null,
-                    modifier = Modifier.size(24.dp),
+                    modifier = Modifier.size(HeaderIconSize),
                 )
             }
         }

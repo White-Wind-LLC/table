@@ -51,7 +51,7 @@ internal fun SortButton(
         Icon(
             imageVector = sortIcon,
             contentDescription = null,
-            modifier = Modifier.size(24.dp).padding(start = 4.dp),
+            modifier = Modifier.size(HeaderIconSize).padding(start = 4.dp),
         )
     }
 }
