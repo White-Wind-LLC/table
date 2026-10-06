@@ -72,22 +72,34 @@ The menu drives public state on `state.columns`:
 - `order`, `moveBy(key, delta)`
 - `state.clearSort()`
 
-`TableSettings.pinnedColumnsCount` is only the initial count; `pinnedCount` is the live one. Change
-visibility with `hide()` and `show()` rather than writing to `hidden`: direct writes skip the
-last-visible-column and pinned-block rules.
+`TableSettings.pinnedColumnsCount` is read once, when the state is created, and never again: it
+seeds `pinnedCount`, which is the live count. Change visibility with `hide()` and `show()` rather
+than writing to `hidden`: direct writes skip the last-visible-column and pinned-block rules.
+
+`hidden` holds only the columns hidden at runtime. A column whose spec has `visible = false` is not
+in it and is never shown by `show()` or `showAll()`; the spec stays in your control. `pinnedCount`
+counts rendered columns only, so spec-hidden columns are not part of the pinned block.
 
 To persist the layout, save `order`, `hidden` and `pinnedCount`. To restore it, pass the order as
-`initialOrder`, then hide and pin through the state:
+`initialOrder`, keep `TableSettings.pinnedColumnsCount` at `0`, and hide and pin through the state.
+A non-zero setting would pin columns before the recipe starts, and `pin()` would then add to that
+block instead of rebuilding it:
 
 ```kotlin
 val state = rememberTableState(columns = columns, initialOrder = saved.order.toImmutableList())
 LaunchedEffect(state) {
+    // Only runtime-hidden keys: spec.visible = false columns are not in `saved.hidden`.
     saved.hidden.forEach { state.columns.hide(it) }
-    // Pinned to the left: the pinned block is the first pinnedCount visible columns.
-    saved.order.filterNot { it in saved.hidden }.take(saved.pinnedCount).forEach { state.columns.pin(it) }
+    // Rendered columns in saved order; the pinned block is the first (left) or last (right) N of them.
+    val specVisible = columns.filter { it.visible }.map { it.key }.toSet()
+    val visible = saved.order.filter { it in specVisible && it !in saved.hidden }
+    when (settings.pinnedColumnsSide) {
+        PinnedSide.Left -> visible.take(saved.pinnedCount)
+        // pin() grows the block inwards, so pin the outermost column first.
+        PinnedSide.Right -> visible.takeLast(saved.pinnedCount).asReversed()
+    }.forEach { state.columns.pin(it) }
 }
 ```
 
-With no hidden columns, `TableSettings(pinnedColumnsCount = saved.pinnedCount)` restores the pins
-directly. With hidden ones, hide first and then pin: a hidden column can sit between pinned ones
-in `order`, and `hide()` on a pinned column unpins it.
+Hide first and then pin: a hidden column can sit between pinned ones in `order`, and `hide()` on a
+pinned column unpins it.

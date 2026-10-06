@@ -2,6 +2,7 @@ package ua.wwind.table.state
 
 import assertk.assertThat
 import assertk.assertions.containsExactly
+import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
 import assertk.assertions.isFalse
 import assertk.assertions.isTrue
@@ -86,30 +87,76 @@ class TableColumnsStateShowPinnedTest {
         assertThat(state.columns.isPinned("c")).isFalse()
     }
 
-    @Test
-    fun `the documented restore recipe brings back order, hidden and pins`() {
-        val original = stateWith(pinned = 1)
-        original.columns.hide("b")
-        original.columns.pin("c")
-        val savedOrder = original.columns.order.toList()
-        val savedHidden = original.columns.hidden.toSet()
-        val savedPinned = original.columns.pinnedCount
-
+    /** The restore recipe from docs/content/guides/column-menu.md, applied to a fresh state. */
+    private fun restore(
+        saved: TableState<String>,
+        side: PinnedSide,
+        specHidden: Set<String> = emptySet(),
+    ): TableState<String> {
+        val savedOrder = saved.columns.order.toList()
+        val savedHidden = saved.columns.hidden.toSet()
+        val savedPinned = saved.columns.pinnedCount
         val restored =
             TableState(
                 initialColumns = savedOrder,
                 initialSort = null,
                 initialOrder = savedOrder,
                 initialWidths = emptyMap(),
-                settings = TableSettings(),
+                // pinnedColumnsCount stays 0: the recipe pins through the state.
+                settings = TableSettings(pinnedColumnsSide = side),
                 dimensions = TableDefaults.standardDimensions(),
             )
+        // Spec-hidden columns are not rendered, so they are not in the rendered list either.
+        restored.columns.renderedKeys = { savedOrder.filterNot { it in specHidden } }
         savedHidden.forEach { restored.columns.hide(it) }
-        savedOrder.filterNot { it in savedHidden }.take(savedPinned).forEach { restored.columns.pin(it) }
+        val visible = savedOrder.filter { it !in specHidden && it !in savedHidden }
+        when (side) {
+            PinnedSide.Left -> visible.take(savedPinned)
+            PinnedSide.Right -> visible.takeLast(savedPinned).asReversed()
+        }.forEach { restored.columns.pin(it) }
+        return restored
+    }
 
-        assertThat(restored.columns.visibleKeys()).containsExactly(*original.columns.visibleKeys().toTypedArray())
+    private fun assertRestored(
+        original: TableState<String>,
+        restored: TableState<String>,
+    ) {
+        assertThat(restored.columns.order.toList()).containsExactly(*original.columns.order.toTypedArray())
+        assertThat(restored.columns.hidden.toList()).containsExactly(*original.columns.hidden.toTypedArray())
+        assertThat(restored.columns.pinnedCount).isEqualTo(original.columns.pinnedCount)
         assertThat(restored.pinnedKeys()).containsExactly(*original.pinnedKeys().toTypedArray())
-        assertThat(restored.columns.hidden.toList()).containsExactly("b")
+    }
+
+    @Test
+    fun `the documented restore recipe brings back order, hidden and pins on the left`() {
+        val original = stateWith(pinned = 1, keys = listOf("a", "b", "c", "d", "e"))
+        original.columns.hide("b")
+        original.columns.pin("d")
+        original.columns.moveBy("e", -1)
+        assertThat(original.pinnedKeys()).containsExactly("a", "d")
+        assertRestored(original, restore(original, PinnedSide.Left))
+    }
+
+    @Test
+    fun `the documented restore recipe brings back order, hidden and pins on the right`() {
+        val original = stateWith(pinned = 1, side = PinnedSide.Right, keys = listOf("a", "b", "c", "d", "e"))
+        original.columns.hide("d")
+        original.columns.pin("b")
+        original.columns.moveBy("a", 1)
+        assertThat(original.pinnedKeys()).containsExactly("b", "e")
+        assertRestored(original, restore(original, PinnedSide.Right))
+    }
+
+    @Test
+    fun `the restore recipe counts only rendered columns when the spec hides one`() {
+        val original = stateWith(pinned = 0, side = PinnedSide.Right, keys = listOf("a", "b", "c", "d"))
+        original.columns.renderedKeys = { listOf("a", "c", "d") }
+        original.columns.pin("d")
+        original.columns.pin("c")
+        val restored = restore(original, PinnedSide.Right, specHidden = setOf("b"))
+        assertThat(restored.pinnedKeys()).containsExactly("c", "d")
+        assertThat(restored.columns.pinnedCount).isEqualTo(2)
+        assertThat(restored.columns.hidden.toList()).isEmpty()
     }
 
     @Test
