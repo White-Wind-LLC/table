@@ -105,7 +105,7 @@ internal fun <T : Any, C, E> HeaderCell(
         MeasureCellMinWidth(
             item = Unit,
             tableData = tableData,
-            measureKey = Triple(spec.key, "header", titleText),
+            measureKey = listOf(spec.key, "header", titleText, onOpenMenu != null),
             onMeasure = { measuredMinWidth ->
                 val adjusted = maxOf(measuredMinWidth, spec.minWidth)
                 state.columns.updateMaxContentWidth(spec.key, adjusted, source = "Header")
