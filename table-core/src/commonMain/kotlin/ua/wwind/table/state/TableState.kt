@@ -11,6 +11,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.snapshots.SnapshotStateMap
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import co.touchlab.kermit.Logger
@@ -19,6 +20,7 @@ import kotlinx.collections.immutable.ImmutableMap
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.toPersistentList
 import ua.wwind.table.ColumnSpec
+import ua.wwind.table.component.header.ColumnMenuContext
 import ua.wwind.table.config.TableDefaults
 import ua.wwind.table.config.TableDimensions
 import ua.wwind.table.config.TableSettings
@@ -125,17 +127,39 @@ public class TableState<C>
         internal var rowBlocksNonEmpty: Boolean by mutableStateOf(false)
 
         /**
-         * True while the table's own focus target holds focus — the table is a single Tab stop, so
-         * this is when the arrow keys drive the selection and the selected cell shows a focus ring.
-         * An edit field focused inside a cell does not count: it draws its own indicator.
+         * True while the body's focus target holds focus — the body is a Tab stop of its own (after
+         * the header), so this is when the arrow keys drive the selection and the selected cell shows
+         * a focus ring. An edit field focused inside a cell does not count: it draws its own indicator.
          */
         internal var isFocused: Boolean by mutableStateOf(false)
+
+        /** The column whose header holds keyboard focus within the header Tab stop. */
+        internal var focusedHeaderColumn: C? by mutableStateOf(null)
+
+        /** True while the header Tab stop holds focus. */
+        internal var isHeaderFocused: Boolean by mutableStateOf(false)
+
+        /** Focus requester of the header Tab stop. */
+        internal val headerFocusRequester: FocusRequester = FocusRequester()
+
+        /** Whether the menu closed last was opened from the keyboard; read when a filter opened from it closes. */
+        internal var lastColumnMenuFromKeyboard: Boolean = false
 
         /** The open column menu, if any. One menu is open per table at a time. */
         internal var columnMenuRequest: ColumnMenuRequest<C>? by mutableStateOf(null)
 
+        /** Open [column]'s header menu anchored under its cell, as Shift+F10 / Menu do. */
+        internal fun openColumnMenuFromKeyboard(column: C) {
+            focusedHeaderColumn = column
+            columnMenuRequest = ColumnMenuRequest(column, ColumnMenuContext.Header, offset = null, fromKeyboard = true)
+        }
+
+        /** Closes the open menu; one opened from the keyboard hands focus back to the header. */
         internal fun closeColumnMenu() {
+            val closed = columnMenuRequest
             columnMenuRequest = null
+            lastColumnMenuFromKeyboard = closed?.fromKeyboard == true
+            if (lastColumnMenuFromKeyboard) headerFocusRequester.requestFocus()
         }
 
         /**

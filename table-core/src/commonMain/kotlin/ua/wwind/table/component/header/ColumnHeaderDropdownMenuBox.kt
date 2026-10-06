@@ -10,13 +10,21 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.isSecondaryPressed
 import androidx.compose.ui.input.pointer.pointerInput
@@ -32,9 +40,12 @@ import androidx.compose.ui.unit.dp
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.component.ColumnMenuBuilder
 import ua.wwind.table.component.ColumnMenuItem
+import ua.wwind.table.component.ColumnMenuSection
 import ua.wwind.table.component.LocalColumnMenuBuilder
 import ua.wwind.table.config.isInteractionLockByRowReorderEnabled
 import ua.wwind.table.icon.TableIcons
+import ua.wwind.table.platform.getPlatform
+import ua.wwind.table.platform.isMobile
 import ua.wwind.table.state.ColumnMenuRequest
 import ua.wwind.table.state.TableState
 import ua.wwind.table.strings.currentStrings
@@ -68,7 +79,15 @@ internal fun <T : Any, C, E> ColumnHeaderDropdownMenuBox(
     val hasMenu = sections.isNotEmpty()
     val request = state.columnMenuRequest
     val expanded = hasMenu && request.isFor(spec.key, context, instance)
+    val isMobile = remember { getPlatform().isMobile() }
 
+    // A pointer on a column header moves the header Tab stop there, so the keyboard picks up where the mouse was.
+    val focusHeader by rememberUpdatedState {
+        if (context == ColumnMenuContext.Header && !isMobile) {
+            state.focusedHeaderColumn = spec.key
+            state.headerFocusRequester.requestFocus()
+        }
+    }
     val openAt by rememberUpdatedState { position: Offset? ->
         if (hasMenu) {
             val offset = position?.let { with(density) { DpOffset(it.x.toDp(), it.y.toDp() - anchorHeight) } }
@@ -77,6 +96,7 @@ internal fun <T : Any, C, E> ColumnHeaderDropdownMenuBox(
         }
     }
     val onTap by rememberUpdatedState {
+        focusHeader()
         if (spec.sortable && spec.headerClickToSort && !state.settings.isInteractionLockByRowReorderEnabled) {
             state.setSort(spec.key)
         }
@@ -89,6 +109,7 @@ internal fun <T : Any, C, E> ColumnHeaderDropdownMenuBox(
                 .columnMenuGestures(
                     state = state,
                     openAt = { openAt(it) },
+                    onSecondaryPress = { focusHeader() },
                     onTap = { onTap() },
                 ).then(
                     if (context == ColumnMenuContext.Header) {
@@ -104,24 +125,63 @@ internal fun <T : Any, C, E> ColumnHeaderDropdownMenuBox(
             expanded = expanded,
             onDismissRequest = { state.closeColumnMenu() },
             offset = request?.offset ?: DpOffset.Zero,
+            modifier = Modifier.closeOnEscape { state.closeColumnMenu() },
         ) {
-            sections.forEachIndexed { index, section ->
-                if (index > 0) HorizontalDivider()
-                section.items.forEach { item ->
-                    ColumnMenuItemRow(item) {
-                        state.closeColumnMenu()
-                        item.onClick()
-                    }
-                }
+            ColumnMenuItems(sections, focusFirstItem = request?.fromKeyboard == true) { item ->
+                state.closeColumnMenu()
+                item.onClick()
             }
         }
     }
 }
 
+/**
+ * The menu rows, divided by section. A menu opened from the keyboard focuses its first enabled item,
+ * so the arrows, Enter and Esc work inside it straight away.
+ */
+@Composable
+private fun ColumnMenuItems(
+    sections: List<ColumnMenuSection>,
+    focusFirstItem: Boolean,
+    onItemClick: (ColumnMenuItem) -> Unit,
+) {
+    val firstItemFocus = remember { FocusRequester() }
+    val firstEnabled = sections.firstNotNullOfOrNull { section -> section.items.firstOrNull { it.enabled } }
+    sections.forEachIndexed { index, section ->
+        if (index > 0) HorizontalDivider()
+        section.items.forEach { item ->
+            ColumnMenuItemRow(
+                item = item,
+                onClick = { onItemClick(item) },
+                modifier = if (item === firstEnabled) Modifier.focusRequester(firstItemFocus) else Modifier,
+            )
+        }
+    }
+    if (focusFirstItem && firstEnabled != null) {
+        LaunchedEffect(Unit) { firstItemFocus.requestFocus() }
+    }
+}
+
+/**
+ * Esc closes the menu while focus is inside it. A desktop window already maps Esc to a popup
+ * dismissal through back navigation; handling it here as well keeps the behaviour independent of
+ * the host (and of test scenes, which have no back-navigation input).
+ */
+private fun Modifier.closeOnEscape(onClose: () -> Unit): Modifier =
+    onPreviewKeyEvent { event ->
+        if (event.type == KeyEventType.KeyDown && event.key == Key.Escape) {
+            onClose()
+            true
+        } else {
+            false
+        }
+    }
+
 @Composable
 private fun ColumnMenuItemRow(
     item: ColumnMenuItem,
     onClick: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val reason = item.disabledReason.takeIf { !item.enabled }
     DropdownMenuItem(
@@ -135,7 +195,7 @@ private fun ColumnMenuItemRow(
         enabled = item.enabled,
         leadingIcon = item.icon?.let { icon -> { Icon(icon, contentDescription = null) } },
         trailingIcon = if (item.checked) ({ Icon(TableIcons.Check, contentDescription = null) }) else null,
-        modifier = if (reason != null) Modifier.semantics { stateDescription = reason } else Modifier,
+        modifier = if (reason != null) modifier.semantics { stateDescription = reason } else modifier,
     )
 }
 
@@ -145,10 +205,11 @@ private fun <C> ColumnMenuRequest<C>?.isFor(
     instance: Any,
 ): Boolean = this != null && this.column == column && this.context == context && (anchor == null || anchor === instance)
 
-/** Right-click and long-press open the menu; a primary tap runs [onTap]. */
+/** Right-click (after [onSecondaryPress]) and long-press open the menu; a primary tap runs [onTap]. */
 private fun Modifier.columnMenuGestures(
     state: TableState<*>,
     openAt: (Offset?) -> Unit,
+    onSecondaryPress: () -> Unit,
     onTap: () -> Unit,
 ): Modifier =
     pointerInput(state) {
@@ -156,6 +217,7 @@ private fun Modifier.columnMenuGestures(
             while (true) {
                 val event = awaitPointerEvent()
                 if (event.type == PointerEventType.Press && event.buttons.isSecondaryPressed) {
+                    onSecondaryPress()
                     openAt(event.changes.firstOrNull()?.position)
                 }
             }

@@ -65,6 +65,9 @@ import ua.wwind.table.interaction.ApplyAutoWidthEmbeddedEffect
 import ua.wwind.table.interaction.ContextMenuState
 import ua.wwind.table.interaction.EnsureSelectedCellVisibleEffect
 import ua.wwind.table.interaction.draggableTable
+import ua.wwind.table.interaction.enterBodyFromHeader
+import ua.wwind.table.interaction.focusHeaderFromBody
+import ua.wwind.table.interaction.openColumnMenuFromBody
 import ua.wwind.table.interaction.tableKeyboardNavigation
 import ua.wwind.table.platform.getPlatform
 import ua.wwind.table.platform.isMobile
@@ -235,10 +238,6 @@ public fun <T : Any, C, E> EditableTable(
                         enableScrolling = enableScrolling,
                         enableDragToScroll = state.settings.enableDragToScroll,
                         coroutineScope = coroutineScope,
-                        tableFocusRequester = tableFocusRequester,
-                        itemsCount = itemsCount,
-                        state = state,
-                        visibleColumns = visibleColumns,
                     ).clipToBounds()
 
             val pinnedFooterHeight =
@@ -280,6 +279,7 @@ public fun <T : Any, C, E> EditableTable(
                             strings = strings,
                             icons = icons,
                             horizontalState = horizontalState,
+                            onEnterBody = { state.enterBodyFromHeader(itemsCount, tableFocusRequester) },
                         )
 
                         val bodyContent: @Composable () -> Unit = {
@@ -312,10 +312,22 @@ public fun <T : Any, C, E> EditableTable(
 
                         // SelectionContainer is disabled while a row is in edit mode to avoid
                         // cross-hierarchy text selection issues with popup-based editors on Desktop.
-                        if (state.settings.enableTextSelection && state.editing.rowIndex == null) {
-                            SelectionContainer { bodyContent() }
-                        } else {
-                            bodyContent()
+                        Box(
+                            Modifier.tableKeyboardNavigation(
+                                focusRequester = tableFocusRequester,
+                                itemsCount = itemsCount,
+                                state = state,
+                                visibleColumns = visibleColumns,
+                                verticalState = verticalState,
+                                onExitToHeader = state::focusHeaderFromBody,
+                                onOpenColumnMenu = state::openColumnMenuFromBody,
+                            ),
+                        ) {
+                            if (state.settings.enableTextSelection && state.editing.rowIndex == null) {
+                                SelectionContainer { bodyContent() }
+                            } else {
+                                bodyContent()
+                            }
                         }
                     }
 
@@ -624,10 +636,10 @@ private fun resolveBorderStroke(
     }
 
 /**
- * Creates a modifier chain for table interaction handling including dragging and keyboard navigation.
+ * Creates a modifier chain for drag-to-scroll; keyboard navigation lives on the header and body focus targets.
  */
 @Composable
-private fun <T : Any, C, E> Modifier.tableInteractionModifiers(
+private fun Modifier.tableInteractionModifiers(
     embedded: Boolean,
     horizontalState: ScrollState,
     verticalState: LazyListState,
@@ -636,10 +648,6 @@ private fun <T : Any, C, E> Modifier.tableInteractionModifiers(
     enableScrolling: Boolean,
     enableDragToScroll: Boolean,
     coroutineScope: kotlinx.coroutines.CoroutineScope,
-    tableFocusRequester: FocusRequester,
-    itemsCount: Int,
-    state: TableState<C>,
-    visibleColumns: ImmutableList<ColumnSpec<T, C, E>>,
 ): Modifier =
     this
         .then(
@@ -656,12 +664,6 @@ private fun <T : Any, C, E> Modifier.tableInteractionModifiers(
                     coroutineScope = coroutineScope,
                 )
             },
-        ).tableKeyboardNavigation(
-            focusRequester = tableFocusRequester,
-            itemsCount = itemsCount,
-            state = state,
-            visibleColumns = visibleColumns,
-            verticalState = verticalState,
         )
 
 /**

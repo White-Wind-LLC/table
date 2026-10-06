@@ -15,13 +15,17 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.coroutines.flow.collectLatest
 import sh.calvin.reorderable.rememberReorderableLazyListState
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.component.header.ColumnResizersOverlay
@@ -33,6 +37,8 @@ import ua.wwind.table.config.TableDimensions
 import ua.wwind.table.filter.component.fast.FastFiltersRow
 import ua.wwind.table.filter.data.TableFilterType
 import ua.wwind.table.icon.TableIcons
+import ua.wwind.table.interaction.ensureColumnFullyVisible
+import ua.wwind.table.interaction.tableHeaderKeyboardNavigation
 import ua.wwind.table.state.ColumnWidthAction
 import ua.wwind.table.state.TableState
 import ua.wwind.table.strings.StringProvider
@@ -49,6 +55,7 @@ internal fun <T : Any, C, E> TableHeader(
     dimensions: TableDimensions,
     strings: StringProvider,
     horizontalState: ScrollState,
+    onEnterBody: () -> Unit,
     icons: TableHeaderIcons =
         TableHeaderIcons(
             sortAsc = TableIcons.ArrowUpward,
@@ -60,6 +67,7 @@ internal fun <T : Any, C, E> TableHeader(
 ) {
     val lazyListState = remember { LazyListState() }
     var filterColumn by remember { mutableStateOf<C?>(null) }
+    var restoreFocusAfterFilter by remember { mutableStateOf(false) }
     val derived = rememberHeaderDerivedState(columns, state, dimensions)
     var isResizing by remember { mutableStateOf(false) }
     val reorderState =
@@ -70,10 +78,25 @@ internal fun <T : Any, C, E> TableHeader(
             if (move != null) state.columns.move(move.first, move.second)
         }
 
+    // Keep the keyboard-focused header column scrolled into view.
+    val density = LocalDensity.current
+    LaunchedEffect(state, derived.visibleColumns) {
+        snapshotFlow { if (state.isHeaderFocused) state.focusedHeaderColumn else null }.collectLatest { column ->
+            val index = derived.visibleColumns.indexOfFirst { it.key == column }
+            if (column != null && index >= 0) {
+                ensureColumnFullyVisible(index, column, derived.visibleColumns, state, horizontalState, density)
+            }
+        }
+    }
+
     Column {
         Surface(color = headerColor, contentColor = headerContentColor) {
             CompositionLocalProvider(LocalTableHeaderIcons provides icons) {
-                Box(Modifier.height(state.dimensions.headerHeight)) {
+                Box(
+                    Modifier
+                        .height(state.dimensions.headerHeight)
+                        .tableHeaderKeyboardNavigation(state, derived.visibleColumns, onEnterBody),
+                ) {
                     TableHeaderRow(
                         lazyListState = lazyListState,
                         reorderState = reorderState,
@@ -84,7 +107,17 @@ internal fun <T : Any, C, E> TableHeader(
                         tableData = tableData,
                         strings = strings,
                         filterColumn = filterColumn,
-                        onFilterColumnChange = { filterColumn = it },
+                        onFilterColumnChange = { column ->
+                            filterColumn = column
+                            if (column == null && restoreFocusAfterFilter) {
+                                restoreFocusAfterFilter = false
+                                state.headerFocusRequester.requestFocus()
+                            }
+                        },
+                        onOpenFilterFromMenu = { key ->
+                            filterColumn = key
+                            restoreFocusAfterFilter = state.lastColumnMenuFromKeyboard
+                        },
                         isResizing = isResizing,
                         horizontalState = horizontalState,
                     )

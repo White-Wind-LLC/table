@@ -7,6 +7,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
@@ -31,7 +32,11 @@ internal fun FilterButton(
         if (active) {
             FilledTonalIconButton(
                 onClick = { if (!isOpen) onOpen() else onDismiss() },
-                modifier = Modifier.size(max(MIN_FILTER_BUTTON_SIZE_DP.dp, targetSize)),
+                modifier =
+                    Modifier.size(max(MIN_FILTER_BUTTON_SIZE_DP.dp, targetSize)).focusProperties {
+                        canFocus =
+                            false
+                    },
             ) {
                 Icon(
                     imageVector = icons.filterActive,
@@ -42,7 +47,11 @@ internal fun FilterButton(
         } else {
             IconButton(
                 onClick = { if (!isOpen) onOpen() else onDismiss() },
-                modifier = Modifier.size(max(MIN_FILTER_BUTTON_SIZE_DP.dp, targetSize)),
+                modifier =
+                    Modifier.size(max(MIN_FILTER_BUTTON_SIZE_DP.dp, targetSize)).focusProperties {
+                        canFocus =
+                            false
+                    },
             ) {
                 Icon(
                     imageVector = icons.filterInactive,

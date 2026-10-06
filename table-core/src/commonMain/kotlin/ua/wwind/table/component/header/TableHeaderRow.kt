@@ -2,6 +2,7 @@ package ua.wwind.table.component.header
 
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.border
 import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
@@ -13,7 +14,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -48,6 +51,7 @@ internal fun <T : Any, C, E> TableHeaderRow(
     strings: StringProvider,
     filterColumn: C?,
     onFilterColumnChange: (C?) -> Unit,
+    onOpenFilterFromMenu: (C) -> Unit,
     isResizing: Boolean,
     horizontalState: ScrollState,
 ) {
@@ -111,7 +115,7 @@ internal fun <T : Any, C, E> TableHeaderRow(
                         spec = spec,
                         state = state,
                         context = ColumnMenuContext.Header,
-                        onOpenFilter = { onFilterColumnChange(spec.key) },
+                        onOpenFilter = { onOpenFilterFromMenu(spec.key) },
                     ) { openMenu ->
                         Box(
                             modifier =
@@ -122,7 +126,8 @@ internal fun <T : Any, C, E> TableHeaderRow(
                                         } else {
                                             Modifier.hoverable(interactionSource = headerHoverInteraction)
                                         },
-                                    ).fillMaxSize(),
+                                    ).fillMaxSize()
+                                    .headerFocusRing(state.isHeaderFocused && state.focusedHeaderColumn == spec.key),
                         ) {
                             val dividerThickness =
                                 if (pinnedState.isLastLeftPinned) {
@@ -175,3 +180,8 @@ internal fun <T : Any, C, E> TableHeaderRow(
         }
     }
 }
+
+/** The keyboard focus ring of a header cell: the same 2.dp primary border a focused body cell shows. */
+@Composable
+private fun Modifier.headerFocusRing(focused: Boolean): Modifier =
+    if (focused) border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(2.dp)) else this

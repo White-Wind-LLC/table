@@ -23,6 +23,8 @@ internal fun <T : Any, C> Modifier.tableKeyboardNavigation(
     state: TableState<C>,
     visibleColumns: List<ColumnSpec<T, C, *>>,
     verticalState: LazyListState,
+    onExitToHeader: (column: C?) -> Unit,
+    onOpenColumnMenu: (column: C?) -> Unit,
 ): Modifier =
     this
         .focusRequester(focusRequester)
@@ -30,14 +32,36 @@ internal fun <T : Any, C> Modifier.tableKeyboardNavigation(
         .focusTarget()
         .onPreviewKeyEvent { event ->
             when {
-                event.type != KeyEventType.KeyDown -> false
+                event.type != KeyEventType.KeyDown -> {
+                    false
+                }
 
                 // While editing, the edit field owns cursor movement — only end the edit here.
-                state.editing.rowIndex != null -> handleEditingKey(event, state, visibleColumns)
+                state.editing.rowIndex != null -> {
+                    handleEditingKey(event, state, visibleColumns)
+                }
 
-                else -> handleNavigationKey(event, itemsCount, state, visibleColumns, verticalState)
+                event.isColumnMenuKey() -> {
+                    onOpenColumnMenu(state.selection.selectedCell?.column ?: visibleColumns.firstOrNull()?.key)
+                    true
+                }
+
+                event.exitsToHeader(state) -> {
+                    onExitToHeader(state.selection.selectedCell?.column)
+                    true
+                }
+
+                else -> {
+                    handleNavigationKey(event, itemsCount, state, visibleColumns, verticalState)
+                }
             }
         }
+
+/** A plain ↑ with no selection, or on the first row, leaves the body for the header. */
+private fun KeyEvent.exitsToHeader(state: TableState<*>): Boolean {
+    val cell = state.selection.selectedCell
+    return key == Key.DirectionUp && !isCtrlPressed && !isMetaPressed && (cell == null || cell.rowIndex == 0)
+}
 
 private fun <C> handleEditingKey(
     event: KeyEvent,

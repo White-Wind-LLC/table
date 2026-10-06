@@ -9,6 +9,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -38,7 +39,8 @@ internal fun SortButton(
                 .sizeIn(minWidth = targetSize, minHeight = targetSize)
                 .then(
                     if (clickable) {
-                        Modifier.clickable(role = Role.Button) {
+                        // The header row is the Tab stop; the button is reached with the pointer only.
+                        Modifier.focusProperties { canFocus = false }.clickable(role = Role.Button) {
                             onToggle()
                         }
                     } else {
