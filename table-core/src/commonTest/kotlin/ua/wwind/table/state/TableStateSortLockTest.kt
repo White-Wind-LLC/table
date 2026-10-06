@@ -54,8 +54,19 @@ class TableStateSortLockTest {
 
     @Test
     fun `clearSort is a no-op while row reorder is enabled`() {
-        val state = stateWith(TableSettings(rowReorderEnabled = true))
+        // rememberTableState normalizes initialSort away, so the lock is only observable by building
+        // the state directly with a sort and row reorder both on.
+        val sort = SortState("a", SortOrder.ASCENDING)
+        val state =
+            TableState(
+                initialColumns = listOf("a", "b"),
+                initialSort = sort,
+                initialOrder = listOf("a", "b"),
+                initialWidths = emptyMap(),
+                settings = TableSettings(rowReorderEnabled = true),
+                dimensions = TableDefaults.standardDimensions(),
+            )
         state.clearSort()
-        assertThat(state.sort).isNull()
+        assertThat(state.sort).isEqualTo(sort)
     }
 }
