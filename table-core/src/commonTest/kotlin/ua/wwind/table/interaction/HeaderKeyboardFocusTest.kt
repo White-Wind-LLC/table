@@ -35,6 +35,7 @@ import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isFalse
 import assertk.assertions.isGreaterThan
+import assertk.assertions.isNull
 import assertk.assertions.isTrue
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toPersistentList
@@ -368,5 +369,24 @@ class HeaderKeyboardFocusTest {
             assertThat(state().isHeaderFocused).isTrue()
             assertThat(state().focusedHeaderColumn).isEqualTo("c2")
             assertThat(scroll.value).isEqualTo(0)
+        }
+
+    @Test
+    fun `enter and down do nothing in the header while a row is edited`() =
+        desktopOnlyTest {
+            val state = showTable()
+            runOnIdle { state().editing.start("row-1", 1, "copy") }
+            waitForIdle()
+            runOnIdle { state().focusHeaderFromBody("name") }
+            waitForIdle()
+            assertThat(state().isHeaderFocused).isTrue()
+
+            press(Key.Enter)
+            assertThat(state().sort).isNull()
+
+            press(Key.DirectionDown)
+            assertThat(state().isHeaderFocused).isTrue()
+            val cell = state().selection.selectedCell
+            assertThat(cell?.rowIndex to cell?.column).isEqualTo(1 to "copy")
         }
 }

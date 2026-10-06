@@ -94,18 +94,21 @@ private fun <C> handleHeaderKey(
     val keys = visibleColumns.map { it.key }
     val current = state.focusedHeaderColumn?.takeIf { it in keys } ?: keys.firstOrNull() ?: return false
     val index = keys.indexOf(current)
+    // While a row is edited, sorting would move it under the editor and ↓ would move the selection away
+    // from it, so both are ignored — as the body leaves every key but Esc/Tab to the edit field.
+    val isEditing = state.editing.rowIndex != null
     return when {
         event.opensHeaderMenu() -> {
             state.openColumnMenuFromKeyboard(current)
             true
         }
 
-        event.key == Key.DirectionDown -> {
+        event.key == Key.DirectionDown && !isEditing -> {
             onEnterBody()
             true
         }
 
-        event.isSortKey() -> {
+        event.isSortKey() && !isEditing -> {
             val spec = visibleColumns[index]
             if (spec.sortable && !state.settings.isInteractionLockByRowReorderEnabled) state.setSort(current)
             true
