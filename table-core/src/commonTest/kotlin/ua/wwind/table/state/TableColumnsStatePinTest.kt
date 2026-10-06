@@ -79,4 +79,60 @@ class TableColumnsStatePinTest {
         assertThat(state.columns.order.toList()).containsExactly("a", "b", "c", "d")
         assertThat(state.columns.pinnedCount).isEqualTo(1)
     }
+
+    @Test
+    fun `pin with a hidden column inside the pinned block keeps the block intact`() {
+        val state = stateWith(pinned = 1, keys = listOf("a", "b", "c", "d", "e"))
+        state.columns.hide("b")
+        state.columns.pin("d")
+        assertThat(state.columns.visibleKeys()).containsExactly("a", "d", "c", "e")
+        assertThat(state.columns.pinnedCount).isEqualTo(2)
+        assertThat(state.columns.isPinned("d")).isTrue()
+        assertThat(state.columns.isPinned("c")).isFalse()
+    }
+
+    @Test
+    fun `unpin with a hidden column inside the pinned block moves the column past the block`() {
+        val state = stateWith(pinned = 1, keys = listOf("a", "b", "c", "d", "e"))
+        state.columns.hide("b")
+        state.columns.pin("c")
+        state.columns.pin("d")
+        assertThat(state.columns.visibleKeys()).containsExactly("a", "c", "d", "e")
+        state.columns.unpin("a")
+        assertThat(state.columns.visibleKeys()).containsExactly("c", "d", "a", "e")
+        assertThat(state.columns.pinnedCount).isEqualTo(2)
+        assertThat(state.columns.isPinned("a")).isFalse()
+    }
+
+    @Test
+    fun `pin with a hidden column inside the block on the right`() {
+        val state = stateWith(pinned = 1, side = PinnedSide.Right, keys = listOf("a", "b", "c", "d", "e"))
+        state.columns.hide("d")
+        state.columns.pin("b")
+        assertThat(state.columns.visibleKeys()).containsExactly("a", "c", "b", "e")
+        assertThat(state.columns.isPinned("b")).isTrue()
+        assertThat(state.columns.isPinned("c")).isFalse()
+        state.columns.unpin("e")
+        assertThat(state.columns.visibleKeys()).containsExactly("a", "c", "e", "b")
+        assertThat(state.columns.pinnedCount).isEqualTo(1)
+    }
+
+    @Test
+    fun `pin when the stored count covers every visible column restarts the block at one`() {
+        val state = stateWith(pinned = 4)
+        assertThat(state.columns.isPinned("a")).isFalse()
+        state.columns.pin("c")
+        assertThat(state.columns.pinnedCount).isEqualTo(1)
+        assertThat(state.columns.order.toList()).containsExactly("c", "a", "b", "d")
+        assertThat(state.columns.isPinned("c")).isTrue()
+        assertThat(state.columns.isPinned("a")).isFalse()
+    }
+
+    @Test
+    fun `pin when the stored count exceeds the visible count restarts the block at one`() {
+        val state = stateWith(pinned = 9)
+        state.columns.pin("b")
+        assertThat(state.columns.pinnedCount).isEqualTo(1)
+        assertThat(state.columns.order.toList()).containsExactly("b", "a", "c", "d")
+    }
 }
