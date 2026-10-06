@@ -14,6 +14,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -104,6 +105,10 @@ fun MainTable(
         }
     }
 
+    // Derived, so a resize drag, which rewrites a width every frame, re-runs the menu builder below only
+    // when the first override appears or the last one goes.
+    val hasCustomWidths by remember(state) { derivedStateOf { state.columns.widths.isNotEmpty() } }
+
     Box(modifier = modifier) {
         EditableTable(
             itemsCount = tableData.displayedPeople.size,
@@ -125,7 +130,7 @@ fun MainTable(
                                             id = ColumnMenuItemId("sample-reset-widths"),
                                             label = "Reset all widths",
                                             icon = TableIcons.SettingsBackupRestore,
-                                            enabled = state.columns.widths.isNotEmpty(),
+                                            enabled = hasCustomWidths,
                                             disabledReason = "No custom column widths",
                                         ) {
                                             state.columns.setWidths(
