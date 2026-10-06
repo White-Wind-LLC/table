@@ -206,11 +206,12 @@ class HeaderKeyboardFocusTest {
     @Test
     fun `the menu key and alt down open the menu`() =
         desktopOnlyTest {
-            showTable()
+            val state = showTable()
             press(Key.Tab)
             press(Key.Menu)
             onNodeWithText("Sort ascending").assertExists()
             press(Key.Escape)
+            assertThat(state().isHeaderFocused).isTrue()
 
             press(Key.DirectionDown, modifier = Key.AltLeft)
             onNodeWithText("Sort ascending").assertExists()
@@ -316,6 +317,54 @@ class HeaderKeyboardFocusTest {
             onNodeWithContentDescription("Column options: Name").performMouseInput { click() }
             waitForIdle()
             assertThat(state().focusedHeaderColumn).isEqualTo("name")
+        }
+
+    @Test
+    fun `closing a filter panel opened from the keyboard menu returns focus to the header`() =
+        desktopOnlyTest {
+            val state = showTable()
+            press(Key.Tab)
+            press(Key.F10, modifier = Key.ShiftLeft)
+            onNodeWithText("Filter…").performMouseInput { click() }
+            waitForIdle()
+
+            onNodeWithText("Clear").performMouseInput { click() }
+            waitForIdle()
+            onNodeWithText("Clear").assertDoesNotExist()
+            assertThat(state().isHeaderFocused).isTrue()
+            assertThat(state().focusedHeaderColumn).isEqualTo("name")
+        }
+
+    @Test
+    fun `an outside click closes a keyboard opened menu without reaching the table`() =
+        desktopOnlyTest {
+            val state = showTable()
+            press(Key.Tab)
+            press(Key.F10, modifier = Key.ShiftLeft)
+            onNodeWithText("Sort ascending").assertExists()
+
+            // The popup layer takes the click over a body cell: it only dismisses the menu, and the
+            // header, which kept focus under the popup, still has it.
+            val cell = onNodeWithText("row-2 copy").fetchSemanticsNode().boundsInRoot.center
+            onAllNodes(isRoot()).onLast().performMouseInput { click(cell) }
+            waitForIdle()
+            onNodeWithText("Sort ascending").assertDoesNotExist()
+            assertThat(state().selection.selectedCell).isNull()
+            assertThat(state().isFocused).isFalse()
+            assertThat(state().isHeaderFocused).isTrue()
+        }
+
+    @Test
+    fun `choosing an item of a keyboard opened menu returns focus to the header`() =
+        desktopOnlyTest {
+            val state = showTable()
+            press(Key.Tab)
+            press(Key.F10, modifier = Key.ShiftLeft)
+            press(Key.Enter)
+
+            assertThat(state().sort).isEqualTo(SortState("name", SortOrder.ASCENDING))
+            onNodeWithText("Sort ascending").assertDoesNotExist()
+            assertThat(state().isHeaderFocused).isTrue()
         }
 
     @Test

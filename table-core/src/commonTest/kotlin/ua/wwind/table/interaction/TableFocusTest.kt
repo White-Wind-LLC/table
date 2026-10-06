@@ -66,7 +66,7 @@ class TableFocusTest {
         fun selectedCell(): Pair<Int, String>? = state().selection.selectedCell?.let { it.rowIndex to it.column }
     }
 
-    private fun ComposeUiTest.showTableBetweenFocusables(): Fixture {
+    private fun ComposeUiTest.showTableBetweenFocusables(embedded: Boolean = false): Fixture {
         lateinit var state: TableState<String>
         var tableHasFocus = false
         val before = FocusRequester()
@@ -90,6 +90,7 @@ class TableFocusTest {
                         itemAt = { "row-$it" },
                         state = state,
                         columns = columns,
+                        embedded = embedded,
                     )
                 }
                 Box(Modifier.size(10.dp).testTag("after").focusable())
@@ -153,6 +154,30 @@ class TableFocusTest {
             val fixture = showTableBetweenFocusables()
             press(Key.Tab)
             press(Key.Tab)
+            press(Key.Tab)
+            onNodeWithTag("after").assertIsFocused()
+
+            pressShiftTab()
+            assertThat(fixture.state().isFocused).isTrue()
+
+            pressShiftTab()
+            assertThat(fixture.state().isHeaderFocused).isTrue()
+
+            pressShiftTab()
+            onNodeWithTag("before").assertIsFocused()
+        }
+
+    @Test
+    fun `an embedded table keeps the header then body tab order both ways`() =
+        desktopOnlyTest {
+            val fixture = showTableBetweenFocusables(embedded = true)
+
+            press(Key.Tab)
+            assertThat(fixture.state().isHeaderFocused).isTrue()
+
+            press(Key.Tab)
+            assertThat(fixture.state().isFocused).isTrue()
+
             press(Key.Tab)
             onNodeWithTag("after").assertIsFocused()
 
