@@ -124,4 +124,52 @@ class TableColumnsStateShowPinnedTest {
         state.columns.renderedKeys = null
         assertThat(state.columns.isPinned("c")).isTrue()
     }
+
+    @Test
+    fun `showAll keeps the relative order of columns that sat inside the block`() {
+        val state = stateWith(pinned = 1, keys = listOf("a", "b", "c", "d", "e"))
+        state.columns.hide("b")
+        state.columns.hide("c")
+        state.columns.pin("d")
+        state.columns.showAll()
+        assertThat(state.columns.visibleKeys()).containsExactly("a", "d", "b", "c", "e")
+        assertThat(state.pinnedKeys()).containsExactly("a", "d")
+    }
+
+    @Test
+    fun `on the right showAll keeps the relative order of columns that sat inside the block`() {
+        val state = stateWith(pinned = 1, side = PinnedSide.Right, keys = listOf("a", "b", "c", "d", "e"))
+        state.columns.hide("c")
+        state.columns.hide("d")
+        state.columns.pin("b")
+        assertThat(state.pinnedKeys()).containsExactly("b", "e")
+        state.columns.showAll()
+        assertThat(state.columns.visibleKeys()).containsExactly("a", "c", "d", "b", "e")
+        assertThat(state.pinnedKeys()).containsExactly("b", "e")
+    }
+
+    @Test
+    fun `two shows in one frame place columns as if a frame passed between them`() {
+        fun prepared() =
+            stateWith(pinned = 1, keys = listOf("a", "b", "c", "d", "e")).also {
+                it.columns.hide("b")
+                it.columns.hide("c")
+                it.columns.pin("d")
+            }
+        val stale = prepared()
+        val rendered = listOf("a", "d", "e")
+        stale.columns.renderedKeys = { rendered }
+        stale.columns.show("b")
+        stale.columns.show("c")
+
+        val framed = prepared()
+        framed.columns.renderedKeys = { rendered }
+        framed.columns.show("b")
+        framed.columns.renderedKeys = { listOf("a", "d", "b", "e") }
+        framed.columns.show("c")
+
+        assertThat(stale.columns.order.toList()).containsExactly(*framed.columns.order.toTypedArray())
+        assertThat(stale.columns.order.toList()).containsExactly("a", "d", "c", "b", "e")
+        assertThat(stale.columns.pinnedCount).isEqualTo(2)
+    }
 }

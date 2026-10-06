@@ -153,9 +153,23 @@ public class TableColumnsState<C>
          */
         internal var renderedKeys: (() -> List<C>)? = null
 
-        internal fun visibleKeys(): List<C> =
-            renderedKeys?.invoke()?.filterNot { it in hidden }?.takeIf { it.isNotEmpty() }
-                ?: order.filterNot { it in hidden }
+        /**
+         * Columns [reveal] showed since the rendered list last changed, and the rendered list they
+         * were shown against. The composed list lags a frame behind [show], so a second [show] in the
+         * same frame would not see the first; these keep it visible until the list catches up.
+         */
+        private var pendingShown: Set<C> = emptySet()
+        private var pendingBase: List<C>? = null
+
+        internal fun visibleKeys(): List<C> {
+            val rendered =
+                renderedKeys?.invoke()?.takeIf { it.isNotEmpty() }
+                    ?: return order.filterNot { it in hidden }
+            val shown = if (rendered == pendingBase) pendingShown else emptySet()
+            if (shown.isEmpty()) return rendered.filterNot { it in hidden }
+            val known = rendered.toSet() + shown
+            return order.filter { it in known && it !in hidden }
+        }
 
         /**
          * Columns hidden at runtime, e.g. from the column menu. A column renders when its spec is
@@ -176,6 +190,7 @@ public class TableColumnsState<C>
         public fun hide(column: C) {
             if (!canHide(column)) return
             unpin(column)
+            pendingShown = pendingShown - column
             hidden.add(column)
         }
 
@@ -185,27 +200,35 @@ public class TableColumnsState<C>
          */
         public fun show(column: C) {
             if (column !in hidden) return
-            reveal(column, visibleKeys())
+            reveal(column)
         }
 
-        /** Show every column hidden by [hide], each one placed as [show] places it. */
+        /**
+         * Show every column hidden by [hide], each one placed as [show] places it. Columns that all
+         * land at the pinned block's outer edge keep their relative order.
+         */
         public fun showAll() {
-            var visible = visibleKeys()
-            order.filter { it in hidden }.forEach { visible = reveal(it, visible) }
-            hidden.clear()
+            val toShow = order.filter { it in hidden }
+            // Each column lands at the edge, ahead of those placed before it on the left, behind them
+            // on the right; walking against that direction keeps the original order.
+            val sequence = if (pinnedSide == PinnedSide.Left) toShow.asReversed() else toShow
+            sequence.forEach { reveal(it) }
         }
 
         /**
          * Removes [column] from [hidden] and moves it out of the pinned block if it would land
-         * inside. [visible] is the visible list without [column]: the rendered keys lag a frame, so
-         * they cannot be read back here. Returns the visible list including [column].
+         * inside. The rendered keys lag a frame, so the columns revealed meanwhile are remembered in
+         * [pendingShown] and counted as visible.
          */
-        private fun reveal(
-            column: C,
-            visible: List<C>,
-        ): List<C> {
+        private fun reveal(column: C) {
+            val rendered = renderedKeys?.invoke()?.takeIf { it.isNotEmpty() }
+            if (rendered != pendingBase) {
+                pendingShown = emptySet()
+                pendingBase = rendered
+            }
+            val visibleSet = visibleKeys().toSet()
             hidden.remove(column)
-            val visibleSet = visible.toSet()
+            pendingShown = pendingShown + column
             val keys = order.filter { it == column || it in visibleSet }
             val pinned = effectivePinnedCount(keys.size)
             val index = keys.indexOf(column)
@@ -214,9 +237,8 @@ public class TableColumnsState<C>
                 when (pinnedSide) {
                     PinnedSide.Left -> pinned.takeIf { index < pinned }
                     PinnedSide.Right -> (keys.size - pinned - 1).takeIf { index >= keys.size - pinned }
-                } ?: return keys
+                } ?: return
             moveVisible(keys, index, target)
-            return order.filter { it == column || it in visibleSet }
         }
 
         /** The pinned block size as rendered: a count covering every visible column pins none. */
