@@ -36,7 +36,10 @@ public data class TableSettings(
      * instead.
      */
     val enableDragToScroll: Boolean = getPlatform().isMobile(),
-    /** Number of pinned columns */
+    /**
+     * Initial number of pinned columns. The live count, changed by pinning from the column menu, is
+     * [ua.wwind.table.state.TableColumnsState.pinnedCount] on `TableState.columns`.
+     */
     val pinnedColumnsCount: Int = 0,
     /** Side to pin columns to */
     val pinnedColumnsSide: PinnedSide = PinnedSide.Left,
@@ -60,8 +63,9 @@ public data class TableSettings(
     /** Show horizontal divider below the fast filters row */
     val showFastFiltersDivider: Boolean = true,
     /**
-     * Show a ⋮ button in each header that opens the column menu. The menu is always reachable by
-     * right-click, long-press and Shift+F10 / the Menu key; the button only makes it visible.
+     * Show a ⋮ button in each header with `headerDecorations` on that opens the column menu. The
+     * menu is always reachable by right-click, long-press and Shift+F10 / the Menu key; the button
+     * only makes it visible.
      */
     val showColumnMenuButton: Boolean = false,
 )
