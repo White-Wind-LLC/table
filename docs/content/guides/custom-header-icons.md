@@ -41,5 +41,11 @@ val icons = TableHeaderDefaults.icons(
 ```
 
 !!! note
+    `TableIcons` are Compose resource files loaded at runtime. Android and desktop apps get them
+    inside the library's aar and jar. iOS and web apps get them through Compose Multiplatform
+    resources packaging, which the `org.jetbrains.compose` Gradle plugin sets up; a build that skips
+    it (for example a hand-made XCFramework) has no icon files and fails when a `Table` renders.
+
+!!! note
     On web (wasm and JS) Compose resources load asynchronously, so an icon can be blank for the
     first frame after the table appears.

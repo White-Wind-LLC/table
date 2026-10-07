@@ -4,9 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ### Unreleased
 
-- Changed (breaking): icons ship as Compose resource files. `TableIcons` returns `DrawableResource`, and
-  `TableHeaderIcons` and `ColumnMenuItem.icon` take a `Painter`: wrap with `painterResource(...)` or
-  `rememberVectorPainter(...)`.
+- Changed (breaking): icons are Compose resources — `TableIcons` returns `DrawableResource`, icon slots
+  take `Painter`; iOS and web apps need Compose resources packaging ([guide](docs/content/guides/custom-header-icons.md)).
 - Added: built-in loading, error/retry, progress and error-bar states on the paged `Table`, and a
   `bodyOverlay` slot on `Table`; adds four `UiString` keys and deprecates `handleLoadState` ([#89](https://github.com/White-Wind-LLC/table/issues/89)).
 - Added: an `emptyContent` slot on `Table` for the no-data and no-results states, with a "Clear filters"
