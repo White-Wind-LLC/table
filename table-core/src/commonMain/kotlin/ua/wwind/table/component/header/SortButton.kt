@@ -6,10 +6,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -52,6 +55,22 @@ internal fun SortButton(
             imageVector = sortIcon,
             contentDescription = null,
             modifier = Modifier.size(HeaderIconSize).padding(start = 4.dp),
+            tint =
+                sortIconTint(
+                    order = order,
+                    contentColor = LocalContentColor.current,
+                    primary = MaterialTheme.colorScheme.primary,
+                ),
         )
     }
 }
+
+/** The sort icon's tint: [primary] while the column is sorted, a dimmed [contentColor] otherwise. */
+internal fun sortIconTint(
+    order: SortOrder?,
+    contentColor: Color,
+    primary: Color,
+): Color = if (order != null) primary else contentColor.copy(alpha = NEUTRAL_SORT_ICON_ALPHA)
+
+/** Material's disabled-content emphasis: visible enough to signal sortability without competing. */
+private const val NEUTRAL_SORT_ICON_ALPHA = 0.38f

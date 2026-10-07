@@ -42,6 +42,9 @@ All notable changes to this project will be documented in this file.
   bar, striped rows are `surfaceContainerLow`, and a new `typography` parameter (`TableDefaults.typography()`)
   styles header, body, footer and group rows; it changes JVM signatures
   ([#85](https://github.com/White-Wind-LLC/table/issues/85)).
+- Changed: headers follow the column alignment (override with `headerAlign`), the sort icon no longer shrinks and
+  is dimmed when inactive, and `numeric()` end-aligns a column with tabular figures; `ColumnSpec` gains fields
+  ([#86](https://github.com/White-Wind-LLC/table/issues/86)).
 
 ### 2.4.1 — 2026-09-26
 

@@ -21,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color.Companion.Unspecified
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import ua.wwind.table.config.TableCellStyle
@@ -33,6 +34,8 @@ internal fun TableCell(
     cellStyle: TableCellStyle,
     alignment: Alignment,
     modifier: Modifier = Modifier,
+    /** Whether digits use tabular (fixed-width) figures so numbers line up across rows. */
+    tabularFigures: Boolean = false,
     isSelected: Boolean = false,
     /** Whether the table holds keyboard focus, which turns the selection border into a focus ring. */
     isTableFocused: Boolean = false,
@@ -63,8 +66,10 @@ internal fun TableCell(
     // slot's remembered state survives; the pinned/non-pinned branches wrap around this call.
     val cellContent: @Composable BoxScope.() -> Unit = {
         CompositionLocalProvider(LocalContentColor provides resolvedContentColor) {
-            // merge(null) returns the ambient style unchanged.
-            ProvideTextStyle(LocalTextStyle.current.merge(cellStyle.textStyle)) { content() }
+            // merge(null) returns the ambient style unchanged; the cell style still wins over tnum.
+            ProvideTextStyle(LocalTextStyle.current.withTabularFigures(tabularFigures).merge(cellStyle.textStyle)) {
+                content()
+            }
         }
     }
 
@@ -140,3 +145,7 @@ internal fun TableCell(
         }
     }
 }
+
+private val TabularFigures = TextStyle(fontFeatureSettings = "tnum")
+
+private fun TextStyle.withTabularFigures(enabled: Boolean): TextStyle = if (enabled) merge(TabularFigures) else this

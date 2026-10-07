@@ -61,6 +61,7 @@ internal fun <T : Any, C, E> TableFooterRow(
                         contentColor = footerContentColor,
                     ),
                 alignment = spec.alignment,
+                tabularFigures = spec.tabularFigures,
                 isSelected = false,
                 showLeftDivider = pinnedState.isFirstRightPinned,
                 leftDividerThickness = dimensions.pinnedColumnDividerThickness,

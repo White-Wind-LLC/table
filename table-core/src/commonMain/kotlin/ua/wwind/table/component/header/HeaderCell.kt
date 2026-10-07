@@ -29,6 +29,8 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.MeasureCellMinWidth
@@ -127,7 +129,7 @@ internal fun <T : Any, C, E> HeaderCell(
                 Modifier
                     .width(width)
                     .fillMaxHeight(),
-            contentAlignment = Alignment.Center,
+            contentAlignment = spec.headerAlignment ?: spec.alignment,
         ) {
             HeaderContent(
                 spec = spec,
@@ -169,12 +171,13 @@ private fun DefaultFilterIcon(info: TableHeaderCellInfo<Any?>) {
 @Composable
 private fun TruncationTooltipBox(
     title: (@Composable () -> String)?,
+    modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
     val movableContent = remember(content) { movableContentOf { content() } }
     val titleText = title?.invoke()
     if (titleText == null) {
-        movableContent()
+        Box(modifier) { movableContent() }
         return
     }
     val textMeasurer = rememberTextMeasurer()
@@ -186,21 +189,25 @@ private fun TruncationTooltipBox(
     val tooltipState = rememberTooltipState(isPersistent = false)
     val positionProvider = TooltipDefaults.rememberTooltipPositionProvider(TooltipAnchorPosition.Above)
 
-    if (isTruncated) {
-        TooltipBox(
-            positionProvider = positionProvider,
-            state = tooltipState,
-            focusable = false,
-            enableUserInput = true,
-            tooltip = { PlainTooltip { Text(titleText) } },
-        ) {
+    // The caller's modifier sits on a box that survives the switch to and from the tooltip, so
+    // layout parent data such as a row weight keeps applying while the title is truncated.
+    Box(modifier) {
+        if (isTruncated) {
+            TooltipBox(
+                positionProvider = positionProvider,
+                state = tooltipState,
+                focusable = false,
+                enableUserInput = true,
+                tooltip = { PlainTooltip { Text(titleText) } },
+            ) {
+                Box(modifier = Modifier.onSizeChanged { availableWidthPx = it.width }) {
+                    movableContent()
+                }
+            }
+        } else {
             Box(modifier = Modifier.onSizeChanged { availableWidthPx = it.width }) {
                 movableContent()
             }
-        }
-    } else {
-        Box(modifier = Modifier.onSizeChanged { availableWidthPx = it.width }) {
-            movableContent()
         }
     }
 }
@@ -216,26 +223,27 @@ private fun <C, E> HeaderContent(
     strings: StringProvider,
     onOpenMenu: (() -> Unit)?,
 ) {
+    val arrangement = (spec.headerAlignment ?: spec.alignment).horizontalArrangement()
+    // In an end-aligned header the icon leads, so the title's end lines up with the cells below.
+    val sortIconFirst = arrangement == Arrangement.End
     Row(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Row(
             modifier = if (spec.headerDecorations) Modifier.weight(1f).padding(horizontal = 8.dp) else Modifier,
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center,
+            horizontalArrangement = arrangement,
         ) {
             CompositionLocalProvider(
                 LocalTableHeaderCellInfo provides info,
             ) {
-                // Constrain header text area and attach tooltip only when truncated
-                TruncationTooltipBox(title = spec.title) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        spec.header(tableData)
-                        if (spec.headerDecorations) {
-                            info.sortIcon.invoke()
-                        }
-                    }
+                if (spec.headerDecorations && sortIconFirst) info.sortIcon.invoke()
+                // The title takes only the space the icon leaves, so it truncates instead of the icon
+                // shrinking; the tooltip attaches only when it is truncated.
+                TruncationTooltipBox(title = spec.title, modifier = Modifier.weight(1f, fill = false)) {
+                    spec.header(tableData)
                 }
+                if (spec.headerDecorations && !sortIconFirst) info.sortIcon.invoke()
             }
         }
         if (spec.headerDecorations) {
@@ -297,5 +305,16 @@ private fun HeaderMeasureContent(
             if (showMenuButton) Spacer(Modifier.width(dimensions.headerIconTargetSize))
             DefaultFilterIcon(info)
         }
+    }
+}
+
+/** The horizontal part of this alignment as a row arrangement: start, centre or end. */
+private fun Alignment.horizontalArrangement(): Arrangement.Horizontal {
+    // Aligning a zero-width item in a 2px space yields 0, 1 or 2 for start, centre and end.
+    val x = align(IntSize.Zero, IntSize(2, 0), LayoutDirection.Ltr).x
+    return when {
+        x <= 0 -> Arrangement.Start
+        x >= 2 -> Arrangement.End
+        else -> Arrangement.Center
     }
 }
