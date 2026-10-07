@@ -58,8 +58,9 @@ The three `AutoMirrored` icons carry `android:autoMirrored="true"` so they still
 
 `table-core/build.gradle.kts`:
 
-- adds the `org.jetbrains.compose.components:components-resources` dependency (version catalog
-  entry `compose-components-resources`, version `compose-multiplatform`);
+- adds the `org.jetbrains.compose.components:components-resources` dependency as `api` (version
+  catalog entry `compose-components-resources`, version `compose-multiplatform`): `DrawableResource`
+  is part of the public type of `TableIcons`, so consumers need it on their compile classpath;
 - `compose.resources { packageOfResClass = "ua.wwind.table.generated.resources";
   publicResClass = false; generateResClass = always }`. `Res` stays internal; the public way in is
   `TableIcons`.
@@ -128,7 +129,7 @@ public data class ColumnMenuItem(
   `ColumnMenuItem`s.
 - Every `Icon(imageVector = TableIcons.X, …)` in `table-core`, `table-format` and `table-paging`
   becomes `Icon(painter = painterResource(TableIcons.X), …)`. `table-format` and `table-paging`
-  get the `components-resources` dependency only; they own no resources.
+  own no resources and get `components-resources` through `table-core`'s `api` dependency.
 - `SampleIcons` stays internal and returns `DrawableResource`; sample call sites use
   `painterResource`.
 
@@ -159,11 +160,13 @@ property. The license attribution for the Material path data stays.
 
 ## Docs and changelog
 
-- `docs/content/guides/custom-header-icons.md`, `row-blocks.md`, `row-reordering.md`,
-  `grouping.md`, `docs/content/reference/core-api.md`: `TableIcons.X` becomes
-  `painterResource(TableIcons.X)`; "substitute any `ImageVector`" becomes "any `Painter`, e.g.
-  `rememberVectorPainter(...)`". The custom-header-icons guide notes that on web, icons load
-  asynchronously and may be blank for the first frame.
+- `docs/content/guides/custom-header-icons.md`: the slots take `Painter`; `TableIcons.X` becomes
+  `painterResource(TableIcons.X)`, an `ImageVector` goes through `rememberVectorPainter(...)`; a note
+  that on web, icons load asynchronously and may be blank for the first frame.
+- `docs/content/guides/row-blocks.md`: `TableIcons.DragIndicator` in `Icon(...)` becomes
+  `painterResource(TableIcons.DragIndicator)`.
+- `row-reordering.md`, `grouping.md` and `reference/core-api.md` need no change: their
+  "substitute any `ImageVector`" notes are about the reader's own `Icon` calls, not table slots.
 - `CHANGELOG.md`, Unreleased, one line without an issue link: `TableIcons` now returns
   `DrawableResource` and icon parameters take `Painter`; wrap with `painterResource(...)` or
   `rememberVectorPainter(...)`.
