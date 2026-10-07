@@ -62,6 +62,8 @@ kotlin {
         commonMain.dependencies {
             implementation(project(":table-core"))
             implementation(project(":table-format"))
+            implementation(project(":table-paging"))
+            implementation(libs.paging.core)
             implementation(libs.kotlinx.datetime)
             implementation(libs.androidx.lifecycle.viewmodel.compose)
             implementation(libs.kermit)
