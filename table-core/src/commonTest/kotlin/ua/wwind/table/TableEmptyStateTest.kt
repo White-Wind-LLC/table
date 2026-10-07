@@ -1,17 +1,21 @@
 package ua.wwind.table
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.getBoundsInRoot
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.v2.runComposeUiTest
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import assertk.assertThat
+import assertk.assertions.isBetween
 import assertk.assertions.isEmpty
 import kotlinx.collections.immutable.persistentListOf
 import ua.wwind.table.config.TableSettings
@@ -164,5 +168,49 @@ class TableEmptyStateTest {
                 Table(itemsCount = 0, itemAt = { null }, state = state, columns = columns, embedded = true)
             }
             onNodeWithText(NO_DATA).assertIsDisplayed()
+        }
+
+    @Test
+    fun `the empty state is centred in the visible body of a narrow table`() =
+        assertEmptyStateCentred(columnWidth = 120.dp)
+
+    @Test
+    fun `the empty state is centred in the visible body of a table wider than the viewport`() =
+        assertEmptyStateCentred(columnWidth = 900.dp)
+
+    /** The body is everything below the header; the slot's centre must sit at the body's centre. */
+    private fun assertEmptyStateCentred(columnWidth: Dp) =
+        runComposeUiTest {
+            lateinit var state: TableState<String>
+            setContent {
+                val columns =
+                    remember {
+                        tableColumns<String, String, Unit> {
+                            column("name", valueOf = { it }) {
+                                header("Name")
+                                width(columnWidth, columnWidth)
+                                resizable(false)
+                                cell { item, _ -> Text(item) }
+                            }
+                        }
+                    }
+                state = rememberTableState(columns = persistentListOf("name"))
+                Box(Modifier.size(400.dp)) {
+                    Table(
+                        itemsCount = 0,
+                        itemAt = { null },
+                        state = state,
+                        columns = columns,
+                        modifier = Modifier.fillMaxSize(),
+                        emptyContent = { Text("slot") },
+                    )
+                }
+            }
+            val bounds = onNodeWithText("slot").getBoundsInRoot()
+            val headerBottom = state.dimensions.headerHeight
+            val centreX = (bounds.left + bounds.right) / 2
+            val centreY = (bounds.top + bounds.bottom) / 2
+            assertThat(centreX).isBetween(196.dp, 204.dp)
+            assertThat(centreY).isBetween((headerBottom + 400.dp) / 2 - 6.dp, (headerBottom + 400.dp) / 2 + 6.dp)
         }
 }

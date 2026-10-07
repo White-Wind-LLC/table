@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.text.selection.DisableSelection
 import androidx.compose.material3.HorizontalDivider
@@ -50,7 +49,6 @@ internal fun <T : Any, C, E> TableBody(
     tableData: E,
     rowEmbedded: (@Composable (rowIndex: Int, item: T) -> Unit)?,
     placeholderRow: (@Composable () -> Unit)?,
-    emptyContent: @Composable () -> Unit,
     onRowClick: ((T) -> Unit)?,
     onRowLongClick: ((T) -> Unit)?,
     onRowMove: ((fromIndex: Int, toIndex: Int) -> Unit)?,
@@ -194,8 +192,6 @@ internal fun <T : Any, C, E> TableBody(
             }
         }
 
-        emptyStateItem(itemsCount, emptyContent)
-
         // Add footer as last item if not pinned
         if (showFooter) {
             item(key = "footer") {
@@ -241,17 +237,6 @@ internal fun <T : Any, C, E> TableBody(
             requestTableFocus = requestTableFocus,
             horizontalState = horizontalState,
         )
-    }
-}
-
-/** Viewport-wide, so the empty state stays centred however far the columns are scrolled. */
-private fun LazyListScope.emptyStateItem(
-    itemsCount: Int,
-    emptyContent: @Composable () -> Unit,
-) {
-    if (itemsCount != 0) return
-    item(key = "empty") {
-        TableEmptyStateBox(Modifier.fillParentMaxWidth(), emptyContent)
     }
 }
 
