@@ -5,7 +5,7 @@
     - **Slots**: `placeholderRow()`.
     - **UX**: `onRowClick`, `onRowLongClick`, `onRowMove`, `rowBlocks` (supersedes `onRowMove` — see Row blocks
       below), `contextMenu(item, pos, dismiss)`.
-    - **Look**: `customization`, `colors = TableDefaults.colors()`, `icons = TableHeaderDefaults.icons()` (defaults
+    - **Look**: `customization`, `colors = TableDefaults.colors()`, `typography = TableDefaults.typography()`, `icons = TableHeaderDefaults.icons()` (defaults
       from the public `TableIcons` set — see the [Custom header icons](../guides/custom-header-icons.md) guide),
       `strings`, `shape`, `border` (outer border; `null` = theme default, `TableDefaults.NoBorder` = no border).
     - **Scroll**: optional `verticalState`, `horizontalState`.
@@ -99,8 +99,12 @@ column(PersonField.Name, valueOf = { it.name }) {
     - `TableDimensions`: `defaultColumnWidth`, `defaultRowHeight`, `footerHeight`, `checkBoxColumnWidth`,
       `verticalDividerThickness`, `verticalDividerPaddingHorizontal`, `rowBlockSpacing`, and the pointer targets
       `columnResizeHandleWidth` (8.dp, 24.dp on touch), `headerIconTargetSize` (24.dp, 48.dp on touch) and
-      `columnDragHandleSize` (24.dp).
-    - `TableColors`: via `TableDefaults.colors(...)`.
+      `columnDragHandleSize` (24.dp), and `selectionIndicatorWidth` (3.dp leading bar on the selected row; 0.dp
+      hides it).
+    - `TableColors`: via `TableDefaults.colors(...)`; the selected row uses `secondaryContainer` with a `primary`
+      indicator bar (`rowSelectedIndicatorColor`), striped rows `surfaceContainerLow`.
+    - `TableTypography`: via `TableDefaults.typography(...)` — header `titleSmall`, body `bodyMedium`, footer
+      `labelLarge`, group header `titleSmall`; a cell style's `textStyle` merges over the body style.
 - **Row blocks**: `rowBlocks = RowBlocks(blockOf, onCommit, blockHeader, onRowReorderWithinBlock)` makes adjacent
   rows sharing a non-null `blockOf` id render and drag as one unit — see
   [Row blocks](../guides/row-blocks.md).

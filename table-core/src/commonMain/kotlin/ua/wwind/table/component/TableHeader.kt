@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -35,6 +36,7 @@ import ua.wwind.table.component.header.TableHeaderRow
 import ua.wwind.table.component.header.TableHeaderStyle
 import ua.wwind.table.component.header.computeReorderMove
 import ua.wwind.table.component.header.rememberHeaderDerivedState
+import ua.wwind.table.config.LocalTableTypography
 import ua.wwind.table.config.TableDimensions
 import ua.wwind.table.filter.component.fast.FastFiltersRow
 import ua.wwind.table.filter.data.TableFilterType
@@ -102,7 +104,10 @@ internal fun <T : Any, C, E> TableHeader(
 
     Column {
         Surface(color = headerColor, contentColor = headerContentColor) {
-            CompositionLocalProvider(LocalTableHeaderIcons provides icons) {
+            CompositionLocalProvider(
+                LocalTableHeaderIcons provides icons,
+                LocalTextStyle provides LocalTextStyle.current.merge(LocalTableTypography.current.header),
+            ) {
                 Box(
                     Modifier
                         .height(state.dimensions.headerHeight)

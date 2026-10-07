@@ -74,6 +74,7 @@ Compose:
       - LocalTableHeaderIcons
       - LocalEditCellContext
       - LocalEditCellFocusRequester
+      - LocalTableTypography
   CompositionLocalNaming:
     active: true
   ContentEmitterReturningValues:

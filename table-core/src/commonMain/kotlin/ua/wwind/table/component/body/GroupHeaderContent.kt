@@ -3,7 +3,6 @@ package ua.wwind.table.component.body
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Surface
 import androidx.compose.material3.contentColorFor
@@ -15,6 +14,7 @@ import ua.wwind.table.ColumnSpec
 import ua.wwind.table.DefaultTableCellScope
 import ua.wwind.table.component.header.ColumnHeaderDropdownMenuBox
 import ua.wwind.table.component.header.ColumnMenuContext
+import ua.wwind.table.config.LocalTableTypography
 import ua.wwind.table.config.TableCellStyle
 import ua.wwind.table.config.TableColors
 import ua.wwind.table.config.TableCustomization
@@ -40,7 +40,7 @@ internal fun <T : Any, C, E> GroupHeaderCell(
         if (style.contentColor != Color.Unspecified) style.contentColor else contentColorFor(background)
 
     Surface(color = background, contentColor = contentColor) {
-        ProvideTextStyle(value = style.textStyle ?: LocalTextStyle.current) {
+        ProvideTextStyle(value = LocalTableTypography.current.groupHeader.merge(style.textStyle)) {
             ColumnHeaderDropdownMenuBox(
                 spec = spec,
                 state = state,

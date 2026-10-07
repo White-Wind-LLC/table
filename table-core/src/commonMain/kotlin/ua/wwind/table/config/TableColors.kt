@@ -24,6 +24,12 @@ public data class TableColors(
      * compiling; [Color.Unspecified] resolves to `surfaceContainerHighest` at draw.
      */
     val rowBlockContainerColor: Color = Color.Unspecified,
+    /**
+     * Leading bar drawn on the selected row, so selection is not shown by color alone. Appended with
+     * a default like [rowBlockContainerColor]; [Color.Unspecified] resolves to `primary` at draw, and
+     * [Color.Transparent] hides the bar.
+     */
+    val rowSelectedIndicatorColor: Color = Color.Unspecified,
 )
 
 /**
@@ -35,3 +41,9 @@ public data class TableColors(
 @ReadOnlyComposable
 internal fun resolveRowBlockContainerColor(colors: TableColors): Color =
     colors.rowBlockContainerColor.takeOrElse { MaterialTheme.colorScheme.surfaceContainerHighest }
+
+/** Resolved at draw for the same reason as [resolveRowBlockContainerColor]. */
+@Composable
+@ReadOnlyComposable
+internal fun resolveRowSelectedIndicatorColor(colors: TableColors): Color =
+    colors.rowSelectedIndicatorColor.takeOrElse { MaterialTheme.colorScheme.primary }

@@ -26,8 +26,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.Unspecified
 import androidx.compose.ui.graphics.RectangleShape
@@ -51,6 +53,7 @@ import ua.wwind.table.config.TableDimensions
 import ua.wwind.table.config.TableRowContext
 import ua.wwind.table.config.TableRowStyle
 import ua.wwind.table.config.TableSettings
+import ua.wwind.table.config.resolveRowSelectedIndicatorColor
 import ua.wwind.table.interaction.tableRowInteractions
 import ua.wwind.table.state.PinnedColumnState
 import ua.wwind.table.state.TableState
@@ -160,9 +163,17 @@ internal fun <T : Any, C, E> TableRowItem(
             }
         }
 
+        val indicatorWidth = dimensions.selectionIndicatorWidth
+        val indicatorModifier =
+            if (isSelected && indicatorWidth > 0.dp) {
+                Modifier.selectionIndicator(resolveRowSelectedIndicatorColor(colors), indicatorWidth, horizontalState)
+            } else {
+                Modifier
+            }
+
         if (item != null) {
             Column {
-                Column(modifier = Modifier.width(state.tableWidth)) {
+                Column(modifier = Modifier.width(state.tableWidth).then(indicatorModifier)) {
                     RenderTableRowItem(
                         state = state,
                         index = index,
@@ -422,6 +433,24 @@ private fun <T : Any, C, E> onCellClick(
         onRowClick?.invoke(clicked)
     }
 }
+
+/**
+ * Draws the selection bar over the cells at the viewport's leading edge: the row spans the whole
+ * scrollable width, so the bar follows the horizontal scroll offset, read at draw time only.
+ */
+private fun Modifier.selectionIndicator(
+    color: Color,
+    width: Dp,
+    horizontalState: ScrollState,
+): Modifier =
+    drawWithContent {
+        drawContent()
+        drawRect(
+            color = color,
+            topLeft = Offset(horizontalState.value.toFloat(), 0f),
+            size = Size(width.toPx(), size.height),
+        )
+    }
 
 /** How a cell renders, given where it sits relative to the pinned run. */
 private class PinnedCellAppearance(

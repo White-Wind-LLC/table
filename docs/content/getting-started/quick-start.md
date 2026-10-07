@@ -73,5 +73,5 @@ fun PeopleTable(items: List<Person>) {
 ```
 
 Useful parameters: `placeholderRow`, `contextMenu` (long‑press/right‑click),
-`colors = TableDefaults.colors()`, `icons = TableHeaderDefaults.icons()`,
+`colors = TableDefaults.colors()`, `typography = TableDefaults.typography()`, `icons = TableHeaderDefaults.icons()`,
 `border` (outer border stroke; `null` uses theme default, `TableDefaults.NoBorder` disables border).

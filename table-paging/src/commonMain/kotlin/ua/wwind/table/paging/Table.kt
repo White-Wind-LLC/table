@@ -30,6 +30,7 @@ import ua.wwind.table.config.DefaultTableCustomization
 import ua.wwind.table.config.TableColors
 import ua.wwind.table.config.TableCustomization
 import ua.wwind.table.config.TableDefaults
+import ua.wwind.table.config.TableTypography
 import ua.wwind.table.state.TableState
 import ua.wwind.table.strings.DefaultStrings
 import ua.wwind.table.strings.StringProvider
@@ -116,6 +117,7 @@ private fun <T : Any> rememberPagedRowKeyAt(
  * @param contextMenu optional context menu host, invoked with item and absolute position
  * @param customization styling hooks for rows and cells
  * @param colors container/content colors
+ * @param typography text styles of the header, body, footer and group rows
  * @param strings string provider for UI text
  * @param verticalState list scroll state
  * @param horizontalState horizontal scroll state of the whole table
@@ -140,6 +142,7 @@ public fun <T : Any, C, E> Table(
     contextMenu: (@Composable (item: T, pos: Offset, dismiss: () -> Unit) -> Unit)? = null,
     customization: TableCustomization<T, C> = DefaultTableCustomization(),
     colors: TableColors = TableDefaults.colors(),
+    typography: TableTypography = TableDefaults.typography(),
     strings: StringProvider = DefaultStrings,
     verticalState: LazyListState = rememberLazyListState(),
     horizontalState: ScrollState = rememberScrollState(),
@@ -169,6 +172,7 @@ public fun <T : Any, C, E> Table(
         contextMenu = contextMenu,
         customization = customization,
         colors = colors,
+        typography = typography,
         strings = strings,
         verticalState = verticalState,
         horizontalState = horizontalState,
@@ -210,6 +214,7 @@ public fun <T : Any, C, E> Table(
  * @param contextMenu optional context menu host, invoked with item and absolute position
  * @param customization styling hooks for rows and cells
  * @param colors container/content colors
+ * @param typography text styles of the header, body, footer and group rows
  * @param strings string provider for UI text
  * @param verticalState list scroll state
  * @param horizontalState horizontal scroll state of the whole table
@@ -233,6 +238,7 @@ public fun <T : Any, C> Table(
     contextMenu: (@Composable (item: T, pos: Offset, dismiss: () -> Unit) -> Unit)? = null,
     customization: TableCustomization<T, C> = DefaultTableCustomization(),
     colors: TableColors = TableDefaults.colors(),
+    typography: TableTypography = TableDefaults.typography(),
     strings: StringProvider = DefaultStrings,
     verticalState: LazyListState = rememberLazyListState(),
     horizontalState: ScrollState = rememberScrollState(),
@@ -261,6 +267,7 @@ public fun <T : Any, C> Table(
         contextMenu = contextMenu,
         customization = customization,
         colors = colors,
+        typography = typography,
         strings = strings,
         verticalState = verticalState,
         horizontalState = horizontalState,
