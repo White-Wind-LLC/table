@@ -25,6 +25,7 @@ import ua.wwind.table.icon.vector.CloseIcon
 import ua.wwind.table.icon.vector.ContentCopyIcon
 import ua.wwind.table.icon.vector.DeleteIcon
 import ua.wwind.table.icon.vector.DragIndicatorIcon
+import ua.wwind.table.icon.vector.ErrorOutlineIcon
 import ua.wwind.table.icon.vector.FilterAltFilledIcon
 import ua.wwind.table.icon.vector.FilterAltOutlinedIcon
 import ua.wwind.table.icon.vector.FormatColorResetIcon
@@ -124,6 +125,9 @@ public object TableIcons {
 
     /** Material `Icons.Rounded.TableRows`. */
     public val TableRows: ImageVector get() = TableRowsIcon
+
+    /** Material `Icons.Rounded.ErrorOutline`. */
+    public val ErrorOutline: ImageVector get() = ErrorOutlineIcon
 
     /** Material `Icons.Rounded.MoreVert`. */
     public val MoreVert: ImageVector get() = MoreVertIcon

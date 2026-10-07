@@ -187,6 +187,15 @@ public sealed class UiString {
     public object EmptyNoResults : UiString()
 
     public object EmptyClearFilters : UiString()
+
+    // Paged load states
+    public object PagingLoading : UiString()
+
+    public object PagingLoadError : UiString()
+
+    public object PagingLoadMoreError : UiString()
+
+    public object PagingRetry : UiString()
 }
 
 /**
@@ -391,5 +400,14 @@ public object DefaultStrings : StringProvider {
             UiString.EmptyNoResults -> "No results match the current filters"
 
             UiString.EmptyClearFilters -> "Clear filters"
+
+            // Paged load states
+            UiString.PagingLoading -> "Loading"
+
+            UiString.PagingLoadError -> "Couldn't load data"
+
+            UiString.PagingLoadMoreError -> "Couldn't load some rows"
+
+            UiString.PagingRetry -> "Retry"
         }
 }
