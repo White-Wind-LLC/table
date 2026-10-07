@@ -206,6 +206,9 @@ private fun Modifier.closeOnEscape(onClose: () -> Unit): Modifier =
 /** Test tag of the trailing check on a checked menu item. */
 internal const val CHECKED_ITEM_TAG: String = "column-menu-checked"
 
+/** Test tag of a menu item's leading icon. */
+internal const val LEADING_ICON_TAG: String = "column-menu-leading-icon"
+
 @Composable
 private fun ColumnMenuItemRow(
     item: ColumnMenuItem,
@@ -222,7 +225,10 @@ private fun ColumnMenuItemRow(
         },
         onClick = onClick,
         enabled = item.enabled,
-        leadingIcon = item.icon?.let { icon -> { Icon(icon, contentDescription = null) } },
+        leadingIcon =
+            item.icon?.let { icon ->
+                { Icon(icon, contentDescription = null, modifier = Modifier.testTag(LEADING_ICON_TAG)) }
+            },
         trailingIcon =
             if (item.checked) {
                 {

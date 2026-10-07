@@ -164,12 +164,12 @@ class ColumnHeaderMenuTest {
         }
 
     @Test
-    fun `a custom item shows its painter icon`() =
+    fun `a custom item draws its painter icon`() =
         desktopOnlyTest {
             showTable(
                 columnMenu =
-                    ColumnMenuBuilder { _, defaults ->
-                        defaults +
+                    ColumnMenuBuilder { _, _ ->
+                        listOf(
                             ColumnMenuSection(
                                 id = "custom",
                                 items =
@@ -179,14 +179,17 @@ class ColumnHeaderMenuTest {
                                             "Do Y",
                                             icon = ColorPainter(Color.Red),
                                         ) {},
+                                        ColumnMenuItem(ColumnMenuItemId("z"), "Do Z", icon = null) {},
                                     ),
-                            )
+                            ),
+                        )
                     },
             )
             rightClickHeader("Name")
 
             onNodeWithText("Do Y").assertExists()
-            onNodeWithText("Sort ascending").assertExists()
+            // Only the item with a painter gets a leading icon.
+            onAllNodes(hasTestTag(LEADING_ICON_TAG), useUnmergedTree = true).assertCountEquals(1)
         }
 
     @Test
