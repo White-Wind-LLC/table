@@ -1,6 +1,7 @@
 package ua.wwind.table.filter.component.main.number
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardOptions
@@ -77,7 +78,48 @@ internal fun <T : Number> NumberFilter(
     )
 
     if (!isNullConstraint) {
-        val keyboardOptions = KeyboardOptions(keyboardType = filter.delegate.keyboardType)
+        NumberFields(numberFilterState, isBetween, strings)
+    }
+
+    if (!isNullConstraint && isBetween && filter.rangeOptions != null) {
+        RangeSlider(
+            value = filter.delegate.toSliderValue(fromValue)..filter.delegate.toSliderValue(toValue),
+            onValueChange = { range ->
+                val newFrom = filter.delegate.fromSliderValue(range.start)
+                val newTo = filter.delegate.fromSliderValue(range.endInclusive)
+                numberFilterState.onTextChange(filter.delegate.format(newFrom))
+                numberFilterState.onSecondTextChange(filter.delegate.format(newTo))
+            },
+            valueRange = filter.delegate.toSliderValue(min)..filter.delegate.toSliderValue(max),
+        )
+    }
+
+    FilterPanelActions(
+        autoApplyFilters = autoApplyFilters,
+        enabled = !numberFilterState.isError,
+        onApply = numberFilterState.applyFilter,
+        onClear = numberFilterState.clearFilter,
+        onClose = onClose,
+        strings = strings,
+    )
+}
+
+private fun NumberInputError.toUiString(): UiString =
+    when (this) {
+        NumberInputError.InvalidNumber -> UiString.FilterErrorInvalidNumber
+        NumberInputError.RangeIncomplete -> UiString.FilterErrorRangeIncomplete
+        NumberInputError.RangeInverted -> UiString.FilterErrorRangeInverted
+    }
+
+/** The value field (or From/To pair) with the input error, if any, as one message under them. */
+@Composable
+private fun <T : Number> NumberFields(
+    numberFilterState: NumberFilterState<T>,
+    isBetween: Boolean,
+    strings: StringProvider,
+) {
+    val keyboardOptions = KeyboardOptions(keyboardType = numberFilterState.delegate.keyboardType)
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Row(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier.fillMaxWidth(),
@@ -131,33 +173,4 @@ internal fun <T : Number> NumberFilter(
             )
         }
     }
-
-    if (!isNullConstraint && isBetween && filter.rangeOptions != null) {
-        RangeSlider(
-            value = filter.delegate.toSliderValue(fromValue)..filter.delegate.toSliderValue(toValue),
-            onValueChange = { range ->
-                val newFrom = filter.delegate.fromSliderValue(range.start)
-                val newTo = filter.delegate.fromSliderValue(range.endInclusive)
-                numberFilterState.onTextChange(filter.delegate.format(newFrom))
-                numberFilterState.onSecondTextChange(filter.delegate.format(newTo))
-            },
-            valueRange = filter.delegate.toSliderValue(min)..filter.delegate.toSliderValue(max),
-        )
-    }
-
-    FilterPanelActions(
-        autoApplyFilters = autoApplyFilters,
-        enabled = !numberFilterState.isError,
-        onApply = numberFilterState.applyFilter,
-        onClear = numberFilterState.clearFilter,
-        onClose = onClose,
-        strings = strings,
-    )
 }
-
-private fun NumberInputError.toUiString(): UiString =
-    when (this) {
-        NumberInputError.InvalidNumber -> UiString.FilterErrorInvalidNumber
-        NumberInputError.RangeIncomplete -> UiString.FilterErrorRangeIncomplete
-        NumberInputError.RangeInverted -> UiString.FilterErrorRangeInverted
-    }
