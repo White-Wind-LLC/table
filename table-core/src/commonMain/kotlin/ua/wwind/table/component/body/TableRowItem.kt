@@ -53,11 +53,13 @@ import ua.wwind.table.config.TableDimensions
 import ua.wwind.table.config.TableRowContext
 import ua.wwind.table.config.TableRowStyle
 import ua.wwind.table.config.TableSettings
+import ua.wwind.table.config.currentTableColors
 import ua.wwind.table.config.resolveRowSelectedIndicatorColor
 import ua.wwind.table.interaction.tableRowInteractions
 import ua.wwind.table.state.PinnedColumnState
 import ua.wwind.table.state.TableState
 import ua.wwind.table.state.calculatePinnedColumnState
+import ua.wwind.table.state.hasContentUnder
 
 /**
  * Composition local providing the current edit cell context (row index and column key).
@@ -240,7 +242,7 @@ private fun <C, T : Any, E> RenderTableRowItem(
             modifier
                 .onGloballyPositioned { coordinates ->
                     state.updateRowHeight(index, coordinates.size.height)
-                }.indication(rowInteractionSource, ripple(color = MaterialTheme.colorScheme.onSurface)),
+                }.indication(rowInteractionSource, ripple(color = currentTableColors().hoverColor)),
     ) {
         visibleColumns.forEachIndexed { colIndex, spec ->
             val width = state.columns.resolveWidth(spec.key, spec)
@@ -298,6 +300,8 @@ private fun <C, T : Any, E> RenderTableRowItem(
                 leftDividerThickness = dimensions.pinnedColumnDividerThickness,
                 showRightDivider = appearance.showRightDivider,
                 isPinned = pinnedState.isPinned,
+                pinnedEdge = pinnedState.edge,
+                hasContentUnderEdge = pinnedState.edge.hasContentUnder(horizontalState),
                 modifier =
                     Modifier
                         .zIndex(pinnedState.zIndex)

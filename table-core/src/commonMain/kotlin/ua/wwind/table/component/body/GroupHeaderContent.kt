@@ -32,12 +32,19 @@ internal fun <T : Any, C, E> GroupHeaderCell(
     height: Dp,
     colors: TableColors,
     customization: TableCustomization<T, C>,
+    /** The sticky overlay passes [TableColors.stickyGroupContainerColor]; inline headers keep the group color. */
+    containerColor: Color = colors.groupContainerColor,
 ) {
     val state = currentTableState() as TableState<C>
     val style: TableCellStyle = customization.resolveGroupStyle(TableGroupContext(column = spec.key, value = value))
-    val background: Color = if (style.background != Color.Unspecified) style.background else colors.groupContainerColor
+    val background: Color = if (style.background != Color.Unspecified) style.background else containerColor
+    // A style background may be any color, so only the table's own container keeps groupContentColor.
     val contentColor: Color =
-        if (style.contentColor != Color.Unspecified) style.contentColor else contentColorFor(background)
+        when {
+            style.contentColor != Color.Unspecified -> style.contentColor
+            style.background != Color.Unspecified -> contentColorFor(background)
+            else -> colors.groupContentColor
+        }
 
     Surface(color = background, contentColor = contentColor) {
         ProvideTextStyle(value = LocalTableTypography.current.groupHeader.merge(style.textStyle)) {

@@ -38,13 +38,16 @@ import ua.wwind.table.component.LocalTableHeaderCellInfo
 import ua.wwind.table.component.LocalTableHeaderIcons
 import ua.wwind.table.component.TableHeaderCellInfo
 import ua.wwind.table.config.TableDimensions
+import ua.wwind.table.config.currentTableColors
 import ua.wwind.table.config.isInteractionLockByRowReorderEnabled
 import ua.wwind.table.data.SortOrder
 import ua.wwind.table.filter.component.main.FilterPanel
 import ua.wwind.table.filter.data.TableFilterState
 import ua.wwind.table.filter.data.TableFilterType
 import ua.wwind.table.filter.data.isActive
+import ua.wwind.table.state.PinnedEdge
 import ua.wwind.table.state.TableState
+import ua.wwind.table.state.currentTableState
 import ua.wwind.table.strings.StringProvider
 import ua.wwind.table.strings.UiString
 
@@ -63,8 +66,11 @@ internal fun <T : Any, C, E> HeaderCell(
     showLeftDivider: Boolean = false,
     leftDividerThickness: Dp = dividerThickness,
     showRightDivider: Boolean = true,
+    /** The pinned-run edge this cell sits on; its right divider then takes the pinned color. */
+    pinnedEdge: PinnedEdge = PinnedEdge.None,
     onOpenMenu: (() -> Unit)? = null,
 ) {
+    val colors = currentTableColors()
     val interactionLocked = state.settings.isInteractionLockByRowReorderEnabled
     val sortOrder: SortOrder? = state.sort?.takeIf { it.column == spec.key }?.order
     val isFilterActive: Boolean = state.filters[spec.key]?.isActive() == true
@@ -122,6 +128,7 @@ internal fun <T : Any, C, E> HeaderCell(
             VerticalDivider(
                 modifier = Modifier.fillMaxHeight(),
                 thickness = leftDividerThickness,
+                color = colors.pinnedDividerColor,
             )
         }
         Box(
@@ -153,6 +160,7 @@ internal fun <T : Any, C, E> HeaderCell(
             VerticalDivider(
                 modifier = Modifier.fillMaxHeight(),
                 thickness = dividerThickness,
+                color = if (pinnedEdge == PinnedEdge.Right) colors.pinnedDividerColor else colors.dividerColor,
             )
         }
     }
@@ -161,7 +169,7 @@ internal fun <T : Any, C, E> HeaderCell(
 @Composable
 private fun DefaultFilterIcon(info: TableHeaderCellInfo<Any?>) {
     Box(
-        modifier = Modifier.padding(end = 6.dp),
+        modifier = Modifier.padding(end = currentTableState().dimensions.headerIconSpacing),
     ) {
         info.filterIcon.invoke()
     }
@@ -229,8 +237,9 @@ private fun <C, E> HeaderContent(
     Row(
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        val padding = state.dimensions.cellHorizontalPadding
         Row(
-            modifier = if (spec.headerDecorations) Modifier.weight(1f).padding(horizontal = 8.dp) else Modifier,
+            modifier = if (spec.headerDecorations) Modifier.weight(1f).padding(horizontal = padding) else Modifier,
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = arrangement,
         ) {
@@ -296,8 +305,9 @@ private fun HeaderMeasureContent(
     dimensions: TableDimensions,
 ) {
     // Do not render any popups inside measured content!
+    val padding = dimensions.cellHorizontalPadding
     Row(
-        modifier = if (spec.headerDecorations) Modifier.padding(horizontal = 8.dp) else Modifier,
+        modifier = if (spec.headerDecorations) Modifier.padding(horizontal = padding) else Modifier,
     ) {
         spec.title?.invoke()?.let { Text(it) }
         if (spec.headerDecorations) {

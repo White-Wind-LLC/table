@@ -1,6 +1,7 @@
 package ua.wwind.table.component.header
 
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.border
 import androidx.compose.foundation.hoverable
@@ -31,12 +32,16 @@ import kotlinx.collections.immutable.ImmutableList
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.ReorderableLazyListState
 import ua.wwind.table.ColumnSpec
+import ua.wwind.table.component.pinnedEdgeShadow
+import ua.wwind.table.config.currentTableColors
 import ua.wwind.table.icon.TableIcons
 import ua.wwind.table.platform.ColumnGrabPointerIcon
 import ua.wwind.table.platform.getPlatform
 import ua.wwind.table.platform.isMobile
 import ua.wwind.table.state.TableState
 import ua.wwind.table.state.calculatePinnedColumnState
+import ua.wwind.table.state.currentTableState
+import ua.wwind.table.state.hasContentUnder
 import ua.wwind.table.strings.StringProvider
 
 @Composable
@@ -75,6 +80,8 @@ internal fun <T : Any, C, E> TableHeaderRow(
                     horizontalState = horizontalState,
                 )
 
+            val shadowAlpha =
+                animateFloatAsState(if (pinnedState.edge.hasContentUnder(horizontalState)) 1f else 0f)
             ReorderableItem(
                 state = reorderState,
                 key = spec.key as Any,
@@ -85,9 +92,15 @@ internal fun <T : Any, C, E> TableHeaderRow(
                         .zIndex(pinnedState.zIndex)
                         .graphicsLayer {
                             this.translationX = pinnedState.translationX
-                        },
+                        }
+                        // Outside the Surface, which clips to its shape and would hide the shadow.
+                        .pinnedEdgeShadow(
+                            edge = pinnedState.edge,
+                            width = style.dimensions.pinnedColumnShadowWidth,
+                            alpha = { shadowAlpha.value },
+                        ),
             ) { isDragging ->
-                val elevation = animateDpAsState(if (isDragging) 16.dp else 0.dp).value
+                val elevation = animateDpAsState(if (isDragging) style.dimensions.dragElevation else 0.dp).value
 
                 Surface(
                     color = style.headerColor,
@@ -151,11 +164,12 @@ internal fun <T : Any, C, E> TableHeaderRow(
                                 showRightDivider =
                                     !pinnedState.isLastBeforeRightPinned &&
                                         (state.settings.showVerticalDividers || pinnedState.isLastLeftPinned),
+                                pinnedEdge = pinnedState.edge,
                                 onOpenMenu = openMenu.takeIf { state.settings.showColumnMenuButton },
                             )
 
                             if (showDragHandle) {
-                                // The glyph stays 16.dp in the top-left corner; the target around it is larger.
+                                // The glyph stays small in the top-left corner; the target around it is larger.
                                 Box(
                                     contentAlignment = Alignment.TopStart,
                                     modifier =
@@ -169,7 +183,10 @@ internal fun <T : Any, C, E> TableHeaderRow(
                                     Icon(
                                         imageVector = TableIcons.DragIndicator,
                                         contentDescription = "Drag column",
-                                        modifier = Modifier.padding(start = 2.dp, top = 2.dp).size(16.dp),
+                                        modifier =
+                                            Modifier
+                                                .padding(start = 2.dp, top = 2.dp)
+                                                .size(style.dimensions.dragHandleIconSize),
                                     )
                                 }
                             }
@@ -181,7 +198,15 @@ internal fun <T : Any, C, E> TableHeaderRow(
     }
 }
 
-/** The keyboard focus ring of a header cell: the same 2.dp primary border a focused body cell shows. */
+/** The keyboard focus ring of a header cell: the same border a focused body cell shows. */
 @Composable
 private fun Modifier.headerFocusRing(focused: Boolean): Modifier =
-    if (focused) border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(2.dp)) else this
+    if (focused) {
+        border(
+            currentTableState().dimensions.focusIndicatorWidth,
+            currentTableColors().focusIndicatorColor,
+            RoundedCornerShape(2.dp),
+        )
+    } else {
+        this
+    }

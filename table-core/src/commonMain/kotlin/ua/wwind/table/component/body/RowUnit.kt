@@ -163,7 +163,7 @@ internal fun <T : Any, C, E> RowUnit(
                 onSettle = { fromLocal, toLocal ->
                     onRowMoveWithinBlock(blockBaseOffset.value + fromLocal, blockBaseOffset.value + toLocal)
                 },
-            ) { localIndex, _, _ ->
+            ) { localIndex, _, isDragging ->
                 val rowIndex = rows.first + localIndex
                 key(rowKeyAt(rowIndex)) {
                     ReorderableItem {
@@ -174,24 +174,26 @@ internal fun <T : Any, C, E> RowUnit(
                                     onDragStartedHook = { onWithinBlockDragStart?.invoke() },
                                 )
                             }
-                        context(innerScope) {
-                            TableBodyRow(
-                                index = rowIndex,
-                                isInRowBlock = true,
-                                itemAt = itemAt,
-                                visibleColumns = visibleColumns,
-                                state = state,
-                                colors = colors,
-                                customization = customization,
-                                tableData = tableData,
-                                rowEmbedded = rowEmbedded,
-                                placeholderRow = placeholderRow,
-                                onRowClick = onRowClick,
-                                onRowLongClick = onRowLongClick,
-                                onContextMenu = onContextMenu,
-                                horizontalState = horizontalState,
-                                requestTableFocus = requestTableFocus,
-                            )
+                        DragLift(isDragging) {
+                            context(innerScope) {
+                                TableBodyRow(
+                                    index = rowIndex,
+                                    isInRowBlock = true,
+                                    itemAt = itemAt,
+                                    visibleColumns = visibleColumns,
+                                    state = state,
+                                    colors = colors,
+                                    customization = customization,
+                                    tableData = tableData,
+                                    rowEmbedded = rowEmbedded,
+                                    placeholderRow = placeholderRow,
+                                    onRowClick = onRowClick,
+                                    onRowLongClick = onRowLongClick,
+                                    onContextMenu = onContextMenu,
+                                    horizontalState = horizontalState,
+                                    requestTableFocus = requestTableFocus,
+                                )
+                            }
                         }
                     }
                 }

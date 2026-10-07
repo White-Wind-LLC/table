@@ -99,10 +99,16 @@ column(PersonField.Name, valueOf = { it.name }) {
     - `TableDimensions`: `defaultColumnWidth`, `defaultRowHeight`, `footerHeight`, `checkBoxColumnWidth`,
       `verticalDividerThickness`, `verticalDividerPaddingHorizontal`, `rowBlockSpacing`, and the pointer targets
       `columnResizeHandleWidth` (8.dp, 24.dp on touch), `headerIconTargetSize` (24.dp, 48.dp on touch) and
-      `columnDragHandleSize` (24.dp), and `selectionIndicatorWidth` (3.dp leading bar on the selected row; 0.dp
-      hides it).
+      `columnDragHandleSize` (24.dp), `selectionIndicatorWidth` (3.dp leading bar on the selected row; 0.dp
+      hides it), `cellHorizontalPadding` (8.dp), `headerIconSpacing` (6.dp), `dragHandleIconSize` (16.dp),
+      `focusIndicatorWidth` (2.dp), `pinnedColumnShadowWidth` (6.dp shadow over content scrolled under pinned
+      columns; 0.dp hides it) and `dragElevation` (8.dp lift of a dragged row or column).
     - `TableColors`: via `TableDefaults.colors(...)`; the selected row uses `secondaryContainer` with a `primary`
-      indicator bar (`rowSelectedIndicatorColor`), striped rows `surfaceContainerLow`.
+      indicator bar (`rowSelectedIndicatorColor`), striped rows `surfaceContainerLow`. `dividerColor`,
+      `pinnedDividerColor` and `borderColor` default to `outlineVariant`, `focusIndicatorColor` to `primary`,
+      `hoverColor` (row state layer) to `onSurface`, `groupContentColor` to the content color of the group
+      container, and `stickyGroupContainerColor` to `groupContainerColor`. The table's default `shape` is
+      `MaterialTheme.shapes.extraSmall`.
     - `TableTypography`: via `TableDefaults.typography(...)` — header `titleSmall`, body `bodyMedium`, footer
       `labelLarge`, group header `titleSmall`; a cell style's `textStyle` merges over the body style.
 - **Row blocks**: `rowBlocks = RowBlocks(blockOf, onCommit, blockHeader, onRowReorderWithinBlock)` makes adjacent

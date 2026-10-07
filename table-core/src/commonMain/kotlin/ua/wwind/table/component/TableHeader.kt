@@ -38,6 +38,7 @@ import ua.wwind.table.component.header.computeReorderMove
 import ua.wwind.table.component.header.rememberHeaderDerivedState
 import ua.wwind.table.config.LocalTableTypography
 import ua.wwind.table.config.TableDimensions
+import ua.wwind.table.config.currentTableColors
 import ua.wwind.table.filter.component.fast.FastFiltersRow
 import ua.wwind.table.filter.data.TableFilterType
 import ua.wwind.table.icon.TableIcons
@@ -152,7 +153,7 @@ internal fun <T : Any, C, E> TableHeader(
             }
         }
         if (state.settings.showHeaderDivider) {
-            HorizontalDivider(modifier = Modifier.width(state.tableWidth))
+            HorizontalDivider(modifier = Modifier.width(state.tableWidth), color = currentTableColors().dividerColor)
         }
         AnimatedVisibility(
             visible =

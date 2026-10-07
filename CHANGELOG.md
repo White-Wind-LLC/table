@@ -45,6 +45,9 @@ All notable changes to this project will be documented in this file.
 - Changed: headers follow the column alignment (override with `headerAlign`), the sort icon no longer shrinks and
   is dimmed when inactive, and `numeric()` end-aligns a column with tabular figures; `ColumnSpec` gains fields
   ([#86](https://github.com/White-Wind-LLC/table/issues/86)).
+- Added: `TableColors` for dividers, pinned divider, border, focus ring, hover, group content and sticky group; a
+  shadow on the pinned column edge while content scrolls under it; a dragged row is lifted like a column (column
+  lift lowered to 8 dp); new sizes in `TableDimensions` ([#87](https://github.com/White-Wind-LLC/table/issues/87)).
 
 ### 2.4.1 — 2026-09-26
 
