@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import ua.wwind.table.icon.TableIcons
 import ua.wwind.table.strings.UiString
@@ -97,6 +98,8 @@ internal fun PagedTableErrorScope.DefaultPagedErrorBar() {
                 text = strings.get(UiString.PagingLoadMoreError),
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.weight(1f),
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
             )
             TextButton(
                 onClick = ::retry,

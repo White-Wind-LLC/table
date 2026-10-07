@@ -11,6 +11,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.getBoundsInRoot
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -18,6 +19,7 @@ import androidx.compose.ui.test.v2.runComposeUiTest
 import androidx.compose.ui.unit.dp
 import assertk.assertThat
 import assertk.assertions.containsExactly
+import assertk.assertions.isLessThanOrEqualTo
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
 import ua.wwind.paging.core.LoadState
@@ -144,5 +146,30 @@ class PagedRowsLoadStatesTest {
             mainClock.advanceTimeByFrame()
             onNodeWithText("Couldn't load some rows").assertDoesNotExist()
             onNodeWithText("a").assertIsDisplayed()
+        }
+
+    @Test
+    fun `the error bar message stays within two lines in a narrow table`() =
+        runComposeUiTest {
+            setContent {
+                val columns =
+                    remember {
+                        tableColumns<String, String, Unit> {
+                            column("name", valueOf = { it }) {
+                                header("Name")
+                                width(150.dp, 150.dp)
+                                resizable(false)
+                                cell { item, _ -> Text(item) }
+                            }
+                        }
+                    }
+                val state = rememberTableState(columns = persistentListOf("name"))
+                Box(Modifier.size(width = 160.dp, height = 400.dp)) {
+                    Table(items = remember { rows(failure) }, state = state, columns = columns)
+                }
+            }
+            val message = onNodeWithText("Couldn't load some rows", useUnmergedTree = true).getBoundsInRoot()
+            // Two bodyMedium lines are about 40 dp; per-glyph wrapping in the leftover width is far taller.
+            assertThat(message.bottom - message.top).isLessThanOrEqualTo(48.dp)
         }
 }
