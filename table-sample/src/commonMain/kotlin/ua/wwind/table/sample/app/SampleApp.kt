@@ -54,6 +54,7 @@ import ua.wwind.table.sample.app.components.AppToolbar
 import ua.wwind.table.sample.app.components.ConditionalFormattingDialog
 import ua.wwind.table.sample.app.components.GroupRenameDialog
 import ua.wwind.table.sample.app.components.MainTable
+import ua.wwind.table.sample.app.components.PagingDemo
 import ua.wwind.table.sample.app.components.SampleTableConfig
 import ua.wwind.table.sample.app.components.SelectionActionBar
 import ua.wwind.table.sample.app.components.SettingsSidebar
@@ -81,6 +82,7 @@ fun SampleApp(
     var isDarkTheme by remember { mutableStateOf(false) }
 
     var tableConfig by remember { mutableStateOf(SampleTableConfig()) }
+    var pagingDemo by remember { mutableStateOf(false) }
 
     val settings =
         remember(tableConfig) {
@@ -288,121 +290,129 @@ fun SampleApp(
                             Column(modifier = Modifier.fillMaxSize()) {
                                 AppToolbar(
                                     onSettingsClick = { scope.launch { drawerState.open() } },
+                                    pagingDemo = pagingDemo,
+                                    onPagingDemoChange = { pagingDemo = it },
                                 )
 
                                 HorizontalDivider()
 
-                                MainTable(
-                                    state = state,
-                                    tableData = tableData,
-                                    columns = columns,
-                                    customization = customization,
-                                    onFiltersChange = viewModel::updateFilters,
-                                    onSortChange = viewModel::updateSort,
-                                    onRowMove = { from, to ->
-                                        val displayedPeople = tableData.displayedPeople
-                                        val source = displayedPeople.getOrNull(from) ?: return@MainTable
-                                        val targetIndex =
-                                            if (to >= displayedPeople.size) {
-                                                displayedPeople.lastIndex
-                                            } else {
-                                                to
+                                if (pagingDemo) {
+                                    PagingDemo(Modifier.weight(1f))
+                                } else {
+                                    MainTable(
+                                        state = state,
+                                        tableData = tableData,
+                                        columns = columns,
+                                        customization = customization,
+                                        onFiltersChange = viewModel::updateFilters,
+                                        onSortChange = viewModel::updateSort,
+                                        onRowMove = { from, to ->
+                                            val displayedPeople = tableData.displayedPeople
+                                            val source = displayedPeople.getOrNull(from) ?: return@MainTable
+                                            val targetIndex =
+                                                if (to >= displayedPeople.size) {
+                                                    displayedPeople.lastIndex
+                                                } else {
+                                                    to
+                                                }
+                                            val target = displayedPeople.getOrNull(targetIndex) ?: return@MainTable
+                                            if (source.id != target.id) {
+                                                viewModel.onEvent(
+                                                    SampleUiEvent.RowMove(
+                                                        fromPersonId = source.id,
+                                                        toPersonId = target.id,
+                                                    ),
+                                                )
                                             }
-                                        val target = displayedPeople.getOrNull(targetIndex) ?: return@MainTable
-                                        if (source.id != target.id) {
+                                        },
+                                        // Non-null blocks take over the drag inside the table, so the
+                                        // plain single-row swap demo (onRowMove) still applies only
+                                        // while blocks are off.
+                                        rowBlocks = rowBlocks,
+                                        onMovementBlockMove = { person, move ->
                                             viewModel.onEvent(
-                                                SampleUiEvent.RowMove(
-                                                    fromPersonId = source.id,
-                                                    toPersonId = target.id,
+                                                SampleUiEvent.MovementBlockMove(
+                                                    personId = person.id,
+                                                    move = move,
                                                 ),
                                             )
-                                        }
-                                    },
-                                    // Non-null blocks take over the drag inside the table, so the
-                                    // plain single-row swap demo (onRowMove) still applies only
-                                    // while blocks are off.
-                                    rowBlocks = rowBlocks,
-                                    onMovementBlockMove = { person, move ->
-                                        viewModel.onEvent(
-                                            SampleUiEvent.MovementBlockMove(
-                                                personId = person.id,
-                                                move = move,
-                                            ),
-                                        )
-                                    },
-                                    onMovementRowWithinBlockMove = { person, move ->
-                                        viewModel.onEvent(
-                                            SampleUiEvent.MovementRowWithinBlockMove(
-                                                personId = person.id,
-                                                move = move,
-                                            ),
-                                        )
-                                    },
-                                    onMovementRowMove = { person, from, to ->
-                                        viewModel.onEvent(
-                                            SampleUiEvent.MovementRowMove(
-                                                personId = person.id,
-                                                fromIndex = from,
-                                                toIndex = to,
-                                            ),
-                                        )
-                                    },
-                                    onRowEditStart = { person, rowIndex ->
-                                        viewModel.onEvent(
-                                            SampleUiEvent.StartEditing(rowIndex, person),
-                                        )
-                                    },
-                                    onRowEditComplete = { rowIndex ->
-                                        if (viewModel.validateEditedPerson()) {
-                                            viewModel.onEvent(SampleUiEvent.CompleteEditing)
-                                            true
-                                        } else {
-                                            false
-                                        }
-                                    },
-                                    onEditCancel = { rowIndex ->
-                                        viewModel.onEvent(SampleUiEvent.CancelEditing)
-                                    },
-                                    useCompactMode = tableConfig.useCompactMode,
-                                    enableRowReorder = tableConfig.enableRowReorder,
-                                    modifier =
-                                        Modifier
-                                            .padding(16.dp)
-                                            .liquefiable(liquidState),
-                                )
+                                        },
+                                        onMovementRowWithinBlockMove = { person, move ->
+                                            viewModel.onEvent(
+                                                SampleUiEvent.MovementRowWithinBlockMove(
+                                                    personId = person.id,
+                                                    move = move,
+                                                ),
+                                            )
+                                        },
+                                        onMovementRowMove = { person, from, to ->
+                                            viewModel.onEvent(
+                                                SampleUiEvent.MovementRowMove(
+                                                    personId = person.id,
+                                                    fromIndex = from,
+                                                    toIndex = to,
+                                                ),
+                                            )
+                                        },
+                                        onRowEditStart = { person, rowIndex ->
+                                            viewModel.onEvent(
+                                                SampleUiEvent.StartEditing(rowIndex, person),
+                                            )
+                                        },
+                                        onRowEditComplete = { rowIndex ->
+                                            if (viewModel.validateEditedPerson()) {
+                                                viewModel.onEvent(SampleUiEvent.CompleteEditing)
+                                                true
+                                            } else {
+                                                false
+                                            }
+                                        },
+                                        onEditCancel = { rowIndex ->
+                                            viewModel.onEvent(SampleUiEvent.CancelEditing)
+                                        },
+                                        useCompactMode = tableConfig.useCompactMode,
+                                        enableRowReorder = tableConfig.enableRowReorder,
+                                        modifier =
+                                            Modifier
+                                                .padding(16.dp)
+                                                .liquefiable(liquidState),
+                                    )
+                                }
                             }
 
                             // Floating selection action bar at the bottom with Liquid Glass effect
-                            SelectionActionBar(
-                                selectedCount = tableData.selectedIds.size,
-                                onDeleteClick = {
-                                    viewModel.onEvent(SampleUiEvent.DeleteSelected)
-                                },
-                                onClearSelection = {
-                                    viewModel.onEvent(SampleUiEvent.ClearSelection)
-                                },
-                                liquidState = liquidState,
-                                // Gated on the blocks toggle: with blocks off `rowBlocks` is null,
-                                // so grouping would change nothing visible and look broken.
-                                canGroup =
-                                    tableConfig.enableRowBlocks &&
-                                        tableData.selectedIds.size >= 2,
-                                onGroupClick = {
-                                    viewModel.onEvent(SampleUiEvent.GroupSelected)
-                                },
-                                canUngroup =
-                                    tableConfig.enableRowBlocks &&
-                                        tableData.displayedPeople.any {
-                                            it.id in tableData.selectedIds && it.groupId != null
-                                        },
-                                onUngroupClick = {
-                                    viewModel.onEvent(SampleUiEvent.UngroupSelected)
-                                },
-                                modifier =
-                                    Modifier
-                                        .align(Alignment.BottomCenter)
-                                        .padding(16.dp),
-                            )
+                            if (!pagingDemo) {
+                                SelectionActionBar(
+                                    selectedCount = tableData.selectedIds.size,
+                                    onDeleteClick = {
+                                        viewModel.onEvent(SampleUiEvent.DeleteSelected)
+                                    },
+                                    onClearSelection = {
+                                        viewModel.onEvent(SampleUiEvent.ClearSelection)
+                                    },
+                                    liquidState = liquidState,
+                                    // Gated on the blocks toggle: with blocks off `rowBlocks` is null,
+                                    // so grouping would change nothing visible and look broken.
+                                    canGroup =
+                                        tableConfig.enableRowBlocks &&
+                                            tableData.selectedIds.size >= 2,
+                                    onGroupClick = {
+                                        viewModel.onEvent(SampleUiEvent.GroupSelected)
+                                    },
+                                    canUngroup =
+                                        tableConfig.enableRowBlocks &&
+                                            tableData.displayedPeople.any {
+                                                it.id in tableData.selectedIds && it.groupId != null
+                                            },
+                                    onUngroupClick = {
+                                        viewModel.onEvent(SampleUiEvent.UngroupSelected)
+                                    },
+                                    modifier =
+                                        Modifier
+                                            .align(Alignment.BottomCenter)
+                                            .padding(16.dp),
+                                )
+                            }
                         }
                     }
                 }
