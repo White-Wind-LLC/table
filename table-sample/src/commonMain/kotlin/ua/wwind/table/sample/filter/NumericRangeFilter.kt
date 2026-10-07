@@ -32,10 +32,10 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import org.jetbrains.compose.resources.painterResource
 import ua.wwind.table.filter.data.CustomFilterPanelActions
 import ua.wwind.table.filter.data.CustomFilterRenderer
 import ua.wwind.table.filter.data.CustomFilterStateProvider
-import org.jetbrains.compose.resources.painterResource
 import ua.wwind.table.filter.data.FilterConstraint
 import ua.wwind.table.filter.data.TableFilterState
 import ua.wwind.table.filter.data.TableFilterType

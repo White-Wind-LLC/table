@@ -110,6 +110,12 @@ subprojects {
         tasks.named("detekt") {
             dependsOn(tasks.withType<Detekt>().matching { it.name.endsWith("SourceSet") })
         }
+
+        // Compose Resources adds its generated accessors (Res, Drawable0…) as source roots. Patterns
+        // match paths relative to a root, so exclude by absolute path instead.
+        tasks.withType<Detekt>().configureEach {
+            exclude { it.file.invariantSeparatorsPath.contains("/build/generated/") }
+        }
     }
 }
 

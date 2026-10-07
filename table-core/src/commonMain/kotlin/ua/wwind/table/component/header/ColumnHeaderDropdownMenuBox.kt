@@ -225,7 +225,13 @@ private fun ColumnMenuItemRow(
         leadingIcon = item.icon?.let { icon -> { Icon(icon, contentDescription = null) } },
         trailingIcon =
             if (item.checked) {
-                { Icon(painterResource(TableIcons.Check), contentDescription = null, modifier = Modifier.testTag(CHECKED_ITEM_TAG)) }
+                {
+                    Icon(
+                        painterResource(TableIcons.Check),
+                        contentDescription = null,
+                        modifier = Modifier.testTag(CHECKED_ITEM_TAG),
+                    )
+                }
             } else {
                 null
             },

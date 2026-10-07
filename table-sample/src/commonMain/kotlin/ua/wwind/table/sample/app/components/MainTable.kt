@@ -29,6 +29,7 @@ import io.github.oikvpqya.compose.fastscroller.defaultScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.delay
+import org.jetbrains.compose.resources.painterResource
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.EditableTable
 import ua.wwind.table.RowBlockMove
@@ -37,7 +38,6 @@ import ua.wwind.table.RowWithinBlockMove
 import ua.wwind.table.component.ColumnMenuBuilder
 import ua.wwind.table.component.ColumnMenuItem
 import ua.wwind.table.component.ColumnMenuItemId
-import org.jetbrains.compose.resources.painterResource
 import ua.wwind.table.component.ColumnMenuSection
 import ua.wwind.table.config.TableCustomization
 import ua.wwind.table.filter.data.TableFilterState

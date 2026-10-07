@@ -21,6 +21,10 @@ internal fun ColumnMenuButton(
         onClick = onClick,
         modifier = Modifier.size(targetSize).focusProperties { canFocus = false },
     ) {
-        Icon(painterResource(TableIcons.MoreVert), contentDescription = contentDescription, modifier = Modifier.size(HeaderIconSize))
+        Icon(
+            painterResource(TableIcons.MoreVert),
+            contentDescription = contentDescription,
+            modifier = Modifier.size(HeaderIconSize),
+        )
     }
 }
