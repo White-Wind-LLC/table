@@ -30,6 +30,9 @@ reloads the failed position. Pass `null` as `loadingIndicator` or `errorBar` to 
 text goes through the table's `StringProvider` (`UiString.PagingLoading`, `PagingLoadError`,
 `PagingLoadMoreError`, `PagingRetry`).
 
+While the error bar is shown it overlays the bottom of the rows (the last row, or an unpinned footer
+scrolled into view).
+
 Collect the pager with an initial `null` so the first frame shows the loading state:
 
 ```kotlin

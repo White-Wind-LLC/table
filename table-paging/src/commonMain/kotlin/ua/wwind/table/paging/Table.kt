@@ -113,7 +113,8 @@ private fun <T : Any> rememberPagedRowKeyAt(
  * @param loadingIndicator shown at the top of the rows while more rows load, once loading has
  * lasted 400 ms (shorter pulses from scroll preloads never show it); `null` disables it.
  * @param errorBar shown at the bottom of the rows when a load fails while rows are on screen;
- * `null` disables it.
+ * `null` disables it. While shown it overlays the bottom of the rows (the last row, or an unpinned
+ * footer scrolled into view).
  * @param rowKey stable key for rows; defaults to index
  * @param onRowClick row primary action handler
  * @param onRowLongClick optional long-press handler
@@ -227,7 +228,8 @@ public fun <T : Any, C, E> Table(
  * @param loadingIndicator shown at the top of the rows while more rows load, once loading has
  * lasted 400 ms (shorter pulses from scroll preloads never show it); `null` disables it.
  * @param errorBar shown at the bottom of the rows when a load fails while rows are on screen;
- * `null` disables it.
+ * `null` disables it. While shown it overlays the bottom of the rows (the last row, or an unpinned
+ * footer scrolled into view).
  * @param rowKey stable key for rows; defaults to index
  * @param onRowClick row primary action handler
  * @param onRowLongClick optional long-press handler

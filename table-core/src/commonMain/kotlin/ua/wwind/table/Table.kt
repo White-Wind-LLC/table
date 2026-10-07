@@ -124,7 +124,8 @@ internal val DefaultRowKey: (Any?, Int) -> Any = { _, index -> index }
  * for a blank body — also while data is still loading, which an empty count cannot tell apart.
  * @param bodyOverlay content drawn over the visible rows area — below the header, above a pinned
  * footer — that stays in place while the rows scroll in either direction. Align children through
- * [BoxScope]. The box itself takes no input, so rows under its empty parts stay clickable.
+ * [BoxScope]. The box itself takes no input, so rows under its empty parts stay clickable. Content
+ * aligned to the bottom draws over the last rows, or an unpinned footer scrolled into view.
  * @param rowKey stable key for rows; defaults to index
  * @param onRowClick row primary action handler
  * @param onRowLongClick optional long-press handler
@@ -434,7 +435,8 @@ public fun <T : Any, C, E> EditableTable(
  * for a blank body — also while data is still loading, which an empty count cannot tell apart.
  * @param bodyOverlay content drawn over the visible rows area — below the header, above a pinned
  * footer — that stays in place while the rows scroll in either direction. Align children through
- * [BoxScope]. The box itself takes no input, so rows under its empty parts stay clickable.
+ * [BoxScope]. The box itself takes no input, so rows under its empty parts stay clickable. Content
+ * aligned to the bottom draws over the last rows, or an unpinned footer scrolled into view.
  * @param rowKey stable key for rows; defaults to index
  * @param onRowClick row primary action handler
  * @param onRowLongClick optional long-press handler
@@ -557,7 +559,8 @@ public fun <T : Any, C> Table(
  * for a blank body — also while data is still loading, which an empty count cannot tell apart.
  * @param bodyOverlay content drawn over the visible rows area — below the header, above a pinned
  * footer — that stays in place while the rows scroll in either direction. Align children through
- * [BoxScope]. The box itself takes no input, so rows under its empty parts stay clickable.
+ * [BoxScope]. The box itself takes no input, so rows under its empty parts stay clickable. Content
+ * aligned to the bottom draws over the last rows, or an unpinned footer scrolled into view.
  * @param rowKey stable key for rows; defaults to index
  * @param onRowClick row primary action handler
  * @param onRowLongClick optional long-press handler
