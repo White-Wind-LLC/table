@@ -3,6 +3,7 @@ package ua.wwind.table
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,6 +23,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -38,6 +40,10 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollDispatcher
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.layout.onPlaced
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.layout.positionInParent
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
@@ -86,6 +92,7 @@ import ua.wwind.table.state.mapNotNullToImmutable
 import ua.wwind.table.strings.DefaultStrings
 import ua.wwind.table.strings.LocalStringProvider
 import ua.wwind.table.strings.StringProvider
+import kotlin.math.roundToInt
 
 /**
  * Shared default for `rowKey` across every table entry point, so a block table can recognize it:
@@ -112,6 +119,9 @@ internal val DefaultRowKey: (Any?, Int) -> Any = { _, index -> index }
  * @param tableData current table data instance - accessible in headers, footers, and edit cells
  * @param modifier layout modifier for the whole table
  * @param placeholderRow optional row content shown when an item is null
+ * @param emptyContent body content shown while [itemsCount] is 0; header, fast filters and footer
+ * stay visible. Its [TableEmptyScope] tells whether filters are active and can clear them. Pass `{}`
+ * for a blank body — also while data is still loading, which an empty count cannot tell apart.
  * @param rowKey stable key for rows; defaults to index
  * @param onRowClick row primary action handler
  * @param onRowLongClick optional long-press handler
@@ -141,6 +151,7 @@ public fun <T : Any, C, E> EditableTable(
     tableData: E,
     modifier: Modifier = Modifier,
     placeholderRow: (@Composable () -> Unit)? = null,
+    emptyContent: @Composable TableEmptyScope.() -> Unit = TableDefaults.EmptyContent,
     rowKey: (item: T?, index: Int) -> Any = DefaultRowKey,
     /**
      * Row key by index, superseding [rowKey] wherever a key is needed; it must answer the same key.
@@ -210,6 +221,11 @@ public fun <T : Any, C, E> EditableTable(
     val showPinnedFooter = !embedded && state.settings.footerPinned && state.settings.showFooter
 
     var contextMenuState by remember { mutableStateOf(ContextMenuState<T>()) }
+    val emptyScope = remember(state) { TableStateEmptyScope(state) }
+    val emptyBody: @Composable () -> Unit = { emptyScope.emptyContent() }
+    // Where the rows start inside the surface, for the empty state overlay.
+    var scrollAreaTopPx by remember { mutableIntStateOf(0) }
+    var headerHeightPx by remember { mutableIntStateOf(0) }
     val tableFocusRequester = remember { FocusRequester() }
     val coroutineScope = rememberCoroutineScope()
     val blockParentScrollConnection = rememberBlockParentScrollConnection()
@@ -267,95 +283,111 @@ public fun <T : Any, C, E> EditableTable(
                     }
                 }
 
-            Column {
-                if (state.settings.showActiveFiltersHeader) {
-                    ActiveFiltersHeader(
-                        columns = columns,
-                        state = state,
-                        strings = strings,
-                        modifier = activeFiltersModifier(embedded, state.tableWidth),
-                    )
-                }
-
-                Box(modifier = scrollAreaModifier(embedded, innerModifier)) {
-                    Column {
-                        TableHeader(
+            Box(propagateMinConstraints = true) {
+                Column {
+                    if (state.settings.showActiveFiltersHeader) {
+                        ActiveFiltersHeader(
                             columns = columns,
                             state = state,
-                            tableData = tableData,
-                            headerColor = resolvedColors.headerContainerColor,
-                            headerContentColor = resolvedColors.headerContentColor,
-                            rowContainerColor = resolvedColors.rowContainerColor,
-                            dimensions = dimensions,
                             strings = strings,
-                            icons = icons,
-                            horizontalState = horizontalState,
-                            onEnterBody = { state.enterBodyFromHeader(itemsCount, tableFocusRequester) },
+                            modifier = activeFiltersModifier(embedded, state.tableWidth),
                         )
+                    }
 
-                        val bodyContent: @Composable () -> Unit = {
-                            ProvideTextStyle(typography.body) {
-                                TableBodySection(
-                                    embedded = embedded,
-                                    itemsCount = itemsCount,
-                                    itemAt = effectiveItemAt,
-                                    rowKey = effectiveRowKey,
-                                    rowKeyAt = effectiveRowKeyAt,
-                                    visibleColumns = visibleColumns,
+                    val scrollAreaPlacement =
+                        Modifier.onPlaced { scrollAreaTopPx = it.positionInParent().y.roundToInt() }
+                    Box(modifier = scrollAreaModifier(embedded, scrollAreaPlacement.then(innerModifier))) {
+                        Column {
+                            Box(Modifier.onSizeChanged { headerHeightPx = it.height }) {
+                                TableHeader(
+                                    columns = columns,
                                     state = state,
-                                    colors = resolvedColors,
-                                    customization = customization,
                                     tableData = tableData,
-                                    rowEmbedded = rowEmbedded,
-                                    placeholderRow = placeholderRow,
-                                    onRowClick = onRowClick,
-                                    onRowLongClick = onRowLongClick,
-                                    onRowMove = effectiveOnRowMove,
-                                    blocks = activeBlocks,
-                                    onContextMenu = onContextMenuHandler,
-                                    rowUnits = rowUnits,
-                                    verticalState = verticalState,
+                                    headerColor = resolvedColors.headerContainerColor,
+                                    headerContentColor = resolvedColors.headerContentColor,
+                                    rowContainerColor = resolvedColors.rowContainerColor,
+                                    dimensions = dimensions,
+                                    strings = strings,
+                                    icons = icons,
                                     horizontalState = horizontalState,
-                                    requestTableFocus = { tableFocusRequester.requestFocus() },
-                                    enableScrolling = enableScrolling,
-                                    pinnedFooterHeight = pinnedFooterHeight,
+                                    onEnterBody = { state.enterBodyFromHeader(itemsCount, tableFocusRequester) },
                                 )
                             }
-                        }
 
-                        // SelectionContainer is disabled while a row is in edit mode to avoid
-                        // cross-hierarchy text selection issues with popup-based editors on Desktop.
-                        Box(
-                            Modifier.tableKeyboardNavigation(
-                                focusRequester = tableFocusRequester,
-                                itemsCount = itemsCount,
-                                state = state,
-                                visibleColumns = visibleColumns,
-                                verticalState = verticalState,
-                                onExitToHeader = state::focusHeaderFromBody,
-                                onOpenColumnMenu = state::openColumnMenuFromBody,
-                            ),
-                        ) {
-                            if (state.settings.enableTextSelection && state.editing.rowIndex == null) {
-                                SelectionContainer { bodyContent() }
-                            } else {
-                                bodyContent()
+                            val bodyContent: @Composable () -> Unit = {
+                                ProvideTextStyle(typography.body) {
+                                    TableBodySection(
+                                        embedded = embedded,
+                                        itemsCount = itemsCount,
+                                        itemAt = effectiveItemAt,
+                                        rowKey = effectiveRowKey,
+                                        rowKeyAt = effectiveRowKeyAt,
+                                        visibleColumns = visibleColumns,
+                                        state = state,
+                                        colors = resolvedColors,
+                                        customization = customization,
+                                        tableData = tableData,
+                                        rowEmbedded = rowEmbedded,
+                                        placeholderRow = placeholderRow,
+                                        emptyContent = emptyBody,
+                                        onRowClick = onRowClick,
+                                        onRowLongClick = onRowLongClick,
+                                        onRowMove = effectiveOnRowMove,
+                                        blocks = activeBlocks,
+                                        onContextMenu = onContextMenuHandler,
+                                        rowUnits = rowUnits,
+                                        verticalState = verticalState,
+                                        horizontalState = horizontalState,
+                                        requestTableFocus = { tableFocusRequester.requestFocus() },
+                                        enableScrolling = enableScrolling,
+                                        pinnedFooterHeight = pinnedFooterHeight,
+                                    )
+                                }
+                            }
+
+                            // SelectionContainer is disabled while a row is in edit mode to avoid
+                            // cross-hierarchy text selection issues with popup-based editors on Desktop.
+                            Box(
+                                Modifier.tableKeyboardNavigation(
+                                    focusRequester = tableFocusRequester,
+                                    itemsCount = itemsCount,
+                                    state = state,
+                                    visibleColumns = visibleColumns,
+                                    verticalState = verticalState,
+                                    onExitToHeader = state::focusHeaderFromBody,
+                                    onOpenColumnMenu = state::openColumnMenuFromBody,
+                                ),
+                            ) {
+                                if (state.settings.enableTextSelection && state.editing.rowIndex == null) {
+                                    SelectionContainer { bodyContent() }
+                                } else {
+                                    bodyContent()
+                                }
                             }
                         }
-                    }
 
-                    if (showPinnedFooter) {
-                        PinnedFooterOverlay(
-                            state = state,
-                            visibleColumns = visibleColumns,
-                            columns = columns,
-                            tableData = tableData,
-                            colors = resolvedColors,
-                            horizontalState = horizontalState,
-                            modifier = Modifier.align(Alignment.BottomStart),
-                        )
+                        if (showPinnedFooter) {
+                            PinnedFooterOverlay(
+                                state = state,
+                                visibleColumns = visibleColumns,
+                                columns = columns,
+                                tableData = tableData,
+                                colors = resolvedColors,
+                                horizontalState = horizontalState,
+                                modifier = Modifier.align(Alignment.BottomStart),
+                            )
+                        }
                     }
                 }
+
+                EmptyStateOverlay(
+                    embedded = embedded,
+                    itemsCount = itemsCount,
+                    headerBottomPx = scrollAreaTopPx + headerHeightPx,
+                    state = state,
+                    showPinnedFooter = showPinnedFooter,
+                    content = emptyBody,
+                )
             }
         }
 
@@ -392,6 +424,9 @@ public fun <T : Any, C, E> EditableTable(
  * @param columns list of visible/available column specifications
  * @param modifier layout modifier for the whole table
  * @param placeholderRow optional row content shown when an item is null
+ * @param emptyContent body content shown while [itemsCount] is 0; header, fast filters and footer
+ * stay visible. Its [TableEmptyScope] tells whether filters are active and can clear them. Pass `{}`
+ * for a blank body — also while data is still loading, which an empty count cannot tell apart.
  * @param rowKey stable key for rows; defaults to index
  * @param onRowClick row primary action handler
  * @param onRowLongClick optional long-press handler
@@ -420,6 +455,7 @@ public fun <T : Any, C> Table(
     columns: ImmutableList<ColumnSpec<T, C, Unit>>,
     modifier: Modifier = Modifier,
     placeholderRow: (@Composable () -> Unit)? = null,
+    emptyContent: @Composable TableEmptyScope.() -> Unit = TableDefaults.EmptyContent,
     rowKey: (item: T?, index: Int) -> Any = DefaultRowKey,
     /**
      * Row key by index, superseding [rowKey] wherever a key is needed; it must answer the same key.
@@ -459,6 +495,7 @@ public fun <T : Any, C> Table(
         tableData = Unit,
         modifier = modifier,
         placeholderRow = placeholderRow,
+        emptyContent = emptyContent,
         rowKey = rowKey,
         rowKeyAt = rowKeyAt,
         onRowClick = onRowClick,
@@ -505,6 +542,9 @@ public fun <T : Any, C> Table(
  * @param tableData current table data instance - accessible in headers, footers, and edit cells
  * @param modifier layout modifier for the whole table
  * @param placeholderRow optional row content shown when an item is null
+ * @param emptyContent body content shown while [itemsCount] is 0; header, fast filters and footer
+ * stay visible. Its [TableEmptyScope] tells whether filters are active and can clear them. Pass `{}`
+ * for a blank body — also while data is still loading, which an empty count cannot tell apart.
  * @param rowKey stable key for rows; defaults to index
  * @param onRowClick row primary action handler
  * @param onRowLongClick optional long-press handler
@@ -534,6 +574,7 @@ public fun <T : Any, C, E> Table(
     tableData: E,
     modifier: Modifier = Modifier,
     placeholderRow: (@Composable () -> Unit)? = null,
+    emptyContent: @Composable TableEmptyScope.() -> Unit = TableDefaults.EmptyContent,
     rowKey: (item: T?, index: Int) -> Any = DefaultRowKey,
     /**
      * Row key by index, superseding [rowKey] wherever a key is needed; it must answer the same key.
@@ -573,6 +614,7 @@ public fun <T : Any, C, E> Table(
         tableData = tableData,
         modifier = modifier,
         placeholderRow = placeholderRow,
+        emptyContent = emptyContent,
         rowKey = rowKey,
         rowKeyAt = rowKeyAt,
         onRowClick = onRowClick,
@@ -627,6 +669,37 @@ private fun rememberBlockParentScrollConnection(): NestedScrollConnection =
             ): Velocity = available
         }
     }
+
+/**
+ * Centres the empty state over the rows' area of the surface, below [headerBottomPx] and any footer.
+ * The rows scroll horizontally inside an unbounded width, so the empty state lives outside them to
+ * stay in view. An embedded table has no viewport; its body renders the empty state inline instead.
+ */
+@Composable
+private fun BoxScope.EmptyStateOverlay(
+    embedded: Boolean,
+    itemsCount: Int,
+    headerBottomPx: Int,
+    state: TableState<*>,
+    showPinnedFooter: Boolean,
+    content: @Composable () -> Unit,
+) {
+    if (embedded || itemsCount != 0) return
+    val dimensions = state.dimensions
+    val footerHeight =
+        dimensions.footerHeight + if (state.settings.showRowDividers) dimensions.dividerThickness else 0.dp
+    val headerBottom = with(LocalDensity.current) { headerBottomPx.toDp() }
+    val modifier =
+        when {
+            // A pinned footer holds the bottom edge; an unpinned one follows the (absent) rows.
+            showPinnedFooter -> Modifier.padding(top = headerBottom, bottom = footerHeight)
+
+            state.settings.showFooter -> Modifier.padding(top = headerBottom + footerHeight)
+
+            else -> Modifier.padding(top = headerBottom)
+        }
+    TableEmptyStateBox(Modifier.matchParentSize().then(modifier), content)
+}
 
 /** Viewport-wide, except when embedded: that parent measures with an unbounded width. */
 private fun activeFiltersModifier(
@@ -702,6 +775,7 @@ private fun <T : Any, C, E> TableBodySection(
     tableData: E,
     rowEmbedded: (@Composable (rowIndex: Int, item: T) -> Unit)?,
     placeholderRow: (@Composable () -> Unit)?,
+    emptyContent: @Composable () -> Unit,
     onRowClick: ((T) -> Unit)?,
     onRowLongClick: ((T) -> Unit)?,
     onRowMove: ((fromIndex: Int, toIndex: Int) -> Unit)?,
@@ -730,6 +804,7 @@ private fun <T : Any, C, E> TableBodySection(
                 tableData = tableData,
                 rowEmbedded = rowEmbedded,
                 placeholderRow = placeholderRow,
+                emptyContent = emptyContent,
                 onRowClick = onRowClick,
                 onRowLongClick = onRowLongClick,
                 onRowMove = onRowMove,

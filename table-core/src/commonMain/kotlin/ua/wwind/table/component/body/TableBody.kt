@@ -23,6 +23,7 @@ import sh.calvin.reorderable.rememberReorderableLazyListState
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.DefaultRowKey
 import ua.wwind.table.DefaultTableItemScope
+import ua.wwind.table.TableEmptyStateBox
 import ua.wwind.table.TableItemDragScope
 import ua.wwind.table.TableItemListDragScope
 import ua.wwind.table.TableItemScope
@@ -253,6 +254,7 @@ internal fun <T : Any, C, E> TableBodyEmbedded(
     tableData: E,
     rowEmbedded: (@Composable (rowIndex: Int, item: T) -> Unit)?,
     placeholderRow: (@Composable () -> Unit)?,
+    emptyContent: @Composable () -> Unit,
     onRowClick: ((T) -> Unit)?,
     onRowLongClick: ((T) -> Unit)?,
     onRowMove: ((fromIndex: Int, toIndex: Int) -> Unit)?,
@@ -262,8 +264,6 @@ internal fun <T : Any, C, E> TableBodyEmbedded(
     horizontalState: ScrollState,
     requestTableFocus: () -> Unit,
 ) {
-    if (itemsCount <= 0 && !state.settings.showFooter) return
-
     val hooks = rowDragHooks(state, blocks, onRowMove)
     val rowReorderEnabled = hooks.rowReorderEnabled
     val withinBlockEnabled = hooks.withinBlockEnabled
@@ -387,6 +387,10 @@ internal fun <T : Any, C, E> TableBodyEmbedded(
                     )
                 }
             }
+        }
+
+        if (itemsCount == 0) {
+            TableEmptyStateBox(Modifier.width(state.tableWidth), emptyContent)
         }
 
         // Add footer for embedded tables (always non-pinned)
