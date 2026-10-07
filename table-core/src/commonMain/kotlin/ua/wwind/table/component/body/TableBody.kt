@@ -29,6 +29,7 @@ import ua.wwind.table.TableItemScope
 import ua.wwind.table.component.footer.TableFooter
 import ua.wwind.table.config.TableColors
 import ua.wwind.table.config.TableCustomization
+import ua.wwind.table.config.currentTableColors
 import ua.wwind.table.state.RowBlocksState
 import ua.wwind.table.state.RowUnitIndex
 import ua.wwind.table.state.TableState
@@ -112,7 +113,7 @@ internal fun <T : Any, C, E> TableBody(
             val key = keyOf(rows.first)
             val currentReorderState = reorderState
             if (currentReorderState != null) {
-                ReorderableItem(state = currentReorderState, key = key) {
+                ReorderableItem(state = currentReorderState, key = key) { isDragging ->
                     val rowScope: TableItemScope =
                         remember(this) {
                             TableItemDragScope(
@@ -121,36 +122,43 @@ internal fun <T : Any, C, E> TableBody(
                                 onDragStoppedHook = { currentOnBlockDragStopped.value?.invoke() },
                             )
                         }
-                    context(rowScope) {
-                        RowUnit(
-                            rows = rows,
-                            isGroup = isGroup,
-                            nextIsGroup = nextIsGroup,
-                            blockId = blockId,
-                            blockHeader = blockHeader,
-                            onRowMoveWithinBlock =
-                                if (withinBlockEnabled) {
-                                    { fromView, toView -> currentOnRowMoveWithinBlock.value?.invoke(fromView, toView) }
-                                } else {
-                                    null
-                                },
-                            onWithinBlockDragStart = { currentOnBlockDragStarted.value?.invoke() },
-                            rowKeyAt = keyOf,
-                            withinBlockRefusalCount = withinBlockRefusalCount,
-                            itemAt = unitItemAt,
-                            visibleColumns = visibleColumns,
-                            state = state,
-                            colors = colors,
-                            customization = customization,
-                            tableData = tableData,
-                            rowEmbedded = rowEmbedded,
-                            placeholderRow = placeholderRow,
-                            onRowClick = onRowClick,
-                            onRowLongClick = onRowLongClick,
-                            onContextMenu = onContextMenu,
-                            horizontalState = horizontalState,
-                            requestTableFocus = requestTableFocus,
-                        )
+                    DragLift(isDragging) {
+                        context(rowScope) {
+                            RowUnit(
+                                rows = rows,
+                                isGroup = isGroup,
+                                nextIsGroup = nextIsGroup,
+                                blockId = blockId,
+                                blockHeader = blockHeader,
+                                onRowMoveWithinBlock =
+                                    if (withinBlockEnabled) {
+                                        {
+                                            fromView,
+                                            toView,
+                                            ->
+                                            currentOnRowMoveWithinBlock.value?.invoke(fromView, toView)
+                                        }
+                                    } else {
+                                        null
+                                    },
+                                onWithinBlockDragStart = { currentOnBlockDragStarted.value?.invoke() },
+                                rowKeyAt = keyOf,
+                                withinBlockRefusalCount = withinBlockRefusalCount,
+                                itemAt = unitItemAt,
+                                visibleColumns = visibleColumns,
+                                state = state,
+                                colors = colors,
+                                customization = customization,
+                                tableData = tableData,
+                                rowEmbedded = rowEmbedded,
+                                placeholderRow = placeholderRow,
+                                onRowClick = onRowClick,
+                                onRowLongClick = onRowLongClick,
+                                onContextMenu = onContextMenu,
+                                horizontalState = horizontalState,
+                                requestTableFocus = requestTableFocus,
+                            )
+                        }
                     }
                 }
             } else {
@@ -187,7 +195,10 @@ internal fun <T : Any, C, E> TableBody(
         if (showFooter) {
             item(key = "footer") {
                 if (state.settings.showRowDividers) {
-                    HorizontalDivider(modifier = Modifier.width(state.tableWidth))
+                    HorizontalDivider(
+                        modifier = Modifier.width(state.tableWidth),
+                        color = currentTableColors().dividerColor,
+                    )
                 }
                 TableFooter(
                     visibleColumns = visibleColumns,
@@ -288,7 +299,7 @@ internal fun <T : Any, C, E> TableBodyEmbedded(
                 // `unitList` is captured alongside the callback: the guard in settleUnits needs to
                 // know which list THIS engine laid out, and the engine keeps the capture for life.
                 onSettle = { fromUnit, toUnit -> currentSettleUnits.value(unitList, fromUnit, toUnit) },
-            ) { unitIndex, leadingItem, _ ->
+            ) { unitIndex, leadingItem, isDragging ->
                 val rows = rowUnits.rowsOf(unitIndex)
                 val isGroup = rowUnits.isGroup(unitIndex)
                 key(keyOf(rows.first)) {
@@ -300,43 +311,45 @@ internal fun <T : Any, C, E> TableBodyEmbedded(
                                     onDragStartedHook = { currentOnBlockDragStarted.value?.invoke() },
                                 )
                             }
-                        context(rowScope) {
-                            RowUnit(
-                                rows = rows,
-                                isGroup = isGroup,
-                                nextIsGroup =
-                                    unitIndex < rowUnits.unitCount - 1 &&
-                                        rowUnits.isGroup(unitIndex + 1),
-                                blockId = if (isGroup) blocks?.blockIdAt(rows.first) else null,
-                                blockHeader = blockHeader,
-                                onRowMoveWithinBlock =
-                                    if (withinBlockEnabled) {
-                                        {
-                                            fromView,
-                                            toView,
-                                            ->
-                                            currentOnRowMoveWithinBlock.value?.invoke(fromView, toView)
-                                        }
-                                    } else {
-                                        null
-                                    },
-                                onWithinBlockDragStart = { currentOnBlockDragStarted.value?.invoke() },
-                                rowKeyAt = keyOf,
-                                withinBlockRefusalCount = withinBlockRefusalCount,
-                                itemAt = itemAt,
-                                visibleColumns = visibleColumns,
-                                state = state,
-                                colors = colors,
-                                customization = customization,
-                                tableData = tableData,
-                                rowEmbedded = rowEmbedded,
-                                placeholderRow = placeholderRow,
-                                onRowClick = onRowClick,
-                                onRowLongClick = onRowLongClick,
-                                onContextMenu = onContextMenu,
-                                horizontalState = horizontalState,
-                                requestTableFocus = requestTableFocus,
-                            )
+                        DragLift(isDragging) {
+                            context(rowScope) {
+                                RowUnit(
+                                    rows = rows,
+                                    isGroup = isGroup,
+                                    nextIsGroup =
+                                        unitIndex < rowUnits.unitCount - 1 &&
+                                            rowUnits.isGroup(unitIndex + 1),
+                                    blockId = if (isGroup) blocks?.blockIdAt(rows.first) else null,
+                                    blockHeader = blockHeader,
+                                    onRowMoveWithinBlock =
+                                        if (withinBlockEnabled) {
+                                            {
+                                                fromView,
+                                                toView,
+                                                ->
+                                                currentOnRowMoveWithinBlock.value?.invoke(fromView, toView)
+                                            }
+                                        } else {
+                                            null
+                                        },
+                                    onWithinBlockDragStart = { currentOnBlockDragStarted.value?.invoke() },
+                                    rowKeyAt = keyOf,
+                                    withinBlockRefusalCount = withinBlockRefusalCount,
+                                    itemAt = itemAt,
+                                    visibleColumns = visibleColumns,
+                                    state = state,
+                                    colors = colors,
+                                    customization = customization,
+                                    tableData = tableData,
+                                    rowEmbedded = rowEmbedded,
+                                    placeholderRow = placeholderRow,
+                                    onRowClick = onRowClick,
+                                    onRowLongClick = onRowLongClick,
+                                    onContextMenu = onContextMenu,
+                                    horizontalState = horizontalState,
+                                    requestTableFocus = requestTableFocus,
+                                )
+                            }
                         }
                     }
                 }
@@ -379,7 +392,10 @@ internal fun <T : Any, C, E> TableBodyEmbedded(
         // Add footer for embedded tables (always non-pinned)
         if (state.settings.showFooter) {
             if (state.settings.showRowDividers) {
-                HorizontalDivider(modifier = Modifier.width(state.tableWidth))
+                HorizontalDivider(
+                    modifier = Modifier.width(state.tableWidth),
+                    color = currentTableColors().dividerColor,
+                )
             }
             TableFooter(
                 visibleColumns = visibleColumns,
@@ -456,6 +472,7 @@ internal fun <T : Any, C, E> TableBodyRow(
                         HorizontalDivider(
                             modifier = Modifier.width(viewportWidthDp),
                             thickness = state.dimensions.dividerThickness,
+                            color = currentTableColors().dividerColor,
                         )
                     }
                 }
@@ -485,6 +502,7 @@ internal fun <T : Any, C, E> TableBodyRow(
         HorizontalDivider(
             modifier = Modifier.width(state.tableWidth),
             thickness = state.dimensions.dividerThickness,
+            color = currentTableColors().dividerColor,
         )
     }
 }

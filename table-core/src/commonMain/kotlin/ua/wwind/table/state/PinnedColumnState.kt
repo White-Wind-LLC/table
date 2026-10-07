@@ -19,7 +19,30 @@ internal data class PinnedColumnState(
     val zIndex: Float,
     /** Horizontal translation for pinning */
     val translationX: Float,
-)
+) {
+    /** The side of this column that borders the scrolling columns, if it is the outermost pinned one. */
+    val edge: PinnedEdge
+        get() =
+            when {
+                isLastLeftPinned -> PinnedEdge.Right
+                isFirstRightPinned -> PinnedEdge.Left
+                else -> PinnedEdge.None
+            }
+}
+
+/** Physical side of a pinned column that the scrolling columns pass under, matching [PinnedSide]. */
+internal enum class PinnedEdge { None, Left, Right }
+
+/**
+ * Whether scrolled content currently sits under [this] edge: left of the viewport for a left-pinned
+ * run, right of it for a right-pinned one. The edge casts a shadow only then.
+ */
+internal fun PinnedEdge.hasContentUnder(horizontalState: ScrollState): Boolean =
+    when (this) {
+        PinnedEdge.None -> false
+        PinnedEdge.Right -> horizontalState.value > 0
+        PinnedEdge.Left -> horizontalState.value < horizontalState.maxValue
+    }
 
 /**
  * Calculates the pinned column state based on its index and table settings

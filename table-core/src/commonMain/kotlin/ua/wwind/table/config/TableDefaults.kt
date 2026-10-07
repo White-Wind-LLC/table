@@ -37,6 +37,14 @@ public object TableDefaults {
         rowBlockContainerColor: Color = Color.Unspecified,
         /** Leading bar marking the selected row, so selection does not rely on the container color alone. */
         rowSelectedIndicatorColor: Color = MaterialTheme.colorScheme.primary,
+        dividerColor: Color = MaterialTheme.colorScheme.outlineVariant,
+        pinnedDividerColor: Color = MaterialTheme.colorScheme.outlineVariant,
+        borderColor: Color = MaterialTheme.colorScheme.outlineVariant,
+        focusIndicatorColor: Color = MaterialTheme.colorScheme.primary,
+        /** State layer color of a hovered or pressed row; the ripple applies its own alpha. */
+        hoverColor: Color = MaterialTheme.colorScheme.onSurface,
+        groupContentColor: Color = MaterialTheme.colorScheme.contentColorFor(groupContainerColor),
+        stickyGroupContainerColor: Color = groupContainerColor,
     ): TableColors =
         TableColors(
             headerContainerColor = headerContainerColor,
@@ -49,6 +57,13 @@ public object TableDefaults {
             footerContainerColor = footerContainerColor,
             footerContentColor = footerContentColor,
             rowSelectedIndicatorColor = rowSelectedIndicatorColor,
+            dividerColor = dividerColor,
+            pinnedDividerColor = pinnedDividerColor,
+            borderColor = borderColor,
+            focusIndicatorColor = focusIndicatorColor,
+            hoverColor = hoverColor,
+            groupContentColor = groupContentColor,
+            stickyGroupContainerColor = stickyGroupContainerColor,
         )
 
     /** Default [TableTypography] derived from [androidx.compose.material3.MaterialTheme.typography]. */

@@ -75,6 +75,7 @@ Compose:
       - LocalEditCellContext
       - LocalEditCellFocusRequester
       - LocalTableTypography
+      - LocalTableColors
   CompositionLocalNaming:
     active: true
   ContentEmitterReturningValues:

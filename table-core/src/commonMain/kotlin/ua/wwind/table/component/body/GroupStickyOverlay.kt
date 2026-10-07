@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.collectLatest
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.config.TableColors
 import ua.wwind.table.config.TableCustomization
+import ua.wwind.table.config.currentTableColors
 import ua.wwind.table.state.TableState
 import ua.wwind.table.state.currentTableState
 import kotlin.math.min
@@ -105,10 +106,12 @@ internal fun <T : Any, C, E> GroupStickyOverlay(
                     height = state.dimensions.rowHeight,
                     colors = colors,
                     customization = customization,
+                    containerColor = colors.stickyGroupContainerColor,
                 )
                 if (state.settings.showRowDividers) {
                     HorizontalDivider(
                         thickness = state.dimensions.dividerThickness,
+                        color = currentTableColors().dividerColor,
                         modifier = Modifier.width(viewportWidthDp),
                     )
                 }

@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -34,6 +33,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollDispatcher
@@ -57,12 +57,14 @@ import ua.wwind.table.component.body.TableBodyEmbedded
 import ua.wwind.table.component.erased
 import ua.wwind.table.component.footer.TableFooter
 import ua.wwind.table.config.DefaultTableCustomization
+import ua.wwind.table.config.LocalTableColors
 import ua.wwind.table.config.LocalTableTypography
 import ua.wwind.table.config.TableColors
 import ua.wwind.table.config.TableCustomization
 import ua.wwind.table.config.TableDefaults
 import ua.wwind.table.config.TableTypography
 import ua.wwind.table.config.isInteractionLockByRowReorderEnabled
+import ua.wwind.table.config.resolve
 import ua.wwind.table.interaction.ApplyAutoWidthEffect
 import ua.wwind.table.interaction.ApplyAutoWidthEmbeddedEffect
 import ua.wwind.table.interaction.ContextMenuState
@@ -165,7 +167,7 @@ public fun <T : Any, C, E> EditableTable(
     horizontalState: ScrollState = rememberScrollState(),
     icons: TableHeaderIcons = TableHeaderDefaults.icons(),
     columnMenu: ColumnMenuBuilder<C> = ColumnMenuDefaults.builder(),
-    shape: Shape = RoundedCornerShape(4.dp),
+    shape: Shape = MaterialTheme.shapes.extraSmall,
     border: BorderStroke? = null,
     rowEmbedded: (@Composable (rowIndex: Int, item: T) -> Unit)? = null,
     embedded: Boolean = false,
@@ -180,6 +182,7 @@ public fun <T : Any, C, E> EditableTable(
     onEditCancel: ((rowIndex: Int) -> Unit)? = null,
 ) {
     val dimensions = state.dimensions
+    val resolvedColors = colors.resolve()
     val visibleColumns by remember(columns, state.columns.order) {
         derivedStateOf {
             state.columns.order.mapNotNullToImmutable { key ->
@@ -223,6 +226,7 @@ public fun <T : Any, C, E> EditableTable(
         LocalStringProvider provides strings,
         LocalColumnMenuBuilder provides columnMenu.erased(),
         LocalTableTypography provides typography,
+        LocalTableColors provides resolvedColors,
     ) {
         EnsureSelectedCellVisibleEffect(
             visibleColumns = visibleColumns,
@@ -231,7 +235,7 @@ public fun <T : Any, C, E> EditableTable(
         )
 
         val enableScrolling = remember { !getPlatform().isMobile() && !embedded }
-        val resolvedBorder = resolveBorderStroke(border, dimensions.dividerThickness)
+        val resolvedBorder = resolveBorderStroke(border, dimensions.dividerThickness, resolvedColors.borderColor)
 
         Surface(shape = shape, border = resolvedBorder, modifier = modifier) {
             val innerModifier =
@@ -279,9 +283,9 @@ public fun <T : Any, C, E> EditableTable(
                             columns = columns,
                             state = state,
                             tableData = tableData,
-                            headerColor = colors.headerContainerColor,
-                            headerContentColor = colors.headerContentColor,
-                            rowContainerColor = colors.rowContainerColor,
+                            headerColor = resolvedColors.headerContainerColor,
+                            headerContentColor = resolvedColors.headerContentColor,
+                            rowContainerColor = resolvedColors.rowContainerColor,
                             dimensions = dimensions,
                             strings = strings,
                             icons = icons,
@@ -299,7 +303,7 @@ public fun <T : Any, C, E> EditableTable(
                                     rowKeyAt = effectiveRowKeyAt,
                                     visibleColumns = visibleColumns,
                                     state = state,
-                                    colors = colors,
+                                    colors = resolvedColors,
                                     customization = customization,
                                     tableData = tableData,
                                     rowEmbedded = rowEmbedded,
@@ -346,7 +350,7 @@ public fun <T : Any, C, E> EditableTable(
                             visibleColumns = visibleColumns,
                             columns = columns,
                             tableData = tableData,
-                            colors = colors,
+                            colors = resolvedColors,
                             horizontalState = horizontalState,
                             modifier = Modifier.align(Alignment.BottomStart),
                         )
@@ -442,7 +446,7 @@ public fun <T : Any, C> Table(
     horizontalState: ScrollState = rememberScrollState(),
     icons: TableHeaderIcons = TableHeaderDefaults.icons(),
     columnMenu: ColumnMenuBuilder<C> = ColumnMenuDefaults.builder(),
-    shape: Shape = RoundedCornerShape(4.dp),
+    shape: Shape = MaterialTheme.shapes.extraSmall,
     border: BorderStroke? = null,
     rowEmbedded: (@Composable (rowIndex: Int, item: T) -> Unit)? = null,
     embedded: Boolean = false,
@@ -556,7 +560,7 @@ public fun <T : Any, C, E> Table(
     horizontalState: ScrollState = rememberScrollState(),
     icons: TableHeaderIcons = TableHeaderDefaults.icons(),
     columnMenu: ColumnMenuBuilder<C> = ColumnMenuDefaults.builder(),
-    shape: Shape = RoundedCornerShape(4.dp),
+    shape: Shape = MaterialTheme.shapes.extraSmall,
     border: BorderStroke? = null,
     rowEmbedded: (@Composable (rowIndex: Int, item: T) -> Unit)? = null,
     embedded: Boolean = false,
@@ -639,15 +643,15 @@ private fun ColumnScope.scrollAreaModifier(
 /**
  * Resolves the border stroke based on the provided border parameter and table defaults.
  */
-@Composable
 private fun resolveBorderStroke(
     border: BorderStroke?,
     dividerThickness: Dp,
+    color: Color,
 ): BorderStroke? =
     when {
         border == TableDefaults.NoBorder -> null
         border != null -> border
-        else -> BorderStroke(dividerThickness, MaterialTheme.colorScheme.outlineVariant)
+        else -> BorderStroke(dividerThickness, color)
     }
 
 /**
@@ -791,7 +795,7 @@ private fun <T : Any, C, E> PinnedFooterOverlay(
     val dimensions = state.dimensions
     Column(modifier = modifier) {
         if (state.settings.showRowDividers) {
-            HorizontalDivider(modifier = Modifier.width(state.tableWidth))
+            HorizontalDivider(modifier = Modifier.width(state.tableWidth), color = colors.dividerColor)
         }
         TableFooter(
             visibleColumns = visibleColumns,

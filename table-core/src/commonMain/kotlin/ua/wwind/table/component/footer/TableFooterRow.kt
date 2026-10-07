@@ -16,6 +16,7 @@ import ua.wwind.table.config.PinnedSide
 import ua.wwind.table.config.TableCellStyle
 import ua.wwind.table.config.TableDimensions
 import ua.wwind.table.state.calculatePinnedColumnState
+import ua.wwind.table.state.hasContentUnder
 
 @Composable
 internal fun <T : Any, C, E> TableFooterRow(
@@ -69,6 +70,8 @@ internal fun <T : Any, C, E> TableFooterRow(
                     !pinnedState.isLastBeforeRightPinned &&
                         (showVerticalDividers || pinnedState.isLastLeftPinned),
                 isPinned = pinnedState.isPinned,
+                pinnedEdge = pinnedState.edge,
+                hasContentUnderEdge = pinnedState.edge.hasContentUnder(horizontalState),
                 modifier =
                     Modifier
                         .zIndex(pinnedState.zIndex)

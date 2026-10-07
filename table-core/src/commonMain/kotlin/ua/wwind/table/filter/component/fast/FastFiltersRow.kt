@@ -1,5 +1,6 @@
 package ua.wwind.table.filter.component.fast
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,10 +27,13 @@ import androidx.compose.ui.zIndex
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.datetime.LocalDate
 import ua.wwind.table.ColumnSpec
+import ua.wwind.table.component.pinnedEdgeShadow
+import ua.wwind.table.config.currentTableColors
 import ua.wwind.table.filter.data.TableFilterState
 import ua.wwind.table.filter.data.TableFilterType
 import ua.wwind.table.state.TableState
 import ua.wwind.table.state.calculatePinnedColumnState
+import ua.wwind.table.state.hasContentUnder
 import ua.wwind.table.strings.StringProvider
 
 private const val FAST_FILTER_ROW_HEIGHT = 40
@@ -86,6 +90,8 @@ internal fun <T : Any, C, E> FastFiltersRow(
                         rowContainerColor
                     }
 
+                val shadowAlpha =
+                    animateFloatAsState(if (pinnedState.edge.hasContentUnder(horizontalState)) 1f else 0f)
                 Surface(
                     color = surfaceColor,
                     modifier =
@@ -93,7 +99,11 @@ internal fun <T : Any, C, E> FastFiltersRow(
                             .zIndex(pinnedState.zIndex)
                             .graphicsLayer {
                                 this.translationX = pinnedState.translationX
-                            },
+                            }.pinnedEdgeShadow(
+                                edge = pinnedState.edge,
+                                width = state.dimensions.pinnedColumnShadowWidth,
+                                alpha = { shadowAlpha.value },
+                            ),
                 ) {
                     val width = widthResolver(spec.key)
 
@@ -102,6 +112,7 @@ internal fun <T : Any, C, E> FastFiltersRow(
                             VerticalDivider(
                                 modifier = Modifier.fillMaxHeight(),
                                 thickness = state.dimensions.pinnedColumnDividerThickness,
+                                color = currentTableColors().pinnedDividerColor,
                             )
                         }
                         Box(
@@ -185,12 +196,14 @@ internal fun <T : Any, C, E> FastFiltersRow(
                                 VerticalDivider(
                                     modifier = Modifier.fillMaxHeight(),
                                     thickness = state.dimensions.pinnedColumnDividerThickness,
+                                    color = currentTableColors().pinnedDividerColor,
                                 )
                             }
                             if (state.settings.showVerticalDividers) {
                                 VerticalDivider(
                                     modifier = Modifier.fillMaxHeight(),
                                     thickness = state.dimensions.dividerThickness,
+                                    color = currentTableColors().dividerColor,
                                 )
                             }
                         }
@@ -202,6 +215,7 @@ internal fun <T : Any, C, E> FastFiltersRow(
             HorizontalDivider(
                 modifier = Modifier.width(state.tableWidth),
                 thickness = state.dimensions.dividerThickness,
+                color = currentTableColors().dividerColor,
             )
         }
     }

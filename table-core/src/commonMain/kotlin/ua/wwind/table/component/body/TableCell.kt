@@ -1,5 +1,6 @@
 package ua.wwind.table.component.body
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
@@ -24,7 +25,11 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import ua.wwind.table.component.pinnedEdgeShadow
 import ua.wwind.table.config.TableCellStyle
+import ua.wwind.table.config.currentTableColors
+import ua.wwind.table.state.PinnedEdge
+import ua.wwind.table.state.currentTableState
 
 @Composable
 internal fun TableCell(
@@ -43,19 +48,14 @@ internal fun TableCell(
     leftDividerThickness: Dp = dividerThickness,
     showRightDivider: Boolean = true,
     isPinned: Boolean = false,
+    /** The pinned-run edge this cell sits on; its right divider then takes the pinned color. */
+    pinnedEdge: PinnedEdge = PinnedEdge.None,
+    /** Whether content scrolls under [pinnedEdge], which fades in the edge shadow. */
+    hasContentUnderEdge: Boolean = false,
     content: @Composable BoxScope.() -> Unit,
 ) {
-    val selectionBorderModifier =
-        if (isSelected) {
-            Modifier.border(
-                2.dp,
-                // primary keeps the 3:1 contrast a focus indicator needs against the row containers.
-                if (isTableFocused) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
-                RoundedCornerShape(2.dp),
-            )
-        } else {
-            Modifier
-        }
+    val colors = currentTableColors()
+    val decorationModifier = cellDecoration(isSelected, isTableFocused, pinnedEdge, hasContentUnderEdge)
 
     // Resolve the content colour once. When the style leaves it Unspecified we re-provide the
     // ambient LocalContentColor, which is a no-op, so the slot renders exactly as before.
@@ -77,11 +77,12 @@ internal fun TableCell(
     // else overrides the column's alignment.
     val resolvedAlignment = if (cellStyle.alignment != Alignment.CenterStart) cellStyle.alignment else alignment
 
-    Row(modifier = modifier) {
+    Row(modifier = modifier.then(decorationModifier.shadow)) {
         if (showLeftDivider) {
             VerticalDivider(
                 modifier = (if (height != null) Modifier.height(height) else Modifier.fillMaxHeight()),
                 thickness = leftDividerThickness,
+                color = colors.pinnedDividerColor,
             )
         }
 
@@ -106,7 +107,7 @@ internal fun TableCell(
                         .width(width)
                         .then(if (height != null) Modifier.height(height) else Modifier.fillMaxHeight())
                         .then(cellStyle.modifier)
-                        .then(selectionBorderModifier),
+                        .then(decorationModifier.selectionBorder),
             ) {
                 Box(
                     modifier = Modifier.fillMaxHeight(),
@@ -130,7 +131,7 @@ internal fun TableCell(
                         .then(if (height != null) Modifier.height(height) else Modifier.fillMaxHeight())
                         .then(backgroundModifier)
                         .then(cellStyle.modifier)
-                        .then(selectionBorderModifier),
+                        .then(decorationModifier.selectionBorder),
                 contentAlignment = resolvedAlignment,
             ) {
                 cellContent()
@@ -141,9 +142,45 @@ internal fun TableCell(
             VerticalDivider(
                 modifier = (if (height != null) Modifier.height(height) else Modifier.fillMaxHeight()),
                 thickness = dividerThickness,
+                color = if (pinnedEdge == PinnedEdge.Right) colors.pinnedDividerColor else colors.dividerColor,
             )
         }
     }
+}
+
+/** Modifiers decorating a cell: the edge shadow goes on the whole cell, the border on its content box. */
+private class CellDecoration(
+    val shadow: Modifier,
+    val selectionBorder: Modifier,
+)
+
+@Composable
+private fun cellDecoration(
+    isSelected: Boolean,
+    isTableFocused: Boolean,
+    pinnedEdge: PinnedEdge,
+    hasContentUnderEdge: Boolean,
+): CellDecoration {
+    val dimensions = currentTableState().dimensions
+    val selectionBorder =
+        if (isSelected) {
+            Modifier.border(
+                dimensions.focusIndicatorWidth,
+                // primary keeps the 3:1 contrast a focus indicator needs against the row containers.
+                if (isTableFocused) currentTableColors().focusIndicatorColor else MaterialTheme.colorScheme.outline,
+                RoundedCornerShape(2.dp),
+            )
+        } else {
+            Modifier
+        }
+    val shadowAlpha = animateFloatAsState(if (hasContentUnderEdge) 1f else 0f)
+    val shadow =
+        Modifier.pinnedEdgeShadow(
+            edge = pinnedEdge,
+            width = dimensions.pinnedColumnShadowWidth,
+            alpha = { shadowAlpha.value },
+        )
+    return CellDecoration(shadow = shadow, selectionBorder = selectionBorder)
 }
 
 private val TabularFigures = TextStyle(fontFeatureSettings = "tnum")

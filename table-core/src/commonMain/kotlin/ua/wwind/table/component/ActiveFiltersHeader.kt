@@ -7,6 +7,7 @@ import androidx.compose.ui.Modifier
 import kotlinx.collections.immutable.ImmutableList
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.TableActiveFilters
+import ua.wwind.table.config.currentTableColors
 import ua.wwind.table.filter.data.isActive
 import ua.wwind.table.state.TableState
 import ua.wwind.table.strings.StringProvider
@@ -26,6 +27,6 @@ internal fun <T : Any, C, E> ActiveFiltersHeader(
             strings = strings,
             includeClearAllChip = true,
         )
-        HorizontalDivider()
+        HorizontalDivider(color = currentTableColors().dividerColor)
     }
 }

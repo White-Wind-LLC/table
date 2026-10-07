@@ -30,6 +30,18 @@ public data class TableDimensions(
     val columnDragHandleSize: Dp = 24.dp,
     /** Width of the bar marking the selected row at its leading edge; 0.dp hides it. */
     val selectionIndicatorWidth: Dp = 3.dp,
+    /** Horizontal padding around the header title and sort icon. */
+    val cellHorizontalPadding: Dp = 8.dp,
+    /** Gap after the header filter icon. */
+    val headerIconSpacing: Dp = 6.dp,
+    /** Glyph size of the column drag handle; [columnDragHandleSize] sets its pointer target. */
+    val dragHandleIconSize: Dp = 16.dp,
+    /** Stroke width of the keyboard focus ring and the selected cell border. */
+    val focusIndicatorWidth: Dp = 2.dp,
+    /** Width of the shadow cast over scrolled content at the pinned column edge; 0.dp hides it. */
+    val pinnedColumnShadowWidth: Dp = 6.dp,
+    /** Shadow elevation of a row or column while it is dragged. */
+    val dragElevation: Dp = 8.dp,
 ) {
     init {
         require(dividerThickness >= 1.dp) { "dividerThickness must be at least 1.dp" }
@@ -39,6 +51,12 @@ public data class TableDimensions(
         require(headerIconTargetSize >= 0.dp) { "headerIconTargetSize must not be negative" }
         require(columnDragHandleSize >= 0.dp) { "columnDragHandleSize must not be negative" }
         require(selectionIndicatorWidth >= 0.dp) { "selectionIndicatorWidth must not be negative" }
+        require(cellHorizontalPadding >= 0.dp) { "cellHorizontalPadding must not be negative" }
+        require(headerIconSpacing >= 0.dp) { "headerIconSpacing must not be negative" }
+        require(dragHandleIconSize >= 0.dp) { "dragHandleIconSize must not be negative" }
+        require(focusIndicatorWidth >= 0.dp) { "focusIndicatorWidth must not be negative" }
+        require(pinnedColumnShadowWidth >= 0.dp) { "pinnedColumnShadowWidth must not be negative" }
+        require(dragElevation >= 0.dp) { "dragElevation must not be negative" }
     }
 }
 
