@@ -34,6 +34,7 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.format
+import org.jetbrains.compose.resources.painterResource
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.component.TableCellTextField
 import ua.wwind.table.component.TableCellTextFieldWithTooltipError
@@ -99,7 +100,7 @@ fun createTableColumns(
                             modifier = Modifier.fillMaxSize().draggableHandle(),
                         ) {
                             Icon(
-                                imageVector = SampleIcons.Reorder,
+                                painter = painterResource(SampleIcons.Reorder),
                                 contentDescription = "Drag to reorder",
                                 modifier = Modifier.size(24.dp),
                             )
@@ -142,12 +143,12 @@ fun createTableColumns(
                     ) {
                         if (item.expandedMovement) {
                             Icon(
-                                imageVector = SampleIcons.ExpandLess,
+                                painter = painterResource(SampleIcons.ExpandLess),
                                 contentDescription = "Collapse movements",
                             )
                         } else {
                             Icon(
-                                imageVector = SampleIcons.ExpandMore,
+                                painter = painterResource(SampleIcons.ExpandMore),
                                 contentDescription = "Expand movements",
                             )
                         }
@@ -418,7 +419,7 @@ fun createTableColumns(
                     ) {
                         repeat(item.rating) {
                             Icon(
-                                imageVector = SampleIcons.Star,
+                                painter = painterResource(SampleIcons.Star),
                                 contentDescription = null,
                                 modifier = Modifier.size(16.dp),
                             )
@@ -510,7 +511,7 @@ fun createMovementColumns(
                         modifier = Modifier.fillMaxSize().draggableHandle(),
                     ) {
                         Icon(
-                            imageVector = SampleIcons.Reorder,
+                            painter = painterResource(SampleIcons.Reorder),
                             contentDescription = "Drag to reorder",
                             modifier = Modifier.size(20.dp),
                         )

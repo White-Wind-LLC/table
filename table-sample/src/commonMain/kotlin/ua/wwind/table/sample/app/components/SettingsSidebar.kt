@@ -31,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import org.jetbrains.compose.resources.painterResource
 import ua.wwind.table.config.PinnedSide
 import ua.wwind.table.sample.column.PersonColumn
 import ua.wwind.table.sample.icon.SampleIcons
@@ -78,7 +79,7 @@ fun SettingsSidebar(
                     fontWeight = FontWeight.Bold,
                 )
                 IconButton(onClick = onClose) {
-                    Icon(SampleIcons.Close, contentDescription = "Close settings")
+                    Icon(painterResource(SampleIcons.Close), contentDescription = "Close settings")
                 }
             }
 

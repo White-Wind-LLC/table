@@ -184,7 +184,7 @@ fun SampleApp(
                                     },
                             )
                             Icon(
-                                imageVector = SampleIcons.Edit,
+                                painter = painterResource(SampleIcons.Edit),
                                 contentDescription = "Rename group $blockId",
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.size(16.dp),
