@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import assertk.assertThat
 import assertk.assertions.containsExactly
 import assertk.assertions.isBetween
+import assertk.assertions.isGreaterThan
 import kotlinx.collections.immutable.persistentListOf
 import ua.wwind.table.config.TableSettings
 import ua.wwind.table.state.TableState
@@ -93,6 +94,7 @@ class TableBodyOverlayTest {
             }
             runOnIdle { horizontal.dispatchRawDelta(300f) }
             waitForIdle()
+            assertThat(horizontal.value).isGreaterThan(0)
             val bounds = onNodeWithText("centre").getBoundsInRoot()
             assertThat((bounds.left + bounds.right) / 2).isBetween(196.dp, 204.dp)
         }
