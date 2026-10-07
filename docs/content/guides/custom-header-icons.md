@@ -1,14 +1,15 @@
 # Custom header icons
 
-Customize sort/filter icons:
+Customize sort/filter icons. Each slot takes a `Painter`, so any icon source fits: a resource of your
+own, an `ImageVector` through `rememberVectorPainter`, or a bitmap:
 
 ```kotlin
 val icons = TableHeaderDefaults.icons(
-    sortAsc = MyUp,
-    sortDesc = MyDown,
-    sortNeutral = MySort,
-    filterActive = MyFilterFilled,
-    filterInactive = MyFilterOutline
+    sortAsc = painterResource(Res.drawable.my_up),
+    sortDesc = painterResource(Res.drawable.my_down),
+    sortNeutral = rememberVectorPainter(MySortVector),
+    filterActive = painterResource(Res.drawable.my_filter_filled),
+    filterInactive = painterResource(Res.drawable.my_filter_outline)
 )
 
 Table(
@@ -20,19 +21,25 @@ Table(
 )
 ```
 
-The defaults come from `TableIcons`, the icon set the library vendors so that it needs no icon
-dependency of its own. It is public, so you can reuse a `TableIcons` value even where it is not the
+The defaults come from `TableIcons`, the icon set the library ships as Compose resource files so that
+it needs no icon dependency of its own. Each `TableIcons` value is a `DrawableResource`; draw it with
+`painterResource`. It is public, so you can reuse a `TableIcons` value even where it is not the
 default for that slot — for example, showing the same solid funnel glyph for both filter states
 instead of switching to the outline variant when a filter is inactive:
 
 ```kotlin
+import org.jetbrains.compose.resources.painterResource
 import ua.wwind.table.icon.TableIcons
 
 val icons = TableHeaderDefaults.icons(
-    sortAsc = MyUp,
-    sortDesc = MyDown,
-    sortNeutral = MySort,
-    filterActive = TableIcons.FilterAltFilled,
-    filterInactive = TableIcons.FilterAltFilled
+    sortAsc = painterResource(Res.drawable.my_up),
+    sortDesc = painterResource(Res.drawable.my_down),
+    sortNeutral = painterResource(Res.drawable.my_sort),
+    filterActive = painterResource(TableIcons.FilterAltFilled),
+    filterInactive = painterResource(TableIcons.FilterAltFilled)
 )
 ```
+
+!!! note
+    On web (wasm and JS) Compose resources load asynchronously, so an icon can be blank for the
+    first frame after the table appears.
