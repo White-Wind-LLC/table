@@ -69,6 +69,7 @@ kotlin {
             implementation(libs.kermit)
             implementation(libs.liquid)
             implementation(libs.fastscroller.core)
+            implementation(libs.compose.components.resources)
         }
 
         commonTest.dependencies {
@@ -97,4 +98,10 @@ kotlin {
         iosMain.dependencies {
         }
     }
+}
+
+compose.resources {
+    packageOfResClass = "ua.wwind.table.sample.generated.resources"
+    publicResClass = false
+    generateResClass = always
 }
