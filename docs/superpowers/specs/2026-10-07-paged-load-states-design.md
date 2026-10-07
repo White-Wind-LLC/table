@@ -23,8 +23,8 @@ offers no retry and hardcodes "No data available"; the sample has no paging scre
 - **Core `bodyOverlay` slot.** The core table owns the geometry of the visible rows area, so it
   gets a generic overlay slot; the paging module feeds its indicator and error bar into it.
 - **paging-core fix.** `Pager.flow` currently emits `size = 0, Success` before its first load,
-  which would flash "No data". `Pager` regains an initial `Loading` state in paging-kmp (lost in
-  refactor `21418cb`, present in 2.2.5). The table does not depend on that release: it already
+  which would flash "No data". `Pager` gets an initial `Loading` state in paging-kmp, as
+  `StreamingPager` already has (since 2.2.5). The table does not depend on that release: it already
   treats `null` and `size == 0 && Loading` as loading.
 - Every change is additive; existing callers keep compiling. The new `UiString` keys break only a
   custom `StringProvider` with an exhaustive `when`, as #88 did.
