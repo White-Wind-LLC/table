@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ### Unreleased
 
+- Added: an `emptyContent` slot on `Table` for the no-data and no-results states, with a "Clear filters"
+  action; adds three `UiString` keys ([#88](https://github.com/White-Wind-LLC/table/issues/88)).
 - Fixed: in time zones west of UTC, the date filter and the date condition in the format dialog stored
   the day before the one picked. The picker reports the chosen day as UTC midnight, and the value was
   read back in the system time zone ([#72](https://github.com/White-Wind-LLC/table/issues/72)).

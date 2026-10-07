@@ -112,6 +112,9 @@ internal val DefaultRowKey: (Any?, Int) -> Any = { _, index -> index }
  * @param tableData current table data instance - accessible in headers, footers, and edit cells
  * @param modifier layout modifier for the whole table
  * @param placeholderRow optional row content shown when an item is null
+ * @param emptyContent body content shown while [itemsCount] is 0; header, fast filters and footer
+ * stay visible. Its [TableEmptyScope] tells whether filters are active and can clear them. Pass `{}`
+ * for a blank body — also while data is still loading, which an empty count cannot tell apart.
  * @param rowKey stable key for rows; defaults to index
  * @param onRowClick row primary action handler
  * @param onRowLongClick optional long-press handler
@@ -141,6 +144,7 @@ public fun <T : Any, C, E> EditableTable(
     tableData: E,
     modifier: Modifier = Modifier,
     placeholderRow: (@Composable () -> Unit)? = null,
+    emptyContent: @Composable TableEmptyScope.() -> Unit = TableDefaults.EmptyContent,
     rowKey: (item: T?, index: Int) -> Any = DefaultRowKey,
     /**
      * Row key by index, superseding [rowKey] wherever a key is needed; it must answer the same key.
@@ -210,6 +214,7 @@ public fun <T : Any, C, E> EditableTable(
     val showPinnedFooter = !embedded && state.settings.footerPinned && state.settings.showFooter
 
     var contextMenuState by remember { mutableStateOf(ContextMenuState<T>()) }
+    val emptyScope = remember(state) { TableStateEmptyScope(state) }
     val tableFocusRequester = remember { FocusRequester() }
     val coroutineScope = rememberCoroutineScope()
     val blockParentScrollConnection = rememberBlockParentScrollConnection()
@@ -308,6 +313,7 @@ public fun <T : Any, C, E> EditableTable(
                                     tableData = tableData,
                                     rowEmbedded = rowEmbedded,
                                     placeholderRow = placeholderRow,
+                                    emptyContent = { emptyScope.emptyContent() },
                                     onRowClick = onRowClick,
                                     onRowLongClick = onRowLongClick,
                                     onRowMove = effectiveOnRowMove,
@@ -392,6 +398,9 @@ public fun <T : Any, C, E> EditableTable(
  * @param columns list of visible/available column specifications
  * @param modifier layout modifier for the whole table
  * @param placeholderRow optional row content shown when an item is null
+ * @param emptyContent body content shown while [itemsCount] is 0; header, fast filters and footer
+ * stay visible. Its [TableEmptyScope] tells whether filters are active and can clear them. Pass `{}`
+ * for a blank body — also while data is still loading, which an empty count cannot tell apart.
  * @param rowKey stable key for rows; defaults to index
  * @param onRowClick row primary action handler
  * @param onRowLongClick optional long-press handler
@@ -420,6 +429,7 @@ public fun <T : Any, C> Table(
     columns: ImmutableList<ColumnSpec<T, C, Unit>>,
     modifier: Modifier = Modifier,
     placeholderRow: (@Composable () -> Unit)? = null,
+    emptyContent: @Composable TableEmptyScope.() -> Unit = TableDefaults.EmptyContent,
     rowKey: (item: T?, index: Int) -> Any = DefaultRowKey,
     /**
      * Row key by index, superseding [rowKey] wherever a key is needed; it must answer the same key.
@@ -459,6 +469,7 @@ public fun <T : Any, C> Table(
         tableData = Unit,
         modifier = modifier,
         placeholderRow = placeholderRow,
+        emptyContent = emptyContent,
         rowKey = rowKey,
         rowKeyAt = rowKeyAt,
         onRowClick = onRowClick,
@@ -505,6 +516,9 @@ public fun <T : Any, C> Table(
  * @param tableData current table data instance - accessible in headers, footers, and edit cells
  * @param modifier layout modifier for the whole table
  * @param placeholderRow optional row content shown when an item is null
+ * @param emptyContent body content shown while [itemsCount] is 0; header, fast filters and footer
+ * stay visible. Its [TableEmptyScope] tells whether filters are active and can clear them. Pass `{}`
+ * for a blank body — also while data is still loading, which an empty count cannot tell apart.
  * @param rowKey stable key for rows; defaults to index
  * @param onRowClick row primary action handler
  * @param onRowLongClick optional long-press handler
@@ -534,6 +548,7 @@ public fun <T : Any, C, E> Table(
     tableData: E,
     modifier: Modifier = Modifier,
     placeholderRow: (@Composable () -> Unit)? = null,
+    emptyContent: @Composable TableEmptyScope.() -> Unit = TableDefaults.EmptyContent,
     rowKey: (item: T?, index: Int) -> Any = DefaultRowKey,
     /**
      * Row key by index, superseding [rowKey] wherever a key is needed; it must answer the same key.
@@ -573,6 +588,7 @@ public fun <T : Any, C, E> Table(
         tableData = tableData,
         modifier = modifier,
         placeholderRow = placeholderRow,
+        emptyContent = emptyContent,
         rowKey = rowKey,
         rowKeyAt = rowKeyAt,
         onRowClick = onRowClick,
@@ -702,6 +718,7 @@ private fun <T : Any, C, E> TableBodySection(
     tableData: E,
     rowEmbedded: (@Composable (rowIndex: Int, item: T) -> Unit)?,
     placeholderRow: (@Composable () -> Unit)?,
+    emptyContent: @Composable () -> Unit,
     onRowClick: ((T) -> Unit)?,
     onRowLongClick: ((T) -> Unit)?,
     onRowMove: ((fromIndex: Int, toIndex: Int) -> Unit)?,
@@ -730,6 +747,7 @@ private fun <T : Any, C, E> TableBodySection(
                 tableData = tableData,
                 rowEmbedded = rowEmbedded,
                 placeholderRow = placeholderRow,
+                emptyContent = emptyContent,
                 onRowClick = onRowClick,
                 onRowLongClick = onRowLongClick,
                 onRowMove = onRowMove,
@@ -751,6 +769,7 @@ private fun <T : Any, C, E> TableBodySection(
                 customization = customization,
                 tableData = tableData,
                 placeholderRow = placeholderRow,
+                emptyContent = emptyContent,
                 onRowClick = onRowClick,
                 onRowLongClick = onRowLongClick,
                 onRowMove = onRowMove,

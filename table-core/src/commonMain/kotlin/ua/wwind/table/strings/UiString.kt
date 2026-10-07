@@ -180,6 +180,13 @@ public sealed class UiString {
 
     // Tooltip actions
     public object TooltipDismiss : UiString()
+
+    // Empty state
+    public object EmptyNoData : UiString()
+
+    public object EmptyNoResults : UiString()
+
+    public object EmptyClearFilters : UiString()
 }
 
 /**
@@ -377,5 +384,12 @@ public object DefaultStrings : StringProvider {
 
             // Tooltip actions
             UiString.TooltipDismiss -> "Dismiss"
+
+            // Empty state
+            UiString.EmptyNoData -> "No data"
+
+            UiString.EmptyNoResults -> "No results match the current filters"
+
+            UiString.EmptyClearFilters -> "Clear filters"
         }
 }

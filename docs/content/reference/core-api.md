@@ -2,7 +2,8 @@
 
 - **Composable `Table<T, C>`**: renders header and virtualized rows for read-only tables (tableData = Unit).
     - **Required**: `itemsCount`, `itemAt(index)`, `state: TableState<C>`, `columns: List<ColumnSpec<T, C, Unit>>`.
-    - **Slots**: `placeholderRow()`.
+    - **Slots**: `placeholderRow()`, `emptyContent` (body shown while `itemsCount` is 0 — see
+      [Empty state](../guides/filters.md#empty-state)).
     - **UX**: `onRowClick`, `onRowLongClick`, `onRowMove`, `rowBlocks` (supersedes `onRowMove` — see Row blocks
       below), `contextMenu(item, pos, dismiss)`.
     - **Look**: `customization`, `colors = TableDefaults.colors()`, `typography = TableDefaults.typography()`, `icons = TableHeaderDefaults.icons()` (defaults

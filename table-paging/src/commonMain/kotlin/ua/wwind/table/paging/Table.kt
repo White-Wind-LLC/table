@@ -22,6 +22,7 @@ import ua.wwind.paging.core.getOrNull
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.RowBlocks
 import ua.wwind.table.Table
+import ua.wwind.table.TableEmptyScope
 import ua.wwind.table.component.ColumnMenuBuilder
 import ua.wwind.table.component.ColumnMenuDefaults
 import ua.wwind.table.component.TableHeaderDefaults
@@ -41,6 +42,9 @@ import ua.wwind.table.strings.StringProvider
  * internal to another module — so the adapter must recognize its default and warn itself.
  */
 private val DefaultPagedRowKey: (Any?, Int) -> Any = { _, index -> index }
+
+/** Body of a table whose first page is still loading: an empty count there is not "no data". */
+private val NoEmptyContent: @Composable TableEmptyScope.() -> Unit = {}
 
 /**
  * Mirrors the core table's rowKey guard on the paged surface: `RowBlockMove` anchors are row keys,
@@ -104,6 +108,8 @@ private fun <T : Any> rememberPagedRowKeyAt(
  * @param tableData current table data instance - accessible in headers, footers, and edit cells
  * @param modifier layout modifier for the whole table
  * @param placeholderRow optional row content shown when an item is null
+ * @param emptyContent body content shown once [items] has loaded with no rows; never while [items]
+ * is null (still loading). See [TableEmptyScope].
  * @param rowKey stable key for rows; defaults to index
  * @param onRowClick row primary action handler
  * @param onRowLongClick optional long-press handler
@@ -135,6 +141,7 @@ public fun <T : Any, C, E> Table(
     tableData: E,
     modifier: Modifier = Modifier,
     placeholderRow: (@Composable () -> Unit)? = null,
+    emptyContent: @Composable TableEmptyScope.() -> Unit = TableDefaults.EmptyContent,
     rowKey: (item: T?, index: Int) -> Any = DefaultPagedRowKey,
     onRowClick: ((T) -> Unit)? = null,
     onRowLongClick: ((T) -> Unit)? = null,
@@ -164,6 +171,7 @@ public fun <T : Any, C, E> Table(
         tableData = tableData,
         modifier = modifier,
         placeholderRow = placeholderRow,
+        emptyContent = if (items == null) NoEmptyContent else emptyContent,
         rowKey = rowKey,
         rowKeyAt = rowKeyAt,
         onRowClick = onRowClick,
@@ -201,6 +209,8 @@ public fun <T : Any, C, E> Table(
  * @param columns list of visible/available column specifications
  * @param modifier layout modifier for the whole table
  * @param placeholderRow optional row content shown when an item is null
+ * @param emptyContent body content shown once [items] has loaded with no rows; never while [items]
+ * is null (still loading). See [TableEmptyScope].
  * @param rowKey stable key for rows; defaults to index
  * @param onRowClick row primary action handler
  * @param onRowLongClick optional long-press handler
@@ -231,6 +241,7 @@ public fun <T : Any, C> Table(
     columns: ImmutableList<ColumnSpec<T, C, Unit>>,
     modifier: Modifier = Modifier,
     placeholderRow: (@Composable () -> Unit)? = null,
+    emptyContent: @Composable TableEmptyScope.() -> Unit = TableDefaults.EmptyContent,
     rowKey: (item: T?, index: Int) -> Any = DefaultPagedRowKey,
     onRowClick: ((T) -> Unit)? = null,
     onRowLongClick: ((T) -> Unit)? = null,
@@ -259,6 +270,7 @@ public fun <T : Any, C> Table(
         columns = columns,
         modifier = modifier,
         placeholderRow = placeholderRow,
+        emptyContent = if (items == null) NoEmptyContent else emptyContent,
         rowKey = rowKey,
         rowKeyAt = rowKeyAt,
         onRowClick = onRowClick,

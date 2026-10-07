@@ -7,6 +7,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
+import ua.wwind.table.DefaultTableEmptyContent
+import ua.wwind.table.TableEmptyScope
 
 public object TableDefaults {
     /**
@@ -14,6 +16,12 @@ public object TableDefaults {
      * Pass this to the border parameter to hide the outer border.
      */
     public val NoBorder: BorderStroke = BorderStroke(0.dp, Color.Transparent)
+
+    /**
+     * Default body content of a table with no rows: "No data", or — while a filter is active —
+     * "No results match the current filters" with a button that clears them.
+     */
+    public val EmptyContent: @Composable TableEmptyScope.() -> Unit = { DefaultTableEmptyContent() }
 
     /**
      * Convenience factory for default [TableColors] derived from [androidx.compose.material3.MaterialTheme].

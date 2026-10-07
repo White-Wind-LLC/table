@@ -15,6 +15,9 @@ fun PeoplePagingTable(paging: PagingData<Person>) {
 
 There is also `LazyListScope.handleLoadState(...)` to render loading/empty states.
 
+The table's `emptyContent` slot (see [Empty state](../guides/filters.md#empty-state)) shows once `items` has
+loaded with no rows; while `items` is null it stays hidden.
+
 ## Row keys never move the pager
 
 `PagingMap.get` is what tells a pager where the viewport is, and a lazy list asks for row keys over a

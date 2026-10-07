@@ -25,3 +25,30 @@ val filtered = remember(items, state.filters) {
     }
 }
 ```
+
+## Empty state
+
+While `itemsCount` is 0 the body shows `emptyContent`; the header, fast filters and footer stay visible.
+The default (`TableDefaults.EmptyContent`) says "No data", or — while a filter is active — "No results match the
+current filters" with a **Clear filters** button. Replace it through `TableEmptyScope`, which exposes `isFiltered`
+and `clearFilters()` (removes every entry from `state.filters`):
+
+```kotlin
+Table(
+    itemsCount = filtered.size,
+    itemAt = { filtered.getOrNull(it) },
+    state = state,
+    columns = columns,
+    emptyContent = {
+        if (isFiltered) {
+            TextButton(onClick = ::clearFilters) { Text("Nothing found — reset filters") }
+        } else {
+            Text("No orders yet")
+        }
+    },
+)
+```
+
+An empty count cannot tell "no data" from "still loading": pass `emptyContent = {}` while your data loads. The
+paging `Table` does this for you while `items` is null. Texts come from the `UiString.EmptyNoData`,
+`EmptyNoResults` and `EmptyClearFilters` keys.
