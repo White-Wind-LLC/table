@@ -28,6 +28,20 @@ public sealed class UiString {
 
     public object FilterRangeIconDescription : UiString()
 
+    // Field labels
+    public object FilterConditionLabel : UiString()
+
+    public object FilterValueLabel : UiString()
+
+    public object FilterDateLabel : UiString()
+
+    // Inline input errors
+    public object FilterErrorInvalidNumber : UiString()
+
+    public object FilterErrorRangeIncomplete : UiString()
+
+    public object FilterErrorRangeInverted : UiString()
+
     // Date picker
     public object DatePickerSelectDate : UiString()
 
@@ -240,6 +254,20 @@ public object DefaultStrings : StringProvider {
             UiString.FilterRangeToPlaceholder -> "To"
 
             UiString.FilterRangeIconDescription -> "Range"
+
+            // Field labels
+            UiString.FilterConditionLabel -> "Condition"
+
+            UiString.FilterValueLabel -> "Value"
+
+            UiString.FilterDateLabel -> "Date"
+
+            // Inline input errors
+            UiString.FilterErrorInvalidNumber -> "Enter a valid number"
+
+            UiString.FilterErrorRangeIncomplete -> "Enter both values"
+
+            UiString.FilterErrorRangeInverted -> "From must not be greater than To"
 
             // Date picker
             UiString.DatePickerSelectDate -> "Select Date"

@@ -38,11 +38,13 @@ internal fun TextFilter(
         getTitle = { c -> strings.get(c.toUiString()) },
         values = filter.constraints,
         onClick = { textFilterState.onConstraintChange(it) },
+        label = strings.get(UiString.FilterConditionLabel),
     )
     if (showTextField) {
         TableTextField(
             value = textFilterState.text,
             onValueChange = { textFilterState.onTextChange(it) },
+            label = { Text(strings.get(UiString.FilterValueLabel), maxLines = 1) },
             placeholder = { Text(strings.get(UiString.FilterSearchPlaceholder)) },
             singleLine = true,
         )

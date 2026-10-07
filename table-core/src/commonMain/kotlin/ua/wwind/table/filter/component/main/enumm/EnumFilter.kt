@@ -45,6 +45,7 @@ internal fun <E : Enum<E>> EnumFilter(
         onClick = { filterConstraint ->
             enumFilterState.onConstraintChange(filterConstraint)
         },
+        label = strings.get(UiString.FilterConditionLabel),
     )
 
     when (enumFilterState.constraint) {

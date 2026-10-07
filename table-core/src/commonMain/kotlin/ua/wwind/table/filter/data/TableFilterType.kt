@@ -3,6 +3,7 @@ package ua.wwind.table.filter.data
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
+import androidx.compose.ui.text.input.KeyboardType
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.datetime.LocalDate
@@ -49,6 +50,12 @@ public sealed class TableFilterType<T>(
             public val regex: Regex
             public val default: T
 
+            /**
+             * Software keyboard for the filter's number fields. Defaults to [KeyboardType.Decimal].
+             * The iOS number pads have no minus key, so negative values can't be typed there.
+             */
+            public val keyboardType: KeyboardType get() = KeyboardType.Decimal
+
             public fun parse(input: String): T?
 
             public fun format(value: T): String
@@ -67,6 +74,7 @@ public sealed class TableFilterType<T>(
         public object IntDelegate : NumberFilterDelegate<Int> {
             public override val regex: Regex = Regex("^-?\\d*$")
             public override val default: Int = 0
+            public override val keyboardType: KeyboardType = KeyboardType.Number
 
             public override fun parse(input: String): Int? = input.toIntOrNull()
 

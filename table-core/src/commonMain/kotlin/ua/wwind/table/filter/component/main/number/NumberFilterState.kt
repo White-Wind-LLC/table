@@ -28,14 +28,16 @@ internal data class NumberFilterState<T : Number>(
     val secondText: String,
     val constraint: FilterConstraint,
     val isEditing: Boolean,
-    val isError: Boolean,
+    val error: NumberInputError?,
     val onTextChange: (String) -> Unit,
     val onSecondTextChange: (String) -> Unit,
     val onConstraintChange: (FilterConstraint) -> Unit,
     val applyFilter: () -> Unit,
     val clearFilter: () -> Unit,
     val delegate: TableFilterType.NumberTableFilter.NumberFilterDelegate<T>,
-)
+) {
+    val isError: Boolean get() = error != null
+}
 
 /**
  * Shared state management for number filters using Derived State Pattern.
@@ -123,7 +125,7 @@ internal fun <T : Number> rememberNumberFilterState(
             secondText = editingSecondText,
             constraint = editingConstraint,
             isEditing = isEditing,
-            isError = emission is FilterEmission.Invalid,
+            error = numberInputError(editingText, editingSecondText, editingConstraint, filter.delegate),
             onTextChange = { newText ->
                 if (newText.matches(filter.delegate.regex)) {
                     editingText = newText
@@ -206,5 +208,42 @@ internal fun <T : Number> resolveNumberFilter(
                 else -> FilterEmission.Invalid
             }
         }
+    }
+}
+
+/** Why number-filter input can't be applied; shown as inline text under the fields. */
+internal enum class NumberInputError {
+    /** A field holds text that doesn't parse as a number, such as a lone `-`. */
+    InvalidNumber,
+
+    /** Only one bound of a BETWEEN range is filled in. */
+    RangeIncomplete,
+
+    /** The BETWEEN range's From is greater than its To. */
+    RangeInverted,
+}
+
+/**
+ * Explains why [resolveNumberFilter] returns [FilterEmission.Invalid] for the same input, or returns
+ * null when the input is valid or empty.
+ */
+internal fun <T : Number> numberInputError(
+    text: String,
+    secondText: String,
+    constraint: FilterConstraint,
+    delegate: TableFilterType.NumberTableFilter.NumberFilterDelegate<T>,
+): NumberInputError? {
+    if (constraint.isNullCheck()) return null
+    val first = delegate.parse(text)
+    val second = delegate.parse(secondText)
+    val isBetween = constraint == FilterConstraint.BETWEEN
+    return when {
+        text.isNotBlank() && first == null -> NumberInputError.InvalidNumber
+        !isBetween -> null
+        secondText.isNotBlank() && second == null -> NumberInputError.InvalidNumber
+        text.isBlank() && secondText.isBlank() -> null
+        first == null || second == null -> NumberInputError.RangeIncomplete
+        !delegate.compare(first, second) -> NumberInputError.RangeInverted
+        else -> null
     }
 }
