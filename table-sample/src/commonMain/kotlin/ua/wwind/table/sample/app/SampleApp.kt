@@ -381,36 +381,38 @@ fun SampleApp(
                             }
 
                             // Floating selection action bar at the bottom with Liquid Glass effect
-                            SelectionActionBar(
-                                selectedCount = tableData.selectedIds.size,
-                                onDeleteClick = {
-                                    viewModel.onEvent(SampleUiEvent.DeleteSelected)
-                                },
-                                onClearSelection = {
-                                    viewModel.onEvent(SampleUiEvent.ClearSelection)
-                                },
-                                liquidState = liquidState,
-                                // Gated on the blocks toggle: with blocks off `rowBlocks` is null,
-                                // so grouping would change nothing visible and look broken.
-                                canGroup =
-                                    tableConfig.enableRowBlocks &&
-                                        tableData.selectedIds.size >= 2,
-                                onGroupClick = {
-                                    viewModel.onEvent(SampleUiEvent.GroupSelected)
-                                },
-                                canUngroup =
-                                    tableConfig.enableRowBlocks &&
-                                        tableData.displayedPeople.any {
-                                            it.id in tableData.selectedIds && it.groupId != null
-                                        },
-                                onUngroupClick = {
-                                    viewModel.onEvent(SampleUiEvent.UngroupSelected)
-                                },
-                                modifier =
-                                    Modifier
-                                        .align(Alignment.BottomCenter)
-                                        .padding(16.dp),
-                            )
+                            if (!pagingDemo) {
+                                SelectionActionBar(
+                                    selectedCount = tableData.selectedIds.size,
+                                    onDeleteClick = {
+                                        viewModel.onEvent(SampleUiEvent.DeleteSelected)
+                                    },
+                                    onClearSelection = {
+                                        viewModel.onEvent(SampleUiEvent.ClearSelection)
+                                    },
+                                    liquidState = liquidState,
+                                    // Gated on the blocks toggle: with blocks off `rowBlocks` is null,
+                                    // so grouping would change nothing visible and look broken.
+                                    canGroup =
+                                        tableConfig.enableRowBlocks &&
+                                            tableData.selectedIds.size >= 2,
+                                    onGroupClick = {
+                                        viewModel.onEvent(SampleUiEvent.GroupSelected)
+                                    },
+                                    canUngroup =
+                                        tableConfig.enableRowBlocks &&
+                                            tableData.displayedPeople.any {
+                                                it.id in tableData.selectedIds && it.groupId != null
+                                            },
+                                    onUngroupClick = {
+                                        viewModel.onEvent(SampleUiEvent.UngroupSelected)
+                                    },
+                                    modifier =
+                                        Modifier
+                                            .align(Alignment.BottomCenter)
+                                            .padding(16.dp),
+                                )
+                            }
                         }
                     }
                 }
