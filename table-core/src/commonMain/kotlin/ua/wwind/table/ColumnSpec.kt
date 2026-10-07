@@ -30,7 +30,7 @@ import ua.wwind.table.filter.data.TableFilterType
  * @param minWidth minimal width when resizable
  * @param autoWidth whether to auto-fit width to measured content after first render
  * @param autoMaxWidth optional cap for auto-fitted width
- * @param alignment alignment for cell content
+ * @param alignment alignment for cell content; the header follows it unless [headerAlignment] is set
  * @param minRowHeight optional minimal row height when table uses dynamic row height
  * @param maxRowHeight optional maximal row height when table uses dynamic row height
  * @param filter optional filter type provided by this column
@@ -78,6 +78,10 @@ public data class ColumnSpec<T : Any, C, E>(
     val editCell: (@Composable BoxScope.(T, E, onComplete: () -> Unit) -> Unit)? = null,
     /** Optional composable content for the footer cell; receives table state data */
     val footer: (@Composable BoxScope.(E) -> Unit)? = null,
+    /** Optional alignment for header content; null follows [alignment]. */
+    val headerAlignment: Alignment? = null,
+    /** Whether body and footer cells render digits with tabular (fixed-width) figures. */
+    val tabularFigures: Boolean = false,
 )
 
 /** DSL builder for a list of readonly [ColumnSpec]. */
@@ -142,6 +146,8 @@ public open class ReadonlyColumnBuilder<T : Any, C, E>
         protected var autoWidth: Boolean = false
         protected var autoMaxWidth: Dp? = null
         protected var alignment: Alignment = Alignment.CenterStart
+        protected var headerAlignment: Alignment? = null
+        protected var tabularFigures: Boolean = false
         protected var minRowHeight: Dp? = null
         protected var maxRowHeight: Dp? = null
         protected var filter: TableFilterType<*>? = null
@@ -222,9 +228,20 @@ public open class ReadonlyColumnBuilder<T : Any, C, E>
             autoMaxWidth = max
         }
 
-        /** Set alignment for cell content. */
+        /** Set alignment for cell content. The header follows it unless [headerAlign] overrides it. */
         public fun align(alignment: Alignment) {
             this.alignment = alignment
+        }
+
+        /** Set alignment for header content, overriding the column's [align]. */
+        public fun headerAlign(alignment: Alignment) {
+            headerAlignment = alignment
+        }
+
+        /** Mark the column as numeric: content aligns to the end and digits use tabular figures. */
+        public fun numeric() {
+            alignment = Alignment.CenterEnd
+            tabularFigures = true
         }
 
         /**
@@ -279,6 +296,8 @@ public open class ReadonlyColumnBuilder<T : Any, C, E>
                 autoWidth = autoWidth,
                 autoMaxWidth = autoMaxWidth,
                 alignment = alignment,
+                headerAlignment = headerAlignment,
+                tabularFigures = tabularFigures,
                 minRowHeight = minRowHeight,
                 maxRowHeight = maxRowHeight,
                 filter = filter,

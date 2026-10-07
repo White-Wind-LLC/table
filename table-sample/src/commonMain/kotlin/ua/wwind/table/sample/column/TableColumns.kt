@@ -200,7 +200,7 @@ fun createTableColumns(
                 autoWidth()
                 sortable()
                 filterTypes[PersonColumn.AGE]?.let { filter(it) }
-                align(Alignment.CenterEnd)
+                numeric()
                 cell { item, _ ->
                     Text(
                         item.age.toString(),
@@ -265,7 +265,7 @@ fun createTableColumns(
                 title { "ID" }
                 autoWidth()
                 sortable()
-                align(Alignment.CenterEnd)
+                numeric()
                 cell { item, _ ->
                     Text(
                         item.id.toString(),
@@ -360,7 +360,7 @@ fun createTableColumns(
                 sortable()
                 // Custom visual range filter with histogram - uses tableData internally
                 filter(createSalaryRangeFilter())
-                align(Alignment.CenterEnd)
+                numeric()
                 cell { item, _ ->
                     Text(
                         "$${item.salary}",

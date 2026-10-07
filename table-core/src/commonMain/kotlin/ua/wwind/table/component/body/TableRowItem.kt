@@ -291,6 +291,7 @@ private fun <C, T : Any, E> RenderTableRowItem(
                 dividerThickness = appearance.dividerThickness,
                 cellStyle = appearance.cellStyle,
                 alignment = spec.alignment,
+                tabularFigures = spec.tabularFigures,
                 isSelected = isCellSelected,
                 isTableFocused = state.isFocused,
                 showLeftDivider = pinnedState.isFirstRightPinned,
