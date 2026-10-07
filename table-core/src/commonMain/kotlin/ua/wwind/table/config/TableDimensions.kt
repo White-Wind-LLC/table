@@ -28,6 +28,8 @@ public data class TableDimensions(
     val headerIconTargetSize: Dp = defaultHeaderIconTargetSize(),
     /** Pointer target of the column drag handle shown while the header is hovered. */
     val columnDragHandleSize: Dp = 24.dp,
+    /** Width of the bar marking the selected row at its leading edge; 0.dp hides it. */
+    val selectionIndicatorWidth: Dp = 3.dp,
 ) {
     init {
         require(dividerThickness >= 1.dp) { "dividerThickness must be at least 1.dp" }
@@ -36,6 +38,7 @@ public data class TableDimensions(
         require(columnResizeHandleWidth >= 0.dp) { "columnResizeHandleWidth must not be negative" }
         require(headerIconTargetSize >= 0.dp) { "headerIconTargetSize must not be negative" }
         require(columnDragHandleSize >= 0.dp) { "columnDragHandleSize must not be negative" }
+        require(selectionIndicatorWidth >= 0.dp) { "selectionIndicatorWidth must not be negative" }
     }
 }
 

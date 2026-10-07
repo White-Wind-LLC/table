@@ -38,6 +38,10 @@ All notable changes to this project will be documented in this file.
 - Changed: the new `columnMenu` parameter of `Table`, `EditableTable` and paging `Table` and the new
   `TableSettings.showColumnMenuButton` change JVM signatures; recompile code built against 2.4.x
   ([#82](https://github.com/White-Wind-LLC/table/issues/82)).
+- Changed: new defaults change how tables look: the selected row is `secondaryContainer` with a leading indicator
+  bar, striped rows are `surfaceContainerLow`, and a new `typography` parameter (`TableDefaults.typography()`)
+  styles header, body, footer and group rows; it changes JVM signatures
+  ([#85](https://github.com/White-Wind-LLC/table/issues/85)).
 
 ### 2.4.1 — 2026-09-26
 

@@ -5,6 +5,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 
 public object TableDefaults {
@@ -26,14 +27,16 @@ public object TableDefaults {
         headerContentColor: Color =
             MaterialTheme.colorScheme.contentColorFor(headerContainerColor),
         rowContainerColor: Color = MaterialTheme.colorScheme.surface,
-        rowSelectedContainerColor: Color = MaterialTheme.colorScheme.tertiary,
-        stripedRowContainerColor: Color = MaterialTheme.colorScheme.surfaceContainerLowest,
+        rowSelectedContainerColor: Color = MaterialTheme.colorScheme.secondaryContainer,
+        stripedRowContainerColor: Color = MaterialTheme.colorScheme.surfaceContainerLow,
         groupContainerColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh,
         footerContainerColor: Color = MaterialTheme.colorScheme.surfaceContainer,
         footerContentColor: Color =
             MaterialTheme.colorScheme.contentColorFor(footerContainerColor),
         /** Kept [Color.Unspecified] here too: the band color resolves at draw for every construction path. */
         rowBlockContainerColor: Color = Color.Unspecified,
+        /** Leading bar marking the selected row, so selection does not rely on the container color alone. */
+        rowSelectedIndicatorColor: Color = MaterialTheme.colorScheme.primary,
     ): TableColors =
         TableColors(
             headerContainerColor = headerContainerColor,
@@ -45,7 +48,17 @@ public object TableDefaults {
             rowBlockContainerColor = rowBlockContainerColor,
             footerContainerColor = footerContainerColor,
             footerContentColor = footerContentColor,
+            rowSelectedIndicatorColor = rowSelectedIndicatorColor,
         )
+
+    /** Default [TableTypography] derived from [androidx.compose.material3.MaterialTheme.typography]. */
+    @Composable
+    public fun typography(
+        header: TextStyle = MaterialTheme.typography.titleSmall,
+        body: TextStyle = MaterialTheme.typography.bodyMedium,
+        footer: TextStyle = MaterialTheme.typography.labelLarge,
+        groupHeader: TextStyle = MaterialTheme.typography.titleSmall,
+    ): TableTypography = TableTypography(header = header, body = body, footer = footer, groupHeader = groupHeader)
 
     /** Standard dimensions for table with comfortable spacing and sizes. */
     public fun standardDimensions(): TableDimensions =

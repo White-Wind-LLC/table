@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -56,9 +57,11 @@ import ua.wwind.table.component.body.TableBodyEmbedded
 import ua.wwind.table.component.erased
 import ua.wwind.table.component.footer.TableFooter
 import ua.wwind.table.config.DefaultTableCustomization
+import ua.wwind.table.config.LocalTableTypography
 import ua.wwind.table.config.TableColors
 import ua.wwind.table.config.TableCustomization
 import ua.wwind.table.config.TableDefaults
+import ua.wwind.table.config.TableTypography
 import ua.wwind.table.config.isInteractionLockByRowReorderEnabled
 import ua.wwind.table.interaction.ApplyAutoWidthEffect
 import ua.wwind.table.interaction.ApplyAutoWidthEmbeddedEffect
@@ -113,6 +116,7 @@ internal val DefaultRowKey: (Any?, Int) -> Any = { _, index -> index }
  * @param contextMenu optional context menu host, invoked with item and absolute position
  * @param customization styling hooks for rows and cells
  * @param colors container/content colors
+ * @param typography text styles of the header, body, footer and group rows
  * @param strings string provider for UI text
  * @param verticalState list scroll state
  * @param horizontalState horizontal scroll state of the whole table
@@ -155,6 +159,7 @@ public fun <T : Any, C, E> EditableTable(
     contextMenu: (@Composable (item: T, pos: Offset, dismiss: () -> Unit) -> Unit)? = null,
     customization: TableCustomization<T, C> = DefaultTableCustomization(),
     colors: TableColors = TableDefaults.colors(),
+    typography: TableTypography = TableDefaults.typography(),
     strings: StringProvider = DefaultStrings,
     verticalState: LazyListState = rememberLazyListState(),
     horizontalState: ScrollState = rememberScrollState(),
@@ -217,6 +222,7 @@ public fun <T : Any, C, E> EditableTable(
         LocalTableState provides state,
         LocalStringProvider provides strings,
         LocalColumnMenuBuilder provides columnMenu.erased(),
+        LocalTableTypography provides typography,
     ) {
         EnsureSelectedCellVisibleEffect(
             visibleColumns = visibleColumns,
@@ -284,31 +290,33 @@ public fun <T : Any, C, E> EditableTable(
                         )
 
                         val bodyContent: @Composable () -> Unit = {
-                            TableBodySection(
-                                embedded = embedded,
-                                itemsCount = itemsCount,
-                                itemAt = effectiveItemAt,
-                                rowKey = effectiveRowKey,
-                                rowKeyAt = effectiveRowKeyAt,
-                                visibleColumns = visibleColumns,
-                                state = state,
-                                colors = colors,
-                                customization = customization,
-                                tableData = tableData,
-                                rowEmbedded = rowEmbedded,
-                                placeholderRow = placeholderRow,
-                                onRowClick = onRowClick,
-                                onRowLongClick = onRowLongClick,
-                                onRowMove = effectiveOnRowMove,
-                                blocks = activeBlocks,
-                                onContextMenu = onContextMenuHandler,
-                                rowUnits = rowUnits,
-                                verticalState = verticalState,
-                                horizontalState = horizontalState,
-                                requestTableFocus = { tableFocusRequester.requestFocus() },
-                                enableScrolling = enableScrolling,
-                                pinnedFooterHeight = pinnedFooterHeight,
-                            )
+                            ProvideTextStyle(typography.body) {
+                                TableBodySection(
+                                    embedded = embedded,
+                                    itemsCount = itemsCount,
+                                    itemAt = effectiveItemAt,
+                                    rowKey = effectiveRowKey,
+                                    rowKeyAt = effectiveRowKeyAt,
+                                    visibleColumns = visibleColumns,
+                                    state = state,
+                                    colors = colors,
+                                    customization = customization,
+                                    tableData = tableData,
+                                    rowEmbedded = rowEmbedded,
+                                    placeholderRow = placeholderRow,
+                                    onRowClick = onRowClick,
+                                    onRowLongClick = onRowLongClick,
+                                    onRowMove = effectiveOnRowMove,
+                                    blocks = activeBlocks,
+                                    onContextMenu = onContextMenuHandler,
+                                    rowUnits = rowUnits,
+                                    verticalState = verticalState,
+                                    horizontalState = horizontalState,
+                                    requestTableFocus = { tableFocusRequester.requestFocus() },
+                                    enableScrolling = enableScrolling,
+                                    pinnedFooterHeight = pinnedFooterHeight,
+                                )
+                            }
                         }
 
                         // SelectionContainer is disabled while a row is in edit mode to avoid
@@ -386,6 +394,7 @@ public fun <T : Any, C, E> EditableTable(
  * @param contextMenu optional context menu host, invoked with item and absolute position
  * @param customization styling hooks for rows and cells
  * @param colors container/content colors
+ * @param typography text styles of the header, body, footer and group rows
  * @param strings string provider for UI text
  * @param verticalState list scroll state
  * @param horizontalState horizontal scroll state of the whole table
@@ -427,6 +436,7 @@ public fun <T : Any, C> Table(
     contextMenu: (@Composable (item: T, pos: Offset, dismiss: () -> Unit) -> Unit)? = null,
     customization: TableCustomization<T, C> = DefaultTableCustomization(),
     colors: TableColors = TableDefaults.colors(),
+    typography: TableTypography = TableDefaults.typography(),
     strings: StringProvider = DefaultStrings,
     verticalState: LazyListState = rememberLazyListState(),
     horizontalState: ScrollState = rememberScrollState(),
@@ -454,6 +464,7 @@ public fun <T : Any, C> Table(
         contextMenu = contextMenu,
         customization = customization,
         colors = colors,
+        typography = typography,
         strings = strings,
         verticalState = verticalState,
         horizontalState = horizontalState,
@@ -496,6 +507,7 @@ public fun <T : Any, C> Table(
  * @param contextMenu optional context menu host, invoked with item and absolute position
  * @param customization styling hooks for rows and cells
  * @param colors container/content colors
+ * @param typography text styles of the header, body, footer and group rows
  * @param strings string provider for UI text
  * @param verticalState list scroll state
  * @param horizontalState horizontal scroll state of the whole table
@@ -538,6 +550,7 @@ public fun <T : Any, C, E> Table(
     contextMenu: (@Composable (item: T, pos: Offset, dismiss: () -> Unit) -> Unit)? = null,
     customization: TableCustomization<T, C> = DefaultTableCustomization(),
     colors: TableColors = TableDefaults.colors(),
+    typography: TableTypography = TableDefaults.typography(),
     strings: StringProvider = DefaultStrings,
     verticalState: LazyListState = rememberLazyListState(),
     horizontalState: ScrollState = rememberScrollState(),
@@ -565,6 +578,7 @@ public fun <T : Any, C, E> Table(
         contextMenu = contextMenu,
         customization = customization,
         colors = colors,
+        typography = typography,
         strings = strings,
         verticalState = verticalState,
         horizontalState = horizontalState,
