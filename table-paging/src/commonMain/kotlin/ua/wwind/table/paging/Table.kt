@@ -43,9 +43,6 @@ import ua.wwind.table.strings.StringProvider
  */
 private val DefaultPagedRowKey: (Any?, Int) -> Any = { _, index -> index }
 
-/** Body of a table whose first page is still loading: an empty count there is not "no data". */
-private val NoEmptyContent: @Composable TableEmptyScope.() -> Unit = {}
-
 /**
  * Mirrors the core table's rowKey guard on the paged surface: `RowBlockMove` anchors are row keys,
  * and a positional key cannot survive the move it describes — see [DefaultPagedRowKey] for why the
@@ -108,8 +105,11 @@ private fun <T : Any> rememberPagedRowKeyAt(
  * @param tableData current table data instance - accessible in headers, footers, and edit cells
  * @param modifier layout modifier for the whole table
  * @param placeholderRow optional row content shown when an item is null
- * @param emptyContent body content shown once [items] has loaded with no rows; never while [items]
- * is null (still loading). See [TableEmptyScope].
+ * @param emptyContent body content shown once [items] has loaded with no rows. See [TableEmptyScope].
+ * @param loadingContent body content shown while there are no rows yet and the first ones are
+ * loading: [items] is null, or its size is 0 while the pager reports `Loading`.
+ * @param errorContent body content shown when loading fails before any row exists; its
+ * [PagedTableErrorScope] carries the failure and retries the failed position.
  * @param rowKey stable key for rows; defaults to index
  * @param onRowClick row primary action handler
  * @param onRowLongClick optional long-press handler
@@ -142,6 +142,8 @@ public fun <T : Any, C, E> Table(
     modifier: Modifier = Modifier,
     placeholderRow: (@Composable () -> Unit)? = null,
     emptyContent: @Composable TableEmptyScope.() -> Unit = TableDefaults.EmptyContent,
+    loadingContent: @Composable () -> Unit = PagedTableDefaults.LoadingContent,
+    errorContent: @Composable PagedTableErrorScope.() -> Unit = PagedTableDefaults.ErrorContent,
     rowKey: (item: T?, index: Int) -> Any = DefaultPagedRowKey,
     onRowClick: ((T) -> Unit)? = null,
     onRowLongClick: ((T) -> Unit)? = null,
@@ -162,6 +164,7 @@ public fun <T : Any, C, E> Table(
     val itemsCount = remember(items) { items?.data?.size ?: 0 }
     val itemAt = remember(items) { { index: Int -> items?.data?.get(index)?.getOrNull() } }
     val rowKeyAt = rememberPagedRowKeyAt(items, rowKey)
+    val loadSlots = pagedLoadSlots(items, loadingContent, errorContent, emptyContent)
 
     Table(
         itemsCount = itemsCount,
@@ -171,7 +174,8 @@ public fun <T : Any, C, E> Table(
         tableData = tableData,
         modifier = modifier,
         placeholderRow = placeholderRow,
-        emptyContent = if (items == null) NoEmptyContent else emptyContent,
+        emptyContent = loadSlots.emptyContent,
+        bodyOverlay = loadSlots.bodyOverlay,
         rowKey = rowKey,
         rowKeyAt = rowKeyAt,
         onRowClick = onRowClick,
@@ -209,8 +213,11 @@ public fun <T : Any, C, E> Table(
  * @param columns list of visible/available column specifications
  * @param modifier layout modifier for the whole table
  * @param placeholderRow optional row content shown when an item is null
- * @param emptyContent body content shown once [items] has loaded with no rows; never while [items]
- * is null (still loading). See [TableEmptyScope].
+ * @param emptyContent body content shown once [items] has loaded with no rows. See [TableEmptyScope].
+ * @param loadingContent body content shown while there are no rows yet and the first ones are
+ * loading: [items] is null, or its size is 0 while the pager reports `Loading`.
+ * @param errorContent body content shown when loading fails before any row exists; its
+ * [PagedTableErrorScope] carries the failure and retries the failed position.
  * @param rowKey stable key for rows; defaults to index
  * @param onRowClick row primary action handler
  * @param onRowLongClick optional long-press handler
@@ -242,6 +249,8 @@ public fun <T : Any, C> Table(
     modifier: Modifier = Modifier,
     placeholderRow: (@Composable () -> Unit)? = null,
     emptyContent: @Composable TableEmptyScope.() -> Unit = TableDefaults.EmptyContent,
+    loadingContent: @Composable () -> Unit = PagedTableDefaults.LoadingContent,
+    errorContent: @Composable PagedTableErrorScope.() -> Unit = PagedTableDefaults.ErrorContent,
     rowKey: (item: T?, index: Int) -> Any = DefaultPagedRowKey,
     onRowClick: ((T) -> Unit)? = null,
     onRowLongClick: ((T) -> Unit)? = null,
@@ -262,6 +271,7 @@ public fun <T : Any, C> Table(
     val itemsCount = remember(items) { items?.data?.size ?: 0 }
     val itemAt = remember(items) { { index: Int -> items?.data?.get(index)?.getOrNull() } }
     val rowKeyAt = rememberPagedRowKeyAt(items, rowKey)
+    val loadSlots = pagedLoadSlots(items, loadingContent, errorContent, emptyContent)
 
     Table(
         itemsCount = itemsCount,
@@ -270,7 +280,8 @@ public fun <T : Any, C> Table(
         columns = columns,
         modifier = modifier,
         placeholderRow = placeholderRow,
-        emptyContent = if (items == null) NoEmptyContent else emptyContent,
+        emptyContent = loadSlots.emptyContent,
+        bodyOverlay = loadSlots.bodyOverlay,
         rowKey = rowKey,
         rowKeyAt = rowKeyAt,
         onRowClick = onRowClick,

@@ -16,6 +16,14 @@ import co.touchlab.kermit.Logger
 import ua.wwind.paging.core.LoadState
 import ua.wwind.paging.core.PagingData
 
+/**
+ * Renders load states as list items. The paged `Table` now shows every load state itself.
+ */
+@Deprecated(
+    message =
+        "The paged Table renders load states itself; use its loadingContent, errorContent, " +
+            "emptyContent, loadingIndicator and errorBar parameters.",
+)
 public fun <T : Any> LazyListScope.handleLoadState(
     data: PagingData<T>,
     width: Dp? = null,
