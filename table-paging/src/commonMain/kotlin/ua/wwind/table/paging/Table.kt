@@ -110,6 +110,10 @@ private fun <T : Any> rememberPagedRowKeyAt(
  * loading: [items] is null, or its size is 0 while the pager reports `Loading`.
  * @param errorContent body content shown when loading fails before any row exists; its
  * [PagedTableErrorScope] carries the failure and retries the failed position.
+ * @param loadingIndicator shown at the top of the rows while more rows load, once loading has
+ * lasted 400 ms (shorter pulses from scroll preloads never show it); `null` disables it.
+ * @param errorBar shown at the bottom of the rows when a load fails while rows are on screen;
+ * `null` disables it.
  * @param rowKey stable key for rows; defaults to index
  * @param onRowClick row primary action handler
  * @param onRowLongClick optional long-press handler
@@ -144,6 +148,8 @@ public fun <T : Any, C, E> Table(
     emptyContent: @Composable TableEmptyScope.() -> Unit = TableDefaults.EmptyContent,
     loadingContent: @Composable () -> Unit = PagedTableDefaults.LoadingContent,
     errorContent: @Composable PagedTableErrorScope.() -> Unit = PagedTableDefaults.ErrorContent,
+    loadingIndicator: (@Composable () -> Unit)? = PagedTableDefaults.LoadingIndicator,
+    errorBar: (@Composable PagedTableErrorScope.() -> Unit)? = PagedTableDefaults.ErrorBar,
     rowKey: (item: T?, index: Int) -> Any = DefaultPagedRowKey,
     onRowClick: ((T) -> Unit)? = null,
     onRowLongClick: ((T) -> Unit)? = null,
@@ -164,7 +170,7 @@ public fun <T : Any, C, E> Table(
     val itemsCount = remember(items) { items?.data?.size ?: 0 }
     val itemAt = remember(items) { { index: Int -> items?.data?.get(index)?.getOrNull() } }
     val rowKeyAt = rememberPagedRowKeyAt(items, rowKey)
-    val loadSlots = pagedLoadSlots(items, loadingContent, errorContent, emptyContent)
+    val loadSlots = pagedLoadSlots(items, loadingContent, errorContent, emptyContent, loadingIndicator, errorBar)
 
     Table(
         itemsCount = itemsCount,
@@ -218,6 +224,10 @@ public fun <T : Any, C, E> Table(
  * loading: [items] is null, or its size is 0 while the pager reports `Loading`.
  * @param errorContent body content shown when loading fails before any row exists; its
  * [PagedTableErrorScope] carries the failure and retries the failed position.
+ * @param loadingIndicator shown at the top of the rows while more rows load, once loading has
+ * lasted 400 ms (shorter pulses from scroll preloads never show it); `null` disables it.
+ * @param errorBar shown at the bottom of the rows when a load fails while rows are on screen;
+ * `null` disables it.
  * @param rowKey stable key for rows; defaults to index
  * @param onRowClick row primary action handler
  * @param onRowLongClick optional long-press handler
@@ -251,6 +261,8 @@ public fun <T : Any, C> Table(
     emptyContent: @Composable TableEmptyScope.() -> Unit = TableDefaults.EmptyContent,
     loadingContent: @Composable () -> Unit = PagedTableDefaults.LoadingContent,
     errorContent: @Composable PagedTableErrorScope.() -> Unit = PagedTableDefaults.ErrorContent,
+    loadingIndicator: (@Composable () -> Unit)? = PagedTableDefaults.LoadingIndicator,
+    errorBar: (@Composable PagedTableErrorScope.() -> Unit)? = PagedTableDefaults.ErrorBar,
     rowKey: (item: T?, index: Int) -> Any = DefaultPagedRowKey,
     onRowClick: ((T) -> Unit)? = null,
     onRowLongClick: ((T) -> Unit)? = null,
@@ -271,7 +283,7 @@ public fun <T : Any, C> Table(
     val itemsCount = remember(items) { items?.data?.size ?: 0 }
     val itemAt = remember(items) { { index: Int -> items?.data?.get(index)?.getOrNull() } }
     val rowKeyAt = rememberPagedRowKeyAt(items, rowKey)
-    val loadSlots = pagedLoadSlots(items, loadingContent, errorContent, emptyContent)
+    val loadSlots = pagedLoadSlots(items, loadingContent, errorContent, emptyContent, loadingIndicator, errorBar)
 
     Table(
         itemsCount = itemsCount,

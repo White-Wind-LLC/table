@@ -13,10 +13,31 @@ fun PeoplePagingTable(paging: PagingData<Person>) {
 }
 ```
 
-There is also `LazyListScope.handleLoadState(...)` to render loading/empty states.
+## Load states
 
-The table's `emptyContent` slot (see [Empty state](../guides/filters.md#empty-state)) shows once `items` has
-loaded with no rows; while `items` is null it stays hidden.
+The paged `Table` renders every `LoadState` it receives:
+
+| Situation | Slot | Default |
+|---|---|---|
+| no rows yet, first ones loading (`items == null`, or size 0 and `Loading`) | `loadingContent` | centred progress indicator |
+| no rows, the first load failed | `errorContent` | "Couldn't load data" + **Retry** |
+| loaded, no rows | `emptyContent` | "No data" / "No results" (see [Empty state](../guides/filters.md#empty-state)) |
+| rows on screen, more loading for 400 ms+ | `loadingIndicator` | linear progress bar under the header |
+| rows on screen, a load failed | `errorBar` | "Couldn't load some rows" + **Retry** at the bottom |
+
+`errorContent` and `errorBar` receive a `PagedTableErrorScope` with the `error` and a `retry()` that
+reloads the failed position. Pass `null` as `loadingIndicator` or `errorBar` to turn them off. All
+text goes through the table's `StringProvider` (`UiString.PagingLoading`, `PagingLoadError`,
+`PagingLoadMoreError`, `PagingRetry`).
+
+Collect the pager with an initial `null` so the first frame shows the loading state:
+
+```kotlin
+val items by pager.flow.collectAsState(initial = null)
+Table(items = items, state = state, columns = columns)
+```
+
+`handleLoadState` is deprecated; the table covers what it did.
 
 ## Row keys never move the pager
 
@@ -100,7 +121,7 @@ every emission however little of the window actually changed.
 `table-paging` declares those types stable for its own compilation, so the `Table` overloads above
 are already covered. A stability configuration only governs the module doing the compiling, so if
 your own composables take a `PagingData` — a screen, a view-model-bound wrapper, a `LazyColumn`
-using `handleLoadState` — you need the same file in your build.
+using the deprecated `handleLoadState` — you need the same file in your build.
 
 `paging-core` ships it as
 [`compose_compiler_config.conf`](https://github.com/White-Wind-LLC/paging-kmp/blob/main/compose_compiler_config.conf)

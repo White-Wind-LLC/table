@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ### Unreleased
 
+- Added: built-in loading, error/retry, progress and error-bar states on the paged `Table`, and a
+  `bodyOverlay` slot on `Table`; adds four `UiString` keys ([#89](https://github.com/White-Wind-LLC/table/issues/89)).
 - Added: an `emptyContent` slot on `Table` for the no-data and no-results states, with a "Clear filters"
   action; adds three `UiString` keys ([#88](https://github.com/White-Wind-LLC/table/issues/88)).
 - Fixed: in time zones west of UTC, the date filter and the date condition in the format dialog stored

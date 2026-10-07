@@ -2,11 +2,17 @@ package ua.wwind.table.paging
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -27,6 +33,12 @@ public object PagedTableDefaults {
 
     /** Body when the first load fails: "Couldn't load data" with a Retry button. */
     public val ErrorContent: @Composable PagedTableErrorScope.() -> Unit = { DefaultPagedErrorContent() }
+
+    /** Shown at the top of the rows while more rows load: a full-width linear progress bar. */
+    public val LoadingIndicator: @Composable () -> Unit = { DefaultPagedLoadingIndicator() }
+
+    /** Shown at the bottom of the rows when a load fails: "Couldn't load some rows" with Retry. */
+    public val ErrorBar: @Composable PagedTableErrorScope.() -> Unit = { DefaultPagedErrorBar() }
 }
 
 @Composable
@@ -57,6 +69,41 @@ internal fun PagedTableErrorScope.DefaultPagedErrorContent() {
         )
         TextButton(onClick = ::retry) {
             Text(strings.get(UiString.PagingRetry))
+        }
+    }
+}
+
+@Composable
+internal fun DefaultPagedLoadingIndicator() {
+    val description = currentStrings().get(UiString.PagingLoading)
+    LinearProgressIndicator(Modifier.fillMaxWidth().semantics { contentDescription = description })
+}
+
+@Composable
+internal fun PagedTableErrorScope.DefaultPagedErrorBar() {
+    val strings = currentStrings()
+    Surface(
+        color = MaterialTheme.colorScheme.errorContainer,
+        contentColor = MaterialTheme.colorScheme.onErrorContainer,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Row(
+            modifier = Modifier.padding(start = 16.dp, end = 8.dp, top = 4.dp, bottom = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Icon(TableIcons.ErrorOutline, contentDescription = null, modifier = Modifier.size(20.dp))
+            Text(
+                text = strings.get(UiString.PagingLoadMoreError),
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.weight(1f),
+            )
+            TextButton(
+                onClick = ::retry,
+                colors = ButtonDefaults.textButtonColors(contentColor = LocalContentColor.current),
+            ) {
+                Text(strings.get(UiString.PagingRetry))
+            }
         }
     }
 }
