@@ -122,6 +122,9 @@ internal val DefaultRowKey: (Any?, Int) -> Any = { _, index -> index }
  * @param emptyContent body content shown while [itemsCount] is 0; header, fast filters and footer
  * stay visible. Its [TableEmptyScope] tells whether filters are active and can clear them. Pass `{}`
  * for a blank body — also while data is still loading, which an empty count cannot tell apart.
+ * @param bodyOverlay content drawn over the visible rows area — below the header, above a pinned
+ * footer — that stays in place while the rows scroll in either direction. Align children through
+ * [BoxScope]. The box itself takes no input, so rows under its empty parts stay clickable.
  * @param rowKey stable key for rows; defaults to index
  * @param onRowClick row primary action handler
  * @param onRowLongClick optional long-press handler
@@ -152,6 +155,7 @@ public fun <T : Any, C, E> EditableTable(
     modifier: Modifier = Modifier,
     placeholderRow: (@Composable () -> Unit)? = null,
     emptyContent: @Composable TableEmptyScope.() -> Unit = TableDefaults.EmptyContent,
+    bodyOverlay: @Composable BoxScope.() -> Unit = {},
     rowKey: (item: T?, index: Int) -> Any = DefaultRowKey,
     /**
      * Row key by index, superseding [rowKey] wherever a key is needed; it must answer the same key.
@@ -380,13 +384,14 @@ public fun <T : Any, C, E> EditableTable(
                     }
                 }
 
-                EmptyStateOverlay(
+                BodyOverlay(
                     embedded = embedded,
                     itemsCount = itemsCount,
                     headerBottomPx = scrollAreaTopPx + headerHeightPx,
                     state = state,
                     showPinnedFooter = showPinnedFooter,
-                    content = emptyBody,
+                    emptyContent = emptyBody,
+                    overlay = bodyOverlay,
                 )
             }
         }
@@ -427,6 +432,9 @@ public fun <T : Any, C, E> EditableTable(
  * @param emptyContent body content shown while [itemsCount] is 0; header, fast filters and footer
  * stay visible. Its [TableEmptyScope] tells whether filters are active and can clear them. Pass `{}`
  * for a blank body — also while data is still loading, which an empty count cannot tell apart.
+ * @param bodyOverlay content drawn over the visible rows area — below the header, above a pinned
+ * footer — that stays in place while the rows scroll in either direction. Align children through
+ * [BoxScope]. The box itself takes no input, so rows under its empty parts stay clickable.
  * @param rowKey stable key for rows; defaults to index
  * @param onRowClick row primary action handler
  * @param onRowLongClick optional long-press handler
@@ -456,6 +464,7 @@ public fun <T : Any, C> Table(
     modifier: Modifier = Modifier,
     placeholderRow: (@Composable () -> Unit)? = null,
     emptyContent: @Composable TableEmptyScope.() -> Unit = TableDefaults.EmptyContent,
+    bodyOverlay: @Composable BoxScope.() -> Unit = {},
     rowKey: (item: T?, index: Int) -> Any = DefaultRowKey,
     /**
      * Row key by index, superseding [rowKey] wherever a key is needed; it must answer the same key.
@@ -496,6 +505,7 @@ public fun <T : Any, C> Table(
         modifier = modifier,
         placeholderRow = placeholderRow,
         emptyContent = emptyContent,
+        bodyOverlay = bodyOverlay,
         rowKey = rowKey,
         rowKeyAt = rowKeyAt,
         onRowClick = onRowClick,
@@ -545,6 +555,9 @@ public fun <T : Any, C> Table(
  * @param emptyContent body content shown while [itemsCount] is 0; header, fast filters and footer
  * stay visible. Its [TableEmptyScope] tells whether filters are active and can clear them. Pass `{}`
  * for a blank body — also while data is still loading, which an empty count cannot tell apart.
+ * @param bodyOverlay content drawn over the visible rows area — below the header, above a pinned
+ * footer — that stays in place while the rows scroll in either direction. Align children through
+ * [BoxScope]. The box itself takes no input, so rows under its empty parts stay clickable.
  * @param rowKey stable key for rows; defaults to index
  * @param onRowClick row primary action handler
  * @param onRowLongClick optional long-press handler
@@ -575,6 +588,7 @@ public fun <T : Any, C, E> Table(
     modifier: Modifier = Modifier,
     placeholderRow: (@Composable () -> Unit)? = null,
     emptyContent: @Composable TableEmptyScope.() -> Unit = TableDefaults.EmptyContent,
+    bodyOverlay: @Composable BoxScope.() -> Unit = {},
     rowKey: (item: T?, index: Int) -> Any = DefaultRowKey,
     /**
      * Row key by index, superseding [rowKey] wherever a key is needed; it must answer the same key.
@@ -615,6 +629,7 @@ public fun <T : Any, C, E> Table(
         modifier = modifier,
         placeholderRow = placeholderRow,
         emptyContent = emptyContent,
+        bodyOverlay = bodyOverlay,
         rowKey = rowKey,
         rowKeyAt = rowKeyAt,
         onRowClick = onRowClick,
@@ -671,34 +686,40 @@ private fun rememberBlockParentScrollConnection(): NestedScrollConnection =
     }
 
 /**
- * Centres the empty state over the rows' area of the surface, below [headerBottomPx] and any footer.
- * The rows scroll horizontally inside an unbounded width, so the empty state lives outside them to
- * stay in view. An embedded table has no viewport; its body renders the empty state inline instead.
+ * Lays [overlay], and the empty state while there are no rows, over the rows' area of the surface:
+ * below [headerBottomPx] and above a pinned footer. The rows scroll horizontally inside an
+ * unbounded width, so both live outside them to stay in view. An embedded table has no viewport;
+ * its body renders the empty state inline instead, but still gets the overlay.
  */
 @Composable
-private fun BoxScope.EmptyStateOverlay(
+private fun BoxScope.BodyOverlay(
     embedded: Boolean,
     itemsCount: Int,
     headerBottomPx: Int,
     state: TableState<*>,
     showPinnedFooter: Boolean,
-    content: @Composable () -> Unit,
+    emptyContent: @Composable () -> Unit,
+    overlay: @Composable BoxScope.() -> Unit,
 ) {
-    if (embedded || itemsCount != 0) return
+    val showEmpty = !embedded && itemsCount == 0
     val dimensions = state.dimensions
     val footerHeight =
         dimensions.footerHeight + if (state.settings.showRowDividers) dimensions.dividerThickness else 0.dp
     val headerBottom = with(LocalDensity.current) { headerBottomPx.toDp() }
     val modifier =
         when {
-            // A pinned footer holds the bottom edge; an unpinned one follows the (absent) rows.
+            // A pinned footer holds the bottom edge; an unpinned one follows the rows, which an
+            // empty table does not have.
             showPinnedFooter -> Modifier.padding(top = headerBottom, bottom = footerHeight)
 
-            state.settings.showFooter -> Modifier.padding(top = headerBottom + footerHeight)
+            showEmpty && state.settings.showFooter -> Modifier.padding(top = headerBottom + footerHeight)
 
             else -> Modifier.padding(top = headerBottom)
         }
-    TableEmptyStateBox(Modifier.matchParentSize().then(modifier), content)
+    Box(Modifier.matchParentSize().then(modifier)) {
+        if (showEmpty) TableEmptyStateBox(Modifier.matchParentSize(), emptyContent)
+        overlay()
+    }
 }
 
 /** Viewport-wide, except when embedded: that parent measures with an unbounded width. */

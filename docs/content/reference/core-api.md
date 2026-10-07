@@ -4,6 +4,10 @@
     - **Required**: `itemsCount`, `itemAt(index)`, `state: TableState<C>`, `columns: List<ColumnSpec<T, C, Unit>>`.
     - **Slots**: `placeholderRow()`, `emptyContent` (body shown while `itemsCount` is 0 — see
       [Empty state](../guides/filters.md#empty-state)).
+    - `bodyOverlay: @Composable BoxScope.() -> Unit` — content drawn over the visible rows area (below
+      the header, above a pinned footer). It stays in place while rows scroll and does not take input;
+      align children with `Modifier.align`. The paged `Table` uses it for its loading indicator and
+      error bar.
     - **UX**: `onRowClick`, `onRowLongClick`, `onRowMove`, `rowBlocks` (supersedes `onRowMove` — see Row blocks
       below), `contextMenu(item, pos, dismiss)`.
     - **Look**: `customization`, `colors = TableDefaults.colors()`, `typography = TableDefaults.typography()`, `icons = TableHeaderDefaults.icons()` (defaults
