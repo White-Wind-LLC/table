@@ -1,50 +1,51 @@
 /*
- * The index of icons this library draws. Each icon's path data lives in its own file under the
- * `vector` subpackage; this object is hand-maintained and only maps public names onto them.
+ * The index of icons this library draws. Each icon is a vector-drawable XML file in
+ * src/commonMain/composeResources/drawable; this object is hand-maintained and only maps public
+ * names onto the generated resource accessors.
  *
  * Path data derived from Material Icons (https://github.com/google/material-design-icons),
- * Copyright (C) Google LLC, licensed under the Apache License, Version 2.0. It was generated from
- * org.jetbrains.compose.material:material-icons-extended:1.7.3, which is deprecated and no longer
- * tracks Compose releases.
+ * Copyright (C) Google LLC, licensed under the Apache License, Version 2.0.
  *
- * To add an icon: copy the `d` attribute of the icon's 24px SVG from
- * https://github.com/google/material-design-icons (src/<category>/<name>/<style>/24px.svg) into a
- * `vector/<Name>.kt` file built with `addPathNodes`, as `vector/PushPin.kt` does, and add a
- * forwarding property below. Keep `PathFillType.EvenOdd` when the SVG says `fill-rule="evenodd"`.
+ * To add an icon: take its 24dp vector drawable (Android Studio's Vector Asset, or the icon's XML
+ * from https://github.com/google/material-design-icons), save it as
+ * composeResources/drawable/<name>_<style>.xml — e.g. close_rounded.xml — and add a forwarding
+ * property below. Keep android:autoMirrored="true" for AutoMirrored icons.
  */
 
 package ua.wwind.table.icon
 
-import androidx.compose.ui.graphics.vector.ImageVector
-import ua.wwind.table.icon.vector.AddIcon
-import ua.wwind.table.icon.vector.ArrowDownwardIcon
-import ua.wwind.table.icon.vector.ArrowDropUpIcon
-import ua.wwind.table.icon.vector.ArrowUpwardIcon
-import ua.wwind.table.icon.vector.CheckIcon
-import ua.wwind.table.icon.vector.CloseIcon
-import ua.wwind.table.icon.vector.ContentCopyIcon
-import ua.wwind.table.icon.vector.DeleteIcon
-import ua.wwind.table.icon.vector.DragIndicatorIcon
-import ua.wwind.table.icon.vector.ErrorOutlineIcon
-import ua.wwind.table.icon.vector.FilterAltFilledIcon
-import ua.wwind.table.icon.vector.FilterAltOutlinedIcon
-import ua.wwind.table.icon.vector.FormatColorResetIcon
-import ua.wwind.table.icon.vector.KeyboardArrowLeftIcon
-import ua.wwind.table.icon.vector.KeyboardArrowRightIcon
-import ua.wwind.table.icon.vector.MoreVertIcon
-import ua.wwind.table.icon.vector.PushPinIcon
-import ua.wwind.table.icon.vector.PushPinOutlinedIcon
-import ua.wwind.table.icon.vector.SaveIcon
-import ua.wwind.table.icon.vector.SettingsBackupRestoreIcon
-import ua.wwind.table.icon.vector.SettingsEthernetIcon
-import ua.wwind.table.icon.vector.SortIcon
-import ua.wwind.table.icon.vector.SwapHorizIcon
-import ua.wwind.table.icon.vector.TableRowsIcon
-import ua.wwind.table.icon.vector.VisibilityIcon
-import ua.wwind.table.icon.vector.VisibilityOffIcon
+import org.jetbrains.compose.resources.DrawableResource
+import ua.wwind.table.generated.resources.Res
+import ua.wwind.table.generated.resources.add_rounded
+import ua.wwind.table.generated.resources.arrow_downward_rounded
+import ua.wwind.table.generated.resources.arrow_drop_up_rounded
+import ua.wwind.table.generated.resources.arrow_upward_rounded
+import ua.wwind.table.generated.resources.check_rounded
+import ua.wwind.table.generated.resources.close_rounded
+import ua.wwind.table.generated.resources.content_copy_rounded
+import ua.wwind.table.generated.resources.delete_rounded
+import ua.wwind.table.generated.resources.drag_indicator_filled
+import ua.wwind.table.generated.resources.error_outline_rounded
+import ua.wwind.table.generated.resources.filter_alt_filled
+import ua.wwind.table.generated.resources.filter_alt_outlined
+import ua.wwind.table.generated.resources.format_color_reset_filled
+import ua.wwind.table.generated.resources.keyboard_arrow_left_auto_mirrored_rounded
+import ua.wwind.table.generated.resources.keyboard_arrow_right_auto_mirrored_rounded
+import ua.wwind.table.generated.resources.more_vert_rounded
+import ua.wwind.table.generated.resources.push_pin_outlined
+import ua.wwind.table.generated.resources.push_pin_rounded
+import ua.wwind.table.generated.resources.save_rounded
+import ua.wwind.table.generated.resources.settings_backup_restore_rounded
+import ua.wwind.table.generated.resources.settings_ethernet_rounded
+import ua.wwind.table.generated.resources.sort_auto_mirrored_outlined
+import ua.wwind.table.generated.resources.swap_horiz_filled
+import ua.wwind.table.generated.resources.table_rows_rounded
+import ua.wwind.table.generated.resources.visibility_off_rounded
+import ua.wwind.table.generated.resources.visibility_rounded
 
 /**
- * Icons drawn by the table. Vendored so the library ships no icon dependency.
+ * Icons drawn by the table, as Compose resources. Draw one with
+ * `Icon(painterResource(TableIcons.Close), contentDescription)`.
  *
  * Naming convention: each property is named after the plain Material icon (e.g. [Close], [Add]).
  * A suffix is added only where two variants of the same icon are both needed in the table, as with
@@ -55,80 +56,80 @@ import ua.wwind.table.icon.vector.VisibilityOffIcon
 @Suppress("VariableNaming", "ktlint:standard:property-naming")
 public object TableIcons {
     /** Material `Icons.Rounded.Close`. */
-    public val Close: ImageVector get() = CloseIcon
+    public val Close: DrawableResource get() = Res.drawable.close_rounded
 
     /** Material `Icons.AutoMirrored.Rounded.KeyboardArrowLeft`. */
-    public val KeyboardArrowLeft: ImageVector get() = KeyboardArrowLeftIcon
+    public val KeyboardArrowLeft: DrawableResource get() = Res.drawable.keyboard_arrow_left_auto_mirrored_rounded
 
     /** Material `Icons.AutoMirrored.Rounded.KeyboardArrowRight`. */
-    public val KeyboardArrowRight: ImageVector get() = KeyboardArrowRightIcon
+    public val KeyboardArrowRight: DrawableResource get() = Res.drawable.keyboard_arrow_right_auto_mirrored_rounded
 
     /** Material `Icons.Rounded.ArrowUpward`. */
-    public val ArrowUpward: ImageVector get() = ArrowUpwardIcon
+    public val ArrowUpward: DrawableResource get() = Res.drawable.arrow_upward_rounded
 
     /** Material `Icons.Rounded.ArrowDownward`. */
-    public val ArrowDownward: ImageVector get() = ArrowDownwardIcon
+    public val ArrowDownward: DrawableResource get() = Res.drawable.arrow_downward_rounded
 
     /** Material `Icons.AutoMirrored.Outlined.Sort`. */
-    public val Sort: ImageVector get() = SortIcon
+    public val Sort: DrawableResource get() = Res.drawable.sort_auto_mirrored_outlined
 
     /** Material `Icons.Filled.FilterAltFilled`. */
-    public val FilterAltFilled: ImageVector get() = FilterAltFilledIcon
+    public val FilterAltFilled: DrawableResource get() = Res.drawable.filter_alt_filled
 
     /** Material `Icons.Filled.FilterAltOutlined`. */
-    public val FilterAltOutlined: ImageVector get() = FilterAltOutlinedIcon
+    public val FilterAltOutlined: DrawableResource get() = Res.drawable.filter_alt_outlined
 
     /** Material `Icons.Filled.DragIndicator` (the Rounded variant is byte-identical). */
-    public val DragIndicator: ImageVector get() = DragIndicatorIcon
+    public val DragIndicator: DrawableResource get() = Res.drawable.drag_indicator_filled
 
     /** Material `Icons.Filled.SwapHoriz`. */
-    public val SwapHoriz: ImageVector get() = SwapHorizIcon
+    public val SwapHoriz: DrawableResource get() = Res.drawable.swap_horiz_filled
 
     /** Material `Icons.Rounded.Add`. */
-    public val Add: ImageVector get() = AddIcon
+    public val Add: DrawableResource get() = Res.drawable.add_rounded
 
     /** Material `Icons.Rounded.Delete`. */
-    public val Delete: ImageVector get() = DeleteIcon
+    public val Delete: DrawableResource get() = Res.drawable.delete_rounded
 
     /** Material `Icons.Rounded.ContentCopy`. */
-    public val ContentCopy: ImageVector get() = ContentCopyIcon
+    public val ContentCopy: DrawableResource get() = Res.drawable.content_copy_rounded
 
     /** Material `Icons.Rounded.Save`. */
-    public val Save: ImageVector get() = SaveIcon
+    public val Save: DrawableResource get() = Res.drawable.save_rounded
 
     /** Material `Icons.Rounded.ArrowDropUp`. */
-    public val ArrowDropUp: ImageVector get() = ArrowDropUpIcon
+    public val ArrowDropUp: DrawableResource get() = Res.drawable.arrow_drop_up_rounded
 
     /** Material `Icons.Rounded.Check`. */
-    public val Check: ImageVector get() = CheckIcon
+    public val Check: DrawableResource get() = Res.drawable.check_rounded
 
     /** Material `Icons.Filled.FormatColorReset`. */
-    public val FormatColorReset: ImageVector get() = FormatColorResetIcon
+    public val FormatColorReset: DrawableResource get() = Res.drawable.format_color_reset_filled
 
     /** Material `Icons.Rounded.PushPin`. */
-    public val PushPin: ImageVector get() = PushPinIcon
+    public val PushPin: DrawableResource get() = Res.drawable.push_pin_rounded
 
     /** Material `Icons.Outlined.PushPin`. */
-    public val PushPinOutlined: ImageVector get() = PushPinOutlinedIcon
+    public val PushPinOutlined: DrawableResource get() = Res.drawable.push_pin_outlined
 
     /** Material `Icons.Rounded.Visibility`. */
-    public val Visibility: ImageVector get() = VisibilityIcon
+    public val Visibility: DrawableResource get() = Res.drawable.visibility_rounded
 
     /** Material `Icons.Rounded.VisibilityOff`. */
-    public val VisibilityOff: ImageVector get() = VisibilityOffIcon
+    public val VisibilityOff: DrawableResource get() = Res.drawable.visibility_off_rounded
 
     /** Material `Icons.Rounded.SettingsEthernet`. */
-    public val SettingsEthernet: ImageVector get() = SettingsEthernetIcon
+    public val SettingsEthernet: DrawableResource get() = Res.drawable.settings_ethernet_rounded
 
     /** Material `Icons.Rounded.SettingsBackupRestore`. */
-    public val SettingsBackupRestore: ImageVector get() = SettingsBackupRestoreIcon
+    public val SettingsBackupRestore: DrawableResource get() = Res.drawable.settings_backup_restore_rounded
 
     /** Material `Icons.Rounded.TableRows`. */
-    public val TableRows: ImageVector get() = TableRowsIcon
+    public val TableRows: DrawableResource get() = Res.drawable.table_rows_rounded
 
     /** Material `Icons.Rounded.ErrorOutline`. */
-    public val ErrorOutline: ImageVector get() = ErrorOutlineIcon
+    public val ErrorOutline: DrawableResource get() = Res.drawable.error_outline_rounded
 
     /** Material `Icons.Rounded.MoreVert`. */
-    public val MoreVert: ImageVector get() = MoreVertIcon
+    public val MoreVert: DrawableResource get() = Res.drawable.more_vert_rounded
 }

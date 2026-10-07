@@ -38,7 +38,7 @@ internal fun FilterButton(
                 modifier = Modifier.size(max(MIN_FILTER_BUTTON_SIZE_DP.dp, targetSize)).then(NotFocusable),
             ) {
                 Icon(
-                    imageVector = icons.filterActive,
+                    painter = icons.filterActive,
                     contentDescription = null,
                     modifier = Modifier.size(HeaderIconSize),
                 )
@@ -49,7 +49,7 @@ internal fun FilterButton(
                 modifier = Modifier.size(max(MIN_FILTER_BUTTON_SIZE_DP.dp, targetSize)).then(NotFocusable),
             ) {
                 Icon(
-                    imageVector = icons.filterInactive,
+                    painter = icons.filterInactive,
                     contentDescription = null,
                     modifier = Modifier.size(HeaderIconSize),
                 )

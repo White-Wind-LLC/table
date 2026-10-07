@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import kotlinx.collections.immutable.ImmutableList
+import org.jetbrains.compose.resources.painterResource
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.ReorderableLazyListState
 import ua.wwind.table.ColumnSpec
@@ -181,7 +182,7 @@ internal fun <T : Any, C, E> TableHeaderRow(
                                             .draggableHandle(enabled = true),
                                 ) {
                                     Icon(
-                                        imageVector = TableIcons.DragIndicator,
+                                        painter = painterResource(TableIcons.DragIndicator),
                                         contentDescription = "Drag column",
                                         modifier =
                                             Modifier

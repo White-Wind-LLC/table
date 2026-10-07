@@ -18,6 +18,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import org.jetbrains.compose.resources.painterResource
 import ua.wwind.table.filter.component.collectAsEffect
 import ua.wwind.table.format.scrollbar.VerticalScrollbarRenderer
 import ua.wwind.table.icon.TableIcons
@@ -57,7 +58,7 @@ internal fun <E : Enum<E>> FormatColorField(
                         onClick = { onClick(null) },
                     ) {
                         Icon(
-                            imageVector = TableIcons.Close,
+                            painter = painterResource(TableIcons.Close),
                             contentDescription = "Clear",
                         )
                     }

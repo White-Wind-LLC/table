@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
+import org.jetbrains.compose.resources.painterResource
 import ua.wwind.table.filter.data.FilterConstraint
 import ua.wwind.table.filter.data.TableFilterState
 import ua.wwind.table.filter.data.TableFilterType
@@ -75,7 +76,7 @@ public fun <T : Any, C, E> TableActiveFilters(
                 label = { Text(strings.get(UiString.FilterClear)) },
                 trailingIcon = {
                     Icon(
-                        imageVector = TableIcons.Close,
+                        painter = painterResource(TableIcons.Close),
                         contentDescription = null,
                     )
                 },
@@ -96,7 +97,7 @@ public fun <T : Any, C, E> TableActiveFilters(
                 modifier = Modifier.padding(end = 4.dp),
             ) {
                 Icon(
-                    imageVector = TableIcons.KeyboardArrowLeft,
+                    painter = painterResource(TableIcons.KeyboardArrowLeft),
                     contentDescription = null,
                 )
             }
@@ -122,7 +123,7 @@ public fun <T : Any, C, E> TableActiveFilters(
                             label = { Text("$title: $text") },
                             trailingIcon = {
                                 Icon(
-                                    imageVector = TableIcons.Close,
+                                    painter = painterResource(TableIcons.Close),
                                     contentDescription = null,
                                 )
                             },
@@ -147,7 +148,7 @@ public fun <T : Any, C, E> TableActiveFilters(
                 modifier = Modifier.padding(start = 4.dp),
             ) {
                 Icon(
-                    imageVector = TableIcons.KeyboardArrowRight,
+                    painter = painterResource(TableIcons.KeyboardArrowRight),
                     contentDescription = null,
                 )
             }

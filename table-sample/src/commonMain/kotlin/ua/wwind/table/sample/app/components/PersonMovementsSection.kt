@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.toImmutableList
+import org.jetbrains.compose.resources.painterResource
 import ua.wwind.table.RowBlockMove
 import ua.wwind.table.RowBlocks
 import ua.wwind.table.RowWithinBlockMove
@@ -104,7 +105,7 @@ fun PersonMovementsSection(
                                 modifier = Modifier.width(handleColumnWidth),
                             ) {
                                 Icon(
-                                    imageVector = TableIcons.DragIndicator,
+                                    painter = painterResource(TableIcons.DragIndicator),
                                     contentDescription = "Drag year $blockId",
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                     modifier = Modifier.size(18.dp).draggableHandle(),

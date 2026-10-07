@@ -37,6 +37,7 @@ import ua.wwind.table.RowWithinBlockMove
 import ua.wwind.table.component.ColumnMenuBuilder
 import ua.wwind.table.component.ColumnMenuItem
 import ua.wwind.table.component.ColumnMenuItemId
+import org.jetbrains.compose.resources.painterResource
 import ua.wwind.table.component.ColumnMenuSection
 import ua.wwind.table.config.TableCustomization
 import ua.wwind.table.filter.data.TableFilterState
@@ -129,7 +130,7 @@ fun MainTable(
                                         ColumnMenuItem(
                                             id = ColumnMenuItemId("sample-reset-widths"),
                                             label = "Reset all widths",
-                                            icon = TableIcons.SettingsBackupRestore,
+                                            icon = painterResource(TableIcons.SettingsBackupRestore),
                                             enabled = hasCustomWidths,
                                             disabledReason = "No custom column widths",
                                         ) {

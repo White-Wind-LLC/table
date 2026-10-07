@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.mutate
 import kotlinx.collections.immutable.toPersistentList
+import org.jetbrains.compose.resources.painterResource
 import ua.wwind.table.format.component.FormatDialogState
 import ua.wwind.table.format.data.EditFormatRule
 import ua.wwind.table.format.data.TableFormatRule
@@ -54,7 +55,7 @@ internal fun <E : Enum<E>, FILTER> FormatDialogButtons(
             shape = CircleShape,
         ) {
             Icon(
-                imageVector = TableIcons.Add,
+                painter = painterResource(TableIcons.Add),
                 contentDescription = "Add",
             )
         }
@@ -99,7 +100,7 @@ internal fun <E : Enum<E>, FILTER> FormatDialogButtons(
                 }
                 IconButton(onClick = { confirmDelete = true }) {
                     Icon(
-                        imageVector = TableIcons.Delete,
+                        painter = painterResource(TableIcons.Delete),
                         contentDescription = "Delete",
                         tint = MaterialTheme.colorScheme.error,
                     )
@@ -119,7 +120,7 @@ internal fun <E : Enum<E>, FILTER> FormatDialogButtons(
                     },
                 ) {
                     Icon(
-                        imageVector = TableIcons.ContentCopy,
+                        painter = painterResource(TableIcons.ContentCopy),
                         contentDescription = "Copy",
                     )
                 }
@@ -130,7 +131,7 @@ internal fun <E : Enum<E>, FILTER> FormatDialogButtons(
                 },
             ) {
                 Icon(
-                    imageVector = TableIcons.Close,
+                    painter = painterResource(TableIcons.Close),
                     contentDescription = "Close",
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -150,7 +151,7 @@ internal fun <E : Enum<E>, FILTER> FormatDialogButtons(
                 },
             ) {
                 Icon(
-                    imageVector = TableIcons.Save,
+                    painter = painterResource(TableIcons.Save),
                     contentDescription = "Save",
                 )
             }

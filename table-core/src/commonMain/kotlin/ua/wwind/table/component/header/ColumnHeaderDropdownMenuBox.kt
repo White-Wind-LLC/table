@@ -41,6 +41,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
+import org.jetbrains.compose.resources.painterResource
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.component.ColumnMenuBuilder
 import ua.wwind.table.component.ColumnMenuItem
@@ -224,7 +225,7 @@ private fun ColumnMenuItemRow(
         leadingIcon = item.icon?.let { icon -> { Icon(icon, contentDescription = null) } },
         trailingIcon =
             if (item.checked) {
-                { Icon(TableIcons.Check, contentDescription = null, modifier = Modifier.testTag(CHECKED_ITEM_TAG)) }
+                { Icon(painterResource(TableIcons.Check), contentDescription = null, modifier = Modifier.testTag(CHECKED_ITEM_TAG)) }
             } else {
                 null
             },

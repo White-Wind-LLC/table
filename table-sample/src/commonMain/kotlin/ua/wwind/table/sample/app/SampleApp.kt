@@ -41,6 +41,7 @@ import io.github.fletchmckee.liquid.liquefiable
 import io.github.fletchmckee.liquid.rememberLiquidState
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.painterResource
 import ua.wwind.table.RowBlocks
 import ua.wwind.table.config.RowHeightMode
 import ua.wwind.table.config.SelectionMode
@@ -165,7 +166,7 @@ fun SampleApp(
                                 modifier = Modifier.width(handleColumnWidth),
                             ) {
                                 Icon(
-                                    imageVector = TableIcons.DragIndicator,
+                                    painter = painterResource(TableIcons.DragIndicator),
                                     contentDescription = "Drag group $blockId",
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                     modifier = Modifier.size(18.dp).draggableHandle(),

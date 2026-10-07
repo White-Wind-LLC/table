@@ -23,6 +23,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import org.jetbrains.compose.resources.painterResource
 import ua.wwind.table.icon.TableIcons
 import ua.wwind.table.strings.UiString
 import ua.wwind.table.strings.currentStrings
@@ -58,7 +59,7 @@ internal fun PagedTableErrorScope.DefaultPagedErrorContent() {
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Icon(
-            imageVector = TableIcons.ErrorOutline,
+            painter = painterResource(TableIcons.ErrorOutline),
             contentDescription = null,
             tint = MaterialTheme.colorScheme.error,
             modifier = Modifier.size(32.dp),
@@ -93,7 +94,7 @@ internal fun PagedTableErrorScope.DefaultPagedErrorBar() {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Icon(TableIcons.ErrorOutline, contentDescription = null, modifier = Modifier.size(20.dp))
+            Icon(painterResource(TableIcons.ErrorOutline), contentDescription = null, modifier = Modifier.size(20.dp))
             Text(
                 text = strings.get(UiString.PagingLoadMoreError),
                 style = MaterialTheme.typography.bodyMedium,

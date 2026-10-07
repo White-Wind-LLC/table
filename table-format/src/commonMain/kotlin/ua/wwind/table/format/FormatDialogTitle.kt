@@ -13,6 +13,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import org.jetbrains.compose.resources.painterResource
 import ua.wwind.table.format.component.FormatDialogState
 import ua.wwind.table.icon.TableIcons
 import ua.wwind.table.strings.StringProvider
@@ -37,7 +38,7 @@ internal fun <E : Enum<E>, FILTER> FormatDialogTitle(
             )
             if (state.editItem == null && onDismissRequest != null) {
                 IconButton(onClick = onDismissRequest) {
-                    Icon(imageVector = TableIcons.Close, contentDescription = "Close")
+                    Icon(painter = painterResource(TableIcons.Close), contentDescription = "Close")
                 }
             }
         }

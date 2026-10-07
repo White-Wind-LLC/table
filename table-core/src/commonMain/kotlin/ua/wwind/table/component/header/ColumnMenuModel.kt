@@ -2,7 +2,8 @@ package ua.wwind.table.component.header
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
-import androidx.compose.ui.graphics.vector.ImageVector
+import org.jetbrains.compose.resources.DrawableResource
+import org.jetbrains.compose.resources.painterResource
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.component.ColumnMenuDefaults.Ids
 import ua.wwind.table.component.ColumnMenuDefaults.Sections
@@ -29,7 +30,7 @@ internal enum class ColumnMenuContext { Header, GroupHeader }
 internal data class ColumnMenuEntry(
     val id: ColumnMenuItemId,
     val label: UiString,
-    val icon: ImageVector?,
+    val icon: DrawableResource?,
     val enabled: Boolean = true,
     val disabledReason: UiString? = null,
     val checked: Boolean = false,
@@ -306,7 +307,7 @@ internal fun List<ColumnMenuEntrySection>.resolve(strings: StringProvider): List
                     ColumnMenuItem(
                         id = entry.id,
                         label = if (entry.count != null) "$label (${entry.count})" else label,
-                        icon = entry.icon,
+                        icon = entry.icon?.let { painterResource(it) },
                         enabled = entry.enabled,
                         disabledReason = entry.disabledReason?.let { strings.get(it) },
                         checked = entry.checked,
