@@ -6,29 +6,33 @@ import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.staticCompositionLocalOf
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.painter.Painter
+import org.jetbrains.compose.resources.painterResource
 import ua.wwind.table.data.SortOrder
 import ua.wwind.table.icon.TableIcons
 
 /** Icons used by table header for sort and filter affordances. */
 @Immutable
 public data class TableHeaderIcons(
-    val sortAsc: ImageVector,
-    val sortDesc: ImageVector,
-    val sortNeutral: ImageVector,
-    val filterActive: ImageVector,
-    val filterInactive: ImageVector,
+    val sortAsc: Painter,
+    val sortDesc: Painter,
+    val sortNeutral: Painter,
+    val filterActive: Painter,
+    val filterInactive: Painter,
 )
 
 public object TableHeaderDefaults {
-    /** Factory for [TableHeaderIcons] with sensible defaults. */
+    /**
+     * Factory for [TableHeaderIcons] with sensible defaults. Any [Painter] fits a slot:
+     * `painterResource(TableIcons.X)`, a resource of your own, or `rememberVectorPainter(imageVector)`.
+     */
     @Composable
     public fun icons(
-        sortAsc: ImageVector = TableIcons.ArrowUpward,
-        sortDesc: ImageVector = TableIcons.ArrowDownward,
-        sortNeutral: ImageVector = TableIcons.Sort,
-        filterActive: ImageVector = TableIcons.FilterAltFilled,
-        filterInactive: ImageVector = TableIcons.FilterAltOutlined,
+        sortAsc: Painter = painterResource(TableIcons.ArrowUpward),
+        sortDesc: Painter = painterResource(TableIcons.ArrowDownward),
+        sortNeutral: Painter = painterResource(TableIcons.Sort),
+        filterActive: Painter = painterResource(TableIcons.FilterAltFilled),
+        filterInactive: Painter = painterResource(TableIcons.FilterAltOutlined),
     ): TableHeaderIcons =
         TableHeaderIcons(
             sortAsc = sortAsc,
@@ -56,17 +60,12 @@ public data class TableHeaderCellInfo<C>(
 public val LocalTableHeaderCellInfo: ProvidableCompositionLocal<TableHeaderCellInfo<Any?>?> =
     compositionLocalOf { null }
 
-/** Local provider for header icons (scoped per Table instance). */
+/**
+ * Local provider for header icons (scoped per Table instance). A resource painter exists only inside
+ * composition, so there is no static default; `Table` always provides one.
+ */
 public val LocalTableHeaderIcons: ProvidableCompositionLocal<TableHeaderIcons> =
-    staticCompositionLocalOf {
-        TableHeaderIcons(
-            sortAsc = TableIcons.ArrowUpward,
-            sortDesc = TableIcons.ArrowDownward,
-            sortNeutral = TableIcons.Sort,
-            filterActive = TableIcons.FilterAltFilled,
-            filterInactive = TableIcons.FilterAltOutlined,
-        )
-    }
+    staticCompositionLocalOf { error("TableHeaderIcons are provided by Table") }
 
 /** Helper that renders a sort icon with proper state and toggles sort on click. */
 @Composable

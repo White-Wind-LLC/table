@@ -56,6 +56,7 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
 import kotlinx.datetime.format
 import kotlinx.datetime.toLocalDateTime
+import org.jetbrains.compose.resources.painterResource
 import ua.wwind.table.component.TableTextField
 import ua.wwind.table.component.TableTextFieldDefaults
 import ua.wwind.table.filter.component.FilterDropdownAnyField
@@ -135,7 +136,7 @@ public fun <E : Enum<E>, FILTER> FormatDialogConditionTab(
                                         label = "expand condition",
                                     )
                                     Icon(
-                                        imageVector = TableIcons.ArrowDropUp,
+                                        painter = painterResource(TableIcons.ArrowDropUp),
                                         contentDescription = null,
                                         modifier = Modifier.rotate(rotation),
                                     )
@@ -153,7 +154,7 @@ public fun <E : Enum<E>, FILTER> FormatDialogConditionTab(
                                             },
                                         ) {
                                             Icon(
-                                                imageVector = TableIcons.Close,
+                                                painter = painterResource(TableIcons.Close),
                                                 contentDescription = "Remove Filter",
                                                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                             )
@@ -708,7 +709,7 @@ internal fun <T : Number> FormatNumberFilter(
             )
             if (isBetween) {
                 Icon(
-                    imageVector = TableIcons.SwapHoriz,
+                    painter = painterResource(TableIcons.SwapHoriz),
                     contentDescription = strings.get(UiString.FilterRangeIconDescription),
                 )
                 OutlinedTextField(

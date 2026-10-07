@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import org.jetbrains.compose.resources.painterResource
 import ua.wwind.table.filter.data.isActive
 import ua.wwind.table.icon.TableIcons
 import ua.wwind.table.state.TableState
@@ -62,7 +63,7 @@ internal fun TableEmptyScope.DefaultTableEmptyContent() {
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Icon(
-            imageVector = if (isFiltered) TableIcons.FilterAltOutlined else TableIcons.TableRows,
+            painter = painterResource(if (isFiltered) TableIcons.FilterAltOutlined else TableIcons.TableRows),
             contentDescription = null,
             tint = color,
             modifier = Modifier.size(32.dp),

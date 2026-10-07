@@ -40,6 +40,7 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
+import org.jetbrains.compose.resources.painterResource
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 import ua.wwind.table.format.component.FormatDialogState
@@ -258,7 +259,7 @@ internal fun <E : Enum<E>, FILTER> FormatDialogBody(
                                     },
                                     trailingContent = {
                                         Icon(
-                                            imageVector = TableIcons.DragIndicator,
+                                            painter = painterResource(TableIcons.DragIndicator),
                                             contentDescription = null,
                                         )
                                     },

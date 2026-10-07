@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.FlowPreview
+import org.jetbrains.compose.resources.painterResource
 import ua.wwind.table.component.TableTextField
 import ua.wwind.table.filter.component.FilterDropdownField
 import ua.wwind.table.filter.component.FilterPanelActions
@@ -100,7 +101,7 @@ internal fun <T : Number> NumberFilter(
 
             if (isBetween) {
                 Icon(
-                    imageVector = TableIcons.SwapHoriz,
+                    painter = painterResource(TableIcons.SwapHoriz),
                     contentDescription = strings.get(UiString.FilterRangeIconDescription),
                 )
                 TableTextField(

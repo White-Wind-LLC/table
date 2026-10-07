@@ -2,7 +2,9 @@ package ua.wwind.table.component.header
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.runtime.key
+import org.jetbrains.compose.resources.DrawableResource
+import org.jetbrains.compose.resources.painterResource
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.component.ColumnMenuDefaults.Ids
 import ua.wwind.table.component.ColumnMenuDefaults.Sections
@@ -29,7 +31,7 @@ internal enum class ColumnMenuContext { Header, GroupHeader }
 internal data class ColumnMenuEntry(
     val id: ColumnMenuItemId,
     val label: UiString,
-    val icon: ImageVector?,
+    val icon: DrawableResource?,
     val enabled: Boolean = true,
     val disabledReason: UiString? = null,
     val checked: Boolean = false,
@@ -294,7 +296,11 @@ private fun <C> visibilitySection(
     return ColumnMenuEntrySection(Sections.Visibility, entries)
 }
 
-/** Localises the model into the public menu types. */
+/**
+ * Localises the model into the public menu types. Each entry is keyed by its ids, so an item that
+ * appears or disappears does not hand its neighbours' icon painters to the wrong entry (on web a
+ * rebuilt resource painter is blank until it loads again).
+ */
 @Composable
 internal fun List<ColumnMenuEntrySection>.resolve(strings: StringProvider): List<ColumnMenuSection> =
     map { section ->
@@ -302,16 +308,18 @@ internal fun List<ColumnMenuEntrySection>.resolve(strings: StringProvider): List
             id = section.id,
             items =
                 section.entries.map { entry ->
-                    val label = strings.get(entry.label)
-                    ColumnMenuItem(
-                        id = entry.id,
-                        label = if (entry.count != null) "$label (${entry.count})" else label,
-                        icon = entry.icon,
-                        enabled = entry.enabled,
-                        disabledReason = entry.disabledReason?.let { strings.get(it) },
-                        checked = entry.checked,
-                        onClick = entry.onClick,
-                    )
+                    key(section.id, entry.id) {
+                        val label = strings.get(entry.label)
+                        ColumnMenuItem(
+                            id = entry.id,
+                            label = if (entry.count != null) "$label (${entry.count})" else label,
+                            icon = entry.icon?.let { painterResource(it) },
+                            enabled = entry.enabled,
+                            disabledReason = entry.disabledReason?.let { strings.get(it) },
+                            checked = entry.checked,
+                            onClick = entry.onClick,
+                        )
+                    }
                 },
         )
     }

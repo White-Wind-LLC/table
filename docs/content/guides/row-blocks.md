@@ -112,7 +112,7 @@ Dragging is split across two levels:
 blockHeader = { blockId, _ ->
     Row(verticalAlignment = Alignment.CenterVertically) {
         Icon(
-            TableIcons.DragIndicator,
+            painterResource(TableIcons.DragIndicator),
             contentDescription = "Drag block",
             modifier = Modifier.draggableHandle(),
         )
@@ -274,7 +274,7 @@ fun BlockedPeopleTable() {
                 blockHeader = { blockId, _ ->
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
-                            imageVector = TableIcons.DragIndicator,
+                            painter = painterResource(TableIcons.DragIndicator),
                             contentDescription = "Drag block",
                             modifier = Modifier.draggableHandle(),
                         )

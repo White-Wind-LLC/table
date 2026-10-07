@@ -26,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.ImmutableList
+import org.jetbrains.compose.resources.painterResource
 import ua.wwind.table.filter.component.collectAsEffect
 import ua.wwind.table.icon.TableIcons
 
@@ -70,7 +71,7 @@ internal fun <E : Enum<E>> FormatDropdownField(
                             onClick = { onClick(null) },
                         ) {
                             Icon(
-                                imageVector = TableIcons.Close,
+                                painter = painterResource(TableIcons.Close),
                                 contentDescription = "Clear",
                             )
                         }

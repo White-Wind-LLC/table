@@ -32,6 +32,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import org.jetbrains.compose.resources.painterResource
 import ua.wwind.table.filter.data.CustomFilterPanelActions
 import ua.wwind.table.filter.data.CustomFilterRenderer
 import ua.wwind.table.filter.data.CustomFilterStateProvider
@@ -152,7 +153,7 @@ private class NumericRangeFilterRenderer : CustomFilterRenderer<NumericRangeFilt
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
-                        SampleIcons.BarChart,
+                        painterResource(SampleIcons.BarChart),
                         contentDescription = null,
                         modifier = Modifier.padding(end = 8.dp),
                     )

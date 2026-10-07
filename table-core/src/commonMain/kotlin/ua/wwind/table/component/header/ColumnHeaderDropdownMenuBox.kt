@@ -41,6 +41,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
+import org.jetbrains.compose.resources.painterResource
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.component.ColumnMenuBuilder
 import ua.wwind.table.component.ColumnMenuItem
@@ -205,6 +206,9 @@ private fun Modifier.closeOnEscape(onClose: () -> Unit): Modifier =
 /** Test tag of the trailing check on a checked menu item. */
 internal const val CHECKED_ITEM_TAG: String = "column-menu-checked"
 
+/** Test tag of a menu item's leading icon. */
+internal const val LEADING_ICON_TAG: String = "column-menu-leading-icon"
+
 @Composable
 private fun ColumnMenuItemRow(
     item: ColumnMenuItem,
@@ -221,10 +225,19 @@ private fun ColumnMenuItemRow(
         },
         onClick = onClick,
         enabled = item.enabled,
-        leadingIcon = item.icon?.let { icon -> { Icon(icon, contentDescription = null) } },
+        leadingIcon =
+            item.icon?.let { icon ->
+                { Icon(icon, contentDescription = null, modifier = Modifier.testTag(LEADING_ICON_TAG)) }
+            },
         trailingIcon =
             if (item.checked) {
-                { Icon(TableIcons.Check, contentDescription = null, modifier = Modifier.testTag(CHECKED_ITEM_TAG)) }
+                {
+                    Icon(
+                        painterResource(TableIcons.Check),
+                        contentDescription = null,
+                        modifier = Modifier.testTag(CHECKED_ITEM_TAG),
+                    )
+                }
             } else {
                 null
             },

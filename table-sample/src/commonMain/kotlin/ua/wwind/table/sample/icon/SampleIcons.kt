@@ -1,32 +1,29 @@
 /*
- * The index of icons only the sample app draws. Each icon's path data lives in its own file under
- * the `vector` subpackage; this object is hand-maintained and only maps names onto them.
+ * The index of icons only the sample app draws. Each icon is a vector-drawable XML file in
+ * src/commonMain/composeResources/drawable; this object only maps names onto the generated accessors.
  *
  * Path data derived from Material Icons (https://github.com/google/material-design-icons),
- * Copyright (C) Google LLC, licensed under the Apache License, Version 2.0. It was generated from
- * org.jetbrains.compose.material:material-icons-extended:1.7.3, which is deprecated and no longer
- * tracks Compose releases.
+ * Copyright (C) Google LLC, licensed under the Apache License, Version 2.0.
  *
- * To add an icon: restore the generator and the dependency from commit 9e41031
- * (`git show 9e41031:table-core/src/jvmTest/kotlin/ua/wwind/table/icon/IconDumpTest.kt`), put the
- * builder it emits in `vector/<Name>.kt`, and add a forwarding property below. Failing that,
- * transcribe the 24x24 path from https://github.com/google/material-design-icons.
+ * To add an icon: save its 24dp vector drawable as composeResources/drawable/<name>_<style>.xml and
+ * add a forwarding property below.
  */
 
 package ua.wwind.table.sample.icon
 
-import androidx.compose.ui.graphics.vector.ImageVector
-import ua.wwind.table.sample.icon.vector.BarChartIcon
-import ua.wwind.table.sample.icon.vector.CloseIcon
-import ua.wwind.table.sample.icon.vector.DeleteIcon
-import ua.wwind.table.sample.icon.vector.EditIcon
-import ua.wwind.table.sample.icon.vector.ExpandLessIcon
-import ua.wwind.table.sample.icon.vector.ExpandMoreIcon
-import ua.wwind.table.sample.icon.vector.LinkIcon
-import ua.wwind.table.sample.icon.vector.LinkOffIcon
-import ua.wwind.table.sample.icon.vector.ReorderIcon
-import ua.wwind.table.sample.icon.vector.SettingsIcon
-import ua.wwind.table.sample.icon.vector.StarIcon
+import org.jetbrains.compose.resources.DrawableResource
+import ua.wwind.table.sample.generated.resources.Res
+import ua.wwind.table.sample.generated.resources.bar_chart_filled
+import ua.wwind.table.sample.generated.resources.close_filled
+import ua.wwind.table.sample.generated.resources.delete_filled
+import ua.wwind.table.sample.generated.resources.edit_filled
+import ua.wwind.table.sample.generated.resources.expand_less_filled
+import ua.wwind.table.sample.generated.resources.expand_more_filled
+import ua.wwind.table.sample.generated.resources.link_filled
+import ua.wwind.table.sample.generated.resources.link_off_filled
+import ua.wwind.table.sample.generated.resources.reorder_filled
+import ua.wwind.table.sample.generated.resources.settings_filled
+import ua.wwind.table.sample.generated.resources.star_filled
 
 /**
  * Icons used only by the sample app. Deliberately not part of the library's public API.
@@ -36,35 +33,35 @@ import ua.wwind.table.sample.icon.vector.StarIcon
 @Suppress("VariableNaming", "ktlint:standard:property-naming")
 internal object SampleIcons {
     /** Material `Icons.Filled.Settings`. */
-    val Settings: ImageVector get() = SettingsIcon
+    val Settings: DrawableResource get() = Res.drawable.settings_filled
 
     /** Material `Icons.Filled.Edit`. */
-    val Edit: ImageVector get() = EditIcon
+    val Edit: DrawableResource get() = Res.drawable.edit_filled
 
     /** Material `Icons.Filled.Link`. */
-    val Link: ImageVector get() = LinkIcon
+    val Link: DrawableResource get() = Res.drawable.link_filled
 
     /** Material `Icons.Filled.LinkOff`. */
-    val LinkOff: ImageVector get() = LinkOffIcon
+    val LinkOff: DrawableResource get() = Res.drawable.link_off_filled
 
     /** Material `Icons.Filled.ExpandLess`. */
-    val ExpandLess: ImageVector get() = ExpandLessIcon
+    val ExpandLess: DrawableResource get() = Res.drawable.expand_less_filled
 
     /** Material `Icons.Filled.ExpandMore`. */
-    val ExpandMore: ImageVector get() = ExpandMoreIcon
+    val ExpandMore: DrawableResource get() = Res.drawable.expand_more_filled
 
     /** Material `Icons.Filled.Reorder`. */
-    val Reorder: ImageVector get() = ReorderIcon
+    val Reorder: DrawableResource get() = Res.drawable.reorder_filled
 
     /** Material `Icons.Filled.Star`. */
-    val Star: ImageVector get() = StarIcon
+    val Star: DrawableResource get() = Res.drawable.star_filled
 
     /** Material `Icons.Filled.BarChart`. */
-    val BarChart: ImageVector get() = BarChartIcon
+    val BarChart: DrawableResource get() = Res.drawable.bar_chart_filled
 
     /** Material `Icons.Filled.Close`. */
-    val Close: ImageVector get() = CloseIcon
+    val Close: DrawableResource get() = Res.drawable.close_filled
 
     /** Material `Icons.Filled.Delete`. */
-    val Delete: ImageVector get() = DeleteIcon
+    val Delete: DrawableResource get() = Res.drawable.delete_filled
 }

@@ -10,6 +10,8 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
+            // DrawableResource is the public type of TableIcons, so consumers need it on their classpath.
+            api(libs.compose.components.resources)
             implementation(libs.reorderable)
             implementation(libs.kotlinx.datetime)
         }
@@ -20,4 +22,10 @@ kotlin {
             implementation(compose.desktop.currentOs)
         }
     }
+}
+
+compose.resources {
+    packageOfResClass = "ua.wwind.table.generated.resources"
+    publicResClass = false
+    generateResClass = always
 }

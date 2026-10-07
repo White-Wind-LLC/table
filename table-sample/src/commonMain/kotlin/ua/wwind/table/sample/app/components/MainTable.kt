@@ -29,6 +29,7 @@ import io.github.oikvpqya.compose.fastscroller.defaultScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.delay
+import org.jetbrains.compose.resources.painterResource
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.EditableTable
 import ua.wwind.table.RowBlockMove
@@ -129,7 +130,7 @@ fun MainTable(
                                         ColumnMenuItem(
                                             id = ColumnMenuItemId("sample-reset-widths"),
                                             label = "Reset all widths",
-                                            icon = TableIcons.SettingsBackupRestore,
+                                            icon = painterResource(TableIcons.SettingsBackupRestore),
                                             enabled = hasCustomWidths,
                                             disabledReason = "No custom column widths",
                                         ) {

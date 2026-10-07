@@ -52,7 +52,7 @@ internal fun SortButton(
                 ),
     ) {
         Icon(
-            imageVector = sortIcon,
+            painter = sortIcon,
             contentDescription = null,
             modifier = Modifier.size(HeaderIconSize).padding(start = 4.dp),
             tint =

@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.github.fletchmckee.liquid.LiquidState
 import io.github.fletchmckee.liquid.liquid
+import org.jetbrains.compose.resources.painterResource
 import ua.wwind.table.sample.icon.SampleIcons
 
 /**
@@ -76,7 +77,7 @@ fun SelectionActionBar(
             ) {
                 IconButton(onClick = onClearSelection) {
                     Icon(
-                        imageVector = SampleIcons.Close,
+                        painter = painterResource(SampleIcons.Close),
                         contentDescription = "Clear selection",
                         tint = MaterialTheme.colorScheme.onSurface,
                     )
@@ -99,7 +100,7 @@ fun SelectionActionBar(
                         shape = RoundedCornerShape(16.dp),
                     ) {
                         Icon(
-                            imageVector = SampleIcons.Link,
+                            painter = painterResource(SampleIcons.Link),
                             contentDescription = null,
                             modifier = Modifier.padding(end = 8.dp),
                         )
@@ -118,7 +119,7 @@ fun SelectionActionBar(
                         shape = RoundedCornerShape(16.dp),
                     ) {
                         Icon(
-                            imageVector = SampleIcons.LinkOff,
+                            painter = painterResource(SampleIcons.LinkOff),
                             contentDescription = null,
                             modifier = Modifier.padding(end = 8.dp),
                         )
@@ -135,7 +136,7 @@ fun SelectionActionBar(
                     shape = RoundedCornerShape(16.dp),
                 ) {
                     Icon(
-                        imageVector = SampleIcons.Delete,
+                        painter = painterResource(SampleIcons.Delete),
                         contentDescription = null,
                         modifier = Modifier.padding(end = 8.dp),
                     )

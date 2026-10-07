@@ -7,6 +7,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.ComposeUiTest
@@ -159,6 +161,35 @@ class ColumnHeaderMenuTest {
             onNodeWithText("Do X").performClick()
             waitForIdle()
             assertThat(clicked).isTrue()
+        }
+
+    @Test
+    fun `a custom item draws its painter icon`() =
+        desktopOnlyTest {
+            showTable(
+                columnMenu =
+                    ColumnMenuBuilder { _, _ ->
+                        listOf(
+                            ColumnMenuSection(
+                                id = "custom",
+                                items =
+                                    listOf(
+                                        ColumnMenuItem(
+                                            ColumnMenuItemId("y"),
+                                            "Do Y",
+                                            icon = ColorPainter(Color.Red),
+                                        ) {},
+                                        ColumnMenuItem(ColumnMenuItemId("z"), "Do Z", icon = null) {},
+                                    ),
+                            ),
+                        )
+                    },
+            )
+            rightClickHeader("Name")
+
+            onNodeWithText("Do Y").assertExists()
+            // Only the item with a painter gets a leading icon.
+            onAllNodes(hasTestTag(LEADING_ICON_TAG), useUnmergedTree = true).assertCountEquals(1)
         }
 
     @Test

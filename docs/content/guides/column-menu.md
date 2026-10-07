@@ -50,12 +50,21 @@ Table(
             ColumnMenuSection(
                 id = "export",
                 items = listOf(
-                    ColumnMenuItem(ColumnMenuItemId("export"), "Export column", icon = null) { export(column) },
+                    ColumnMenuItem(
+                        ColumnMenuItemId("export"),
+                        "Export column",
+                        icon = painterResource(Res.drawable.export),
+                    ) { export(column) },
+                    ColumnMenuItem(ColumnMenuItemId("copy"), "Copy values", icon = null) { copy(column) },
                 ),
             )
     },
 )
 ```
+
+`icon` is any `Painter`, or `null` for none: `painterResource(...)` for a Compose resource (a
+library icon too, e.g. `painterResource(TableIcons.Close)`), or `rememberVectorPainter(...)` for an
+`ImageVector`. The builder runs in composition, so both can be called there.
 
 Return an empty list to remove the menu for a column. Built-in item and section ids are in
 `ColumnMenuDefaults.Ids` and `ColumnMenuDefaults.Sections`.

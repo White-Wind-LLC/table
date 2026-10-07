@@ -41,7 +41,6 @@ import ua.wwind.table.config.TableDimensions
 import ua.wwind.table.config.currentTableColors
 import ua.wwind.table.filter.component.fast.FastFiltersRow
 import ua.wwind.table.filter.data.TableFilterType
-import ua.wwind.table.icon.TableIcons
 import ua.wwind.table.interaction.ensureColumnFullyVisible
 import ua.wwind.table.interaction.tableHeaderKeyboardNavigation
 import ua.wwind.table.state.ColumnWidthAction
@@ -61,14 +60,7 @@ internal fun <T : Any, C, E> TableHeader(
     strings: StringProvider,
     horizontalState: ScrollState,
     onEnterBody: () -> Unit,
-    icons: TableHeaderIcons =
-        TableHeaderIcons(
-            sortAsc = TableIcons.ArrowUpward,
-            sortDesc = TableIcons.ArrowDownward,
-            sortNeutral = TableIcons.Sort,
-            filterActive = TableIcons.FilterAltFilled,
-            filterInactive = TableIcons.FilterAltOutlined,
-        ),
+    icons: TableHeaderIcons = TableHeaderDefaults.icons(),
 ) {
     val lazyListState = remember { LazyListState() }
     var filterColumn by remember { mutableStateOf<C?>(null) }

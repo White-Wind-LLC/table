@@ -48,6 +48,7 @@ import com.github.skydoves.colorpicker.compose.BrightnessSlider
 import com.github.skydoves.colorpicker.compose.ColorEnvelope
 import com.github.skydoves.colorpicker.compose.HsvColorPicker
 import com.github.skydoves.colorpicker.compose.rememberColorPickerController
+import org.jetbrains.compose.resources.painterResource
 import ua.wwind.table.format.scrollbar.VerticalScrollbarRenderer
 import ua.wwind.table.format.scrollbar.VerticalScrollbarState
 import ua.wwind.table.format.toColor
@@ -99,7 +100,7 @@ internal fun ColorPickerDialog(
                                     },
                                 ) {
                                     Icon(
-                                        imageVector = TableIcons.Check,
+                                        painter = painterResource(TableIcons.Check),
                                         contentDescription = null,
                                     )
                                 }
@@ -120,7 +121,7 @@ internal fun ColorPickerDialog(
                                     horizontalArrangement = spacedBy(8.dp),
                                 ) {
                                     Icon(
-                                        imageVector = TableIcons.FormatColorReset,
+                                        painter = painterResource(TableIcons.FormatColorReset),
                                         contentDescription = null,
                                     )
                                     Text(text = strings.get(UiString.FormatResetColor))

@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.staticCompositionLocalOf
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.painter.Painter
 import kotlin.jvm.JvmInline
 
 /** Stable identifier of a column menu item. Built-in items use the values in [ColumnMenuDefaults.Ids]. */
@@ -19,7 +19,7 @@ public value class ColumnMenuItemId(
  *
  * @property id stable identifier, see [ColumnMenuDefaults.Ids]
  * @property label text shown in the menu and used as the accessibility action label
- * @property icon leading icon, or null for none
+ * @property icon leading icon, e.g. painterResource(TableIcons.Close), or null for none
  * @property enabled whether the item can be activated right now
  * @property disabledReason shown under the label while [enabled] is false
  * @property checked draws a trailing check, e.g. for the active sort direction
@@ -29,7 +29,7 @@ public value class ColumnMenuItemId(
 public data class ColumnMenuItem(
     val id: ColumnMenuItemId,
     val label: String,
-    val icon: ImageVector?,
+    val icon: Painter?,
     val enabled: Boolean = true,
     val disabledReason: String? = null,
     val checked: Boolean = false,
