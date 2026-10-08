@@ -12,7 +12,9 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.platform.LocalDensity
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.withContext
 import ua.wwind.table.ColumnSpec
+import ua.wwind.table.component.currentTableMotion
 import ua.wwind.table.state.TableState
 import ua.wwind.table.state.currentTableState
 
@@ -27,7 +29,8 @@ internal fun <T : Any, C, E> EnsureSelectedCellVisibleEffect(
     val state = currentTableState() as TableState<C>
     val density = LocalDensity.current
     var previousSelectedRowIndex by remember { mutableStateOf<Int?>(null) }
-    LaunchedEffect(state) {
+    val motion = currentTableMotion()
+    LaunchedEffect(state, motion) {
         snapshotFlow { state.selection.selectedCell }.collectLatest { cell ->
             if (cell == null) return@collectLatest
             val colIndex = visibleColumns.indexOfFirst { it.key == cell.column }
@@ -39,17 +42,19 @@ internal fun <T : Any, C, E> EnsureSelectedCellVisibleEffect(
                     } else {
                         0
                     }
-                ensureCellFullyVisible(
-                    rowIndex = cell.rowIndex,
-                    targetColIndex = colIndex,
-                    targetColKey = cell.column,
-                    visibleColumns = visibleColumns,
-                    state = state,
-                    verticalState = verticalState,
-                    horizontalState = horizontalState,
-                    density = density,
-                    movement = movement,
-                )
+                withContext(motion.scrollContext) {
+                    ensureCellFullyVisible(
+                        rowIndex = cell.rowIndex,
+                        targetColIndex = colIndex,
+                        targetColKey = cell.column,
+                        visibleColumns = visibleColumns,
+                        state = state,
+                        verticalState = verticalState,
+                        horizontalState = horizontalState,
+                        density = density,
+                        movement = movement,
+                    )
+                }
                 previousSelectedRowIndex = cell.rowIndex
             }
         }

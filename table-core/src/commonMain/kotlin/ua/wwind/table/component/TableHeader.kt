@@ -1,6 +1,7 @@
 package ua.wwind.table.component
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.VisibilityThreshold
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
@@ -27,8 +28,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.withContext
 import sh.calvin.reorderable.rememberReorderableLazyListState
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.component.header.ColumnResizersOverlay
@@ -77,13 +80,16 @@ internal fun <T : Any, C, E> TableHeader(
 
     // Keep the keyboard-focused header column scrolled into view. A pointer focuses a column already on screen.
     val density = LocalDensity.current
-    LaunchedEffect(state, derived.visibleColumns) {
+    val motion = currentTableMotion()
+    LaunchedEffect(state, derived.visibleColumns, motion) {
         snapshotFlow {
             if (state.isHeaderFocused && state.isHeaderFocusFromKeyboard) state.focusedHeaderColumn else null
         }.collectLatest { column ->
             val index = derived.visibleColumns.indexOfFirst { it.key == column }
             if (column != null && index >= 0) {
-                ensureColumnFullyVisible(index, column, derived.visibleColumns, state, horizontalState, density)
+                withContext(motion.scrollContext) {
+                    ensureColumnFullyVisible(index, column, derived.visibleColumns, state, horizontalState, density)
+                }
             }
         }
     }
@@ -154,13 +160,15 @@ internal fun <T : Any, C, E> TableHeader(
                         it.filter != null && it.filter !is TableFilterType.DisabledTableFilter
                     },
             enter =
-                slideInVertically(
-                    initialOffsetY = { fullHeight -> -fullHeight },
-                ) + fadeIn(),
+                motion.enter {
+                    slideInVertically(motion.move(IntOffset.VisibilityThreshold)) { fullHeight -> -fullHeight } +
+                        fadeIn(motion.fade())
+                },
             exit =
-                slideOutVertically(
-                    targetOffsetY = { fullHeight -> -fullHeight },
-                ) + fadeOut(),
+                motion.exit {
+                    slideOutVertically(motion.move(IntOffset.VisibilityThreshold)) { fullHeight -> -fullHeight } +
+                        fadeOut(motion.fade())
+                },
         ) {
             FastFiltersRow(
                 visibleColumns = derived.visibleColumns,

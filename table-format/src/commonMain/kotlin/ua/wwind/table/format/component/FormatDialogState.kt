@@ -9,6 +9,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.delay
+import ua.wwind.table.config.isReduced
 import ua.wwind.table.format.data.EditFormatRule
 import ua.wwind.table.format.data.FormatDialogSettings
 
@@ -31,9 +32,10 @@ internal fun <E : Enum<E>, FILTER> rememberFormatDialogState(
 ): FormatDialogState<E, FILTER> {
     val lazyListState = rememberLazyListState()
     val state = remember { FormatDialogState<E, FILTER>(lazyListState) }
+    val reducedMotion = settings.motion.isReduced()
     LaunchedEffect(state.itemCopyIndex) {
         val index = state.itemCopyIndex ?: return@LaunchedEffect
-        lazyListState.animateScrollToItem(index)
+        if (reducedMotion) lazyListState.scrollToItem(index) else lazyListState.animateScrollToItem(index)
         delay(settings.copiedItemHighlightDuration)
         state.itemCopyIndex = null
     }

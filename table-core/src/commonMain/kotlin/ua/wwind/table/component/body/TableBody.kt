@@ -27,7 +27,9 @@ import ua.wwind.table.TableEmptyStateBox
 import ua.wwind.table.TableItemDragScope
 import ua.wwind.table.TableItemListDragScope
 import ua.wwind.table.TableItemScope
+import ua.wwind.table.component.currentTableMotion
 import ua.wwind.table.component.footer.TableFooter
+import ua.wwind.table.component.tableAnimateItem
 import ua.wwind.table.config.TableColors
 import ua.wwind.table.config.TableCustomization
 import ua.wwind.table.config.currentTableColors
@@ -86,6 +88,7 @@ internal fun <T : Any, C, E> TableBody(
     val currentOnBlockDragStarted = rememberUpdatedState(hooks.onBlockDragStarted)
     val currentOnBlockDragStopped = rememberUpdatedState(hooks.onBlockDragStopped)
     val currentOnRowMoveWithinBlock = rememberUpdatedState(hooks.onRowMoveWithinBlock)
+    val motion = currentTableMotion()
 
     LazyColumn(
         modifier = modifier,
@@ -114,7 +117,11 @@ internal fun <T : Any, C, E> TableBody(
             val key = keyOf(rows.first)
             val currentReorderState = reorderState
             if (currentReorderState != null) {
-                ReorderableItem(state = currentReorderState, key = key) { isDragging ->
+                ReorderableItem(
+                    state = currentReorderState,
+                    key = key,
+                    animateItemModifier = tableAnimateItem(motion),
+                ) { isDragging ->
                     val rowScope: TableItemScope =
                         remember(this) {
                             TableItemDragScope(
@@ -163,31 +170,35 @@ internal fun <T : Any, C, E> TableBody(
                     }
                 }
             } else {
+                // Without the reorder engine nothing else animates a row to its new place after a
+                // sort or a data change.
                 context(DefaultTableItemScope) {
-                    RowUnit(
-                        rows = rows,
-                        isGroup = isGroup,
-                        nextIsGroup = nextIsGroup,
-                        blockId = blockId,
-                        blockHeader = blockHeader,
-                        onRowMoveWithinBlock = null,
-                        onWithinBlockDragStart = null,
-                        rowKeyAt = keyOf,
-                        withinBlockRefusalCount = withinBlockRefusalCount,
-                        itemAt = unitItemAt,
-                        visibleColumns = visibleColumns,
-                        state = state,
-                        colors = colors,
-                        customization = customization,
-                        tableData = tableData,
-                        rowEmbedded = rowEmbedded,
-                        placeholderRow = placeholderRow,
-                        onRowClick = onRowClick,
-                        onRowLongClick = onRowLongClick,
-                        onContextMenu = onContextMenu,
-                        horizontalState = horizontalState,
-                        requestTableFocus = requestTableFocus,
-                    )
+                    Box(tableAnimateItem(motion)) {
+                        RowUnit(
+                            rows = rows,
+                            isGroup = isGroup,
+                            nextIsGroup = nextIsGroup,
+                            blockId = blockId,
+                            blockHeader = blockHeader,
+                            onRowMoveWithinBlock = null,
+                            onWithinBlockDragStart = null,
+                            rowKeyAt = keyOf,
+                            withinBlockRefusalCount = withinBlockRefusalCount,
+                            itemAt = unitItemAt,
+                            visibleColumns = visibleColumns,
+                            state = state,
+                            colors = colors,
+                            customization = customization,
+                            tableData = tableData,
+                            rowEmbedded = rowEmbedded,
+                            placeholderRow = placeholderRow,
+                            onRowClick = onRowClick,
+                            onRowLongClick = onRowLongClick,
+                            onContextMenu = onContextMenu,
+                            horizontalState = horizontalState,
+                            requestTableFocus = requestTableFocus,
+                        )
+                    }
                 }
             }
         }

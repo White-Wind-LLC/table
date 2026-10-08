@@ -65,7 +65,7 @@ class FormatConditionOperatorTest {
                     strings = DefaultStrings,
                 )
             }
-            switchOperator(from = "In", to = "Not in")
+            switchOperator(from = "Is any of", to = "Is none of")
             waitForIdle()
 
             assertThat(last?.constraint).isEqualTo(FilterConstraint.NOT_IN)

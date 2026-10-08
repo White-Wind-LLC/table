@@ -68,6 +68,8 @@ public data class TableSettings(
      * only makes it visible.
      */
     val showColumnMenuButton: Boolean = false,
+    /** Whether the table animates; [TableMotion.System] follows the platform's reduced-motion setting. */
+    val motion: TableMotion = TableMotion.System,
 )
 
 /**

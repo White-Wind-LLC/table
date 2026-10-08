@@ -336,9 +336,9 @@ public object DefaultStrings : StringProvider {
 
             UiString.FilterEnterNumberPlaceholder -> "Enter number..."
 
-            UiString.FilterSelectOnePlaceholder -> "Select One"
+            UiString.FilterSelectOnePlaceholder -> "Select one"
 
-            UiString.FilterSelectManyPlaceholder -> "Select Many"
+            UiString.FilterSelectManyPlaceholder -> "Select many"
 
             UiString.FilterRangeFromPlaceholder -> "From"
 
@@ -368,7 +368,7 @@ public object DefaultStrings : StringProvider {
             UiString.FilterErrorRangeInverted -> "From must not be greater than To"
 
             // Date picker
-            UiString.DatePickerSelectDate -> "Select Date"
+            UiString.DatePickerSelectDate -> "Select date"
 
             UiString.DatePickerConfirm -> "Confirm"
 
@@ -392,13 +392,13 @@ public object DefaultStrings : StringProvider {
 
             UiString.FilterConstraintContains -> "Contains"
 
-            UiString.FilterConstraintIn -> "In"
+            UiString.FilterConstraintIn -> "Is any of"
 
             UiString.FilterConstraintStartsWith -> "Starts with"
 
             UiString.FilterConstraintEndsWith -> "Ends with"
 
-            UiString.FilterConstraintNotIn -> "Not in"
+            UiString.FilterConstraintNotIn -> "Is none of"
 
             UiString.FilterConstraintGt -> "Greater than"
 
@@ -408,9 +408,9 @@ public object DefaultStrings : StringProvider {
 
             UiString.FilterConstraintLte -> "Less than or equal"
 
-            UiString.FilterConstraintIsNull -> "Is null"
+            UiString.FilterConstraintIsNull -> "Is empty"
 
-            UiString.FilterConstraintIsNotNull -> "Is not null"
+            UiString.FilterConstraintIsNotNull -> "Is not empty"
 
             // Format
             UiString.FormatRules -> "Formatting rules"
@@ -419,7 +419,7 @@ public object DefaultStrings : StringProvider {
 
             UiString.FormatConditionTab -> "Condition"
 
-            UiString.FormatFieldTab -> "Fields to format"
+            UiString.FormatFieldTab -> "Fields"
 
             UiString.FormatVerticalAlignmentTop -> "Top"
 

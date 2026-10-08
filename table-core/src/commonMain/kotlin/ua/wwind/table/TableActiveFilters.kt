@@ -1,6 +1,11 @@
 package ua.wwind.table
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.VisibilityThreshold
+import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,13 +30,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
+import ua.wwind.table.component.TableMotionSpecs
 import ua.wwind.table.component.header.ColumnFilterPanel
+import ua.wwind.table.component.rememberTableMotionSpecs
 import ua.wwind.table.filter.data.FilterConstraint
 import ua.wwind.table.filter.data.TableFilterState
 import ua.wwind.table.filter.data.TableFilterType
@@ -121,6 +129,8 @@ internal fun <T : Any, C, E> ActiveFilterChips(
     if (shownFilters.isEmpty()) return
     val listState: LazyListState = rememberLazyListState()
     val scope = rememberCoroutineScope()
+    // Also shown outside a Table, so it reads the motion setting from the state, not the table's local.
+    val motion = rememberTableMotionSpecs(state.settings.motion)
 
     Column(modifier) {
         Row(
@@ -145,12 +155,13 @@ internal fun <T : Any, C, E> ActiveFilterChips(
                 )
             }
             ChipsScrollButton(
+                motion = motion,
                 listState = listState,
                 enabled = listState.canScrollBackward,
                 icon = TableIcons.KeyboardArrowLeft,
                 modifier = Modifier.padding(end = 4.dp),
                 onClick = {
-                    scope.launch {
+                    scope.launch(motion.scrollContext) {
                         val target = (listState.firstVisibleItemIndex - 1).coerceAtLeast(0)
                         listState.animateScrollToItem(target)
                     }
@@ -183,12 +194,13 @@ internal fun <T : Any, C, E> ActiveFilterChips(
                 }
             }
             ChipsScrollButton(
+                motion = motion,
                 listState = listState,
                 enabled = listState.canScrollForward,
                 icon = TableIcons.KeyboardArrowRight,
                 modifier = Modifier.padding(start = 4.dp),
                 onClick = {
-                    scope.launch {
+                    scope.launch(motion.scrollContext) {
                         val lastIndex = (shownFilters.size - 1).coerceAtLeast(0)
                         val target = (listState.firstVisibleItemIndex + 1).coerceAtMost(lastIndex)
                         listState.animateScrollToItem(target)
@@ -203,13 +215,18 @@ internal fun <T : Any, C, E> ActiveFilterChips(
 /** An arrow that scrolls the chips row; shown only while the row overflows. */
 @Composable
 private fun RowScope.ChipsScrollButton(
+    motion: TableMotionSpecs,
     listState: LazyListState,
     enabled: Boolean,
     icon: DrawableResource,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    AnimatedVisibility(visible = listState.canScrollBackward || listState.canScrollForward) {
+    AnimatedVisibility(
+        visible = listState.canScrollBackward || listState.canScrollForward,
+        enter = motion.enter { fadeIn(motion.fade()) + expandHorizontally(motion.move(IntSize.VisibilityThreshold)) },
+        exit = motion.exit { fadeOut(motion.fade()) + shrinkHorizontally(motion.move(IntSize.VisibilityThreshold)) },
+    ) {
         IconButton(enabled = enabled, onClick = onClick, modifier = modifier) {
             Icon(painter = painterResource(icon), contentDescription = null)
         }
