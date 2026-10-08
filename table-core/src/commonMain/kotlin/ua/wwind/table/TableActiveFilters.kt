@@ -180,10 +180,10 @@ internal fun buildFilterChipTextUnsafe(
             if (constraint == FilterConstraint.BETWEEN && list.size >= 2) {
                 val from = list[0]
                 val to = list[1]
-                "${strings.get(constraint.toUiString())} $from - $to"
+                "${strings.get(constraint.toUiString())} ${strings.formatNumber(from)} - ${strings.formatNumber(to)}"
             } else {
                 val single = list.firstOrNull() ?: return null
-                "${strings.get(constraint.toUiString())} $single"
+                "${strings.get(constraint.toUiString())} ${strings.formatNumber(single)}"
             }
         }
 
@@ -198,7 +198,7 @@ internal fun buildFilterChipTextUnsafe(
         is TableFilterType.DateTableFilter -> {
             val s = state as? TableFilterState<LocalDate> ?: return null
             val value = s.values?.firstOrNull() ?: return null
-            "${strings.get(constraint.toUiString())} $value"
+            "${strings.get(constraint.toUiString())} ${strings.formatDate(value)}"
         }
 
         is TableFilterType.EnumTableFilter<*> -> {

@@ -25,7 +25,6 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
-import kotlinx.datetime.format
 import kotlinx.datetime.toLocalDateTime
 import ua.wwind.table.component.TableTextField
 import ua.wwind.table.component.TableTextFieldDefaults
@@ -148,7 +147,7 @@ internal fun DateField(
         )
 
     TableTextField(
-        value = value?.toFormatString().orEmpty(),
+        value = value?.let { strings.formatDate(it) }.orEmpty(),
         onValueChange = {},
         label = label,
         placeholder = {
@@ -213,14 +212,3 @@ internal fun LocalDate.toDatePickerMillis(): Long = atStartOfDayIn(TimeZone.UTC)
 @OptIn(ExperimentalTime::class)
 internal fun datePickerMillisToLocalDate(millis: Long): LocalDate =
     Instant.fromEpochMilliseconds(millis).toLocalDateTime(TimeZone.UTC).date
-
-internal fun LocalDate.toFormatString(): String =
-    this.format(
-        LocalDate.Format {
-            day()
-            chars(".")
-            monthNumber()
-            chars(".")
-            year()
-        },
-    )
