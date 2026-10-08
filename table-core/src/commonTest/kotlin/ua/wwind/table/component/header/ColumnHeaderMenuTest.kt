@@ -17,7 +17,6 @@ import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
-import androidx.compose.ui.test.hasAnyDescendant
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onAllNodesWithText
@@ -125,7 +124,7 @@ class ColumnHeaderMenuTest {
         desktopOnlyTest {
             showTable()
             val labels =
-                onNode(headerWithActions and hasAnyDescendant(hasText("Name")))
+                onNode(headerWithActions and hasText("Name"))
                     .fetchSemanticsNode()
                     .config[SemanticsActions.CustomActions]
                     .map { it.label }

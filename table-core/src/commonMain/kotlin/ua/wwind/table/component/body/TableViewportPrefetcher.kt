@@ -47,6 +47,7 @@ internal fun <T : Any, C, E> TableViewportPrefetcher(
     verticalState: LazyListState,
     requestTableFocus: () -> Unit,
     horizontalState: ScrollState,
+    modifier: Modifier = Modifier,
 ) {
     // Only meaningful for dynamic row heights
     if (state.settings.rowHeightMode != RowHeightMode.Dynamic) return
@@ -77,7 +78,7 @@ internal fun <T : Any, C, E> TableViewportPrefetcher(
     // We perform subcomposition inside a size(0) layout; we then apply updates via a LaunchedEffect
     var pendingUpdates by remember { mutableStateOf(emptyList<Pair<Int, Int>>()) }
 
-    SubcomposeLayout(Modifier.size(0.dp)) { _ ->
+    SubcomposeLayout(modifier.size(0.dp)) { _ ->
         pendingUpdates = emptyList()
         if (viewportHeightPx <= 0) {
             return@SubcomposeLayout layout(0, 0) {}

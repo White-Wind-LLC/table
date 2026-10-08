@@ -18,6 +18,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.flow.collectLatest
 import ua.wwind.table.ColumnSpec
@@ -104,9 +105,10 @@ internal fun <T : Any, C, E> GroupStickyOverlay(
     currentItem?.let { item ->
         val value = spec.valueOf(item)
         val viewportWidthDp = with(density) { horizontalState.viewportSize.toDp() }
+        // A visual copy of a header that is already in the body; screen readers read that one.
         Box(
             modifier =
-                Modifier.graphicsLayer {
+                Modifier.clearAndSetSemantics {}.graphicsLayer {
                     translationY = overlayOffsetPx.toFloat()
                     // Pin horizontally within the viewport by negating current horizontal
                     // scroll

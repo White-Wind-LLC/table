@@ -26,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerHoverIcon
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
@@ -179,12 +180,14 @@ internal fun <T : Any, C, E> TableHeaderRow(
 
                             if (showDragHandle) {
                                 // The glyph stays small in the top-left corner; the target around it is larger.
+                                // Its own semantics node, so "Drag column" stays out of the heading's label.
                                 Box(
                                     contentAlignment = Alignment.TopStart,
                                     modifier =
                                         Modifier
                                             .align(Alignment.TopStart)
                                             .size(style.dimensions.columnDragHandleSize)
+                                            .semantics(mergeDescendants = true) {}
                                             .pointerHoverIcon(ColumnGrabPointerIcon)
                                             .headerHandlePress(state)
                                             .draggableHandle(enabled = true),

@@ -9,6 +9,8 @@ import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.DefaultTableCellScope
@@ -55,10 +57,12 @@ internal fun <T : Any, C, E> GroupHeaderCell(
             ) { _ ->
                 Box(
                     contentAlignment = state.settings.groupContentAlignment,
+                    // One heading per group, read as a whole rather than cell content piece by piece.
                     modifier =
                         Modifier
                             .width(width)
-                            .height(height),
+                            .height(height)
+                            .semantics(mergeDescendants = true) { heading() },
                 ) {
                     spec.groupHeader?.invoke(this, value) ?: run {
                         context(DefaultTableCellScope) {
