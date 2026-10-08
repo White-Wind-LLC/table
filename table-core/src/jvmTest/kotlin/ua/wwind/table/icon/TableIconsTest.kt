@@ -105,6 +105,19 @@ class TableIconsTest {
         assertThat(pin.root.filterIsInstance<VectorPath>().any { it.pathFillType == PathFillType.EvenOdd }).isTrue()
     }
 
+    // Issue #92: one icon family. Only the outline glyphs Rounded lacks, and the solid filter that must
+    // share their silhouette, may come from another one.
+    @Test
+    fun `icons come from the rounded family`() {
+        val drawables =
+            java.io.File("src/commonMain/composeResources/drawable").list().orEmpty().map {
+                it.removeSuffix(".xml")
+            }
+        assertThat(drawables.size).isEqualTo(icons.size)
+        val others = drawables.filterNot { it.endsWith("_rounded") }.toSet()
+        assertThat(others).isEqualTo(setOf("filter_alt_filled", "filter_alt_outlined", "push_pin_outlined"))
+    }
+
     private companion object {
         const val MIN_EXTENT = 7f
         const val MIN_THIN_EXTENT = 2f

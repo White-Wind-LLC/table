@@ -7,7 +7,6 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.selection.LocalTextSelectionColors
-import androidx.compose.foundation.text.selection.TextSelectionColors
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -98,13 +97,9 @@ public fun TableTextField(
             TextStyle(color = textColor),
         )
 
-    // Configure cursor and text selection colors based on the current theme
-    val cursorColor = MaterialTheme.colorScheme.primary
-    val textSelectionColors =
-        TextSelectionColors(
-            handleColor = MaterialTheme.colorScheme.primary,
-            backgroundColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f),
-        )
+    // Cursor and selection follow [colors], as in a Material text field; the default colors take the
+    // selection from LocalTextSelectionColors, so an app theme that sets it is respected.
+    val cursorColor = if (isError) colors.errorCursorColor else colors.cursorColor
 
     // Apply transparent border colors when showBorder is false
     val effectiveColors =
@@ -119,7 +114,7 @@ public fun TableTextField(
             colors
         }
 
-    CompositionLocalProvider(LocalTextSelectionColors provides textSelectionColors) {
+    CompositionLocalProvider(LocalTextSelectionColors provides colors.textSelectionColors) {
         BasicTextField(
             value = value,
             onValueChange = onValueChange,

@@ -27,6 +27,7 @@ import androidx.compose.ui.zIndex
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.datetime.LocalDate
 import ua.wwind.table.ColumnSpec
+import ua.wwind.table.component.currentTableMotion
 import ua.wwind.table.component.pinnedEdgeShadow
 import ua.wwind.table.config.currentTableColors
 import ua.wwind.table.filter.data.TableFilterState
@@ -91,7 +92,10 @@ internal fun <T : Any, C, E> FastFiltersRow(
                     }
 
                 val shadowAlpha =
-                    animateFloatAsState(if (pinnedState.edge.hasContentUnder(horizontalState)) 1f else 0f)
+                    animateFloatAsState(
+                        if (pinnedState.edge.hasContentUnder(horizontalState)) 1f else 0f,
+                        currentTableMotion().settle(),
+                    )
                 Surface(
                     color = surfaceColor,
                     modifier =

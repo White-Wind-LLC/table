@@ -51,7 +51,7 @@ class EnumBooleanFilterPanelTest {
                     onChange = {},
                 )
             }
-            onNodeWithText("Select Many").performClick()
+            onNodeWithText("Select many").performClick()
             onNodeWithText("Search options…").performTextInput("ur")
             onNodeWithText("Saturn").assertIsDisplayed()
             onNodeWithText("Venus").assertDoesNotExist()
@@ -73,7 +73,7 @@ class EnumBooleanFilterPanelTest {
                     onChange = {},
                 )
             }
-            onNodeWithText("Select Many").performClick()
+            onNodeWithText("Select many").performClick()
             onNodeWithText("Venus").assertIsDisplayed()
             onNodeWithText("Search options…").assertDoesNotExist()
         }

@@ -1,5 +1,6 @@
 package ua.wwind.table.component.header
 
+import androidx.compose.animation.core.VisibilityThreshold
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ScrollState
@@ -33,7 +34,9 @@ import org.jetbrains.compose.resources.painterResource
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.ReorderableLazyListState
 import ua.wwind.table.ColumnSpec
+import ua.wwind.table.component.currentTableMotion
 import ua.wwind.table.component.pinnedEdgeShadow
+import ua.wwind.table.component.tableAnimateItem
 import ua.wwind.table.config.currentTableColors
 import ua.wwind.table.icon.TableIcons
 import ua.wwind.table.platform.ColumnGrabPointerIcon
@@ -62,6 +65,7 @@ internal fun <T : Any, C, E> TableHeaderRow(
     horizontalState: ScrollState,
 ) {
     val settings = state.settings
+    val motion = currentTableMotion()
     val isMobilePlatform = remember { getPlatform().isMobile() }
 
     LazyRow(
@@ -82,11 +86,11 @@ internal fun <T : Any, C, E> TableHeaderRow(
                 )
 
             val shadowAlpha =
-                animateFloatAsState(if (pinnedState.edge.hasContentUnder(horizontalState)) 1f else 0f)
+                animateFloatAsState(if (pinnedState.edge.hasContentUnder(horizontalState)) 1f else 0f, motion.settle())
             ReorderableItem(
                 state = reorderState,
                 key = spec.key as Any,
-                animateItemModifier = if (isResizing) Modifier else Modifier.animateItem(),
+                animateItemModifier = if (isResizing) Modifier else tableAnimateItem(motion),
                 enabled = !pinnedState.isPinned,
                 modifier =
                     Modifier
@@ -101,7 +105,11 @@ internal fun <T : Any, C, E> TableHeaderRow(
                             alpha = { shadowAlpha.value },
                         ),
             ) { isDragging ->
-                val elevation = animateDpAsState(if (isDragging) style.dimensions.dragElevation else 0.dp).value
+                val elevation =
+                    animateDpAsState(
+                        if (isDragging) style.dimensions.dragElevation else 0.dp,
+                        motion.settle(Dp.VisibilityThreshold),
+                    ).value
 
                 Surface(
                     color = style.headerColor,

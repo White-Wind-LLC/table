@@ -1,6 +1,9 @@
 package ua.wwind.table.format
 
+import androidx.compose.animation.core.VisibilityThreshold
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -40,6 +43,7 @@ import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.mutate
@@ -53,6 +57,7 @@ import org.jetbrains.compose.resources.painterResource
 import sh.calvin.reorderable.ReorderableCollectionItemScope
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
+import ua.wwind.table.config.isReduced
 import ua.wwind.table.format.component.FormatDialogState
 import ua.wwind.table.format.component.FormatDialogTabRow
 import ua.wwind.table.format.component.MIN_TEXT_CONTRAST
@@ -137,6 +142,7 @@ internal fun <E : Enum<E>, FILTER> FormatDialogBody(
                             onChange = { newItem -> state.editItem = edit.copy(item = newItem) },
                             strings = strings,
                             scrollbarRenderer = scrollbarRenderer,
+                            motion = settings.motion,
                         )
                     }
 
@@ -191,9 +197,14 @@ internal fun <E : Enum<E>, FILTER> FormatDialogBody(
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 48.dp),
                     )
                 }
+                val reducedMotion = settings.motion.isReduced()
                 LazyColumn(state = state.lazyListState, modifier = Modifier.fillMaxWidth()) {
                     itemsIndexed(rulesState, key = { _, item -> item.id }) { index, item ->
-                        ReorderableItem(state = reorderableState, key = item.id) { isDragging ->
+                        ReorderableItem(
+                            state = reorderableState,
+                            key = item.id,
+                            animateItemModifier = if (reducedMotion) Modifier else Modifier.animateItem(),
+                        ) { isDragging ->
                             FormatRuleRow(
                                 item = item,
                                 isDragging = isDragging,
@@ -254,7 +265,11 @@ private fun <E : Enum<E>, FILTER> ReorderableCollectionItemScope.FormatRuleRow(
     filters: (TableFormatRule<E, FILTER>, onApply: (TableFormatRule<E, FILTER>) -> Unit) -> List<FormatFilterData<E>>,
     strings: StringProvider,
 ) {
-    val elevation = animateDpAsState(if (isDragging) 16.dp else 0.dp)
+    val elevation =
+        animateDpAsState(
+            if (isDragging) 16.dp else 0.dp,
+            if (settings.motion.isReduced()) snap() else spring(visibilityThreshold = Dp.VisibilityThreshold),
+        )
     val moveUp = strings.get(UiString.FormatRuleMoveUp)
     val moveDown = strings.get(UiString.FormatRuleMoveDown)
     val colors = rulePreviewColors(item.cellStyle, highlighted, settings)

@@ -95,7 +95,8 @@ column(PersonField.Name, valueOf = { it.name }) {
       `showVerticalDividers` (show/hide vertical dividers between columns; defaults to `true`),
       `showRowDividers` (show/hide horizontal dividers between rows; defaults to `true`),
       `showHeaderDivider` (show/hide horizontal divider below header; defaults to `true`),
-      `showFastFiltersDivider` (show/hide horizontal divider below fast filters row; defaults to `true`).
+      `showFastFiltersDivider` (show/hide horizontal divider below fast filters row; defaults to `true`),
+      `motion: System/Full/Reduced` (animations; `System`, the default, follows the platform's reduced-motion setting).
     - Row reorder mode notes: while `rowReorderEnabled = true`, sorting and grouping UI is disabled.
       Filtering stays available; fast filters and active filters header continue to work. With `rowBlocks`, note
       that dragging a partially hidden block still relocates the whole block in the source list — hidden members

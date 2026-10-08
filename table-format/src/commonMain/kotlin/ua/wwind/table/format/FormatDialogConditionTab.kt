@@ -1,8 +1,15 @@
 package ua.wwind.table.format
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
@@ -58,6 +65,8 @@ import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.painterResource
 import ua.wwind.table.component.TableTextField
 import ua.wwind.table.component.TableTextFieldDefaults
+import ua.wwind.table.config.TableMotion
+import ua.wwind.table.config.isReduced
 import ua.wwind.table.filter.component.FilterDropdownAnyField
 import ua.wwind.table.filter.component.FilterDropdownField
 import ua.wwind.table.filter.component.collectAsEffect
@@ -87,7 +96,9 @@ public fun <E : Enum<E>, FILTER> FormatDialogConditionTab(
     strings: StringProvider,
     modifier: Modifier = Modifier,
     scrollbarRenderer: VerticalScrollbarRenderer? = null,
+    motion: TableMotion = TableMotion.System,
 ) {
+    val reducedMotion = motion.isReduced()
     Box(
         modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.TopCenter,
@@ -132,7 +143,7 @@ public fun <E : Enum<E>, FILTER> FormatDialogConditionTab(
                                 ) {
                                     val rotation by animateFloatAsState(
                                         targetValue = if (!expanded) -180F else 0F,
-                                        animationSpec = tween(durationMillis = 500),
+                                        animationSpec = if (reducedMotion) snap() else tween(durationMillis = 500),
                                         label = "expand condition",
                                     )
                                     Icon(
@@ -165,7 +176,11 @@ public fun <E : Enum<E>, FILTER> FormatDialogConditionTab(
                                 },
                             modifier = Modifier.clickable { expanded = !expanded },
                         )
-                        AnimatedVisibility(visible = expanded) {
+                        AnimatedVisibility(
+                            visible = expanded,
+                            enter = if (reducedMotion) EnterTransition.None else fadeIn() + expandVertically(),
+                            exit = if (reducedMotion) ExitTransition.None else fadeOut() + shrinkVertically(),
+                        ) {
                             Surface {
                                 when (val filter = filterData.filterType) {
                                     is TableFilterType.TextTableFilter -> {

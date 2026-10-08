@@ -25,6 +25,7 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import ua.wwind.table.component.currentTableMotion
 import ua.wwind.table.component.pinnedEdgeShadow
 import ua.wwind.table.config.TableCellStyle
 import ua.wwind.table.config.currentTableColors
@@ -173,7 +174,7 @@ private fun cellDecoration(
         } else {
             Modifier
         }
-    val shadowAlpha = animateFloatAsState(if (hasContentUnderEdge) 1f else 0f)
+    val shadowAlpha = animateFloatAsState(if (hasContentUnderEdge) 1f else 0f, currentTableMotion().settle())
     val shadow =
         Modifier.pinnedEdgeShadow(
             edge = pinnedEdge,

@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ### Unreleased
 
+- Changed: rows animate after a sort, `TableSettings.motion` honours reduced motion; Rounded icons, theme
+  selection colors, plainer filter copy ([#92](https://github.com/White-Wind-LLC/table/issues/92)).
 - Changed: the format rule editor has text buttons, a Duplicate / Delete menu, an empty-list hint and Move up /
   Move down on the drag handle; adds 11 `UiString` keys ([#91](https://github.com/White-Wind-LLC/table/issues/91)).
 - Changed: the color picker has Cancel / OK buttons, named radio swatches, a hex field and a low-contrast

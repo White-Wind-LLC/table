@@ -24,11 +24,11 @@ import ua.wwind.table.generated.resources.check_rounded
 import ua.wwind.table.generated.resources.close_rounded
 import ua.wwind.table.generated.resources.content_copy_rounded
 import ua.wwind.table.generated.resources.delete_rounded
-import ua.wwind.table.generated.resources.drag_indicator_filled
+import ua.wwind.table.generated.resources.drag_indicator_rounded
 import ua.wwind.table.generated.resources.error_outline_rounded
 import ua.wwind.table.generated.resources.filter_alt_filled
 import ua.wwind.table.generated.resources.filter_alt_outlined
-import ua.wwind.table.generated.resources.format_color_reset_filled
+import ua.wwind.table.generated.resources.format_color_reset_rounded
 import ua.wwind.table.generated.resources.keyboard_arrow_left_auto_mirrored_rounded
 import ua.wwind.table.generated.resources.keyboard_arrow_right_auto_mirrored_rounded
 import ua.wwind.table.generated.resources.more_vert_rounded
@@ -37,8 +37,8 @@ import ua.wwind.table.generated.resources.push_pin_rounded
 import ua.wwind.table.generated.resources.save_rounded
 import ua.wwind.table.generated.resources.settings_backup_restore_rounded
 import ua.wwind.table.generated.resources.settings_ethernet_rounded
-import ua.wwind.table.generated.resources.sort_auto_mirrored_outlined
-import ua.wwind.table.generated.resources.swap_horiz_filled
+import ua.wwind.table.generated.resources.sort_auto_mirrored_rounded
+import ua.wwind.table.generated.resources.swap_horiz_rounded
 import ua.wwind.table.generated.resources.table_rows_rounded
 import ua.wwind.table.generated.resources.visibility_off_rounded
 import ua.wwind.table.generated.resources.visibility_rounded
@@ -52,6 +52,11 @@ import ua.wwind.table.generated.resources.visibility_rounded
  * [FilterAltFilled] and [FilterAltOutlined]; the suffix describes the glyph's appearance (solid vs.
  * outline), not the Material style family — Rounded, Filled, Outlined — the glyph was drawn from. See
  * each property's doc comment for its exact Material source.
+ *
+ * Every icon is drawn from the Rounded family, except where an outline carries meaning (an inactive
+ * filter, an unpinned column) and Rounded has no outline glyph: [FilterAltOutlined] and
+ * [PushPinOutlined] come from Outlined, and [FilterAltFilled] from Filled so that both filter states
+ * share one silhouette.
  */
 @Suppress("VariableNaming", "ktlint:standard:property-naming")
 public object TableIcons {
@@ -70,8 +75,8 @@ public object TableIcons {
     /** Material `Icons.Rounded.ArrowDownward`. */
     public val ArrowDownward: DrawableResource get() = Res.drawable.arrow_downward_rounded
 
-    /** Material `Icons.AutoMirrored.Outlined.Sort`. */
-    public val Sort: DrawableResource get() = Res.drawable.sort_auto_mirrored_outlined
+    /** Material `Icons.AutoMirrored.Rounded.Sort`. */
+    public val Sort: DrawableResource get() = Res.drawable.sort_auto_mirrored_rounded
 
     /** Material `Icons.Filled.FilterAltFilled`. */
     public val FilterAltFilled: DrawableResource get() = Res.drawable.filter_alt_filled
@@ -79,11 +84,11 @@ public object TableIcons {
     /** Material `Icons.Filled.FilterAltOutlined`. */
     public val FilterAltOutlined: DrawableResource get() = Res.drawable.filter_alt_outlined
 
-    /** Material `Icons.Filled.DragIndicator` (the Rounded variant is byte-identical). */
-    public val DragIndicator: DrawableResource get() = Res.drawable.drag_indicator_filled
+    /** Material `Icons.Rounded.DragIndicator`. */
+    public val DragIndicator: DrawableResource get() = Res.drawable.drag_indicator_rounded
 
-    /** Material `Icons.Filled.SwapHoriz`. */
-    public val SwapHoriz: DrawableResource get() = Res.drawable.swap_horiz_filled
+    /** Material `Icons.Rounded.SwapHoriz`. */
+    public val SwapHoriz: DrawableResource get() = Res.drawable.swap_horiz_rounded
 
     /** Material `Icons.Rounded.Add`. */
     public val Add: DrawableResource get() = Res.drawable.add_rounded
@@ -103,8 +108,8 @@ public object TableIcons {
     /** Material `Icons.Rounded.Check`. */
     public val Check: DrawableResource get() = Res.drawable.check_rounded
 
-    /** Material `Icons.Filled.FormatColorReset`. */
-    public val FormatColorReset: DrawableResource get() = Res.drawable.format_color_reset_filled
+    /** Material `Icons.Rounded.FormatColorReset`. */
+    public val FormatColorReset: DrawableResource get() = Res.drawable.format_color_reset_rounded
 
     /** Material `Icons.Rounded.PushPin`. */
     public val PushPin: DrawableResource get() = Res.drawable.push_pin_rounded
