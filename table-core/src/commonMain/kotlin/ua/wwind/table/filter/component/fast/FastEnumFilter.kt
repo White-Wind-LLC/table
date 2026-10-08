@@ -36,20 +36,33 @@ internal fun <T : Any, C, E, ENUM : Enum<ENUM>> FastEnumFilter(
             },
         )
 
-    FilterDropdownAnyField(
-        currentValue = enumFilterState.selectedValues.firstOrNull(),
-        getTitle = { item ->
-            @Suppress("UNCHECKED_CAST")
-            (filter.getTitle as @Composable (Enum<*>) -> String).invoke(item as Enum<*>)
-        },
-        placeholder = strings.get(UiString.FilterSelectOnePlaceholder),
-        values = filter.options,
-        onClick = { item ->
-            enumFilterState.onSingleValueChange(item as? ENUM)
-        },
-        modifier = Modifier.fillMaxWidth(),
-        contentPadding = TableTextFieldDefaults.reducedContentPadding(),
-        showBorder = false,
-        searchPlaceholder = strings.get(UiString.FilterOptionsSearchPlaceholder),
-    )
+    val mode = fastFilterMode(filter, state)
+    if (mode == FastFilterMode.Locked && state != null) {
+        FastLockedField(type = filter, state = state, strings = strings, onClear = enumFilterState.clearFilter)
+        return
+    }
+
+    FastFieldFrame(
+        mode = mode,
+        showClear = enumFilterState.selectedValues.isNotEmpty(),
+        strings = strings,
+        onClear = enumFilterState.clearFilter,
+    ) {
+        FilterDropdownAnyField(
+            currentValue = enumFilterState.selectedValues.firstOrNull(),
+            getTitle = { item ->
+                @Suppress("UNCHECKED_CAST")
+                (filter.getTitle as @Composable (Enum<*>) -> String).invoke(item as Enum<*>)
+            },
+            placeholder = strings.get(UiString.FilterSelectOnePlaceholder),
+            values = filter.options,
+            onClick = { item ->
+                enumFilterState.onSingleValueChange(item as? ENUM)
+            },
+            modifier = Modifier.fillMaxWidth(),
+            contentPadding = TableTextFieldDefaults.reducedContentPadding(),
+            showBorder = false,
+            searchPlaceholder = strings.get(UiString.FilterOptionsSearchPlaceholder),
+        )
+    }
 }

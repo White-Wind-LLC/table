@@ -158,7 +158,7 @@ public fun <T : Any, C, E> TableActiveFilters(
 
 @Composable
 @Suppress("UNCHECKED_CAST", "CyclomaticComplexMethod", "ReturnCount")
-private fun buildFilterChipTextUnsafe(
+internal fun buildFilterChipTextUnsafe(
     filterType: TableFilterType<*>,
     state: TableFilterState<*>,
     strings: StringProvider,

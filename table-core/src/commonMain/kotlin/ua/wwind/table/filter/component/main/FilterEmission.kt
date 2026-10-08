@@ -1,6 +1,8 @@
 package ua.wwind.table.filter.component.main
 
+import ua.wwind.table.filter.data.FilterConstraint
 import ua.wwind.table.filter.data.TableFilterState
+import ua.wwind.table.filter.data.isActive
 
 /**
  * The single outcome of resolving a filter's editing input into what should happen to the filter.
@@ -50,4 +52,20 @@ internal fun <T> applyEmission(
         FilterEmission.Invalid -> {
             false
         }
+    }
+
+/**
+ * The operator a filter's state holder starts editing under. The panel always takes the operator of
+ * [externalState]. A fast filter takes it only from an active state (issue #105), so a cleared filter
+ * that kept the panel's first operator still edits under the fast default.
+ */
+internal fun resolveSourceConstraint(
+    externalState: TableFilterState<*>?,
+    defaultConstraint: FilterConstraint,
+    isFastFilter: Boolean,
+): FilterConstraint =
+    if (isFastFilter && externalState?.isActive() != true) {
+        defaultConstraint
+    } else {
+        externalState?.constraint ?: defaultConstraint
     }

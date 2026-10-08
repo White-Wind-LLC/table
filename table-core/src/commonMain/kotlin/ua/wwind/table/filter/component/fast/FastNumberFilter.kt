@@ -16,8 +16,9 @@ import ua.wwind.table.strings.StringProvider
 import ua.wwind.table.strings.UiString
 
 /**
- * Fast number filter component for quick numeric filtering.
- * Supports only EQUALS constraint for fast filtering with a single input field.
+ * Fast number filter component for quick numeric filtering with a single input field.
+ * Edits under EQUALS, or under a single-value operator set in the panel, shown as a prefix.
+ * A BETWEEN or null-check filter from the panel is shown read-only.
  *
  * @param spec Column specification containing the number filter type
  * @param state Current filter state
@@ -50,20 +51,33 @@ internal fun <T : Any, C, E> FastNumberFilter(
             },
         )
 
-    TableTextField(
-        value = numberFilterState.text,
-        onValueChange = numberFilterState.onTextChange,
-        placeholder = {
-            Text(
-                text = strings.get(UiString.FilterEnterNumberPlaceholder),
-                maxLines = 1,
-            )
-        },
-        textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.End),
-        singleLine = true,
-        isError = numberFilterState.isError,
-        keyboardOptions = KeyboardOptions(keyboardType = filter.delegate.keyboardType),
-        contentPadding = TableTextFieldDefaults.reducedContentPadding(),
-        showBorder = false,
-    )
+    val mode = fastFilterMode(filter, state)
+    if (mode == FastFilterMode.Locked && state != null) {
+        FastLockedField(type = filter, state = state, strings = strings, onClear = numberFilterState.clearFilter)
+        return
+    }
+
+    FastFieldFrame(
+        mode = mode,
+        showClear = numberFilterState.text.isNotEmpty(),
+        strings = strings,
+        onClear = numberFilterState.clearFilter,
+    ) {
+        TableTextField(
+            value = numberFilterState.text,
+            onValueChange = numberFilterState.onTextChange,
+            placeholder = {
+                Text(
+                    text = strings.get(UiString.FilterEnterNumberPlaceholder),
+                    maxLines = 1,
+                )
+            },
+            textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.End),
+            singleLine = true,
+            isError = numberFilterState.isError,
+            keyboardOptions = KeyboardOptions(keyboardType = filter.delegate.keyboardType),
+            contentPadding = TableTextFieldDefaults.reducedContentPadding(),
+            showBorder = false,
+        )
+    }
 }

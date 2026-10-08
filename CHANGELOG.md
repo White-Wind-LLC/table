@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ### Unreleased
 
+- Changed: fast filters have a × that clears them. A filter set in the panel with another operator keeps
+  it in the fast row, shown before the value (`≥ 5`, `Starts with ab`). Between, multi-value In / Not in and
+  Is null filters show read-only. The boolean fast filter names its state (Any / Yes / No) in a tooltip and
+  to screen readers ([#105](https://github.com/White-Wind-LLC/table/issues/105)).
 - Added: search and Select all / None in the enum options list, which now scrolls to the available
   height, and an "Any" option in the boolean filter; adds four `UiString` keys ([#104](https://github.com/White-Wind-LLC/table/issues/104)).
 - Changed: filter panels label their fields, explain invalid number input inline, use a numeric
