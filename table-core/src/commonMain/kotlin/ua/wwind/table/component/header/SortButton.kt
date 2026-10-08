@@ -14,16 +14,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import ua.wwind.table.component.TableHeaderIcons
 import ua.wwind.table.data.SortOrder
+import ua.wwind.table.strings.StringProvider
+import ua.wwind.table.strings.UiString
 
 @Composable
 internal fun SortButton(
     enabled: Boolean,
     order: SortOrder?,
     icons: TableHeaderIcons,
+    strings: StringProvider,
     onToggle: () -> Unit,
     clickable: Boolean,
     targetSize: Dp,
@@ -35,6 +41,13 @@ internal fun SortButton(
             SortOrder.ASCENDING -> icons.sortAsc
             null -> icons.sortNeutral
         }
+    val sortName = strings.get(UiString.HeaderSort)
+    val sortedState: String? =
+        when (order) {
+            SortOrder.ASCENDING -> strings.get(UiString.HeaderSortedAscending)
+            SortOrder.DESCENDING -> strings.get(UiString.HeaderSortedDescending)
+            null -> null
+        }
     Box(
         contentAlignment = Alignment.Center,
         modifier =
@@ -43,9 +56,16 @@ internal fun SortButton(
                 .then(
                     if (clickable) {
                         // The header row is the Tab stop; the button is reached with the pointer only.
-                        Modifier.focusProperties { canFocus = false }.clickable(role = Role.Button) {
-                            onToggle()
-                        }
+                        Modifier
+                            .focusProperties { canFocus = false }
+                            .clickable(role = Role.Button) { onToggle() }
+                            .semantics {
+                                contentDescription = sortName
+                                if (sortedState != null) stateDescription = sortedState
+                            }
+                    } else if (sortedState != null) {
+                        // The header itself sorts, so the order merges into the heading's label.
+                        Modifier.semantics { contentDescription = sortedState }
                     } else {
                         Modifier
                     },

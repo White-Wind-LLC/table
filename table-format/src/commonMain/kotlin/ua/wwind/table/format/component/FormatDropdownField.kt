@@ -29,6 +29,8 @@ import kotlinx.collections.immutable.ImmutableList
 import org.jetbrains.compose.resources.painterResource
 import ua.wwind.table.filter.component.collectAsEffect
 import ua.wwind.table.icon.TableIcons
+import ua.wwind.table.strings.StringProvider
+import ua.wwind.table.strings.UiString
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Suppress("LongParameterList", "LongMethod")
@@ -37,6 +39,7 @@ internal fun <E : Enum<E>> FormatDropdownField(
     currentValue: E?,
     values: ImmutableList<E>,
     onClick: (E?) -> Unit,
+    strings: StringProvider,
     modifier: Modifier = Modifier,
     getTitle: @Composable (E) -> String = { it.name },
     placeholder: String = "",
@@ -72,7 +75,7 @@ internal fun <E : Enum<E>> FormatDropdownField(
                         ) {
                             Icon(
                                 painter = painterResource(TableIcons.Close),
-                                contentDescription = "Clear",
+                                contentDescription = strings.get(UiString.FilterClear),
                             )
                         }
                     }

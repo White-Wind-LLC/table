@@ -219,6 +219,46 @@ public sealed class UiString {
 
     public object FormatRuleMoveDown : UiString()
 
+    /** Clears the values of a condition's filter in the rule editor. */
+    public object FormatRemoveCondition : UiString()
+
+    /** Expands a condition in the rule editor. */
+    public object FormatExpandCondition : UiString()
+
+    /** Collapses a condition in the rule editor. */
+    public object FormatCollapseCondition : UiString()
+
+    /** Shown in the rule editor in place of a custom filter's editor. */
+    public object FormatCustomFilterUnsupported : UiString()
+
+    // Column header buttons
+
+    /** Name of the header's sort button. */
+    public object HeaderSort : UiString()
+
+    /** State of a column sorted ascending. */
+    public object HeaderSortedAscending : UiString()
+
+    /** State of a column sorted descending. */
+    public object HeaderSortedDescending : UiString()
+
+    /** Name of the header's filter button while the column has no active filter. */
+    public object HeaderFilter : UiString()
+
+    /** Name of the header's filter button while the column's filter is active. */
+    public object HeaderFilterActive : UiString()
+
+    /** The handle that drags a column to a new position. */
+    public object HeaderDragColumn : UiString()
+
+    // Active filter chips
+
+    /** The arrow that scrolls the active-filter chips back. */
+    public object FilterChipsScrollLeft : UiString()
+
+    /** The arrow that scrolls the active-filter chips forward. */
+    public object FilterChipsScrollRight : UiString()
+
     // Grouping menu
     public object GroupBy : UiString()
 
@@ -518,6 +558,32 @@ public object DefaultStrings : StringProvider {
             UiString.FormatRuleMoveUp -> "Move up"
 
             UiString.FormatRuleMoveDown -> "Move down"
+
+            UiString.FormatRemoveCondition -> "Remove filter"
+
+            UiString.FormatExpandCondition -> "Expand"
+
+            UiString.FormatCollapseCondition -> "Collapse"
+
+            UiString.FormatCustomFilterUnsupported -> "Custom filters are not supported in conditional formatting"
+
+            // Column header buttons
+            UiString.HeaderSort -> "Sort"
+
+            UiString.HeaderSortedAscending -> "Sorted ascending"
+
+            UiString.HeaderSortedDescending -> "Sorted descending"
+
+            UiString.HeaderFilter -> "Filter"
+
+            UiString.HeaderFilterActive -> "Filter (active)"
+
+            UiString.HeaderDragColumn -> "Drag column"
+
+            // Active filter chips
+            UiString.FilterChipsScrollLeft -> "Scroll left"
+
+            UiString.FilterChipsScrollRight -> "Scroll right"
 
             // Grouping menu
             UiString.GroupBy -> "Group by"

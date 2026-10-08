@@ -23,6 +23,7 @@ import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.click
+import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onLast
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -134,13 +135,13 @@ class HeaderPointerFocusTest {
     /** Excludes the header's zero-size measuring copy of its content. */
     private val isLaidOut = SemanticsMatcher("has a size") { it.boundsInRoot.width > 0f }
 
-    /** The filter button of the "name" column: its second role-button without a content description. */
+    /** The filter button of the "name" column. */
     private fun ComposeUiTest.filterButton() =
-        onAllNodes(
+        onNode(
             SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Button) and
-                !SemanticsMatcher.keyIsDefined(SemanticsProperties.ContentDescription) and
+                hasContentDescription("Filter") and
                 isLaidOut,
-        )[1]
+        )
 
     /** Vertical centre of the header row, in root pixels. */
     private fun ComposeUiTest.headerCenterY(): Float =

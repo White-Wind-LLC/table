@@ -159,6 +159,7 @@ internal fun <T : Any, C, E> ActiveFilterChips(
                 listState = listState,
                 enabled = listState.canScrollBackward,
                 icon = TableIcons.KeyboardArrowLeft,
+                contentDescription = strings.get(UiString.FilterChipsScrollLeft),
                 modifier = Modifier.padding(end = 4.dp),
                 onClick = {
                     scope.launch(motion.scrollContext) {
@@ -198,6 +199,7 @@ internal fun <T : Any, C, E> ActiveFilterChips(
                 listState = listState,
                 enabled = listState.canScrollForward,
                 icon = TableIcons.KeyboardArrowRight,
+                contentDescription = strings.get(UiString.FilterChipsScrollRight),
                 modifier = Modifier.padding(start = 4.dp),
                 onClick = {
                     scope.launch(motion.scrollContext) {
@@ -219,6 +221,7 @@ private fun RowScope.ChipsScrollButton(
     listState: LazyListState,
     enabled: Boolean,
     icon: DrawableResource,
+    contentDescription: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -228,7 +231,7 @@ private fun RowScope.ChipsScrollButton(
         exit = motion.exit { fadeOut(motion.fade()) + shrinkHorizontally(motion.move(IntSize.VisibilityThreshold)) },
     ) {
         IconButton(enabled = enabled, onClick = onClick, modifier = modifier) {
-            Icon(painter = painterResource(icon), contentDescription = null)
+            Icon(painter = painterResource(icon), contentDescription = contentDescription)
         }
     }
 }
