@@ -45,6 +45,8 @@ public fun <T> Flow<T>.collectAsEffect(block: (T) -> Unit) {
 
 /**
  * Dropdown field specialized for enum values. Optionally supports multi-select with [checked].
+ *
+ * @param label optional label shown in the field's outline; null shows none
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Suppress("LongParameterList")
@@ -58,6 +60,7 @@ public fun <E : Enum<E>> FilterDropdownField(
     placeholder: String = "",
     checked: ((E) -> Boolean)? = null,
     contentPadding: PaddingValues = TableTextFieldDefaults.contentPadding(),
+    label: String? = null,
 ) {
     val scrollState = rememberScrollState()
     var expanded by remember { mutableStateOf(false) }
@@ -70,6 +73,7 @@ public fun <E : Enum<E>> FilterDropdownField(
             value = currentValue?.let { getTitle(it) } ?: "",
             onValueChange = {},
             readOnly = true,
+            label = label?.let { text -> { Text(text = text, maxLines = 1) } },
             placeholder = {
                 Text(
                     text = placeholder,

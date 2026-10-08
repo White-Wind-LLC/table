@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ### Unreleased
 
+- Changed: filter panels label their fields, explain invalid number input inline, use a numeric
+  keyboard and widen for long translations; adds six `UiString` keys ([#103](https://github.com/White-Wind-LLC/table/issues/103)).
 - Changed (breaking): icons are Compose resources — `TableIcons` returns `DrawableResource`, icon slots
   take `Painter`, `LocalTableHeaderIcons` has no default outside `Table`; iOS and web apps need Compose
   resources packaging ([guide](docs/content/guides/custom-header-icons.md)).

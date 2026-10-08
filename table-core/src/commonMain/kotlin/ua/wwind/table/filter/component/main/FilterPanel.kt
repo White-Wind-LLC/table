@@ -4,7 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -38,7 +38,8 @@ internal fun <T, E> FilterPanel(
         expanded = expanded,
         onDismissRequest = onDismissRequest,
         offset = DpOffset(0.dp, 8.dp),
-        modifier = Modifier.width(280.dp),
+        // Grows past the minimum for longer translations instead of clipping them.
+        modifier = Modifier.widthIn(min = 280.dp, max = 360.dp),
     ) {
         Column(
             modifier =

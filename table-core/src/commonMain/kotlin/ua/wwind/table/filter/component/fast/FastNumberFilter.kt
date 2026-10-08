@@ -1,5 +1,6 @@
 package ua.wwind.table.filter.component.fast
 
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -61,6 +62,7 @@ internal fun <T : Any, C, E> FastNumberFilter(
         textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.End),
         singleLine = true,
         isError = numberFilterState.isError,
+        keyboardOptions = KeyboardOptions(keyboardType = filter.delegate.keyboardType),
         contentPadding = TableTextFieldDefaults.reducedContentPadding(),
         showBorder = false,
     )

@@ -70,6 +70,7 @@ internal fun DateFilter(
         getTitle = { c -> strings.get(c.toUiString()) },
         values = filter.constraints,
         onClick = { dateFilterState.onConstraintChange(it) },
+        label = strings.get(UiString.FilterConditionLabel),
     )
 
     if (!isNullConstraint) {
@@ -77,13 +78,15 @@ internal fun DateFilter(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
+            // The operator is shown right above, so a single date is just "Date"; a range needs From/To.
+            val firstLabel = if (isBetween) UiString.FilterRangeFromPlaceholder else UiString.FilterDateLabel
             DateField(
                 value = dateFilterState.firstDate,
                 onDateSelect = { selected ->
                     dateFilterState.onFirstDateChange(selected)
                 },
                 modifier = Modifier.weight(1f),
-                label = { Text(strings.get(UiString.FilterRangeFromPlaceholder)) },
+                label = { Text(strings.get(firstLabel), maxLines = 1) },
                 onClear = { dateFilterState.onFirstDateChange(null) },
                 strings = strings,
             )
@@ -95,7 +98,7 @@ internal fun DateFilter(
                         dateFilterState.onSecondDateChange(selected)
                     },
                     modifier = Modifier.weight(1f),
-                    label = { Text(strings.get(UiString.FilterRangeToPlaceholder)) },
+                    label = { Text(strings.get(UiString.FilterRangeToPlaceholder), maxLines = 1) },
                     onClear = { dateFilterState.onSecondDateChange(null) },
                     strings = strings,
                 )
@@ -147,10 +150,10 @@ internal fun DateField(
     TableTextField(
         value = value?.toFormatString().orEmpty(),
         onValueChange = {},
-        placeholder =
-            label ?: {
-                Text(text = strings.get(UiString.DatePickerSelectDate), maxLines = 1)
-            },
+        label = label,
+        placeholder = {
+            Text(text = strings.get(UiString.DatePickerSelectDate), maxLines = 1)
+        },
         readOnly = true,
         interactionSource = interactionSource,
         modifier = modifier,

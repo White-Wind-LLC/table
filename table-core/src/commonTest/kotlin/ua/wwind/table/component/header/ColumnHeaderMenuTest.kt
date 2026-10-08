@@ -303,7 +303,7 @@ class ColumnHeaderMenuTest {
             onNodeWithText("Filter…").performClick()
             waitForIdle()
 
-            onNodeWithText("Search...").assertExists()
+            onNodeWithText("Condition").assertExists()
         }
 
     @Test

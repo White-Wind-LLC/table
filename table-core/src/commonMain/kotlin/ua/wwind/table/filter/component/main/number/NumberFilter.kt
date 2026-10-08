@@ -1,10 +1,13 @@
 package ua.wwind.table.filter.component.main.number
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RangeSlider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -71,52 +74,11 @@ internal fun <T : Number> NumberFilter(
         onClick = { constraint ->
             numberFilterState.onConstraintChange(constraint)
         },
+        label = strings.get(UiString.FilterConditionLabel),
     )
 
     if (!isNullConstraint) {
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            TableTextField(
-                value = numberFilterState.text,
-                onValueChange = numberFilterState.onTextChange,
-                placeholder = {
-                    Text(
-                        strings.get(
-                            if (isBetween) {
-                                UiString.FilterRangeFromPlaceholder
-                            } else {
-                                UiString.FilterEnterNumberPlaceholder
-                            },
-                        ),
-                    )
-                },
-                textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.End),
-                modifier = Modifier.weight(1f),
-                singleLine = true,
-                isError = numberFilterState.isError,
-            )
-
-            if (isBetween) {
-                Icon(
-                    painter = painterResource(TableIcons.SwapHoriz),
-                    contentDescription = strings.get(UiString.FilterRangeIconDescription),
-                )
-                TableTextField(
-                    value = numberFilterState.secondText,
-                    onValueChange = numberFilterState.onSecondTextChange,
-                    placeholder = {
-                        Text(strings.get(UiString.FilterRangeToPlaceholder))
-                    },
-                    textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.End),
-                    modifier = Modifier.weight(1f),
-                    singleLine = true,
-                    isError = numberFilterState.isError,
-                )
-            }
-        }
+        NumberFields(numberFilterState, isBetween, strings)
     }
 
     if (!isNullConstraint && isBetween && filter.rangeOptions != null) {
@@ -140,4 +102,75 @@ internal fun <T : Number> NumberFilter(
         onClose = onClose,
         strings = strings,
     )
+}
+
+private fun NumberInputError.toUiString(): UiString =
+    when (this) {
+        NumberInputError.InvalidNumber -> UiString.FilterErrorInvalidNumber
+        NumberInputError.RangeIncomplete -> UiString.FilterErrorRangeIncomplete
+        NumberInputError.RangeInverted -> UiString.FilterErrorRangeInverted
+    }
+
+/** The value field (or From/To pair) with the input error, if any, as one message under them. */
+@Composable
+private fun <T : Number> NumberFields(
+    numberFilterState: NumberFilterState<T>,
+    isBetween: Boolean,
+    strings: StringProvider,
+) {
+    val keyboardOptions = KeyboardOptions(keyboardType = numberFilterState.delegate.keyboardType)
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            TableTextField(
+                value = numberFilterState.text,
+                onValueChange = numberFilterState.onTextChange,
+                label = {
+                    Text(
+                        strings.get(if (isBetween) UiString.FilterRangeFromPlaceholder else UiString.FilterValueLabel),
+                        maxLines = 1,
+                    )
+                },
+                placeholder =
+                    if (isBetween) {
+                        null
+                    } else {
+                        { Text(strings.get(UiString.FilterEnterNumberPlaceholder), maxLines = 1) }
+                    },
+                textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.End),
+                modifier = Modifier.weight(1f),
+                singleLine = true,
+                isError = numberFilterState.isError,
+                keyboardOptions = keyboardOptions,
+            )
+
+            if (isBetween) {
+                Icon(
+                    painter = painterResource(TableIcons.SwapHoriz),
+                    contentDescription = strings.get(UiString.FilterRangeIconDescription),
+                )
+                TableTextField(
+                    value = numberFilterState.secondText,
+                    onValueChange = numberFilterState.onSecondTextChange,
+                    label = { Text(strings.get(UiString.FilterRangeToPlaceholder), maxLines = 1) },
+                    textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.End),
+                    modifier = Modifier.weight(1f),
+                    singleLine = true,
+                    isError = numberFilterState.isError,
+                    keyboardOptions = keyboardOptions,
+                )
+            }
+        }
+        // One message under the whole row: a range error belongs to both fields, not one of them.
+        numberFilterState.error?.let { error ->
+            Text(
+                text = strings.get(error.toUiString()),
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall,
+            )
+        }
+    }
 }
