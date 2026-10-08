@@ -45,9 +45,47 @@ public class TableColumnsState<C>
         public val order: SnapshotStateList<C> =
             mutableStateListOf<C>().apply { addAll(initialOrder) }
 
-        /** Width overrides per column. A missing key falls back to the spec width, then the default. */
+        /**
+         * Width overrides per column. A missing key falls back to the spec width, then the default.
+         *
+         * Holds both explicit widths (from `initialWidths`, [setWidths], [resize], a resizer drag or a
+         * direct write) and the widths auto-fit chose for `autoWidth` columns; [explicitWidths] holds
+         * only the former. Auto-fit never overwrites an explicit width, except through
+         * [recalculateAutoWidths].
+         */
         public val widths: SnapshotStateMap<C, Dp> =
             mutableStateMapOf<C, Dp>().apply { putAll(initialWidths) }
+
+        /** The width auto-fit last wrote per column; a [widths] entry that differs from it is explicit. */
+        private val autoFitWidths: SnapshotStateMap<C, Dp> = mutableStateMapOf()
+
+        /**
+         * Whether the next auto-fit pass also replaces explicit widths of `autoWidth` columns. Set by
+         * [recalculateAutoWidths].
+         */
+        internal var autoFitOverridesExplicit: Boolean by mutableStateOf(false)
+
+        /**
+         * The entries of [widths] that were set explicitly rather than by auto-fit: the widths to persist
+         * and pass back as `initialWidths` or through [setWidths] when the table is shown again.
+         */
+        public val explicitWidths: Map<C, Dp>
+            get() = widths.filter { (key, width) -> autoFitWidths[key] != width }
+
+        /** Whether [column] has an explicit width, which auto-fit leaves alone. */
+        internal fun hasExplicitWidth(column: C): Boolean {
+            val width = widths[column] ?: return false
+            return autoFitWidths[column] != width
+        }
+
+        /** Whether the auto-fit pass sizes [column]: it has no explicit width, or the pass overrides them. */
+        internal fun needsAutoFit(column: C): Boolean = autoFitOverridesExplicit || !hasExplicitWidth(column)
+
+        /** Write widths chosen by auto-fit, so they are not counted as explicit. */
+        internal fun applyAutoFit(newWidths: Map<C, Dp>) {
+            widths.putAll(newWidths)
+            autoFitWidths.putAll(newWidths)
+        }
 
         /**
          * Tracks the maximum measured minimal content width per column across visible rows. Used to
@@ -71,7 +109,7 @@ public class TableColumnsState<C>
          * Resolves the effective width for a column given its key and optional spec.
          *
          * Resolution priority:
-         * 1. User-resized width from [widths]
+         * 1. Explicit or auto-fit width from [widths]
          * 2. Spec-defined width from [spec]
          * 3. Default width from [TableDimensions.defaultColumnWidth]
          *
@@ -124,15 +162,26 @@ public class TableColumnsState<C>
             action: ColumnWidthAction,
         ) {
             when (action) {
-                is ColumnWidthAction.Set -> widths[column] = action.width
-                ColumnWidthAction.Reset -> widths.remove(column)
+                is ColumnWidthAction.Set -> {
+                    widths[column] = action.width
+                }
+
+                ColumnWidthAction.Reset -> {
+                    widths.remove(column)
+                    autoFitWidths.remove(column)
+                }
             }
         }
 
         /** Apply external [newWidths] in bulk. Null width removes the override for that column. */
         public fun setWidths(newWidths: Map<C, Dp?>) {
             newWidths.forEach { (col, width) ->
-                if (width == null) widths.remove(col) else widths[col] = width
+                if (width == null) {
+                    widths.remove(col)
+                    autoFitWidths.remove(col)
+                } else {
+                    widths[col] = width
+                }
             }
         }
 
@@ -352,7 +401,8 @@ public class TableColumnsState<C>
          * auto-width calculation happened on empty data. After data loads and content is measured, call
          * this method to recompute column widths based on the actual content.
          *
-         * Header widths are preserved and used as base values for new measurements.
+         * Header widths are preserved and used as base values for new measurements. Unlike the
+         * automatic pass, the recalculation also replaces explicit widths of `autoWidth` columns.
          */
         public fun recalculateAutoWidths() {
             logger.v {
@@ -362,6 +412,7 @@ public class TableColumnsState<C>
             // Reset flags to allow ApplyAutoWidthEffect to recompute on next frame
             autoWidthAppliedForEmpty = false
             autoWidthAppliedForData = false
+            autoFitOverridesExplicit = true
             // Clear row measurements but preserve header widths
             contentMaxWidths.clear()
             // Initialize with header widths as base values
