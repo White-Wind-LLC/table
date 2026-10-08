@@ -12,6 +12,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
@@ -35,6 +36,7 @@ import kotlin.math.min
 @Composable
 @Suppress("LongParameterList", "CyclomaticComplexMethod")
 internal fun <T : Any, C, E> GroupStickyOverlay(
+    itemsCount: Int,
     itemAt: (Int) -> T?,
     tableData: E,
     visibleColumns: ImmutableList<ColumnSpec<T, C, E>>,
@@ -60,18 +62,33 @@ internal fun <T : Any, C, E> GroupStickyOverlay(
             with(density) { state.dimensions.dividerThickness.roundToPx() }
         }
     val overlayHeightPx = headerHeightPx + dividerThicknessPx
+    // Read through updated state: a paged loader passes a new itemAt on every emission, and keying
+    // the effect on it would restart the collection each time.
+    val currentItemAt by rememberUpdatedState(itemAt)
+    val currentItemsCount by rememberUpdatedState(itemsCount)
     // Track first visible item layout to compute push-up effect precisely
-    LaunchedEffect(verticalState, state.groupBy, itemAt) {
+    LaunchedEffect(verticalState, state.groupBy) {
         snapshotFlow {
             val firstInfo = verticalState.layoutInfo.visibleItemsInfo.firstOrNull()
-            // Pair of index and bottom-on-screen in px
-            Pair(firstInfo?.index ?: -1, (firstInfo?.offset ?: 0) + (firstInfo?.size ?: 0))
-        }.collectLatest { (index, bottomOnScreenPx) ->
-            if (index < 0) return@collectLatest
-            currentItem = itemAt(index)
+            // Index, bottom-on-screen in px, and the row count that bounds both reads
+            Triple(
+                firstInfo?.index ?: -1,
+                (firstInfo?.offset ?: 0) + (firstInfo?.size ?: 0),
+                currentItemsCount,
+            )
+        }.collectLatest { (index, bottomOnScreenPx, count) ->
+            // groupBy suppresses row blocks, so every lazy item before the footer is one row and
+            // the row count bounds the index; the footer itself sits at index == count.
+            if (index !in 0 until count) {
+                currentItem = null
+                overlayOffsetPx = 0
+                return@collectLatest
+            }
+            currentItem = currentItemAt(index)
 
             val currentValue = currentItem?.let { spec.valueOf(it) }
-            val nextValue = itemAt(index + 1)?.let { spec.valueOf(it) }
+            val nextValue =
+                if (index + 1 < count) currentItemAt(index + 1)?.let { spec.valueOf(it) } else null
             val isNextDifferent = currentValue != nextValue
 
             if (isNextDifferent) {

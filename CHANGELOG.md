@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ### Unreleased
 
+- Fixed: with `groupBy`, the sticky group header no longer reads `itemAt` past the last row, which crashed
+  `List.get` loaders ([#115](https://github.com/White-Wind-LLC/table/issues/115)).
 - Changed: rows animate after a sort, `TableSettings.motion` honours reduced motion; Rounded icons, theme
   selection colors, plainer filter copy ([#92](https://github.com/White-Wind-LLC/table/issues/92)).
 - Changed: the format rule editor has text buttons, a Duplicate / Delete menu, an empty-list hint and Move up /

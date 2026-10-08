@@ -867,6 +867,7 @@ private fun <T : Any, C, E> TableBodySection(
         }
         if (state.groupBy != null && !state.settings.isInteractionLockByRowReorderEnabled) {
             GroupStickyOverlay(
+                itemsCount = itemsCount,
                 itemAt = itemAt,
                 tableData = tableData,
                 visibleColumns = visibleColumns,
