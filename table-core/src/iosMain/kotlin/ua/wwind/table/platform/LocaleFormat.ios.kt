@@ -1,67 +1,84 @@
 package ua.wwind.table.platform
 
-import kotlinx.datetime.LocalDate
-import platform.Foundation.NSCalendar
-import platform.Foundation.NSCalendarIdentifierGregorian
-import platform.Foundation.NSDate
 import platform.Foundation.NSDateFormatter
 import platform.Foundation.NSDecimalNumber
 import platform.Foundation.NSLocale
 import platform.Foundation.NSNumber
 import platform.Foundation.NSNumberFormatter
 import platform.Foundation.NSNumberFormatterDecimalStyle
-import platform.Foundation.NSTimeZone
+import platform.Foundation.componentsFromLocaleIdentifier
 import platform.Foundation.currentLocale
-import platform.Foundation.dateWithTimeIntervalSince1970
-import platform.Foundation.timeZoneForSecondsFromGMT
-import ua.wwind.table.filter.component.main.date.toDatePickerMillis
+import platform.Foundation.localeIdentifier
+import platform.Foundation.localeIdentifierFromComponents
 
-private const val MILLIS_PER_SECOND = 1000.0
 private const val MAX_FRACTION_DIGITS = 20uL
 
 // Long.MIN_VALUE has 19 digits.
 private const val MAX_LONG_DIGITS = 19uL
 
-internal actual fun platformFormatDate(
-    date: LocalDate,
-    languageTag: String?,
-): String {
-    val locale = languageTag.toNSLocale()
-    val formatter =
-        NSDateFormatter().apply {
-            this.locale = locale
-            // The date picker is Gregorian; some locales default to another calendar (th: Buddhist).
-            calendar = NSCalendar(calendarIdentifier = NSCalendarIdentifierGregorian)
-            timeZone = NSTimeZone.timeZoneForSecondsFromGMT(0)
-            dateFormat = NSDateFormatter.dateFormatFromTemplate("yMMdd", 0u, locale) ?: "dd.MM.yyyy"
-        }
-    return formatter.stringFromDate(NSDate.dateWithTimeIntervalSince1970(date.toDatePickerMillis() / MILLIS_PER_SECOND))
-}
+private val datePatterns =
+    LocaleCache { id ->
+        // A Buddhist (th) or Japanese calendar locale may add an era to the pattern.
+        val locale = NSLocale(localeIdentifier = id).withKeyword("calendar", "gregorian")
+        val pattern = NSDateFormatter.dateFormatFromTemplate("yMMdd", 0u, locale)
+        DatePattern.parse(pattern ?: "dd.MM.y")
+    }
+
+// NSNumberFormatter is thread-safe once configured; one for integers and one for fractions.
+private val numberFormatters =
+    LocaleCache { id ->
+        // `numbers=latn` also switches the separators to the Latin ones (ar: 1,234.5, not 1٬234٫5).
+        val locale = NSLocale(localeIdentifier = id).withKeyword("numbers", "latn")
+        NumberFormatters(
+            integer =
+                decimalFormatter(locale).apply {
+                    // By default the formatter rounds to double precision (2^53 + 1 -> ...990).
+                    usesSignificantDigits = true
+                    maximumSignificantDigits = MAX_LONG_DIGITS
+                },
+            fraction = decimalFormatter(locale).apply { maximumFractionDigits = MAX_FRACTION_DIGITS },
+        )
+    }
+
+private class NumberFormatters(
+    val integer: NSNumberFormatter,
+    val fraction: NSNumberFormatter,
+)
+
+internal actual fun platformDatePattern(languageTag: String?): DatePattern =
+    datePatterns[languageTag.orCurrentLocaleId()]
 
 internal actual fun platformFormatNumber(
     value: Number,
     languageTag: String?,
 ): String {
-    val formatter =
-        NSNumberFormatter().apply {
-            numberStyle = NSNumberFormatterDecimalStyle
-            locale = languageTag.toNSLocale()
-            maximumFractionDigits = MAX_FRACTION_DIGITS
-        }
-    val number =
+    val formatters = numberFormatters[languageTag.orCurrentLocaleId()]
+    val formatted =
         when (value) {
             is Int, is Long, is Short, is Byte -> {
-                // By default the formatter rounds to double precision (2^53 + 1 -> ...990).
-                formatter.usesSignificantDigits = true
-                formatter.maximumSignificantDigits = MAX_LONG_DIGITS
-                NSDecimalNumber(string = value.toString())
+                formatters.integer.stringFromNumber(NSDecimalNumber(string = value.toString()))
             }
 
             else -> {
-                NSNumber(double = value.toDouble())
+                formatters.fraction.stringFromNumber(NSNumber(double = value.toDouble()))
             }
         }
-    return formatter.stringFromNumber(number) ?: value.toString()
+    return formatted ?: value.toString()
 }
 
-private fun String?.toNSLocale(): NSLocale = this?.let { NSLocale(localeIdentifier = it) } ?: NSLocale.currentLocale
+private fun decimalFormatter(locale: NSLocale): NSNumberFormatter =
+    NSNumberFormatter().apply {
+        numberStyle = NSNumberFormatterDecimalStyle
+        this.locale = locale
+    }
+
+private fun String?.orCurrentLocaleId(): String = this ?: NSLocale.currentLocale.localeIdentifier
+
+private fun NSLocale.withKeyword(
+    key: String,
+    value: String,
+): NSLocale {
+    val components = NSLocale.componentsFromLocaleIdentifier(localeIdentifier).toMutableMap()
+    components[key] = value
+    return NSLocale(localeIdentifier = NSLocale.localeIdentifierFromComponents(components))
+}
