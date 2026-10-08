@@ -1,15 +1,20 @@
 package ua.wwind.table.format
 
 import androidx.compose.foundation.layout.Arrangement.spacedBy
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -31,6 +36,10 @@ import ua.wwind.table.icon.TableIcons
 import ua.wwind.table.strings.StringProvider
 import ua.wwind.table.strings.UiString
 
+/**
+ * The FAB that adds a rule while the list shows; while a rule is edited, a "More actions" menu (Duplicate,
+ * Delete) on the start side and Cancel / Save text buttons on the end side.
+ */
 @Composable
 @Suppress("LongMethod")
 internal fun <E : Enum<E>, FILTER> FormatDialogButtons(
@@ -41,32 +50,28 @@ internal fun <E : Enum<E>, FILTER> FormatDialogButtons(
     strings: StringProvider,
 ) {
     val edit = state.editItem
+    val nextId = (rules.maxByOrNull { it.id }?.id?.inc() ?: 0L)
     if (edit == null) {
         FloatingActionButton(
             onClick = {
-                val id = rules.maxByOrNull { it.id }?.id?.inc() ?: 0L
-                state.editItem =
-                    EditFormatRule(
-                        rules.lastIndex + 1,
-                        getNewRule(id),
-                        true,
-                    )
+                state.editItem = EditFormatRule(rules.lastIndex + 1, getNewRule(nextId), true)
             },
             shape = CircleShape,
         ) {
             Icon(
                 painter = painterResource(TableIcons.Add),
-                contentDescription = "Add",
+                contentDescription = strings.get(UiString.FormatAddRule),
             )
         }
     } else {
-        val (index, item, isNew) = edit
+        val index = edit.index
+        val item = edit.item
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = spacedBy(16.dp, Alignment.End),
+            horizontalArrangement = spacedBy(8.dp),
         ) {
-            if (!isNew) {
+            if (!edit.isNew) {
                 var confirmDelete by remember(index) { mutableStateOf(false) }
                 if (confirmDelete) {
                     AlertDialog(
@@ -98,45 +103,55 @@ internal fun <E : Enum<E>, FILTER> FormatDialogButtons(
                         },
                     )
                 }
-                IconButton(onClick = { confirmDelete = true }) {
-                    Icon(
-                        painter = painterResource(TableIcons.Delete),
-                        contentDescription = "Delete",
-                        tint = MaterialTheme.colorScheme.error,
-                    )
-                }
-                IconButton(
-                    onClick = {
-                        val id = rules.maxByOrNull { it.id }?.id?.inc() ?: 0L
-                        val lastIndex = rules.lastIndex
-                        val itemCopy = item.copy(id = id)
-                        onRulesChange(
-                            rules.toPersistentList().mutate { list ->
-                                list.add(itemCopy)
+                Box {
+                    var menuOpen by remember { mutableStateOf(false) }
+                    IconButton(onClick = { menuOpen = true }) {
+                        Icon(
+                            painter = painterResource(TableIcons.MoreVert),
+                            contentDescription = strings.get(UiString.FormatRuleMoreActions),
+                        )
+                    }
+                    DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
+                        // The copy opens as a new, unsaved rule; the original keeps its saved state.
+                        DropdownMenuItem(
+                            text = { Text(strings.get(UiString.FormatRuleDuplicate)) },
+                            leadingIcon = {
+                                Icon(painter = painterResource(TableIcons.ContentCopy), contentDescription = null)
+                            },
+                            onClick = {
+                                menuOpen = false
+                                state.editItem =
+                                    EditFormatRule(
+                                        rules.lastIndex + 1,
+                                        item.copy(id = nextId),
+                                        isNew = true,
+                                        isCopy = true,
+                                    )
                             },
                         )
-                        state.editItem = null
-                        state.itemCopyIndex = lastIndex.inc()
-                    },
-                ) {
-                    Icon(
-                        painter = painterResource(TableIcons.ContentCopy),
-                        contentDescription = "Copy",
-                    )
+                        DropdownMenuItem(
+                            text = { Text(strings.get(UiString.FormatRuleDelete)) },
+                            leadingIcon = {
+                                Icon(painter = painterResource(TableIcons.Delete), contentDescription = null)
+                            },
+                            colors =
+                                MenuDefaults.itemColors(
+                                    textColor = MaterialTheme.colorScheme.error,
+                                    leadingIconColor = MaterialTheme.colorScheme.error,
+                                ),
+                            onClick = {
+                                menuOpen = false
+                                confirmDelete = true
+                            },
+                        )
+                    }
                 }
             }
-            IconButton(
-                onClick = {
-                    state.editItem = null
-                },
-            ) {
-                Icon(
-                    painter = painterResource(TableIcons.Close),
-                    contentDescription = "Close",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+            Spacer(Modifier.weight(1f))
+            TextButton(onClick = { state.editItem = null }) {
+                Text(strings.get(UiString.FormatRuleCancel))
             }
-            IconButton(
+            TextButton(
                 onClick = {
                     onRulesChange(
                         rules.toPersistentList().mutate { list ->
@@ -148,12 +163,10 @@ internal fun <E : Enum<E>, FILTER> FormatDialogButtons(
                         },
                     )
                     state.editItem = null
+                    if (edit.isCopy) state.itemCopyIndex = index
                 },
             ) {
-                Icon(
-                    painter = painterResource(TableIcons.Save),
-                    contentDescription = "Save",
-                )
+                Text(strings.get(UiString.FormatRuleSave))
             }
         }
     }

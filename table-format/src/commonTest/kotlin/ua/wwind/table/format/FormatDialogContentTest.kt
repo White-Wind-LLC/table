@@ -4,6 +4,7 @@ import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.v2.runComposeUiTest
 import assertk.assertThat
@@ -39,9 +40,9 @@ class FormatDialogContentTest {
                     onDismissRequest = {},
                 )
             }
-            onNodeWithContentDescription("Add").performClick()
+            onNodeWithContentDescription("Add rule").performClick()
             waitForIdle()
-            onNodeWithContentDescription("Save").performClick()
+            onNodeWithText("Save").performClick()
             waitForIdle()
 
             assertThat(changes).hasSize(1)
@@ -65,7 +66,7 @@ class FormatDialogContentTest {
                 )
             }
             waitForIdle()
-            onAllNodesWithContentDescription("Add").assertCountEquals(1)
+            onAllNodesWithContentDescription("Add rule").assertCountEquals(1)
             onAllNodesWithContentDescription("Close").assertCountEquals(0)
         }
 }

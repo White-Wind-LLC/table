@@ -9,6 +9,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -60,7 +61,9 @@ class FormatDialogDataLossTest {
                 }
             }
             onAllNodesWithText("A").onFirst().performClick()
-            onNodeWithContentDescription("Delete").performClick()
+            onNodeWithContentDescription("More actions").performClick()
+            waitForIdle()
+            onNodeWithText("Delete").performClick()
             waitForIdle()
             assertThat(changes).isEmpty()
 
@@ -110,7 +113,7 @@ class FormatDialogDataLossTest {
                 }
             }
             mainClock.autoAdvance = false
-            onAllNodesWithText("A").onFirst().performTouchInput {
+            onAllNodesWithContentDescription("Reorder").onFirst().performTouchInput {
                 down(center)
                 repeat(10) { moveBy(Offset(0f, height * 0.2f)) }
                 up()

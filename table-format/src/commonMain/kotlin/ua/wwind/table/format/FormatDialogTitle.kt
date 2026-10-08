@@ -38,7 +38,10 @@ internal fun <E : Enum<E>, FILTER> FormatDialogTitle(
             )
             if (state.editItem == null && onDismissRequest != null) {
                 IconButton(onClick = onDismissRequest) {
-                    Icon(painter = painterResource(TableIcons.Close), contentDescription = "Close")
+                    Icon(
+                        painter = painterResource(TableIcons.Close),
+                        contentDescription = strings.get(UiString.FormatClose),
+                    )
                 }
             }
         }
