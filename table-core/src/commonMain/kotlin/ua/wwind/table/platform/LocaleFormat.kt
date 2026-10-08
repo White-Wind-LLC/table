@@ -2,13 +2,16 @@ package ua.wwind.table.platform
 
 import kotlinx.datetime.LocalDate
 
-/** Formats [date] as the numeric date of [languageTag] (BCP 47), with a four-digit year. */
+/**
+ * Formats [date] as the numeric date of [languageTag] (BCP 47): the locale's field order and
+ * separators, a four-digit year and ASCII digits, in the proleptic Gregorian calendar.
+ */
 internal fun formatLocalizedDate(
     date: LocalDate,
     languageTag: String,
-): String = platformFormatDate(date, languageTag.orDefaultLocale())
+): String = platformDatePattern(languageTag.orDefaultLocale()).format(date)
 
-/** Formats [value] with the grouping and decimal separator of [languageTag] (BCP 47). */
+/** Formats [value] with the grouping and decimal separator of [languageTag] (BCP 47) and ASCII digits. */
 internal fun formatLocalizedNumber(
     value: Number,
     languageTag: String,
@@ -27,10 +30,8 @@ internal fun formatLocalizedNumber(
 /** `null` means the platform default locale. */
 private fun String.orDefaultLocale(): String? = takeUnless { it.isEmpty() || it == "und" }
 
-internal expect fun platformFormatDate(
-    date: LocalDate,
-    languageTag: String?,
-): String
+/** The numeric date pattern (year, month, day) of [languageTag]; `null` is the default locale. */
+internal expect fun platformDatePattern(languageTag: String?): DatePattern
 
 internal expect fun platformFormatNumber(
     value: Number,

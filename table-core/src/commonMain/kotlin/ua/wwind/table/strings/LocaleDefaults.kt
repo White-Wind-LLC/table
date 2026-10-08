@@ -10,15 +10,15 @@ import ua.wwind.table.platform.formatLocalizedNumber
 private const val PLATFORM_FORMAT_LOCALE = ""
 
 /**
- * The platform format locale's numeric date with a four-digit year, e.g. `08.10.2026` (uk, de) or
- * `10/08/2026` (en-US). Default of [StringProvider.formatDate].
+ * The platform format locale's numeric date with a four-digit year and ASCII digits, in the proleptic
+ * Gregorian calendar, e.g. `08.10.2026` (uk, de) or `10/08/2026` (en-US). Default of [StringProvider.formatDate].
  */
 @Composable
 public fun defaultFormatDate(date: LocalDate): String = formatLocalizedDate(date, PLATFORM_FORMAT_LOCALE)
 
 /**
- * [value] with the platform format locale's grouping and decimal separator, e.g. `1 234,5` (uk) or
- * `1,234.5` (en-US). Default of [StringProvider.formatNumber].
+ * [value] with the platform format locale's grouping and decimal separator and ASCII digits, e.g.
+ * `1 234,5` (uk) or `1,234.5` (en-US, ar-EG). Default of [StringProvider.formatNumber].
  */
 @Composable
 public fun defaultFormatNumber(value: Number): String = formatLocalizedNumber(value, PLATFORM_FORMAT_LOCALE)

@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ### Unreleased
 
+- Fixed: locale dates and numbers match on every platform: four-digit years, proleptic Gregorian dates,
+  ASCII digits (also in `ar`, `fa`) and cached formatters ([#117](https://github.com/White-Wind-LLC/table/issues/117)).
 - Changed: a fast filter's × shows only while the field has focus (clear an unfocused filter from its
   chip), takes the header icon target size (24 dp on desktop, 48 dp on mobile, `TableDimensions.headerIconTargetSize`)
   instead of 48 dp everywhere, and is left out in columns too narrow to keep 72 dp for the field.
