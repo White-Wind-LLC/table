@@ -15,11 +15,12 @@ internal actual fun platformFormatNumber(
     intlFormat(numberFormats[languageTag.orEmpty()], value.toString())
 
 // The locale's numeric date as a CLDR pattern: its field order and literal separators.
+// The parentheses matter: Kotlin/JS's js() parser applies `new` to the whole call chain without them.
 @Suppress("UNUSED_PARAMETER")
 private fun intlDatePattern(languageTag: String?): String =
     js(
-        """new Intl.DateTimeFormat(languageTag || undefined,
-            { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'UTC', calendar: 'gregory' })
+        """(new Intl.DateTimeFormat(languageTag || undefined,
+            { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'UTC', calendar: 'gregory' }))
             .formatToParts(new Date(0))
             .map(p => p.type === 'year' ? 'y' : p.type === 'month' ? 'MM' : p.type === 'day' ? 'dd' :
                 p.type === 'literal' ? "'" + p.value.replace(/'/g, "''") + "'" : '')
