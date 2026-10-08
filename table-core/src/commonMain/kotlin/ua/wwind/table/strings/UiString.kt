@@ -28,6 +28,13 @@ public sealed class UiString {
 
     public object FilterRangeIconDescription : UiString()
 
+    public object FilterOptionsSearchPlaceholder : UiString()
+
+    // Multi-select actions
+    public object FilterSelectAll : UiString()
+
+    public object FilterSelectNone : UiString()
+
     // Field labels
     public object FilterConditionLabel : UiString()
 
@@ -55,6 +62,8 @@ public sealed class UiString {
     public object BooleanTrueTitle : UiString()
 
     public object BooleanFalseTitle : UiString()
+
+    public object BooleanAnyTitle : UiString()
 
     // Filter constraint titles
     public object FilterConstraintEquals : UiString()
@@ -255,6 +264,13 @@ public object DefaultStrings : StringProvider {
 
             UiString.FilterRangeIconDescription -> "Range"
 
+            UiString.FilterOptionsSearchPlaceholder -> "Search options…"
+
+            // Multi-select actions
+            UiString.FilterSelectAll -> "Select all"
+
+            UiString.FilterSelectNone -> "None"
+
             // Field labels
             UiString.FilterConditionLabel -> "Condition"
 
@@ -282,6 +298,8 @@ public object DefaultStrings : StringProvider {
             UiString.BooleanTrueTitle -> "Yes"
 
             UiString.BooleanFalseTitle -> "No"
+
+            UiString.BooleanAnyTitle -> "Any"
 
             // Constraints
             UiString.FilterConstraintEquals -> "Equals"

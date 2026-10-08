@@ -1,12 +1,7 @@
 package ua.wwind.table.filter.component
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -22,7 +17,6 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.flow.Flow
 import ua.wwind.table.component.TableTextField
@@ -62,7 +56,6 @@ public fun <E : Enum<E>> FilterDropdownField(
     contentPadding: PaddingValues = TableTextFieldDefaults.contentPadding(),
     label: String? = null,
 ) {
-    val scrollState = rememberScrollState()
     var expanded by remember { mutableStateOf(false) }
     ExposedDropdownMenuBox(
         expanded = expanded,
@@ -92,43 +85,34 @@ public fun <E : Enum<E>> FilterDropdownField(
             expanded = expanded,
             onDismissRequest = { expanded = false },
         ) {
-            Box {
-                Column(
-                    modifier =
-                        Modifier
-                            .heightIn(max = 240.dp)
-                            .verticalScroll(scrollState),
-                ) {
-                    values.forEach { enum ->
-                        DropdownMenuItem(
-                            text = {
-                                when (checked) {
-                                    null -> {
-                                        Text(getTitle(enum))
-                                    }
+            values.forEach { enum ->
+                DropdownMenuItem(
+                    text = {
+                        when (checked) {
+                            null -> {
+                                Text(getTitle(enum))
+                            }
 
-                                    else -> {
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                        ) {
-                                            Checkbox(
-                                                checked = checked.invoke(enum),
-                                                onCheckedChange = {
-                                                    onClick(enum)
-                                                },
-                                            )
-                                            Text(getTitle(enum))
-                                        }
-                                    }
+                            else -> {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Checkbox(
+                                        checked = checked.invoke(enum),
+                                        onCheckedChange = {
+                                            onClick(enum)
+                                        },
+                                    )
+                                    Text(getTitle(enum))
                                 }
-                            },
-                            onClick = {
-                                onClick(enum)
-                                if (checked == null) expanded = false
-                            },
-                        )
-                    }
-                }
+                            }
+                        }
+                    },
+                    onClick = {
+                        onClick(enum)
+                        if (checked == null) expanded = false
+                    },
+                )
             }
         }
     }
