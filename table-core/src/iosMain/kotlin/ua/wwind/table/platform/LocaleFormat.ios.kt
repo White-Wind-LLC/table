@@ -1,6 +1,8 @@
 package ua.wwind.table.platform
 
 import kotlinx.datetime.LocalDate
+import platform.Foundation.NSCalendar
+import platform.Foundation.NSCalendarIdentifierGregorian
 import platform.Foundation.NSDate
 import platform.Foundation.NSDateFormatter
 import platform.Foundation.NSLocale
@@ -24,6 +26,8 @@ internal actual fun platformFormatDate(
     val formatter =
         NSDateFormatter().apply {
             this.locale = locale
+            // The date picker is Gregorian; some locales default to another calendar (th: Buddhist).
+            calendar = NSCalendar(calendarIdentifier = NSCalendarIdentifierGregorian)
             timeZone = NSTimeZone.timeZoneForSecondsFromGMT(0)
             dateFormat = NSDateFormatter.dateFormatFromTemplate("yMMdd", 0u, locale) ?: "dd.MM.yyyy"
         }
@@ -42,8 +46,8 @@ internal actual fun platformFormatNumber(
         }
     val number =
         when (value) {
-            is Double, is Float -> NSNumber(double = value.toDouble())
-            else -> NSNumber(longLong = value.toLong())
+            is Int, is Long, is Short, is Byte -> NSNumber(longLong = value.toLong())
+            else -> NSNumber(double = value.toDouble())
         }
     return formatter.stringFromNumber(number) ?: value.toString()
 }

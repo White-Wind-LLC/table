@@ -11,7 +11,9 @@ internal actual fun platformFormatDate(
 internal actual fun platformFormatNumber(
     value: Number,
     languageTag: String?,
-): String = intlFormatNumber(value.toDouble(), languageTag)
+): String =
+    // Intl reads a decimal string exactly; toDouble() would round Longs beyond 2^53.
+    intlFormatNumber(value.toString(), languageTag)
 
 @Suppress("UNUSED_PARAMETER")
 private fun intlFormatDate(
@@ -25,12 +27,12 @@ private fun intlFormatDate(
             const d = new Date(0);
             d.setUTCFullYear(year, month - 1, day);
             return new Intl.DateTimeFormat(languageTag || undefined,
-                { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'UTC' }).format(d);
+                { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'UTC', calendar: 'gregory' }).format(d);
         })()""",
     )
 
 @Suppress("UNUSED_PARAMETER")
 private fun intlFormatNumber(
-    value: Double,
+    value: String,
     languageTag: String?,
 ): String = js("new Intl.NumberFormat(languageTag || undefined, { maximumFractionDigits: 20 }).format(value)")
