@@ -54,7 +54,6 @@ import kotlinx.coroutines.flow.drop
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
-import kotlinx.datetime.format
 import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.painterResource
 import ua.wwind.table.component.TableTextField
@@ -349,7 +348,7 @@ private fun FormatBooleanFilter(
 @OptIn(FlowPreview::class)
 @Suppress("FunctionNaming", "LongParameterList")
 @Composable
-private fun FormatDateFilter(
+internal fun FormatDateFilter(
     filter: TableFilterType.DateTableFilter,
     state: TableFilterState<LocalDate>,
     onChange: (TableFilterState<LocalDate>) -> Unit,
@@ -471,7 +470,7 @@ private fun DateField(
                 },
         )
     TableTextField(
-        value = value?.toFormatString().orEmpty(),
+        value = value?.let { strings.formatDate(it) }.orEmpty(),
         onValueChange = {},
         placeholder =
             label ?: {
@@ -533,17 +532,6 @@ private fun DateField(
         }
     }
 }
-
-private fun LocalDate.toFormatString(): String =
-    this.format(
-        LocalDate.Format {
-            day()
-            chars(".")
-            monthNumber()
-            chars(".")
-            year()
-        },
-    )
 
 @OptIn(FlowPreview::class)
 @Suppress("FunctionNaming", "LongParameterList")
@@ -765,13 +753,15 @@ internal fun <E : Enum<E>> buildFilterHeaderTitle(
             val valuesLocal = fv.values ?: return null
             when {
                 constraint == FilterConstraint.BETWEEN && valuesLocal.size >= 2 -> {
-                    val from = valuesLocal[0]
-                    val to = valuesLocal[1]
-                    "${strings.get(constraint.toUiString())} $from - $to"
+                    val from = valuesLocal[0] as? Number ?: return null
+                    val to = valuesLocal[1] as? Number ?: return null
+                    "${strings.get(
+                        constraint.toUiString(),
+                    )} ${strings.formatNumber(from)} - ${strings.formatNumber(to)}"
                 }
 
-                valuesLocal.firstOrNull() != null -> {
-                    "${strings.get(constraint.toUiString())} ${valuesLocal.firstOrNull()}"
+                valuesLocal.firstOrNull() is Number -> {
+                    "${strings.get(constraint.toUiString())} ${strings.formatNumber(valuesLocal.first() as Number)}"
                 }
 
                 else -> {
@@ -797,13 +787,13 @@ internal fun <E : Enum<E>> buildFilterHeaderTitle(
             val valuesLocal = fv.values ?: return null
             return when {
                 constraint == FilterConstraint.BETWEEN && valuesLocal.size >= 2 -> {
-                    val from = valuesLocal[0].toFormatString()
-                    val to = valuesLocal[1].toFormatString()
+                    val from = strings.formatDate(valuesLocal[0])
+                    val to = strings.formatDate(valuesLocal[1])
                     "${strings.get(constraint.toUiString())} $from - $to"
                 }
 
                 valuesLocal.firstOrNull() != null -> {
-                    "${strings.get(constraint.toUiString())} ${valuesLocal.first().toFormatString()}"
+                    "${strings.get(constraint.toUiString())} ${strings.formatDate(valuesLocal.first())}"
                 }
 
                 else -> {

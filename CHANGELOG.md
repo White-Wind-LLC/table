@@ -4,8 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ### Unreleased
 
-- Changed: filter date fields and active-filter chips format dates and numbers with the user's locale
-  (`08.10.2026` in uk/de, `10/08/2026` in en-US; `1 234,5` / `1,234.5`). Override
+- Changed: filter date fields, active-filter chips and the format dialog's conditions format dates and
+  numbers with the user's locale (`08.10.2026` in uk/de, `10/08/2026` in en-US; `1 234,5` / `1,234.5`). Override
   `StringProvider.formatDate` / `formatNumber` to change it; `defaultFormatDate` / `defaultFormatNumber`
   give the locale defaults. Number input fields keep the column delegate's format ([#106](https://github.com/White-Wind-LLC/table/issues/106)).
 - Changed: fast filters have a × that clears them. A filter set in the panel with another operator keeps
