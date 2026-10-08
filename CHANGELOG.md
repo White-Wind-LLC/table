@@ -14,7 +14,7 @@ All notable changes to this project will be documented in this file.
   keyboard and widen for long translations; adds six `UiString` keys ([#103](https://github.com/White-Wind-LLC/table/issues/103)).
 - Changed (breaking): icons are Compose resources — `TableIcons` returns `DrawableResource`, icon slots
   take `Painter`, `LocalTableHeaderIcons` has no default outside `Table`; iOS and web apps need Compose
-  resources packaging ([guide](docs/content/guides/custom-header-icons.md)).
+  resources packaging ([guide](https://white-wind-llc.github.io/table/guides/custom-header-icons/)).
 - Added: built-in loading, error/retry, progress and error-bar states on the paged `Table`, and a
   `bodyOverlay` slot on `Table`; adds four `UiString` keys and deprecates `handleLoadState` ([#89](https://github.com/White-Wind-LLC/table/issues/89)).
 - Added: an `emptyContent` slot on `Table` for the no-data and no-results states, with a "Clear filters"
