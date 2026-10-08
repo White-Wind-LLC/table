@@ -51,9 +51,14 @@ the locale Compose itself uses, and call the platform layer.
 ## 2. Platform layer (`platform/LocaleFormat.kt`)
 
 ```kotlin
-internal expect fun formatLocalizedDate(date: LocalDate, languageTag: String): String
-internal expect fun formatLocalizedNumber(value: Number, languageTag: String): String
+internal expect fun platformFormatDate(date: LocalDate, languageTag: String?): String
+internal expect fun platformFormatNumber(value: Number, languageTag: String?): String
 ```
+
+`null` means the platform default locale. Common wrappers `formatLocalizedDate` /
+`formatLocalizedNumber(…, languageTag: String)` hold the rules shared by every target: an empty or
+`und` tag becomes `null`, non-finite values use `toString()`, and a `Float` is passed as the
+`Double` of its decimal text so `0.1f` does not show as `0.10000000149011612`.
 
 **Date** — the locale's numeric date with a four-digit year and two-digit month and day (the
 `yMMdd` skeleton): uk-UA and de-DE give `08.10.2026`, en-US gives `10/08/2026`. The plain
@@ -79,7 +84,6 @@ stays `0.1234`. `NaN` and infinities fall back to `toString()`.
 | iOS | `NSNumberFormatter` with `NSNumberFormatterDecimalStyle` and a large `maximumFractionDigits` |
 | JS, Wasm | `Intl.NumberFormat(tag, { maximumFractionDigits: 20 })` |
 
-An empty or unknown language tag falls back to the platform default locale.
 
 ## 3. Call sites
 
@@ -92,8 +96,8 @@ An empty or unknown language tag falls back to the platform default locale.
 ## 4. Testing
 
 - `jvmTest`: `formatLocalizedDate` and `formatLocalizedNumber` for `en-US`, `uk-UA` and `de-DE`,
-  including Int and Double values, fraction digits beyond three, negative numbers, NaN and an
-  empty tag.
+  including Int, Long, Float and Double values, fraction digits beyond three, negative numbers,
+  a date before 1970, NaN and infinities, and empty / `und` tags.
 - `commonTest` (Compose UI test): a `StringProvider` that overrides `formatDate` and
   `formatNumber` with marker output; the active-filter chips for a number and a date filter and
   the `DateField` text show the marker. This proves the hook is used without depending on the
