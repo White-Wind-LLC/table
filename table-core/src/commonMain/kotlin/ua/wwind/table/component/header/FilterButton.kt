@@ -12,6 +12,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
 import ua.wwind.table.component.TableHeaderIcons
+import ua.wwind.table.strings.StringProvider
+import ua.wwind.table.strings.UiString
 
 /** The filter button's compact size; a larger target size (touch) widens it. */
 private const val MIN_FILTER_BUTTON_SIZE_DP = 32
@@ -25,6 +27,7 @@ internal fun FilterButton(
     enabled: Boolean,
     active: Boolean,
     icons: TableHeaderIcons,
+    strings: StringProvider,
     isOpen: Boolean,
     onOpen: () -> Unit,
     onDismiss: () -> Unit,
@@ -39,7 +42,7 @@ internal fun FilterButton(
             ) {
                 Icon(
                     painter = icons.filterActive,
-                    contentDescription = null,
+                    contentDescription = strings.get(UiString.HeaderFilterActive),
                     modifier = Modifier.size(HeaderIconSize),
                 )
             }
@@ -50,7 +53,7 @@ internal fun FilterButton(
             ) {
                 Icon(
                     painter = icons.filterInactive,
-                    contentDescription = null,
+                    contentDescription = strings.get(UiString.HeaderFilter),
                     modifier = Modifier.size(HeaderIconSize),
                 )
             }

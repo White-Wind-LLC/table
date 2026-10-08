@@ -148,7 +148,14 @@ public fun <E : Enum<E>, FILTER> FormatDialogConditionTab(
                                     )
                                     Icon(
                                         painter = painterResource(TableIcons.ArrowDropUp),
-                                        contentDescription = null,
+                                        contentDescription =
+                                            strings.get(
+                                                if (expanded) {
+                                                    UiString.FormatCollapseCondition
+                                                } else {
+                                                    UiString.FormatExpandCondition
+                                                },
+                                            ),
                                         modifier = Modifier.rotate(rotation),
                                     )
                                 }
@@ -166,7 +173,7 @@ public fun <E : Enum<E>, FILTER> FormatDialogConditionTab(
                                         ) {
                                             Icon(
                                                 painter = painterResource(TableIcons.Close),
-                                                contentDescription = "Remove Filter",
+                                                contentDescription = strings.get(UiString.FormatRemoveCondition),
                                                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                             )
                                         }
@@ -239,9 +246,8 @@ public fun <E : Enum<E>, FILTER> FormatDialogConditionTab(
                                     }
 
                                     is TableFilterType.CustomTableFilter<*, *> -> {
-                                        // Custom filters are not supported in conditional formatting
                                         Text(
-                                            text = "Custom filters are not supported in conditional formatting",
+                                            text = strings.get(UiString.FormatCustomFilterUnsupported),
                                             modifier = Modifier.padding(16.dp),
                                             style = MaterialTheme.typography.bodyMedium,
                                         )

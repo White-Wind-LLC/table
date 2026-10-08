@@ -48,6 +48,7 @@ import ua.wwind.table.state.calculatePinnedColumnState
 import ua.wwind.table.state.currentTableState
 import ua.wwind.table.state.hasContentUnder
 import ua.wwind.table.strings.StringProvider
+import ua.wwind.table.strings.UiString
 
 @Composable
 internal fun <T : Any, C, E> TableHeaderRow(
@@ -180,7 +181,7 @@ internal fun <T : Any, C, E> TableHeaderRow(
 
                             if (showDragHandle) {
                                 // The glyph stays small in the top-left corner; the target around it is larger.
-                                // Its own semantics node, so "Drag column" stays out of the heading's label.
+                                // Its own semantics node, so its label stays out of the heading's label.
                                 Box(
                                     contentAlignment = Alignment.TopStart,
                                     modifier =
@@ -194,7 +195,7 @@ internal fun <T : Any, C, E> TableHeaderRow(
                                 ) {
                                     Icon(
                                         painter = painterResource(TableIcons.DragIndicator),
-                                        contentDescription = "Drag column",
+                                        contentDescription = strings.get(UiString.HeaderDragColumn),
                                         modifier =
                                             Modifier
                                                 .padding(start = 2.dp, top = 2.dp)

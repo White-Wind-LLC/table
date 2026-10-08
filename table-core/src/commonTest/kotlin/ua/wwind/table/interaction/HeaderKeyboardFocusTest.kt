@@ -19,6 +19,7 @@ import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.click
+import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.isRoot
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onLast
@@ -286,11 +287,11 @@ class HeaderKeyboardFocusTest {
     /** Excludes the header's zero-size measuring copy of its content. */
     private val isLaidOut = SemanticsMatcher("has a size") { it.boundsInRoot.width > 0f }
 
-    /** The header's role-button nodes without a content description: each column's sort, then filter button. */
+    /** The header's sort and filter buttons: each column's sort, then filter button. */
     private fun ComposeUiTest.sortAndFilterButtons() =
         onAllNodes(
             SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Button) and
-                !SemanticsMatcher.keyIsDefined(SemanticsProperties.ContentDescription) and
+                (hasContentDescription("Sort") or hasContentDescription("Filter")) and
                 isLaidOut,
         )
 

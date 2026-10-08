@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ### Unreleased
 
+- Changed: icon-only controls (sort, filter, chip scroll arrows, condition expand / remove) have localized
+  names, the sort order is announced; no hardcoded English left; adds 12 `UiString` keys ([#78](https://github.com/White-Wind-LLC/table/issues/78)).
 - Changed: screen readers get the table structure: grid size, cell positions, selected cell and row, header and
   group headings ([#77](https://github.com/White-Wind-LLC/table/issues/77)).
 - Fixed: auto-width no longer overwrites `initialWidths` or widths set with `setWidths`/resize; new

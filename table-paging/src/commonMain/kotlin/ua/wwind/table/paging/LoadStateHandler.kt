@@ -15,6 +15,8 @@ import androidx.compose.ui.unit.Dp
 import co.touchlab.kermit.Logger
 import ua.wwind.paging.core.LoadState
 import ua.wwind.paging.core.PagingData
+import ua.wwind.table.strings.UiString
+import ua.wwind.table.strings.currentStrings
 
 /**
  * Renders load states as list items. The paged `Table` now shows every load state itself.
@@ -41,7 +43,7 @@ public fun <T : Any> LazyListScope.handleLoadState(
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
-                        text = "No data available",
+                        text = currentStrings().get(UiString.EmptyNoData),
                         modifier = Modifier.align(Alignment.Center),
                         textAlign = TextAlign.Center,
                     )
