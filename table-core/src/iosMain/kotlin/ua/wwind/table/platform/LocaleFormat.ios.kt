@@ -5,6 +5,7 @@ import platform.Foundation.NSCalendar
 import platform.Foundation.NSCalendarIdentifierGregorian
 import platform.Foundation.NSDate
 import platform.Foundation.NSDateFormatter
+import platform.Foundation.NSDecimalNumber
 import platform.Foundation.NSLocale
 import platform.Foundation.NSNumber
 import platform.Foundation.NSNumberFormatter
@@ -17,6 +18,9 @@ import ua.wwind.table.filter.component.main.date.toDatePickerMillis
 
 private const val MILLIS_PER_SECOND = 1000.0
 private const val MAX_FRACTION_DIGITS = 20uL
+
+// Long.MIN_VALUE has 19 digits.
+private const val MAX_LONG_DIGITS = 19uL
 
 internal actual fun platformFormatDate(
     date: LocalDate,
@@ -46,8 +50,16 @@ internal actual fun platformFormatNumber(
         }
     val number =
         when (value) {
-            is Int, is Long, is Short, is Byte -> NSNumber(longLong = value.toLong())
-            else -> NSNumber(double = value.toDouble())
+            is Int, is Long, is Short, is Byte -> {
+                // By default the formatter rounds to double precision (2^53 + 1 -> ...990).
+                formatter.usesSignificantDigits = true
+                formatter.maximumSignificantDigits = MAX_LONG_DIGITS
+                NSDecimalNumber(string = value.toString())
+            }
+
+            else -> {
+                NSNumber(double = value.toDouble())
+            }
         }
     return formatter.stringFromNumber(number) ?: value.toString()
 }
