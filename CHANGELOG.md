@@ -12,7 +12,9 @@ All notable changes to this project will be documented in this file.
   `StringProvider.formatDate` / `formatNumber` to change it; `defaultFormatDate` / `defaultFormatNumber`
   give the locale defaults. The defaults use the platform's format locale (region settings), not the UI language.
   On desktop the JDK drops a region set apart from the language (macOS English with the Ukraine region reads
-  as en-US); start the app with `-Djava.locale.providers=HOST,CLDR` to follow the OS formats. Number input fields
+  as en-US); set the format locale with `-Duser.language.format=uk -Duser.country.format=UA`. Avoid
+  `-Djava.locale.providers=HOST`: on macOS it returns full day names for short styles, which breaks the date
+  picker's weekday header. Number input fields
   keep the column delegate's format ([#106](https://github.com/White-Wind-LLC/table/issues/106)).
 - Changed: fast filters have a × that clears them. A filter set in the panel with another operator keeps
   it in the fast row, shown before the value (`≥ 5`, `Starts with ab`). Between, multi-value In / Not in and
