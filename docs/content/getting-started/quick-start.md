@@ -57,6 +57,16 @@ val state = rememberTableState(
 You can also provide `initialOrder`, `initialWidths`, `initialSort` and update from outside using
 `state.columns.setOrder(...)`, `state.columns.setWidths(...)`.
 
+To persist column widths, save `state.columns.explicitWidths` and pass it back as `initialWidths`. It holds the
+widths set through `initialWidths`, `setWidths`, `resize` or the resizer, and leaves out widths that auto-width
+chose. Auto-width never overwrites an explicit width, so restored widths survive the first render:
+
+```kotlin
+LaunchedEffect(state) {
+    snapshotFlow { state.columns.explicitWidths }.drop(1).debounce(300.milliseconds).collect(save)
+}
+```
+
 #### 4) Rendering (core)
 
 ```kotlin

@@ -75,7 +75,8 @@ column(PersonField.Name, valueOf = { it.name }) {
       `state` itself, deprecated, each naming its replacement; they are removed in the next major.
       Full mapping in the [2.0 migration guide](../getting-started/migration-2.0.md#state-holders-on-tablestate).
     - Column order/size: `state.columns.setOrder(order)`, `state.columns.resize(column, Set/Reset)`,
-      `state.columns.setWidths(map)`; current `state.columns.order` and `state.columns.widths`.
+      `state.columns.setWidths(map)`; current `state.columns.order`, `state.columns.widths` and
+      `state.columns.explicitWidths` (widths not chosen by auto-width, for persisting).
     - Auto-width recalculation: `state.columns.recalculateAutoWidths()` to manually recompute column
       widths based on current content measurements. Useful for deferred/paginated data loading where initial auto-width
       calculation happened on empty data.
