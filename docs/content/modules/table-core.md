@@ -30,7 +30,11 @@ row selection, i18n, styling/customization, and dynamic or fixed row height.
 - Extensive customization via `TableCustomization` (background/content color, elevation, borders, typography,
   alignment). Outer table border is configurable via `border` parameter (custom stroke or disabled entirely).
 - i18n via `StringProvider` (default `DefaultStrings`). Dates and numbers in filter fields and chips follow the
-  user's locale; override `formatDate` / `formatNumber` for a fixed format:
+  platform's format locale (region settings), not the UI language. On desktop the JDK reads macOS English with the
+  Ukraine region as en-US and formats `10/08/2026`; set the format locale in the app's JVM arguments, e.g.
+  `-Duser.language.format=uk -Duser.country.format=UA`, to get `08.10.2026`. Don't use
+  `-Djava.locale.providers=HOST`: on macOS it returns full day names for short styles and breaks the date picker.
+  Override `formatDate` / `formatNumber` for a fixed format:
 
   ```kotlin
   object AppStrings : StringProvider {
