@@ -95,16 +95,11 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6
 
-      # The committed locks include the samples' npm packages; without the samples they mismatch.
-      - name: Upgrade Kotlin Yarn lockfiles
-        run: ./gradlew ${{ env.GRADLE_FLAGS }} kotlinUpgradeYarnLock kotlinWasmUpgradeYarnLock
+      - name: JVM, JS and wasmJs tests
+        run: ./gradlew ${{ env.GRADLE_FLAGS }} jvmTest jsBrowserTest wasmJsBrowserTest
 
-      - name: JVM and wasmJs tests
-        run: ./gradlew ${{ env.GRADLE_FLAGS }} jvmTest wasmJsBrowserTest
-
-      # jsBrowserTest is skipped: Skiko does not load under karma.
-      - name: Compile JS, Android and common metadata
-        run: ./gradlew ${{ env.GRADLE_FLAGS }} compileKotlinJs compileAndroidMain compileCommonMainKotlinMetadata
+      - name: Compile Android and common metadata
+        run: ./gradlew ${{ env.GRADLE_FLAGS }} compileAndroidMain compileCommonMainKotlinMetadata
 
       - name: Coverage report
         run: ./gradlew ${{ env.GRADLE_FLAGS }} coverageReport
