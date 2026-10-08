@@ -13,6 +13,7 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
 import ua.wwind.table.filter.component.main.FilterEmission
 import ua.wwind.table.filter.component.main.applyEmission
+import ua.wwind.table.filter.component.main.resolveSourceConstraint
 import ua.wwind.table.filter.data.FilterConstraint
 import ua.wwind.table.filter.data.TableFilterState
 import ua.wwind.table.filter.data.TableFilterType
@@ -88,7 +89,7 @@ internal fun <T : Number> rememberNumberFilterState(
 
     val sourceConstraint by remember(externalState, defaultConstraint) {
         derivedStateOf {
-            if (isFastFilter) defaultConstraint else externalState?.constraint ?: defaultConstraint
+            resolveSourceConstraint(externalState, defaultConstraint, isFastFilter)
         }
     }
 

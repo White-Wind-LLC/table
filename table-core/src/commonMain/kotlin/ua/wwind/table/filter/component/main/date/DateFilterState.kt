@@ -14,6 +14,7 @@ import kotlinx.coroutines.delay
 import kotlinx.datetime.LocalDate
 import ua.wwind.table.filter.component.main.FilterEmission
 import ua.wwind.table.filter.component.main.applyEmission
+import ua.wwind.table.filter.component.main.resolveSourceConstraint
 import ua.wwind.table.filter.data.FilterConstraint
 import ua.wwind.table.filter.data.TableFilterState
 
@@ -48,7 +49,7 @@ internal data class DateFilterState(
  * @param defaultConstraint Default constraint to use if not specified in state
  * @param autoApply Whether to apply changes automatically with debounce
  * @param debounceMs Debounce delay in milliseconds
- * @param isFastFilter Whether this is a fast filter (affects constraint handling)
+ * @param isFastFilter Whether this is a fast filter, which keeps [defaultConstraint] until the filter is active
  * @param onStateChange Callback when filter state changes
  * @return DateFilterState containing current values and update functions
  */
@@ -81,7 +82,7 @@ internal fun rememberDateFilterState(
 
     val sourceConstraint by remember(externalState, defaultConstraint) {
         derivedStateOf {
-            if (isFastFilter) defaultConstraint else externalState?.constraint ?: defaultConstraint
+            resolveSourceConstraint(externalState, defaultConstraint, isFastFilter)
         }
     }
 

@@ -8,6 +8,7 @@ import ua.wwind.table.component.TableTextFieldDefaults
 import ua.wwind.table.filter.component.main.text.rememberTextFilterState
 import ua.wwind.table.filter.data.FilterConstraint
 import ua.wwind.table.filter.data.TableFilterState
+import ua.wwind.table.filter.data.TableFilterType
 import ua.wwind.table.strings.StringProvider
 import ua.wwind.table.strings.UiString
 
@@ -32,17 +33,31 @@ internal fun <T : Any, C, E> FastTextFilter(
             },
         )
 
-    TableTextField(
-        value = textFilterState.text,
-        onValueChange = { textFilterState.onTextChange(it) },
-        placeholder = {
-            Text(
-                text = strings.get(UiString.FilterSearchPlaceholder),
-                maxLines = 1,
-            )
-        },
-        singleLine = true,
-        contentPadding = TableTextFieldDefaults.reducedContentPadding(),
-        showBorder = false,
-    )
+    val filter = spec.filter as TableFilterType.TextTableFilter
+    val mode = fastFilterMode(filter, state)
+    if (mode == FastFilterMode.Locked) {
+        FastLockedField(type = filter, state = state, strings = strings, onClear = textFilterState.clearFilter)
+        return
+    }
+
+    FastFieldFrame(
+        mode = mode,
+        showClear = textFilterState.text.isNotEmpty(),
+        strings = strings,
+        onClear = textFilterState.clearFilter,
+    ) {
+        TableTextField(
+            value = textFilterState.text,
+            onValueChange = { textFilterState.onTextChange(it) },
+            placeholder = {
+                Text(
+                    text = strings.get(UiString.FilterSearchPlaceholder),
+                    maxLines = 1,
+                )
+            },
+            singleLine = true,
+            contentPadding = TableTextFieldDefaults.reducedContentPadding(),
+            showBorder = false,
+        )
+    }
 }

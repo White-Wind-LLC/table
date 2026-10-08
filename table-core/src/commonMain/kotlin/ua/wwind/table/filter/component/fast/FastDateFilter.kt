@@ -8,6 +8,7 @@ import ua.wwind.table.filter.component.main.date.DateField
 import ua.wwind.table.filter.component.main.date.rememberDateFilterState
 import ua.wwind.table.filter.data.FilterConstraint
 import ua.wwind.table.filter.data.TableFilterState
+import ua.wwind.table.filter.data.TableFilterType
 import ua.wwind.table.strings.StringProvider
 
 @Composable
@@ -31,16 +32,30 @@ internal fun <T : Any, C, E> FastDateFilter(
             },
         )
 
-    DateField(
-        value = dateFilterState.firstDate,
-        onDateSelect = { selectedDate ->
-            dateFilterState.onFirstDateChange(selectedDate)
-        },
-        onClear = {
-            dateFilterState.clearFilter()
-        },
+    val filter = spec.filter as TableFilterType.DateTableFilter
+    val mode = fastFilterMode(filter, state)
+    if (mode == FastFilterMode.Locked && state != null) {
+        FastLockedField(type = filter, state = state, strings = strings, onClear = dateFilterState.clearFilter)
+        return
+    }
+
+    FastFieldFrame(
+        mode = mode,
+        showClear = dateFilterState.firstDate != null,
         strings = strings,
-        contentPadding = TableTextFieldDefaults.reducedContentPadding(),
-        showBorder = false,
-    )
+        onClear = dateFilterState.clearFilter,
+    ) {
+        DateField(
+            value = dateFilterState.firstDate,
+            onDateSelect = { selectedDate ->
+                dateFilterState.onFirstDateChange(selectedDate)
+            },
+            onClear = {
+                dateFilterState.clearFilter()
+            },
+            strings = strings,
+            contentPadding = TableTextFieldDefaults.reducedContentPadding(),
+            showBorder = false,
+        )
+    }
 }
