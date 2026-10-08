@@ -12,6 +12,9 @@ public sealed class UiString {
     // Generic filter actions
     public object FilterClear : UiString()
 
+    /** The active-filters chip that clears every filter. */
+    public object FilterClearAll : UiString()
+
     public object FilterApply : UiString()
 
     // Placeholders
@@ -255,6 +258,8 @@ public object DefaultStrings : StringProvider {
         when (key) {
             // Generic
             UiString.FilterClear -> "Clear"
+
+            UiString.FilterClearAll -> "Clear all"
 
             UiString.FilterApply -> "Apply"
 

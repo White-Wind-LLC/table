@@ -211,8 +211,8 @@ class FastFiltersTest {
             val state = showTable()
             setFilter(state, "number", TableFilterState(FilterConstraint.BETWEEN, listOf(1, 10)))
 
-            onNodeWithText("Between 1 - 10").assertIsDisplayed()
-            onNodeWithText("Between 1 - 10").requestFocus()
+            onNodeWithText("Between 1 – 10").assertIsDisplayed()
+            onNodeWithText("Between 1 – 10").requestFocus()
             onNodeWithContentDescription("Clear").performClick()
             waitForIdle()
 

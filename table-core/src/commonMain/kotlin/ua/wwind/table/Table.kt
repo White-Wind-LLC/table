@@ -294,6 +294,7 @@ public fun <T : Any, C, E> EditableTable(
                         ActiveFiltersHeader(
                             columns = columns,
                             state = state,
+                            tableData = tableData,
                             strings = strings,
                             modifier = activeFiltersModifier(embedded, state.tableWidth),
                         )

@@ -152,7 +152,7 @@ internal fun <T : Any, C, E> HeaderCell(
             // end of the cell. This keeps "Filter…" in the column menu and custom filter icons working.
             if (isFilterOpen && !spec.headerDecorations) {
                 Box(Modifier.align(Alignment.CenterEnd).fillMaxHeight()) {
-                    HeaderFilterPanel(spec, state, tableData, strings, onDismissFilter)
+                    ColumnFilterPanel(spec, state, tableData, strings, onDismissFilter)
                 }
             }
         }
@@ -268,7 +268,7 @@ private fun <C, E> HeaderContent(
             Box {
                 DefaultFilterIcon(info)
 
-                if (isFilterOpen) HeaderFilterPanel(spec, state, tableData, strings, onDismissFilter)
+                if (isFilterOpen) ColumnFilterPanel(spec, state, tableData, strings, onDismissFilter)
             }
         }
     }
@@ -276,7 +276,7 @@ private fun <C, E> HeaderContent(
 
 /** The filter dropdown of [spec]'s column, anchored to the enclosing layout. */
 @Composable
-private fun <C, E> HeaderFilterPanel(
+internal fun <C, E> ColumnFilterPanel(
     spec: ColumnSpec<*, C, E>,
     state: TableState<C>,
     tableData: E,
