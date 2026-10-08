@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ### Unreleased
 
+- Changed: filter date fields and active-filter chips format dates and numbers with the user's locale
+  (`08.10.2026` in uk/de, `10/08/2026` in en-US; `1 234,5` / `1,234.5`). Override
+  `StringProvider.formatDate` / `formatNumber` to change it; `defaultFormatDate` / `defaultFormatNumber`
+  give the locale defaults. Number input fields keep the column delegate's format ([#106](https://github.com/White-Wind-LLC/table/issues/106)).
 - Changed: fast filters have a × that clears them. A filter set in the panel with another operator keeps
   it in the fast row, shown before the value (`≥ 5`, `Starts with ab`). Between, multi-value In / Not in and
   Is null filters show read-only. The boolean fast filter names its state (Any / Yes / No) in a tooltip and

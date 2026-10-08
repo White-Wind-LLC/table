@@ -29,6 +29,15 @@ row selection, i18n, styling/customization, and dynamic or fixed row height.
   a single table.
 - Extensive customization via `TableCustomization` (background/content color, elevation, borders, typography,
   alignment). Outer table border is configurable via `border` parameter (custom stroke or disabled entirely).
-- i18n via `StringProvider` (default `DefaultStrings`).
+- i18n via `StringProvider` (default `DefaultStrings`). Dates and numbers in filter fields and chips follow the
+  user's locale; override `formatDate` / `formatNumber` for a fixed format:
+
+  ```kotlin
+  object AppStrings : StringProvider {
+      @Composable override fun get(key: UiString): String = DefaultStrings.get(key)
+
+      @Composable override fun formatDate(date: LocalDate): String = date.toString() // ISO 2026-10-08
+  }
+  ```
 - Targets: Android / JVM (Desktop) / JS (Web) / iOS (KMP source sets present; targets enabled via project conventions).
 - Pinned columns with configurable side (left/right) and count.
