@@ -50,5 +50,6 @@ internal fun <T : Any, C, E, ENUM : Enum<ENUM>> FastEnumFilter(
         modifier = Modifier.fillMaxWidth(),
         contentPadding = TableTextFieldDefaults.reducedContentPadding(),
         showBorder = false,
+        searchPlaceholder = strings.get(UiString.FilterOptionsSearchPlaceholder),
     )
 }

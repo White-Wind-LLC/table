@@ -28,6 +28,7 @@ internal data class EnumFilterState<T : Enum<T>>(
     val isEditing: Boolean,
     val onSingleValueChange: (T?) -> Unit,
     val onMultiValueToggle: (T) -> Unit,
+    val onMultiValuesSet: (values: List<T>, selected: Boolean) -> Unit,
     val onConstraintChange: (FilterConstraint) -> Unit,
     val applyFilter: () -> Unit,
     val clearFilter: () -> Unit,
@@ -114,6 +115,13 @@ internal fun <T : Enum<T>> rememberEnumFilterState(
                     }
                 isEditing = true
             },
+            onMultiValuesSet = { values, selected ->
+                val updated = setEnumValues(editingValues, values, selected)
+                if (updated != editingValues) {
+                    editingValues = updated
+                    isEditing = true
+                }
+            },
             onConstraintChange = { newConstraint ->
                 editingConstraint = newConstraint
                 if (newConstraint == FilterConstraint.EQUALS && editingValues.size > 1) {
@@ -158,3 +166,19 @@ internal fun <T : Enum<T>> resolveEnumFilter(
         }
     return FilterEmission.Apply(TableFilterState(constraint, valuesToSend))
 }
+
+/**
+ * Checks ([selected]) or unchecks every value of [values] in the [current] multi-selection, as the
+ * Select all / None actions of the enum filter do (issue #104). Values outside [values] keep their
+ * state; newly checked values are appended in the order given.
+ */
+internal fun <T : Enum<T>> setEnumValues(
+    current: List<T>,
+    values: List<T>,
+    selected: Boolean,
+): List<T> =
+    if (selected) {
+        current + values.filterNot { it in current }
+    } else {
+        current - values.toSet()
+    }

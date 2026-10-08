@@ -61,6 +61,7 @@ internal fun <E : Enum<E>> EnumFilter(
                     enumFilterState.onSingleValueChange(item as? E)
                 },
                 modifier = Modifier.fillMaxWidth(),
+                searchPlaceholder = strings.get(UiString.FilterOptionsSearchPlaceholder),
             )
         }
 
@@ -86,6 +87,12 @@ internal fun <E : Enum<E>> EnumFilter(
                 },
                 checked = { item ->
                     enumFilterState.selectedValues.contains(item as E)
+                },
+                searchPlaceholder = strings.get(UiString.FilterOptionsSearchPlaceholder),
+                selectAllLabel = strings.get(UiString.FilterSelectAll),
+                selectNoneLabel = strings.get(UiString.FilterSelectNone),
+                onShownCheckedChange = { items, selected ->
+                    enumFilterState.onMultiValuesSet(items as List<E>, selected)
                 },
             )
         }

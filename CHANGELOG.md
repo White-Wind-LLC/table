@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ### Unreleased
 
+- Added: search and Select all / None in the enum options list, which now scrolls to the available
+  height, and an "Any" option in the boolean filter; adds four `UiString` keys ([#104](https://github.com/White-Wind-LLC/table/issues/104)).
 - Changed: filter panels label their fields, explain invalid number input inline, use a numeric
   keyboard and widen for long translations; adds six `UiString` keys ([#103](https://github.com/White-Wind-LLC/table/issues/103)).
 - Changed (breaking): icons are Compose resources — `TableIcons` returns `DrawableResource`, icon slots
