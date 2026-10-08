@@ -4,14 +4,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.v2.runComposeUiTest
 import assertk.assertThat
 import assertk.assertions.endsWith
+import assertk.assertions.isEqualTo
 import assertk.assertions.isNotNull
 import kotlinx.datetime.LocalDate
 import ua.wwind.table.filter.data.FilterConstraint
 import ua.wwind.table.filter.data.TableFilterState
 import ua.wwind.table.filter.data.TableFilterType
+import ua.wwind.table.filter.data.TableFilterType.NumberTableFilter.DoubleDelegate
 import ua.wwind.table.filter.data.TableFilterType.NumberTableFilter.IntDelegate
 import ua.wwind.table.strings.DefaultStrings
 import ua.wwind.table.strings.StringProvider
@@ -89,5 +92,31 @@ class FormatLocaleFormattingTest {
                 )
             }
             onNodeWithText("D:2026-10-08").assertIsDisplayed()
+        }
+
+    @Test
+    fun `number condition takes and shows the locale decimal separator`() =
+        runComposeUiTest {
+            val comma =
+                object : StringProvider {
+                    @Composable
+                    override fun get(key: UiString): String = DefaultStrings.get(key)
+
+                    @Composable
+                    override fun formatNumber(value: Number): String = value.toString().replace('.', ',')
+                }
+            var last: TableFilterState<Double>? = null
+            setContent {
+                FormatNumberFilter(
+                    filter = TableFilterType.NumberTableFilter(delegate = DoubleDelegate),
+                    state = TableFilterState(FilterConstraint.EQUALS, listOf(1.5)),
+                    onChange = { last = it },
+                    strings = comma,
+                )
+            }
+            onNodeWithText("1,5").assertIsDisplayed().performTextReplacement("2,5")
+            waitForIdle()
+
+            assertThat(last?.values).isEqualTo(listOf(2.5))
         }
 }

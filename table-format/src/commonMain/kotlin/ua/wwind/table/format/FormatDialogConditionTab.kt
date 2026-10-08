@@ -66,6 +66,7 @@ import ua.wwind.table.filter.data.FilterConstraint
 import ua.wwind.table.filter.data.TableFilterState
 import ua.wwind.table.filter.data.TableFilterType
 import ua.wwind.table.filter.data.isNullCheck
+import ua.wwind.table.filter.data.rememberNumberInputFormat
 import ua.wwind.table.filter.data.toUiString
 import ua.wwind.table.format.data.TableFormatRule
 import ua.wwind.table.format.scrollbar.VerticalScrollbarRenderer
@@ -630,26 +631,28 @@ internal fun <T : Number> FormatNumberFilter(
     strings: StringProvider,
 ) {
     var constraint by remember { mutableStateOf(state.constraint ?: filter.constraints.first()) }
-    val initialSingle = state.values?.firstOrNull()?.toString()
-    val initialFrom = state.values?.getOrNull(0)?.toString()
-    val initialTo = state.values?.getOrNull(1)?.toString()
+    val inputFormat = rememberNumberInputFormat(filter.delegate, strings)
+    val initialSingle = state.values?.firstOrNull()?.let(inputFormat::format)
+    val initialFrom = state.values?.getOrNull(0)?.let(inputFormat::format)
+    val initialTo = state.values?.getOrNull(1)?.let(inputFormat::format)
     val min = filter.rangeOptions?.first ?: filter.delegate.default
     val max = filter.rangeOptions?.second ?: filter.delegate.default
     var firstText by remember { mutableStateOf(initialSingle ?: initialFrom ?: "") }
     var secondText by remember { mutableStateOf(initialTo ?: "") }
-    val fromValue = filter.delegate.parse(firstText) ?: min
-    val toValue = filter.delegate.parse(secondText) ?: max
+    val fromValue = inputFormat.parse(firstText) ?: min
+    val toValue = inputFormat.parse(secondText) ?: max
     val isBetween = constraint == FilterConstraint.BETWEEN
     val isRangeValid = filter.delegate.compare(fromValue, toValue)
     val currentOnChange = rememberUpdatedState(onChange)
+    val currentInputFormat = rememberUpdatedState(inputFormat)
     LaunchedEffect(Unit) {
         snapshotFlow { Triple(constraint, firstText, secondText) }
             .drop(1)
             .distinctUntilChanged()
             .collect { (currentConstraint, from, to) ->
-                val fromVal = filter.delegate.parse(from)
+                val fromVal = currentInputFormat.value.parse(from)
                 if (currentConstraint == FilterConstraint.BETWEEN) {
-                    val toVal = filter.delegate.parse(to)
+                    val toVal = currentInputFormat.value.parse(to)
                     if (fromVal != null && toVal != null && filter.delegate.compare(fromVal, toVal)) {
                         currentOnChange.value(TableFilterState(currentConstraint, listOf(fromVal, toVal)))
                     }
@@ -677,7 +680,7 @@ internal fun <T : Number> FormatNumberFilter(
             OutlinedTextField(
                 value = firstText,
                 onValueChange = {
-                    if (it.matches(filter.delegate.regex)) {
+                    if (inputFormat.accepts(it)) {
                         firstText = it
                     }
                 },
@@ -703,7 +706,7 @@ internal fun <T : Number> FormatNumberFilter(
                 OutlinedTextField(
                     value = secondText,
                     onValueChange = {
-                        if (it.matches(filter.delegate.regex)) {
+                        if (inputFormat.accepts(it)) {
                             secondText = it
                         }
                     },
@@ -718,8 +721,8 @@ internal fun <T : Number> FormatNumberFilter(
             RangeSlider(
                 value = filter.delegate.toSliderValue(fromValue)..filter.delegate.toSliderValue(toValue),
                 onValueChange = { range ->
-                    firstText = filter.delegate.fromSliderValue(range.start).toString()
-                    secondText = filter.delegate.fromSliderValue(range.endInclusive).toString()
+                    firstText = inputFormat.format(filter.delegate.fromSliderValue(range.start))
+                    secondText = inputFormat.format(filter.delegate.fromSliderValue(range.endInclusive))
                 },
                 valueRange = min.toFloat()..max.toFloat(),
             )

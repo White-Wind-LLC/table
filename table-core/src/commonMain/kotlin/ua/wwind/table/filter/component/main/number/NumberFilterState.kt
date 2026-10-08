@@ -15,9 +15,12 @@ import ua.wwind.table.filter.component.main.FilterEmission
 import ua.wwind.table.filter.component.main.applyEmission
 import ua.wwind.table.filter.component.main.resolveSourceConstraint
 import ua.wwind.table.filter.data.FilterConstraint
+import ua.wwind.table.filter.data.NumberInputFormat
 import ua.wwind.table.filter.data.TableFilterState
 import ua.wwind.table.filter.data.TableFilterType
 import ua.wwind.table.filter.data.isNullCheck
+import ua.wwind.table.filter.data.rememberNumberInputFormat
+import ua.wwind.table.strings.StringProvider
 
 /**
  * State holder for number filter components.
@@ -35,7 +38,8 @@ internal data class NumberFilterState<T : Number>(
     val onConstraintChange: (FilterConstraint) -> Unit,
     val applyFilter: () -> Unit,
     val clearFilter: () -> Unit,
-    val delegate: TableFilterType.NumberTableFilter.NumberFilterDelegate<T>,
+    /** Parses and formats [text] and [secondText] with the locale decimal separator. */
+    val inputFormat: NumberInputFormat<T>,
 ) {
     val isError: Boolean get() = error != null
 }
@@ -46,13 +50,14 @@ internal data class NumberFilterState<T : Number>(
  *
  * This implementation ensures:
  * - Automatic synchronization between fast and main filters
- * - Input validation using delegate regex
+ * - Input validation using delegate regex, in the locale decimal separator or `.`
  * - Support for single value (EQUALS) and range (BETWEEN) constraints
  * - Debounced filter updates for performance
  * - Proper handling of external state changes
  *
  * @param externalState Current filter state from the table
  * @param filter The number filter configuration with delegate and constraints
+ * @param strings Gives the decimal separator through [StringProvider.formatNumber]
  * @param defaultConstraint Default constraint to use if not specified in state
  * @param autoApply Whether to apply changes automatically with debounce
  * @param debounceMs Debounce delay in milliseconds
@@ -64,23 +69,26 @@ internal data class NumberFilterState<T : Number>(
 internal fun <T : Number> rememberNumberFilterState(
     externalState: TableFilterState<T>?,
     filter: TableFilterType.NumberTableFilter<T>,
+    strings: StringProvider,
     defaultConstraint: FilterConstraint = FilterConstraint.EQUALS,
     autoApply: Boolean = true,
     debounceMs: Long = 300L,
     isFastFilter: Boolean = false,
     onStateChange: (TableFilterState<T>?) -> Unit,
 ): NumberFilterState<T> {
+    val inputFormat = rememberNumberInputFormat(filter.delegate, strings)
+
     // Derived state from external source
-    val sourceText by remember(externalState) {
+    val sourceText by remember(externalState, inputFormat) {
         derivedStateOf {
-            externalState?.values?.firstOrNull()?.let { filter.delegate.format(it) } ?: ""
+            externalState?.values?.firstOrNull()?.let { inputFormat.format(it) } ?: ""
         }
     }
 
-    val sourceSecondText by remember(externalState) {
+    val sourceSecondText by remember(externalState, inputFormat) {
         derivedStateOf {
             if (externalState?.constraint == FilterConstraint.BETWEEN) {
-                externalState.values?.getOrNull(1)?.let { filter.delegate.format(it) } ?: ""
+                externalState.values?.getOrNull(1)?.let { inputFormat.format(it) } ?: ""
             } else {
                 ""
             }
@@ -108,7 +116,7 @@ internal fun <T : Number> rememberNumberFilterState(
         }
     }
 
-    val emission = resolveNumberFilter(editingText, editingSecondText, editingConstraint, filter.delegate)
+    val emission = resolveNumberFilter(editingText, editingSecondText, editingConstraint, inputFormat)
 
     if (autoApply) {
         LaunchedEffect(editingText, editingSecondText, editingConstraint) {
@@ -120,21 +128,21 @@ internal fun <T : Number> rememberNumberFilterState(
         }
     }
 
-    return remember(editingText, editingSecondText, editingConstraint, isEditing) {
+    return remember(editingText, editingSecondText, editingConstraint, isEditing, inputFormat) {
         NumberFilterState(
             text = editingText,
             secondText = editingSecondText,
             constraint = editingConstraint,
             isEditing = isEditing,
-            error = numberInputError(editingText, editingSecondText, editingConstraint, filter.delegate),
+            error = numberInputError(editingText, editingSecondText, editingConstraint, inputFormat),
             onTextChange = { newText ->
-                if (newText.matches(filter.delegate.regex)) {
+                if (inputFormat.accepts(newText)) {
                     editingText = newText
                     isEditing = true
                 }
             },
             onSecondTextChange = { newText ->
-                if (newText.matches(filter.delegate.regex)) {
+                if (inputFormat.accepts(newText)) {
                     editingSecondText = newText
                     isEditing = true
                 }
@@ -155,7 +163,7 @@ internal fun <T : Number> rememberNumberFilterState(
                 currentOnStateChange.value(null)
                 isEditing = false
             },
-            delegate = filter.delegate,
+            inputFormat = inputFormat,
         )
     }
 }
@@ -174,17 +182,17 @@ internal fun <T : Number> resolveNumberFilter(
     text: String,
     secondText: String,
     constraint: FilterConstraint,
-    delegate: TableFilterType.NumberTableFilter.NumberFilterDelegate<T>,
+    format: NumberInputFormat<T>,
 ): FilterEmission<T> {
     if (constraint.isNullCheck()) {
         return FilterEmission.Apply(TableFilterState(constraint, emptyList()))
     }
 
-    val firstValue = delegate.parse(text)
+    val firstValue = format.parse(text)
 
     return when (constraint) {
         FilterConstraint.BETWEEN -> {
-            val secondValue = delegate.parse(secondText)
+            val secondValue = format.parse(secondText)
             when {
                 text.isBlank() && secondText.isBlank() -> {
                     FilterEmission.Clear
@@ -192,7 +200,7 @@ internal fun <T : Number> resolveNumberFilter(
 
                 firstValue != null &&
                     secondValue != null &&
-                    delegate.compare(firstValue, secondValue) -> {
+                    format.delegate.compare(firstValue, secondValue) -> {
                     FilterEmission.Apply(TableFilterState(constraint, listOf(firstValue, secondValue)))
                 }
 
@@ -232,11 +240,11 @@ internal fun <T : Number> numberInputError(
     text: String,
     secondText: String,
     constraint: FilterConstraint,
-    delegate: TableFilterType.NumberTableFilter.NumberFilterDelegate<T>,
+    format: NumberInputFormat<T>,
 ): NumberInputError? {
     if (constraint.isNullCheck()) return null
-    val first = delegate.parse(text)
-    val second = delegate.parse(secondText)
+    val first = format.parse(text)
+    val second = format.parse(secondText)
     val isBetween = constraint == FilterConstraint.BETWEEN
     return when {
         text.isNotBlank() && first == null -> NumberInputError.InvalidNumber
@@ -244,7 +252,7 @@ internal fun <T : Number> numberInputError(
         secondText.isNotBlank() && second == null -> NumberInputError.InvalidNumber
         text.isBlank() && secondText.isBlank() -> null
         first == null || second == null -> NumberInputError.RangeIncomplete
-        !delegate.compare(first, second) -> NumberInputError.RangeInverted
+        !format.delegate.compare(first, second) -> NumberInputError.RangeInverted
         else -> null
     }
 }

@@ -48,6 +48,7 @@ internal fun <T : Number> NumberFilter(
         rememberNumberFilterState(
             externalState = state,
             filter = filter,
+            strings = strings,
             defaultConstraint = filter.constraints.first(),
             autoApply = autoApplyFilters,
             debounceMs = autoFilterDebounce,
@@ -59,10 +60,11 @@ internal fun <T : Number> NumberFilter(
     val min = filter.rangeOptions?.first ?: filter.delegate.default
     val max = filter.rangeOptions?.second ?: filter.delegate.default
 
-    val fromValue = filter.delegate.parse(numberFilterState.text) ?: min
+    val inputFormat = numberFilterState.inputFormat
+    val fromValue = inputFormat.parse(numberFilterState.text) ?: min
     val toValue =
         if (isBetween) {
-            filter.delegate.parse(numberFilterState.secondText) ?: max
+            inputFormat.parse(numberFilterState.secondText) ?: max
         } else {
             max
         }
@@ -87,8 +89,8 @@ internal fun <T : Number> NumberFilter(
             onValueChange = { range ->
                 val newFrom = filter.delegate.fromSliderValue(range.start)
                 val newTo = filter.delegate.fromSliderValue(range.endInclusive)
-                numberFilterState.onTextChange(filter.delegate.format(newFrom))
-                numberFilterState.onSecondTextChange(filter.delegate.format(newTo))
+                numberFilterState.onTextChange(inputFormat.format(newFrom))
+                numberFilterState.onSecondTextChange(inputFormat.format(newTo))
             },
             valueRange = filter.delegate.toSliderValue(min)..filter.delegate.toSliderValue(max),
         )
@@ -118,7 +120,7 @@ private fun <T : Number> NumberFields(
     isBetween: Boolean,
     strings: StringProvider,
 ) {
-    val keyboardOptions = KeyboardOptions(keyboardType = numberFilterState.delegate.keyboardType)
+    val keyboardOptions = KeyboardOptions(keyboardType = numberFilterState.inputFormat.delegate.keyboardType)
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Row(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
