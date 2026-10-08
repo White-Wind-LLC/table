@@ -3,6 +3,7 @@ package ua.wwind.table.filter.component.fast
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Dp
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.component.TableTextFieldDefaults
 import ua.wwind.table.filter.component.FilterDropdownAnyField
@@ -20,6 +21,7 @@ internal fun <T : Any, C, E, ENUM : Enum<ENUM>> FastEnumFilter(
     state: TableFilterState<*>?,
     autoFilterDebounce: Long,
     strings: StringProvider,
+    clearTargetSize: Dp,
     onChange: (ColumnSpec<T, C, E>, TableFilterState<T>?) -> Unit,
 ) {
     val filter = spec.filter as TableFilterType.EnumTableFilter<ENUM>
@@ -38,7 +40,13 @@ internal fun <T : Any, C, E, ENUM : Enum<ENUM>> FastEnumFilter(
 
     val mode = fastFilterMode(filter, state)
     if (mode == FastFilterMode.Locked && state != null) {
-        FastLockedField(type = filter, state = state, strings = strings, onClear = enumFilterState.clearFilter)
+        FastLockedField(
+            type = filter,
+            state = state,
+            strings = strings,
+            clearTargetSize = clearTargetSize,
+            onClear = enumFilterState.clearFilter,
+        )
         return
     }
 
@@ -46,6 +54,7 @@ internal fun <T : Any, C, E, ENUM : Enum<ENUM>> FastEnumFilter(
         mode = mode,
         showClear = enumFilterState.selectedValues.isNotEmpty(),
         strings = strings,
+        clearTargetSize = clearTargetSize,
         onClear = enumFilterState.clearFilter,
     ) {
         FilterDropdownAnyField(

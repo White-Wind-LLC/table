@@ -2,6 +2,7 @@ package ua.wwind.table.strings
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
+import kotlinx.datetime.LocalDate
 
 /**
  * Typed keys for all table UI strings.
@@ -228,6 +229,14 @@ public sealed class UiString {
 public interface StringProvider {
     @Composable
     public fun get(key: UiString): String
+
+    /** Date shown in date filter fields and active-filter chips. Defaults to [defaultFormatDate]. */
+    @Composable
+    public fun formatDate(date: LocalDate): String = defaultFormatDate(date)
+
+    /** Number shown in active-filter chips. Defaults to [defaultFormatNumber]. */
+    @Composable
+    public fun formatNumber(value: Number): String = defaultFormatNumber(value)
 }
 
 /**

@@ -1,6 +1,7 @@
 package ua.wwind.table.filter.component.fast
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.unit.Dp
 import kotlinx.datetime.LocalDate
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.component.TableTextFieldDefaults
@@ -17,6 +18,7 @@ internal fun <T : Any, C, E> FastDateFilter(
     state: TableFilterState<LocalDate>?,
     autoFilterDebounce: Long,
     strings: StringProvider,
+    clearTargetSize: Dp,
     onChange: (ColumnSpec<T, C, E>, TableFilterState<T>?) -> Unit,
 ) {
     val dateFilterState =
@@ -35,7 +37,13 @@ internal fun <T : Any, C, E> FastDateFilter(
     val filter = spec.filter as TableFilterType.DateTableFilter
     val mode = fastFilterMode(filter, state)
     if (mode == FastFilterMode.Locked && state != null) {
-        FastLockedField(type = filter, state = state, strings = strings, onClear = dateFilterState.clearFilter)
+        FastLockedField(
+            type = filter,
+            state = state,
+            strings = strings,
+            clearTargetSize = clearTargetSize,
+            onClear = dateFilterState.clearFilter,
+        )
         return
     }
 
@@ -43,6 +51,7 @@ internal fun <T : Any, C, E> FastDateFilter(
         mode = mode,
         showClear = dateFilterState.firstDate != null,
         strings = strings,
+        clearTargetSize = clearTargetSize,
         onClear = dateFilterState.clearFilter,
     ) {
         DateField(

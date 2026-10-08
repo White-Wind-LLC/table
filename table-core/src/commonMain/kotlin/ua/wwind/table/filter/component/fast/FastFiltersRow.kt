@@ -131,6 +131,7 @@ internal fun <T : Any, C, E> FastFiltersRow(
                                                 ?: TableFilterState(constraint = null, values = null),
                                         autoFilterDebounce = autoFilterDebounce,
                                         strings = strings,
+                                        clearTargetSize = state.dimensions.headerIconTargetSize,
                                         onChange = onChange,
                                     )
                                 }
@@ -151,6 +152,7 @@ internal fun <T : Any, C, E> FastFiltersRow(
                                         state = state.filters[spec.key],
                                         autoFilterDebounce = autoFilterDebounce,
                                         strings = strings,
+                                        clearTargetSize = state.dimensions.headerIconTargetSize,
                                         onChange = onChange,
                                     )
                                 }
@@ -161,6 +163,7 @@ internal fun <T : Any, C, E> FastFiltersRow(
                                         state = state.filters[spec.key] as? TableFilterState<LocalDate>,
                                         autoFilterDebounce = autoFilterDebounce,
                                         strings = strings,
+                                        clearTargetSize = state.dimensions.headerIconTargetSize,
                                         onChange = onChange,
                                     )
                                 }
@@ -171,6 +174,7 @@ internal fun <T : Any, C, E> FastFiltersRow(
                                         state = state.filters[spec.key],
                                         autoFilterDebounce = autoFilterDebounce,
                                         strings = strings,
+                                        clearTargetSize = state.dimensions.headerIconTargetSize,
                                         onChange = onChange,
                                     )
                                 }
