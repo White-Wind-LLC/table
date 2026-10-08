@@ -37,4 +37,4 @@ internal actual fun platformFormatNumber(
         .apply { maximumFractionDigits = MAX_FRACTION_DIGITS }
         .format(value)
 
-private fun String?.toLocale(): Locale = this?.let(Locale::forLanguageTag) ?: Locale.getDefault()
+private fun String?.toLocale(): Locale = this?.let(Locale::forLanguageTag) ?: Locale.getDefault(Locale.Category.FORMAT)

@@ -16,6 +16,9 @@ compose.desktop {
         val mainClassProp: String? = providers.gradleProperty("desktopMainClass").orNull
         val mainClassName: String = mainClassProp?.takeIf { it.isNotBlank() } ?: "MainKt"
         this.mainClass = mainClassName
+        // Dates and numbers follow the OS region settings. The JDK default locale keeps only the
+        // UI language (macOS English with the Ukraine region reads as en-US); HOST reads the OS formats.
+        jvmArgs += "-Djava.locale.providers=HOST,CLDR"
 
         nativeDistributions {
             // Package name can be provided via -PdesktopPackageName; fallback to project name
