@@ -38,9 +38,10 @@ class LocaleNumberInputTest {
 
     private val type = TableFilterType.NumberTableFilter(delegate = DoubleDelegate)
 
-    private fun typeIntoPanel(input: String): TableFilterState<Double>? {
-        var applied: TableFilterState<Double>? = null
+    // Returns the TestResult: on web runComposeUiTest runs asynchronously, so the assertion stays inside it.
+    private fun typeIntoPanel(input: String) =
         runComposeUiTest {
+            var applied: TableFilterState<Double>? = null
             var state by mutableStateOf(TableFilterState<Double>(FilterConstraint.EQUALS, null))
             setContent {
                 FilterPanel(
@@ -60,20 +61,15 @@ class LocaleNumberInputTest {
             }
             onNodeWithText("Value").performTextInput(input)
             waitForIdle()
+            assertThat(applied).isEqualTo(TableFilterState(FilterConstraint.EQUALS, listOf(1.5)))
             onNodeWithText("1,5").assertIsDisplayed()
         }
-        return applied
-    }
 
     @Test
-    fun `typing the locale separator applies the value`() {
-        assertThat(typeIntoPanel("1,5")).isEqualTo(TableFilterState(FilterConstraint.EQUALS, listOf(1.5)))
-    }
+    fun `typing the locale separator applies the value`() = typeIntoPanel("1,5")
 
     @Test
-    fun `typing a dot applies the value and shows the locale separator`() {
-        assertThat(typeIntoPanel("1.5")).isEqualTo(TableFilterState(FilterConstraint.EQUALS, listOf(1.5)))
-    }
+    fun `typing a dot applies the value and shows the locale separator`() = typeIntoPanel("1.5")
 
     @Test
     fun `applied value shows the locale separator and agrees with the chip`() =
