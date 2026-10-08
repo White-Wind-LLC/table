@@ -188,6 +188,37 @@ public sealed class UiString {
 
     public object FormatDeleteRuleCancel : UiString()
 
+    /** Label of the button that adds a formatting rule. */
+    public object FormatAddRule : UiString()
+
+    /** Closes the formatting rules dialog. */
+    public object FormatClose : UiString()
+
+    /** Shown in place of the rule list when there are no rules. */
+    public object FormatRulesEmpty : UiString()
+
+    /** Leaves the rule editor without saving. */
+    public object FormatRuleCancel : UiString()
+
+    /** Saves the rule being edited. */
+    public object FormatRuleSave : UiString()
+
+    /** Opens the rule editor's menu with Duplicate and Delete. */
+    public object FormatRuleMoreActions : UiString()
+
+    /** Opens a copy of the edited rule in the editor. */
+    public object FormatRuleDuplicate : UiString()
+
+    /** Deletes the edited rule, after confirmation. */
+    public object FormatRuleDelete : UiString()
+
+    /** The drag handle of a rule; activating it opens Move up / Move down. */
+    public object FormatRuleReorder : UiString()
+
+    public object FormatRuleMoveUp : UiString()
+
+    public object FormatRuleMoveDown : UiString()
+
     // Grouping menu
     public object GroupBy : UiString()
 
@@ -465,6 +496,28 @@ public object DefaultStrings : StringProvider {
             UiString.FormatDeleteRuleConfirm -> "Delete"
 
             UiString.FormatDeleteRuleCancel -> "Cancel"
+
+            UiString.FormatAddRule -> "Add rule"
+
+            UiString.FormatClose -> "Close"
+
+            UiString.FormatRulesEmpty -> "No rules yet. Add a rule to highlight rows or cells."
+
+            UiString.FormatRuleCancel -> "Cancel"
+
+            UiString.FormatRuleSave -> "Save"
+
+            UiString.FormatRuleMoreActions -> "More actions"
+
+            UiString.FormatRuleDuplicate -> "Duplicate"
+
+            UiString.FormatRuleDelete -> "Delete"
+
+            UiString.FormatRuleReorder -> "Reorder"
+
+            UiString.FormatRuleMoveUp -> "Move up"
+
+            UiString.FormatRuleMoveDown -> "Move down"
 
             // Grouping menu
             UiString.GroupBy -> "Group by"

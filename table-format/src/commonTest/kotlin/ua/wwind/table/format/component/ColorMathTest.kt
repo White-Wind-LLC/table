@@ -57,4 +57,11 @@ class ColorMathTest {
     fun `slate gray on amber is below the WCAG minimum`() {
         assertThat(contrastRatio(Color(0xFF64748B), Color(0xFFFACC15))).isBetween(3.0, 3.2)
     }
+
+    @Test
+    fun `light backgrounds take black text and dark ones white`() {
+        assertThat(Color(0xFFFEF3C7).readableContentColor()).isEqualTo(Color.Black)
+        assertThat(Color(0xFFFACC15).readableContentColor()).isEqualTo(Color.Black)
+        assertThat(Color(0xFF1E3A8A).readableContentColor()).isEqualTo(Color.White)
+    }
 }

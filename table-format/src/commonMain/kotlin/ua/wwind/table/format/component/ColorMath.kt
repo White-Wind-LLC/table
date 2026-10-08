@@ -50,3 +50,7 @@ internal fun contrastRatio(
     val bg = solidBackground.luminance().toDouble()
     return (max(fg, bg) + LUMINANCE_OFFSET) / (min(fg, bg) + LUMINANCE_OFFSET)
 }
+
+/** Black or white, whichever contrasts more with this color as a background. */
+internal fun Color.readableContentColor(): Color =
+    if (contrastRatio(Color.Black, this) >= contrastRatio(Color.White, this)) Color.Black else Color.White
