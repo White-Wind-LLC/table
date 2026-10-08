@@ -52,6 +52,7 @@ public fun <E : Enum<E>, FILTER> FormatDialogDesignTab(
             },
             modifier = Modifier.fillMaxWidth(),
             strings = strings,
+            pairedColor = item.cellStyle.backgroundColor?.toColor(),
             scrollbarRenderer = scrollbarRenderer,
         )
         FormatColorField(
@@ -62,6 +63,8 @@ public fun <E : Enum<E>, FILTER> FormatDialogDesignTab(
             },
             modifier = Modifier.fillMaxWidth(),
             strings = strings,
+            pairedColor = item.cellStyle.contentColor?.toColor(),
+            editsBackground = true,
             scrollbarRenderer = scrollbarRenderer,
         )
         FormatDropdownField(

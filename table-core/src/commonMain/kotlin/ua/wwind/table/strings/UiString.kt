@@ -143,6 +143,43 @@ public sealed class UiString {
 
     public object FormatResetColor : UiString()
 
+    /** Clears a format color field, which then shows no color. */
+    public object FormatClearColor : UiString()
+
+    public object FormatColorCancel : UiString()
+
+    public object FormatColorConfirm : UiString()
+
+    /** Label of the hex input in the color picker. */
+    public object FormatColorHex : UiString()
+
+    /** Shown under the hex input when it is not `#RRGGBB` or `#AARRGGBB`. */
+    public object FormatColorHexInvalid : UiString()
+
+    /** Shown in the color picker, next to the ratio, when text and background contrast is under 4.5:1. */
+    public object FormatColorLowContrast : UiString()
+
+    // Color picker swatches
+    public object FormatColorDeepBlue : UiString()
+
+    public object FormatColorSkyBlue : UiString()
+
+    public object FormatColorEmeraldGreen : UiString()
+
+    public object FormatColorLimeGreen : UiString()
+
+    public object FormatColorSunsetOrange : UiString()
+
+    public object FormatColorCherryRed : UiString()
+
+    public object FormatColorPurpleHaze : UiString()
+
+    public object FormatColorRosePink : UiString()
+
+    public object FormatColorSteelGray : UiString()
+
+    public object FormatColorGoldenAmber : UiString()
+
     public object FormatAlwaysApply : UiString()
 
     public object FormatDeleteRuleTitle : UiString()
@@ -388,6 +425,38 @@ public object DefaultStrings : StringProvider {
             UiString.FormatChooseColor -> "Choose color"
 
             UiString.FormatResetColor -> "Reset color"
+
+            UiString.FormatClearColor -> "Clear color"
+
+            UiString.FormatColorCancel -> "Cancel"
+
+            UiString.FormatColorConfirm -> "OK"
+
+            UiString.FormatColorHex -> "Hex"
+
+            UiString.FormatColorHexInvalid -> "Use #RRGGBB or #AARRGGBB"
+
+            UiString.FormatColorLowContrast -> "Low contrast. Aim for at least 4.5:1"
+
+            UiString.FormatColorDeepBlue -> "Deep blue"
+
+            UiString.FormatColorSkyBlue -> "Sky blue"
+
+            UiString.FormatColorEmeraldGreen -> "Emerald green"
+
+            UiString.FormatColorLimeGreen -> "Lime green"
+
+            UiString.FormatColorSunsetOrange -> "Sunset orange"
+
+            UiString.FormatColorCherryRed -> "Cherry red"
+
+            UiString.FormatColorPurpleHaze -> "Purple haze"
+
+            UiString.FormatColorRosePink -> "Rose pink"
+
+            UiString.FormatColorSteelGray -> "Steel gray"
+
+            UiString.FormatColorGoldenAmber -> "Golden amber"
 
             UiString.FormatAlwaysApply -> "Always"
 
