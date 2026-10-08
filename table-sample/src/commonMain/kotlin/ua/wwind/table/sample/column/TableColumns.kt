@@ -24,6 +24,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -90,6 +92,7 @@ fun createTableColumns(
                                 onCheckedChange = {
                                     onEvent(SampleUiEvent.ToggleSelection(item.id))
                                 },
+                                modifier = Modifier.semantics { contentDescription = "Select ${item.name}" },
                             )
                         }
                     } else if (enableRowReorder) {
@@ -124,6 +127,7 @@ fun createTableColumns(
                             TriStateCheckbox(
                                 state = toggleState,
                                 onClick = { onEvent(SampleUiEvent.ToggleSelectAll) },
+                                modifier = Modifier.semantics { contentDescription = "Select all rows" },
                             )
                         }
                     }

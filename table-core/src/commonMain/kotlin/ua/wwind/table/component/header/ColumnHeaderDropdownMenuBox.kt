@@ -295,9 +295,12 @@ internal fun Modifier.headerHandlePress(state: TableState<*>): Modifier =
         }
     }
 
-/** Marks the header and exposes the enabled [items] as accessibility custom actions. */
+/**
+ * Marks the header and exposes the enabled [items] as accessibility custom actions. The header's text
+ * merges in, so the heading is announced by its title; its buttons keep nodes of their own.
+ */
 private fun Modifier.columnMenuActions(items: List<ColumnMenuItem>): Modifier =
-    semantics {
+    semantics(mergeDescendants = true) {
         heading()
         val actions = items.filter { it.enabled }
         if (actions.isNotEmpty()) {

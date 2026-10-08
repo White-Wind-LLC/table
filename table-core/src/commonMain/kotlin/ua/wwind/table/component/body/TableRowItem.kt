@@ -36,6 +36,10 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.semantics.CollectionItemInfo
+import androidx.compose.ui.semantics.collectionItemInfo
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
@@ -242,7 +246,8 @@ private fun <C, T : Any, E> RenderTableRowItem(
             modifier
                 .onGloballyPositioned { coordinates ->
                     state.updateRowHeight(index, coordinates.size.height)
-                }.indication(rowInteractionSource, ripple(color = currentTableColors().hoverColor)),
+                }.indication(rowInteractionSource, ripple(color = currentTableColors().hoverColor))
+                .rowSemantics(isSelected),
     ) {
         visibleColumns.forEachIndexed { colIndex, spec ->
             val width = state.columns.resolveWidth(spec.key, spec)
@@ -304,6 +309,7 @@ private fun <C, T : Any, E> RenderTableRowItem(
                 hasContentUnderEdge = pinnedState.edge.hasContentUnder(horizontalState),
                 modifier =
                     Modifier
+                        .cellSemantics(rowIndex = index, columnIndex = colIndex, isSelected = isCellSelected)
                         .zIndex(pinnedState.zIndex)
                         .graphicsLayer { this.translationX = pinnedState.translationX }
                         .onGloballyPositioned { coordinates ->
@@ -394,6 +400,25 @@ private fun <C, T : Any, E> RenderTableRowItem(
         }
     }
 }
+
+/** Announces the selected row, which is otherwise only a background colour and an indicator. */
+private fun Modifier.rowSemantics(isSelected: Boolean): Modifier =
+    if (isSelected) semantics { selected = true } else this
+
+/**
+ * Gives screen readers the cell's grid position, and its selection, which is otherwise only a border.
+ * [columnIndex] counts visible columns, matching the body's column count.
+ */
+private fun Modifier.cellSemantics(
+    rowIndex: Int,
+    columnIndex: Int,
+    isSelected: Boolean,
+): Modifier =
+    semantics {
+        collectionItemInfo =
+            CollectionItemInfo(rowIndex = rowIndex, rowSpan = 1, columnIndex = columnIndex, columnSpan = 1)
+        if (isSelected) selected = true
+    }
 
 /**
  * Whether focus may move to a cell of row [index].

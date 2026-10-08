@@ -16,6 +16,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.CollectionInfo
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.collectionInfo
+import androidx.compose.ui.semantics.semantics
 import kotlinx.collections.immutable.ImmutableList
 import sh.calvin.reorderable.ReorderableColumn
 import sh.calvin.reorderable.ReorderableItem
@@ -91,7 +95,7 @@ internal fun <T : Any, C, E> TableBody(
     val motion = currentTableMotion()
 
     LazyColumn(
-        modifier = modifier,
+        modifier = modifier.tableCollectionInfo(itemsCount, visibleColumns.size),
         state = verticalState,
         userScrollEnabled = enableScrolling,
     ) {
@@ -233,9 +237,11 @@ internal fun <T : Any, C, E> TableBody(
     }
     // Offscreen prefetch of the next viewport to make PgDn precise with dynamic row heights.
     // A whole page of rows is composed here and never placed; without DisableSelection an enclosing
-    // SelectionContainer would collect that offscreen text into selections and copies.
+    // SelectionContainer would collect that offscreen text into selections and copies, and without
+    // cleared semantics screen readers would see a second copy of those rows.
     DisableSelection {
         TableViewportPrefetcher(
+            modifier = Modifier.clearAndSetSemantics {},
             itemsCount = itemsCount,
             itemAt = itemAt,
             visibleColumns = visibleColumns,
@@ -303,7 +309,7 @@ internal fun <T : Any, C, E> TableBodyEmbedded(
     // Stable per-row key for the nested within-block column's node identity.
     val keyOf: (Int) -> Any = rowKeyResolver(rowKey, rowKeyAt, itemAt)
 
-    Column {
+    Column(Modifier.tableCollectionInfo(itemsCount, visibleColumns.size)) {
         if (rowReorderEnabled) {
             ReorderableColumn(
                 list = unitList,
@@ -521,6 +527,15 @@ internal fun <T : Any, C, E> TableBodyRow(
         )
     }
 }
+
+/**
+ * Tells screen readers the body is a grid of [rowCount] rows by [columnCount] columns. Cells carry
+ * their own position, so it stays correct for rows that a lazy body has not composed.
+ */
+private fun Modifier.tableCollectionInfo(
+    rowCount: Int,
+    columnCount: Int,
+): Modifier = semantics { collectionInfo = CollectionInfo(rowCount = rowCount, columnCount = columnCount) }
 
 /**
  * Keys a row, resolving it only when the key cannot be had without it.

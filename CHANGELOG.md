@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ### Unreleased
 
+- Changed: screen readers get the table structure: grid size, cell positions, selected cell and row, header and
+  group headings ([#77](https://github.com/White-Wind-LLC/table/issues/77)).
 - Fixed: auto-width no longer overwrites `initialWidths` or widths set with `setWidths`/resize; new
   `columns.explicitWidths` lists the widths to persist ([#116](https://github.com/White-Wind-LLC/table/issues/116)).
 - Fixed: with `groupBy`, the sticky group header no longer reads `itemAt` past the last row, which crashed
