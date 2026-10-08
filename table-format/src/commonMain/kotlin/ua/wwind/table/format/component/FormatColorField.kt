@@ -1,6 +1,7 @@
 package ua.wwind.table.format.component
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Box
@@ -10,12 +11,14 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.painterResource
@@ -23,6 +26,7 @@ import ua.wwind.table.filter.component.collectAsEffect
 import ua.wwind.table.format.scrollbar.VerticalScrollbarRenderer
 import ua.wwind.table.icon.TableIcons
 import ua.wwind.table.strings.StringProvider
+import ua.wwind.table.strings.UiString
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Suppress("LongParameterList")
@@ -34,6 +38,8 @@ internal fun <E : Enum<E>> FormatColorField(
     strings: StringProvider,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
+    pairedColor: Color? = null,
+    editsBackground: Boolean = false,
     scrollbarRenderer: VerticalScrollbarRenderer? = null,
 ) {
     var show by remember { mutableStateOf(false) }
@@ -44,7 +50,8 @@ internal fun <E : Enum<E>> FormatColorField(
         }
     }
     OutlinedTextField(
-        value = label,
+        value = color?.toHex().orEmpty(),
+        label = { Text(label) },
         textStyle = MaterialTheme.typography.bodyLarge,
         onValueChange = {},
         readOnly = true,
@@ -59,14 +66,23 @@ internal fun <E : Enum<E>> FormatColorField(
                     ) {
                         Icon(
                             painter = painterResource(TableIcons.Close),
-                            contentDescription = "Clear",
+                            contentDescription = strings.get(UiString.FormatClearColor),
                         )
                     }
                 }
             },
         leadingIcon =
             color?.let {
-                { Box(modifier = Modifier.size(32.dp).background(color)) }
+                {
+                    Box(
+                        modifier =
+                            Modifier
+                                .size(32.dp)
+                                .clip(MaterialTheme.shapes.small)
+                                .border(1.dp, MaterialTheme.colorScheme.outlineVariant, MaterialTheme.shapes.small)
+                                .background(color),
+                    )
+                }
             },
     )
     if (show) {
@@ -80,6 +96,8 @@ internal fun <E : Enum<E>> FormatColorField(
                 show = false
             },
             strings = strings,
+            pairedColor = pairedColor,
+            editsBackground = editsBackground,
             scrollbarRenderer = scrollbarRenderer,
         )
     }

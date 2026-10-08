@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ### Unreleased
 
+- Changed: the color picker has Cancel / OK buttons, named radio swatches, a hex field and a low-contrast
+  warning; color fields show the hex value; adds 16 `UiString` keys ([#91](https://github.com/White-Wind-LLC/table/issues/91)).
 - Changed: an active-filter chip opens its filter under the chip and only × removes it; "Clear all" chip,
   `from – to` for date and number ranges; `TableActiveFilters` takes `tableData` ([#107](https://github.com/White-Wind-LLC/table/issues/107)).
 - Changed: number filter fields and the format dialog's number conditions take the locale decimal separator
