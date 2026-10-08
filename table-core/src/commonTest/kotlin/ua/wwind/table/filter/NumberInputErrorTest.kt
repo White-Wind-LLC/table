@@ -7,6 +7,7 @@ import assertk.assertions.isNull
 import ua.wwind.table.filter.component.main.number.NumberInputError
 import ua.wwind.table.filter.component.main.number.numberInputError
 import ua.wwind.table.filter.data.FilterConstraint
+import ua.wwind.table.filter.data.NumberInputFormat
 import ua.wwind.table.filter.data.TableFilterType.NumberTableFilter.DoubleDelegate
 import ua.wwind.table.filter.data.TableFilterType.NumberTableFilter.IntDelegate
 import kotlin.test.Test
@@ -16,7 +17,7 @@ class NumberInputErrorTest {
         text: String,
         secondText: String = "",
         constraint: FilterConstraint,
-    ): NumberInputError? = numberInputError(text, secondText, constraint, IntDelegate)
+    ): NumberInputError? = numberInputError(text, secondText, constraint, NumberInputFormat(IntDelegate))
 
     @Test
     fun `valid single value has no error`() {
@@ -35,8 +36,14 @@ class NumberInputErrorTest {
 
     @Test
     fun `unparsable double is an invalid number`() {
-        assertThat(numberInputError(".", "", FilterConstraint.EQUALS, DoubleDelegate))
+        assertThat(numberInputError(".", "", FilterConstraint.EQUALS, NumberInputFormat(DoubleDelegate)))
             .isEqualTo(NumberInputError.InvalidNumber)
+    }
+
+    @Test
+    fun `comma locale decimal has no error`() {
+        assertThat(numberInputError("1,5", "", FilterConstraint.EQUALS, NumberInputFormat(DoubleDelegate, ',')))
+            .isNull()
     }
 
     @Test

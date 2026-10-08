@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ### Unreleased
 
+- Changed: number filter fields and the format dialog's number conditions take the locale decimal separator
+  (`1,5` in uk/de) as well as `.`, and show it; custom delegates keep their `.`-based contract ([#118](https://github.com/White-Wind-LLC/table/issues/118)).
 - Fixed: locale dates and numbers match on every platform: four-digit years, proleptic Gregorian dates,
   ASCII digits (also in `ar`, `fa`) and cached formatters ([#117](https://github.com/White-Wind-LLC/table/issues/117)).
 - Changed: a fast filter's × shows only while the field has focus (clear an unfocused filter from its

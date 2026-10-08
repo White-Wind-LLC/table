@@ -43,6 +43,7 @@ internal fun <T : Any, C, E> FastNumberFilter(
         rememberNumberFilterState(
             externalState = state as? TableFilterState<Number>,
             filter = filter,
+            strings = strings,
             defaultConstraint = FilterConstraint.EQUALS,
             autoApply = true,
             isFastFilter = true,

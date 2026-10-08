@@ -5,7 +5,9 @@ import assertk.assertions.isEqualTo
 import ua.wwind.table.filter.component.main.FilterEmission
 import ua.wwind.table.filter.component.main.number.resolveNumberFilter
 import ua.wwind.table.filter.data.FilterConstraint
+import ua.wwind.table.filter.data.NumberInputFormat
 import ua.wwind.table.filter.data.TableFilterState
+import ua.wwind.table.filter.data.TableFilterType.NumberTableFilter.DoubleDelegate
 import ua.wwind.table.filter.data.TableFilterType.NumberTableFilter.IntDelegate
 import kotlin.test.Test
 
@@ -14,7 +16,7 @@ class ResolveNumberFilterTest {
         text: String,
         secondText: String = "",
         constraint: FilterConstraint,
-    ): FilterEmission<Int> = resolveNumberFilter(text, secondText, constraint, IntDelegate)
+    ): FilterEmission<Int> = resolveNumberFilter(text, secondText, constraint, NumberInputFormat(IntDelegate))
 
     @Test
     fun `single value applies`() {
@@ -63,5 +65,12 @@ class ResolveNumberFilterTest {
     @Test
     fun `blank range clears`() {
         assertThat(resolve("", "", FilterConstraint.BETWEEN)).isEqualTo(FilterEmission.Clear)
+    }
+
+    @Test
+    fun `comma locale range applies with either separator`() {
+        val comma = NumberInputFormat(DoubleDelegate, ',')
+        assertThat(resolveNumberFilter("1,5", "2.5", FilterConstraint.BETWEEN, comma))
+            .isEqualTo(FilterEmission.Apply(TableFilterState(FilterConstraint.BETWEEN, listOf(1.5, 2.5))))
     }
 }
