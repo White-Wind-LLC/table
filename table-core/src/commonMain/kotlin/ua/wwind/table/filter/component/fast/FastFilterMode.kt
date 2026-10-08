@@ -1,6 +1,7 @@
 package ua.wwind.table.filter.component.fast
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -9,8 +10,14 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.painterResource
 import ua.wwind.table.buildFilterChipTextUnsafe
@@ -24,6 +31,9 @@ import ua.wwind.table.filter.data.isNullCheck
 import ua.wwind.table.icon.TableIcons
 import ua.wwind.table.strings.StringProvider
 import ua.wwind.table.strings.UiString
+
+// Narrower than this, a fast field keeps its whole width and shows no ×.
+private val MIN_FIELD_WIDTH_BESIDE_CLEAR = 72.dp
 
 /** How a fast filter shows the operator a filter got from the panel (issue #105). */
 internal sealed interface FastFilterMode {
@@ -111,14 +121,15 @@ internal fun fastOperatorHint(
 /** The × that clears a fast filter. */
 @Composable
 private fun FastClearButton(
+    targetSize: Dp,
     strings: StringProvider,
     onClear: () -> Unit,
 ) {
-    IconButton(onClick = onClear) {
+    IconButton(onClick = onClear, modifier = Modifier.size(targetSize)) {
         Icon(
             painter = painterResource(TableIcons.Close),
             contentDescription = strings.get(UiString.FilterClear),
-            modifier = Modifier.size(18.dp),
+            modifier = Modifier.size(16.dp),
         )
     }
 }
@@ -127,26 +138,39 @@ private fun FastClearButton(
  * A fast filter [field] between its operator hint and its clear ×. Both sit beside the field rather
  * than in its prefix and trailing slots: the outlined decoration hides a prefix, and a dropdown or
  * date field opens on any press inside it, so a × there would open it as well.
+ *
+ * The × shows only while the frame has focus and leaves the field [MIN_FIELD_WIDTH_BESIDE_CLEAR];
+ * an unfocused filter is cleared from its active-filter chip.
  */
 @Composable
 internal fun FastFieldFrame(
     mode: FastFilterMode,
     showClear: Boolean,
     strings: StringProvider,
+    clearTargetSize: Dp,
     onClear: () -> Unit,
     field: @Composable () -> Unit,
 ) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        (mode as? FastFilterMode.Editable)?.hint?.let { hint ->
-            Text(
-                text = fastOperatorHint(hint, strings),
-                color = MaterialTheme.colorScheme.primary,
-                maxLines = 1,
-                modifier = Modifier.padding(start = 8.dp),
-            )
+    var focused by remember { mutableStateOf(false) }
+    BoxWithConstraints {
+        val clearFits = maxWidth - clearTargetSize >= MIN_FIELD_WIDTH_BESIDE_CLEAR
+        Row(
+            modifier = Modifier.onFocusChanged { focused = it.hasFocus },
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            (mode as? FastFilterMode.Editable)?.hint?.let { hint ->
+                Text(
+                    text = fastOperatorHint(hint, strings),
+                    color = MaterialTheme.colorScheme.primary,
+                    maxLines = 1,
+                    modifier = Modifier.padding(start = 8.dp),
+                )
+            }
+            Box(modifier = Modifier.weight(1f)) { field() }
+            if (showClear && focused && clearFits) {
+                FastClearButton(targetSize = clearTargetSize, strings = strings, onClear = onClear)
+            }
         }
-        Box(modifier = Modifier.weight(1f)) { field() }
-        if (showClear) FastClearButton(strings = strings, onClear = onClear)
     }
 }
 
@@ -159,9 +183,16 @@ internal fun FastLockedField(
     type: TableFilterType<*>,
     state: TableFilterState<*>,
     strings: StringProvider,
+    clearTargetSize: Dp,
     onClear: () -> Unit,
 ) {
-    FastFieldFrame(mode = FastFilterMode.Locked, showClear = true, strings = strings, onClear = onClear) {
+    FastFieldFrame(
+        mode = FastFilterMode.Locked,
+        showClear = true,
+        strings = strings,
+        clearTargetSize = clearTargetSize,
+        onClear = onClear,
+    ) {
         TableTextField(
             value = buildFilterChipTextUnsafe(type, state, strings).orEmpty(),
             onValueChange = {},

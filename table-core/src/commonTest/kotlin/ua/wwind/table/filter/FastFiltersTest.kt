@@ -9,10 +9,12 @@ import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertWidthIsEqualTo
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextReplacement
+import androidx.compose.ui.test.requestFocus
 import androidx.compose.ui.test.v2.runComposeUiTest
 import androidx.compose.ui.unit.dp
 import assertk.assertThat
@@ -68,6 +70,12 @@ class FastFiltersTest {
                 filter(TableFilterType.DateTableFilter())
                 cell { _, _ -> }
             }
+            column("narrow", valueOf = { it }) {
+                header("Narrow")
+                width(80.dp, 80.dp)
+                filter(TableFilterType.TextTableFilter())
+                cell { _, _ -> }
+            }
         }
 
     private fun ComposeUiTest.showTable(): TableState<String> {
@@ -75,7 +83,7 @@ class FastFiltersTest {
         setContent {
             state =
                 rememberTableState(
-                    columns = persistentListOf("text", "number", "enum", "bool", "date"),
+                    columns = persistentListOf("text", "number", "enum", "bool", "date", "narrow"),
                     settings = TableSettings(showFastFilters = true, autoFilterDebounce = 0),
                 )
             Box(Modifier.size(1200.dp, 400.dp)) {
@@ -103,11 +111,49 @@ class FastFiltersTest {
         }
 
     @Test
+    fun `clear button shows only while the field is focused`() =
+        runComposeUiTest {
+            val state = showTable()
+            setFilter(state, "text", TableFilterState(FilterConstraint.CONTAINS, listOf("abc")))
+            onNodeWithContentDescription("Clear").assertDoesNotExist()
+
+            onNodeWithText("abc").requestFocus()
+            waitForIdle()
+
+            onNodeWithContentDescription("Clear").assertIsDisplayed()
+        }
+
+    @Test
+    fun `clear button takes the header icon target size`() =
+        runComposeUiTest {
+            val state = showTable()
+            setFilter(state, "text", TableFilterState(FilterConstraint.CONTAINS, listOf("abc")))
+
+            onNodeWithText("abc").requestFocus()
+            waitForIdle()
+
+            onNodeWithContentDescription("Clear").assertWidthIsEqualTo(state.dimensions.headerIconTargetSize)
+        }
+
+    @Test
+    fun `narrow column has no clear button even when focused`() =
+        runComposeUiTest {
+            val state = showTable()
+            setFilter(state, "narrow", TableFilterState(FilterConstraint.CONTAINS, listOf("xyz")))
+
+            onNodeWithText("xyz").requestFocus()
+            waitForIdle()
+
+            onNodeWithContentDescription("Clear").assertDoesNotExist()
+        }
+
+    @Test
     fun `clear button empties the text filter`() =
         runComposeUiTest {
             val state = showTable()
             setFilter(state, "text", TableFilterState(FilterConstraint.CONTAINS, listOf("abc")))
 
+            onNodeWithText("abc").requestFocus()
             onNodeWithContentDescription("Clear").performClick()
             waitForIdle()
 
@@ -121,6 +167,7 @@ class FastFiltersTest {
             val state = showTable()
             setFilter(state, "enum", TableFilterState(FilterConstraint.EQUALS, listOf(Fruit.Pear)))
 
+            onNodeWithText("Pear").requestFocus()
             onNodeWithContentDescription("Clear").performClick()
             waitForIdle()
 
@@ -165,6 +212,7 @@ class FastFiltersTest {
             setFilter(state, "number", TableFilterState(FilterConstraint.BETWEEN, listOf(1, 10)))
 
             onNodeWithText("Between 1 - 10").assertIsDisplayed()
+            onNodeWithText("Between 1 - 10").requestFocus()
             onNodeWithContentDescription("Clear").performClick()
             waitForIdle()
 

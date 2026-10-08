@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 
 ### Unreleased
 
+- Changed: a fast filter's × shows only while the field has focus (clear an unfocused filter from its
+  chip), takes the header icon target size (24 dp on desktop, 48 dp on mobile, `TableDimensions.headerIconTargetSize`)
+  instead of 48 dp everywhere, and is left out in columns too narrow to keep 72 dp for the field.
 - Changed: filter date fields, active-filter chips and the format dialog's conditions format dates and
   numbers with the user's locale (`08.10.2026` in uk/de, `10/08/2026` in en-US; `1 234,5` / `1,234.5`). Override
   `StringProvider.formatDate` / `formatNumber` to change it; `defaultFormatDate` / `defaultFormatNumber`

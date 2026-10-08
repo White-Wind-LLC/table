@@ -2,6 +2,7 @@ package ua.wwind.table.filter.component.fast
 
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.unit.Dp
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.component.TableTextField
 import ua.wwind.table.component.TableTextFieldDefaults
@@ -18,6 +19,7 @@ internal fun <T : Any, C, E> FastTextFilter(
     state: TableFilterState<String>,
     autoFilterDebounce: Long,
     strings: StringProvider,
+    clearTargetSize: Dp,
     onChange: (ColumnSpec<T, C, E>, TableFilterState<T>?) -> Unit,
 ) {
     val textFilterState =
@@ -36,7 +38,13 @@ internal fun <T : Any, C, E> FastTextFilter(
     val filter = spec.filter as TableFilterType.TextTableFilter
     val mode = fastFilterMode(filter, state)
     if (mode == FastFilterMode.Locked) {
-        FastLockedField(type = filter, state = state, strings = strings, onClear = textFilterState.clearFilter)
+        FastLockedField(
+            type = filter,
+            state = state,
+            strings = strings,
+            clearTargetSize = clearTargetSize,
+            onClear = textFilterState.clearFilter,
+        )
         return
     }
 
@@ -44,6 +52,7 @@ internal fun <T : Any, C, E> FastTextFilter(
         mode = mode,
         showClear = textFilterState.text.isNotEmpty(),
         strings = strings,
+        clearTargetSize = clearTargetSize,
         onClear = textFilterState.clearFilter,
     ) {
         TableTextField(

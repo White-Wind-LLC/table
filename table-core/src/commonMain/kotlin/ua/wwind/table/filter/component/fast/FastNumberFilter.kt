@@ -5,6 +5,7 @@ import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.component.TableTextField
 import ua.wwind.table.component.TableTextFieldDefaults
@@ -31,6 +32,7 @@ internal fun <T : Any, C, E> FastNumberFilter(
     state: TableFilterState<*>?,
     autoFilterDebounce: Long,
     strings: StringProvider,
+    clearTargetSize: Dp,
     onChange: (ColumnSpec<T, C, E>, TableFilterState<T>?) -> Unit,
 ) {
     @Suppress("UNCHECKED_CAST")
@@ -53,7 +55,13 @@ internal fun <T : Any, C, E> FastNumberFilter(
 
     val mode = fastFilterMode(filter, state)
     if (mode == FastFilterMode.Locked && state != null) {
-        FastLockedField(type = filter, state = state, strings = strings, onClear = numberFilterState.clearFilter)
+        FastLockedField(
+            type = filter,
+            state = state,
+            strings = strings,
+            clearTargetSize = clearTargetSize,
+            onClear = numberFilterState.clearFilter,
+        )
         return
     }
 
@@ -61,6 +69,7 @@ internal fun <T : Any, C, E> FastNumberFilter(
         mode = mode,
         showClear = numberFilterState.text.isNotEmpty(),
         strings = strings,
+        clearTargetSize = clearTargetSize,
         onClear = numberFilterState.clearFilter,
     ) {
         TableTextField(
