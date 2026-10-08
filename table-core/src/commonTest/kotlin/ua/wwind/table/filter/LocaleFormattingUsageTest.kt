@@ -62,6 +62,7 @@ class LocaleFormattingUsageTest {
             var single: String? = null
             var range: String? = null
             var dateChip: String? = null
+            var dateRange: String? = null
             setContent {
                 val numberType = TableFilterType.NumberTableFilter(delegate = IntDelegate)
                 single = buildFilterChipTextUnsafe(numberType, TableFilterState(FilterConstraint.GT, listOf(5)), marked)
@@ -77,9 +78,16 @@ class LocaleFormattingUsageTest {
                         TableFilterState(FilterConstraint.EQUALS, listOf(date)),
                         marked,
                     )
+                dateRange =
+                    buildFilterChipTextUnsafe(
+                        TableFilterType.DateTableFilter(),
+                        TableFilterState(FilterConstraint.BETWEEN, listOf(date, LocalDate(2026, 10, 20))),
+                        marked,
+                    )
             }
             assertThat(single).isNotNull().endsWith(" N:5")
-            assertThat(range).isNotNull().endsWith(" N:1 - N:9")
+            assertThat(range).isNotNull().endsWith(" N:1 – N:9")
             assertThat(dateChip).isNotNull().endsWith(" D:2026-10-08")
+            assertThat(dateRange).isNotNull().endsWith(" D:2026-10-08 – D:2026-10-20")
         }
 }

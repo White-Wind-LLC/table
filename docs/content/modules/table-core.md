@@ -23,7 +23,7 @@ row selection, i18n, styling/customization, and dynamic or fixed row height.
 - Column resize via drag with per‑column min width.
 - Filters: text, number (int/double, ranges), boolean, date, enum (single/multi; IN/NOT IN/EQUALS) with built‑in
   `FilterPanel`.
-- Active filters header above the table (chips + "Clear all").
+- Active filters header above the table: a chip opens its filter, × removes it, "Clear all" resets all.
 - Row selection modes: None / Single / Multiple; optional striped rows.
 - Embedded (nested) tables via the `embedded` flag and `rowEmbedded` slot for building master–detail layouts inside
   a single table.
