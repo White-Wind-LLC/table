@@ -15,6 +15,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.InputChip
 import androidx.compose.material3.Text
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -41,6 +42,9 @@ import ua.wwind.table.state.TableState
 import ua.wwind.table.strings.DefaultStrings
 import ua.wwind.table.strings.StringProvider
 import ua.wwind.table.strings.UiString
+
+/** Radius of the round press and hover indication around a chip's ×; fits the 32 dp chip. */
+private val ClearIconRippleRadius = 12.dp
 
 /**
  * Renders a compact header row with chips describing currently active filters.
@@ -239,7 +243,15 @@ private fun <T : Any, C, E> ActiveFilterChip(
                 Icon(
                     painter = painterResource(TableIcons.Close),
                     contentDescription = strings.get(UiString.ColumnMenuClearFilter),
-                    modifier = Modifier.clickable(role = Role.Button, onClick = onClear),
+                    // A round, unbounded indication like an IconButton's, without its 48 dp target that would
+                    // make the chip taller.
+                    modifier =
+                        Modifier.clickable(
+                            interactionSource = null,
+                            indication = ripple(bounded = false, radius = ClearIconRippleRadius),
+                            role = Role.Button,
+                            onClick = onClear,
+                        ),
                 )
             },
             modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp),
