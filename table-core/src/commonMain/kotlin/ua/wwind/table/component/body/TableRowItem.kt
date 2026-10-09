@@ -42,6 +42,7 @@ import androidx.compose.ui.semantics.collectionItemInfo
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import kotlinx.collections.immutable.ImmutableList
@@ -64,6 +65,7 @@ import ua.wwind.table.config.resolveRowSelectedIndicatorColor
 import ua.wwind.table.interaction.LocalBubbledBodyKeyHandler
 import ua.wwind.table.interaction.forwardContentKeysToTable
 import ua.wwind.table.interaction.tableRowInteractions
+import ua.wwind.table.physicalLeft
 import ua.wwind.table.state.PinnedColumnState
 import ua.wwind.table.state.TableState
 import ua.wwind.table.state.calculatePinnedColumnState
@@ -467,8 +469,9 @@ private fun <T : Any, C, E> onCellClick(
 }
 
 /**
- * Draws the selection bar over the cells at the viewport's leading edge: the row spans the whole
- * scrollable width, so the bar follows the horizontal scroll offset, read at draw time only.
+ * Draws the selection bar over the cells at the viewport's start edge (left in LTR, right in RTL): the
+ * row spans the whole scrollable width, so the bar follows the horizontal scroll offset, read at draw
+ * time only.
  */
 private fun Modifier.selectionIndicator(
     color: Color,
@@ -477,12 +480,22 @@ private fun Modifier.selectionIndicator(
 ): Modifier =
     drawWithContent {
         drawContent()
+        val barWidth = width.toPx()
+        val left = selectionIndicatorLeft(layoutDirection, horizontalState.value.toFloat(), barWidth, size.width)
         drawRect(
             color = color,
-            topLeft = Offset(horizontalState.value.toFloat(), 0f),
-            size = Size(width.toPx(), size.height),
+            topLeft = Offset(left, 0f),
+            size = Size(barWidth, size.height),
         )
     }
+
+/** Physical left of the selection bar, which sits at the start edge of the visible part of a [rowWidth] row. */
+internal fun selectionIndicatorLeft(
+    layoutDirection: LayoutDirection,
+    scroll: Float,
+    barWidth: Float,
+    rowWidth: Float,
+): Float = layoutDirection.physicalLeft(scroll, barWidth, rowWidth)
 
 /** How a cell renders, given where it sits relative to the pinned run. */
 private class PinnedCellAppearance(
