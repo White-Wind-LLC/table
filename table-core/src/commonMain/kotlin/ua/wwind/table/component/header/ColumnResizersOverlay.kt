@@ -29,13 +29,16 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
 import kotlinx.collections.immutable.ImmutableList
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.config.TableDimensions
+import ua.wwind.table.physicalLeft
 import ua.wwind.table.platform.ColumnResizePointerIcon
+import ua.wwind.table.sign
 import ua.wwind.table.state.currentTableState
 import ua.wwind.table.state.dividerWidthAfterColumn
 
@@ -134,6 +137,8 @@ private fun <C> ResizeHandle(
     val currentOnResizeStart by rememberUpdatedState(onResizeStart)
     val currentOnResizeEnd by rememberUpdatedState(onResizeEnd)
     val currentOnDoubleClick by rememberUpdatedState(onDoubleClick)
+    // The drag block below is keyed on the column only, so the direction is read through updated state.
+    val currentLayoutDirection by rememberUpdatedState(LocalLayoutDirection.current)
 
     fun grow(deltaPx: Float) {
         val start = drag.startWidth ?: return
@@ -152,7 +157,7 @@ private fun <C> ResizeHandle(
     val hoverLineColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.9f)
     val hoverLineWidth = max(dividerThickness, HOVER_LINE_MIN_WIDTH_DP.dp)
     // Centred on the divider, so a wide touch strip still draws a line as thin as the boundary.
-    val hoverLineLeft = boundaryX - span.left + (dividerThickness - hoverLineWidth) / 2
+    val hoverLineStart = boundaryX - span.left + (dividerThickness - hoverLineWidth) / 2
 
     Box(
         modifier =
@@ -182,23 +187,32 @@ private fun <C> ResizeHandle(
                             currentOnResizeEnd()
                         },
                     ) { change, dragAmount ->
-                        val handleLeftPx = drag.boundaryPx - currentLeadPx
+                        val direction = currentLayoutDirection
+                        // Both measured toward the end edge, so the rest of the resize math is direction-free.
+                        val towardEnd = direction.sign(dragAmount)
+                        val pointerFromStripStart = direction.physicalLeft(change.position.x, 0f, size.width.toFloat())
+                        val handleStartPx = drag.boundaryPx - currentLeadPx
                         drag.onDrag(
-                            dragAmount = dragAmount,
-                            pointerViewportPx = handleLeftPx - horizontalState.value + change.position.x,
+                            dragAmount = towardEnd,
+                            pointerViewportPx = handleStartPx - horizontalState.value + pointerFromStripStart,
                             viewportPx = horizontalState.viewportSize,
                             zonePx = with(density) { EDGE_ZONE_DP.dp.toPx() },
                         )
-                        grow(dragAmount)
+                        grow(towardEnd)
                     }
                 }.pointerHoverIcon(ColumnResizePointerIcon)
                 .width(span.width)
                 .drawBehind {
                     if (isHovered) {
+                        val lineWidth = hoverLineWidth.toPx()
                         drawRect(
                             color = hoverLineColor,
-                            topLeft = Offset(hoverLineLeft.toPx(), 0f),
-                            size = Size(hoverLineWidth.toPx(), size.height),
+                            topLeft =
+                                Offset(
+                                    layoutDirection.physicalLeft(hoverLineStart.toPx(), lineWidth, size.width),
+                                    0f,
+                                ),
+                            size = Size(lineWidth, size.height),
                         )
                     }
                 },
@@ -251,7 +265,7 @@ private class ColumnResizeDrag {
     var startWidth: Dp? by mutableStateOf(null)
         private set
 
-    /** True while the pointer has run out of travel at the right edge and the column must grow on its own. */
+    /** True while the pointer has run out of travel at the end edge and the column must grow on its own. */
     var holdingAtEdge: Boolean by mutableStateOf(false)
         private set
 
