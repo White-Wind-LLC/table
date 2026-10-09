@@ -106,7 +106,7 @@ internal fun <T : Any, C, E> TableRowItem(
     requestTableFocus: () -> Unit,
     horizontalState: ScrollState,
 ) {
-    val dimensions = state.dimensions
+    val dimensions = state.effectiveDimensions
     val isSelected = state.selection.selectedIndex == index
     val isDynamicRowHeight = state.settings.rowHeightMode == RowHeightMode.Dynamic
     val settings = state.settings

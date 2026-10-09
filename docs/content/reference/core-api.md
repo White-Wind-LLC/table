@@ -103,8 +103,9 @@ column(PersonField.Name, valueOf = { it.name }) {
       that dragging a partially hidden block still relocates the whole block in the source list — hidden members
       travel with it when the move is applied via `applyRowBlockMove` — see
       [Row blocks](../guides/row-blocks.md#filtering-hidden-members-travel-with-the-block).
-    - `TableDimensions`: `defaultColumnWidth`, `defaultRowHeight`, `footerHeight`, `checkBoxColumnWidth`,
-      `verticalDividerThickness`, `verticalDividerPaddingHorizontal`, `rowBlockSpacing`, and the pointer targets
+    - `TableDimensions`: `defaultColumnWidth`, `rowHeight`, `headerHeight`, `footerHeight`, `fastFilterRowHeight`
+      (40.dp), `dividerThickness`, `pinnedColumnDividerThickness`, `rowBlockSpacing`, `scaleWithFontSize` (true:
+      heights grow above 1.0× font scale), and the pointer targets
       `columnResizeHandleWidth` (8.dp, 24.dp on touch), `headerIconTargetSize` (24.dp, 48.dp on touch) and
       `columnDragHandleSize` (24.dp), `selectionIndicatorWidth` (3.dp leading bar on the selected row; 0.dp
       hides it), `cellHorizontalPadding` (8.dp), `headerIconSpacing` (6.dp), `dragHandleIconSize` (16.dp),

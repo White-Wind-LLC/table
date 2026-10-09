@@ -58,12 +58,12 @@ internal fun <T : Any, C, E> GroupStickyOverlay(
     val density = LocalDensity.current
     val layoutDirection = LocalLayoutDirection.current
     val headerHeightPx =
-        remember(state.dimensions.rowHeight, density) {
-            with(density) { state.dimensions.rowHeight.roundToPx() }
+        remember(state.effectiveDimensions.rowHeight, density) {
+            with(density) { state.effectiveDimensions.rowHeight.roundToPx() }
         }
     val dividerThicknessPx =
-        remember(state.dimensions.dividerThickness, density) {
-            with(density) { state.dimensions.dividerThickness.roundToPx() }
+        remember(state.effectiveDimensions.dividerThickness, density) {
+            with(density) { state.effectiveDimensions.dividerThickness.roundToPx() }
         }
     val overlayHeightPx = headerHeightPx + dividerThicknessPx
     // Read through updated state: a paged loader passes a new itemAt on every emission, and keying
@@ -125,14 +125,14 @@ internal fun <T : Any, C, E> GroupStickyOverlay(
                     tableData = tableData,
                     spec = spec,
                     width = viewportWidthDp,
-                    height = state.dimensions.rowHeight,
+                    height = state.effectiveDimensions.rowHeight,
                     colors = colors,
                     customization = customization,
                     containerColor = colors.stickyGroupContainerColor,
                 )
                 if (state.settings.showRowDividers) {
                     HorizontalDivider(
-                        thickness = state.dimensions.dividerThickness,
+                        thickness = state.effectiveDimensions.dividerThickness,
                         color = currentTableColors().dividerColor,
                         modifier = Modifier.width(viewportWidthDp),
                     )

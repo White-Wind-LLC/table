@@ -92,7 +92,7 @@ internal fun <T : Any, C, E> HeaderCell(
                     strings = strings,
                     onToggle = onToggleSort,
                     clickable = !spec.headerClickToSort,
-                    targetSize = state.dimensions.headerIconTargetSize,
+                    targetSize = state.effectiveDimensions.headerIconTargetSize,
                 )
             },
             filterIcon = {
@@ -104,7 +104,7 @@ internal fun <T : Any, C, E> HeaderCell(
                     isOpen = isFilterOpen,
                     onOpen = onOpenFilter,
                     onDismiss = onDismissFilter,
-                    targetSize = state.dimensions.headerIconTargetSize,
+                    targetSize = state.effectiveDimensions.headerIconTargetSize,
                 )
             },
         )
@@ -122,7 +122,12 @@ internal fun <T : Any, C, E> HeaderCell(
                 state.columns.updateMaxContentWidth(spec.key, adjusted, source = "Header")
             },
         ) { _, _ ->
-            HeaderMeasureContent(spec, info, showMenuButton = onOpenMenu != null, dimensions = state.dimensions)
+            HeaderMeasureContent(
+                spec,
+                info,
+                showMenuButton = onOpenMenu != null,
+                dimensions = state.effectiveDimensions,
+            )
         }
     }
 
@@ -172,7 +177,7 @@ internal fun <T : Any, C, E> HeaderCell(
 @Composable
 private fun DefaultFilterIcon(info: TableHeaderCellInfo<Any?>) {
     Box(
-        modifier = Modifier.padding(end = currentTableState().dimensions.headerIconSpacing),
+        modifier = Modifier.padding(end = currentTableState().effectiveDimensions.headerIconSpacing),
     ) {
         info.filterIcon.invoke()
     }
@@ -240,7 +245,7 @@ private fun <C, E> HeaderContent(
     Row(
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        val padding = state.dimensions.cellHorizontalPadding
+        val padding = state.effectiveDimensions.cellHorizontalPadding
         Row(
             modifier = if (spec.headerDecorations) Modifier.weight(1f).padding(horizontal = padding) else Modifier,
             verticalAlignment = Alignment.CenterVertically,
@@ -264,7 +269,7 @@ private fun <C, E> HeaderContent(
                 val options = strings.get(UiString.ColumnMenuOptions)
                 ColumnMenuButton(
                     contentDescription = if (title != null) "$options: $title" else options,
-                    targetSize = state.dimensions.headerIconTargetSize,
+                    targetSize = state.effectiveDimensions.headerIconTargetSize,
                     onClick = onOpenMenu,
                 )
             }

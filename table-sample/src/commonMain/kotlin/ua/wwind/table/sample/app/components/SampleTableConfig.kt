@@ -32,4 +32,6 @@ data class SampleTableConfig(
     val hiddenColumns: Set<PersonColumn> = emptySet(),
     /** Lays the table and toolbar out right-to-left. */
     val rtl: Boolean = false,
+    /** Renders the app at 2× font scale. */
+    val largeFont: Boolean = false,
 )

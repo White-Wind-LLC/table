@@ -30,4 +30,15 @@ class TableDimensionsTest {
         assertFailure { standard.copy(pinnedColumnShadowWidth = (-1).dp) }.isInstanceOf<IllegalArgumentException>()
         assertFailure { standard.copy(dragElevation = (-1).dp) }.isInstanceOf<IllegalArgumentException>()
     }
+
+    @Test
+    fun `fast filter row defaults to 40dp and font scaling is on`() {
+        assertThat(standard.fastFilterRowHeight).isEqualTo(40.dp)
+        assertThat(standard.scaleWithFontSize).isEqualTo(true)
+    }
+
+    @Test
+    fun `a negative fast filter row height is rejected`() {
+        assertFailure { standard.copy(fastFilterRowHeight = (-1).dp) }.isInstanceOf<IllegalArgumentException>()
+    }
 }

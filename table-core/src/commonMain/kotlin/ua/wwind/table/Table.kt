@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Surface
@@ -72,7 +73,9 @@ import ua.wwind.table.config.TableCustomization
 import ua.wwind.table.config.TableDefaults
 import ua.wwind.table.config.TableTypography
 import ua.wwind.table.config.isInteractionLockByRowReorderEnabled
+import ua.wwind.table.config.mergedOver
 import ua.wwind.table.config.resolve
+import ua.wwind.table.config.scaledForFont
 import ua.wwind.table.interaction.ApplyAutoWidthEffect
 import ua.wwind.table.interaction.ApplyAutoWidthEmbeddedEffect
 import ua.wwind.table.interaction.ContextMenuState
@@ -201,7 +204,14 @@ public fun <T : Any, C, E> EditableTable(
     /** Callback when editing is cancelled */
     onEditCancel: ((rowIndex: Int) -> Unit)? = null,
 ) {
-    val dimensions = state.dimensions
+    val density = LocalDensity.current
+    // Each band renders its style merged over the ambient one, so a weight-only style still has a size.
+    val ambientTextStyle = LocalTextStyle.current
+    val dimensions =
+        remember(state.dimensions, typography, ambientTextStyle, density.density, density.fontScale) {
+            state.dimensions.scaledForFont(typography.mergedOver(ambientTextStyle), density)
+        }
+    state.effectiveDimensions = dimensions
     val resolvedColors = colors.resolve()
     val visibleColumns by remember(columns, state.columns.order) {
         derivedStateOf {
@@ -240,8 +250,8 @@ public fun <T : Any, C, E> EditableTable(
     val blockParentScrollConnection = rememberBlockParentScrollConnection()
     val nestedScrollDispatcher = remember { NestedScrollDispatcher() }
 
-    // Reset cached row heights when dataset size changes
-    LaunchedEffect(itemsCount) { state.rowHeightsPx.clear() }
+    // Cached heights are pixels for one dataset size, density and font scale.
+    LaunchedEffect(itemsCount, density.density, density.fontScale, dimensions) { state.rowHeightsPx.clear() }
     ScrollToTopOnSortChange(state, verticalState)
 
     RegisterEditCallbacks(state, effectiveItemAt, onRowEditStart, onRowEditComplete, onEditCancel)
@@ -726,7 +736,7 @@ private fun BoxScope.BodyOverlay(
     overlay: @Composable BoxScope.() -> Unit,
 ) {
     val showEmpty = !embedded && itemsCount == 0
-    val dimensions = state.dimensions
+    val dimensions = state.effectiveDimensions
     val footerHeight =
         dimensions.footerHeight + if (state.settings.showRowDividers) dimensions.dividerThickness else 0.dp
     val headerBottom = with(LocalDensity.current) { headerBottomPx.toDp() }
@@ -914,7 +924,7 @@ private fun <T : Any, C, E> PinnedFooterOverlay(
     horizontalState: ScrollState,
     modifier: Modifier = Modifier,
 ) {
-    val dimensions = state.dimensions
+    val dimensions = state.effectiveDimensions
     Column(modifier = modifier) {
         if (state.settings.showRowDividers) {
             HorizontalDivider(modifier = Modifier.width(state.tableWidth), color = colors.dividerColor)

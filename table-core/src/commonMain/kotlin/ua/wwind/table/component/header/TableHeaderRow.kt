@@ -218,7 +218,7 @@ internal fun <T : Any, C, E> TableHeaderRow(
 private fun Modifier.headerFocusRing(focused: Boolean): Modifier =
     if (focused) {
         border(
-            currentTableState().dimensions.focusIndicatorWidth,
+            currentTableState().effectiveDimensions.focusIndicatorWidth,
             currentTableColors().focusIndicatorColor,
             RoundedCornerShape(2.dp),
         )

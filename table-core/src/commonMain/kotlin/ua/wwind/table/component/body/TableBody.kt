@@ -227,7 +227,7 @@ internal fun <T : Any, C, E> TableBody(
                     tableData = tableData,
                     footerColor = colors.footerContainerColor,
                     footerContentColor = colors.footerContentColor,
-                    dimensions = state.dimensions,
+                    dimensions = state.effectiveDimensions,
                     horizontalState = horizontalState,
                     tableWidth = state.tableWidth,
                     pinnedColumnsCount = state.columns.pinnedCount,
@@ -429,7 +429,7 @@ internal fun <T : Any, C, E> TableBodyEmbedded(
                 tableData = tableData,
                 footerColor = colors.footerContainerColor,
                 footerContentColor = colors.footerContentColor,
-                dimensions = state.dimensions,
+                dimensions = state.effectiveDimensions,
                 horizontalState = horizontalState,
                 tableWidth = state.tableWidth,
                 pinnedColumnsCount = state.columns.pinnedCount,
@@ -488,14 +488,14 @@ internal fun <T : Any, C, E> TableBodyRow(
                         tableData = tableData,
                         spec = groupSpec,
                         width = viewportWidthDp,
-                        height = state.dimensions.rowHeight,
+                        height = state.effectiveDimensions.rowHeight,
                         colors = colors,
                         customization = customization,
                     )
                     if (state.settings.showRowDividers) {
                         HorizontalDivider(
                             modifier = Modifier.width(viewportWidthDp),
-                            thickness = state.dimensions.dividerThickness,
+                            thickness = state.effectiveDimensions.dividerThickness,
                             color = currentTableColors().dividerColor,
                         )
                     }
@@ -525,7 +525,7 @@ internal fun <T : Any, C, E> TableBodyRow(
     if (state.settings.showRowDividers) {
         HorizontalDivider(
             modifier = Modifier.width(state.tableWidth),
-            thickness = state.dimensions.dividerThickness,
+            thickness = state.effectiveDimensions.dividerThickness,
             color = currentTableColors().dividerColor,
         )
     }

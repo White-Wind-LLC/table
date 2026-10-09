@@ -162,7 +162,7 @@ private fun cellDecoration(
     pinnedEdge: PinnedEdge,
     hasContentUnderEdge: Boolean,
 ): CellDecoration {
-    val dimensions = currentTableState().dimensions
+    val dimensions = currentTableState().effectiveDimensions
     val selectionBorder =
         if (isSelected) {
             Modifier.border(
