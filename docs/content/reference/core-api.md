@@ -71,9 +71,9 @@ column(PersonField.Name, valueOf = { it.name }) {
     - Sorting: `state.setSort(column, order?)`; current `state.sort`.
     - Grouping: `state.groupBy(column)` to enable grouping; `state.groupBy(null)` to disable.
     - Column layout, selection and editing live in holders of their own — `state.columns`,
-      `state.selection` and `state.editing`. The members they took over in 2.1.0 are still on
-      `state` itself, deprecated, each naming its replacement; they are removed in the next major.
-      Full mapping in the [2.0 migration guide](../getting-started/migration-2.0.md#state-holders-on-tablestate).
+      `state.selection` and `state.editing`. The members they took over in 2.1.0 were removed from
+      `state` in 3.0.0; full mapping in the
+      [3.0 migration guide](../getting-started/migration-3.0.md#tablestate-forwarders-are-gone).
     - Column order/size: `state.columns.setOrder(order)`, `state.columns.resize(column, Set/Reset)`,
       `state.columns.setWidths(map)`; current `state.columns.order`, `state.columns.widths` and
       `state.columns.explicitWidths` (widths not chosen by auto-width, for persisting).

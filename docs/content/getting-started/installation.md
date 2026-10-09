@@ -4,10 +4,10 @@ Add repository (usually `mavenCentral`) and include the modules you need:
 
 ```kotlin
 dependencies {
-    implementation("ua.wwind.table-kmp:table-core:2.4.1")
+    implementation("ua.wwind.table-kmp:table-core:3.0.0")
     // optional
-    implementation("ua.wwind.table-kmp:table-format:2.4.1")
-    implementation("ua.wwind.table-kmp:table-paging:2.4.1")
+    implementation("ua.wwind.table-kmp:table-format:3.0.0")
+    implementation("ua.wwind.table-kmp:table-paging:3.0.0")
 }
 ```
 
@@ -20,5 +20,5 @@ dependencies {
 }
 ```
 
-The table API is stable — no opt-in annotation is required. Upgrading from 1.x? See the
-[2.0 migration guide](migration-2.0.md).
+The table API is stable — no opt-in annotation is required. Upgrading from 2.x? See the
+[3.0 migration guide](migration-3.0.md). From 1.x, start with the [2.0 migration guide](migration-2.0.md).

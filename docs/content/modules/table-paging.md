@@ -40,7 +40,7 @@ val items by pager.flow.collectAsState(initial = null)
 Table(items = items, state = state, columns = columns)
 ```
 
-`handleLoadState` is deprecated; the table covers what it did.
+`handleLoadState` is deprecated and removed in 4.0; the table covers what it did.
 
 ## Row keys never move the pager
 

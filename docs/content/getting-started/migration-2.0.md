@@ -26,6 +26,9 @@ fun PeopleTable(items: List<Person>) { /* ... */ }
 The `ExperimentalTableApi` marker is still shipped, deprecated, so a forgotten opt-in compiles with a
 warning rather than breaking your build. It is removed in the next major release.
 
+!!! note
+    Removed in 3.0.0. Upgrading straight to 3.0? See [Migrating to 3.0](migration-3.0.md#no-more-experimentaltableapi).
+
 ## Removed deprecated members
 
 Each of these carried a `ReplaceWith` migration during 1.x; the IDE's *Replace with* quick fix
@@ -62,6 +65,9 @@ and `filters` are unchanged.
 Nothing breaks: every moved member is still on `TableState`, deprecated, with a `ReplaceWith` that
 the IDE applies for you (*Code → Inspect Code*, or Alt+Enter on the warning). They are removed in the
 next major, so migrate while the compiler is still pointing at each site.
+
+!!! note
+    Removed in 3.0.0. Upgrading straight to 3.0? See [Migrating to 3.0](migration-3.0.md#tablestate-forwarders-are-gone).
 
 ```kotlin title="Before"
 state.setColumnOrder(order)
