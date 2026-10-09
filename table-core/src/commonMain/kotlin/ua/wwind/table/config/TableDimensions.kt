@@ -42,6 +42,14 @@ public data class TableDimensions(
     val pinnedColumnShadowWidth: Dp = 6.dp,
     /** Shadow elevation of a row or column while it is dragged. */
     val dragElevation: Dp = 8.dp,
+    /** Height of the fast filters row under the header. */
+    val fastFilterRowHeight: Dp = 40.dp,
+    /**
+     * Grow [rowHeight], [headerHeight], [footerHeight] and [fastFilterRowHeight] by as much as one
+     * line of their text grows above 1.0× font scale, so text is not clipped. Set to false to keep
+     * the heights exactly as given.
+     */
+    val scaleWithFontSize: Boolean = true,
 ) {
     init {
         require(dividerThickness >= 1.dp) { "dividerThickness must be at least 1.dp" }
@@ -57,6 +65,7 @@ public data class TableDimensions(
         require(focusIndicatorWidth >= 0.dp) { "focusIndicatorWidth must not be negative" }
         require(pinnedColumnShadowWidth >= 0.dp) { "pinnedColumnShadowWidth must not be negative" }
         require(dragElevation >= 0.dp) { "dragElevation must not be negative" }
+        require(fastFilterRowHeight >= 0.dp) { "fastFilterRowHeight must not be negative" }
     }
 }
 
