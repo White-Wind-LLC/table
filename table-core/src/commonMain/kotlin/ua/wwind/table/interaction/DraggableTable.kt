@@ -17,10 +17,12 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.util.VelocityTracker
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.Velocity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import ua.wwind.table.sign
 
 internal fun Modifier.draggableTable(
     horizontalState: ScrollState,
@@ -30,12 +32,19 @@ internal fun Modifier.draggableTable(
     enableScrolling: Boolean,
     enableDragToScroll: Boolean,
     coroutineScope: CoroutineScope,
+    layoutDirection: LayoutDirection,
 ): Modifier {
     val baseModifier = this.nestedScroll(blockParentScrollConnection, nestedScrollDispatcher)
 
     val modifierWithDrag =
         if (enableDragToScroll) {
-            baseModifier.dragToScroll(horizontalState, verticalState, nestedScrollDispatcher, coroutineScope)
+            baseModifier.dragToScroll(
+                horizontalState,
+                verticalState,
+                nestedScrollDispatcher,
+                coroutineScope,
+                layoutDirection,
+            )
         } else {
             baseModifier
         }
@@ -52,8 +61,9 @@ private fun Modifier.dragToScroll(
     verticalState: LazyListState,
     nestedScrollDispatcher: NestedScrollDispatcher,
     coroutineScope: CoroutineScope,
+    layoutDirection: LayoutDirection,
 ): Modifier =
-    pointerInput(horizontalState, verticalState) {
+    pointerInput(horizontalState, verticalState, layoutDirection) {
         // Decay for inertial fling animation
         val decay = exponentialDecay<Float>()
 
@@ -67,7 +77,9 @@ private fun Modifier.dragToScroll(
 
                 change.consume()
                 // Integrate with nested scroll: consume locally then report post-scroll
-                val consumedX = horizontalState.consumeRawDelta(dragAmount.x)
+                // The drag is physical; the scroll offset runs from the start edge, which is the right one in RTL.
+                val consumedX =
+                    layoutDirection.sign(horizontalState.consumeRawDelta(layoutDirection.sign(dragAmount.x)))
                 val consumedY = verticalState.consumeRawDelta(dragAmount.y)
                 nestedScrollDispatcher.dispatchPostScroll(
                     consumed = Offset(consumedX, consumedY),
@@ -91,6 +103,7 @@ private fun Modifier.dragToScroll(
                         horizontalState = horizontalState,
                         verticalState = verticalState,
                         nestedScrollDispatcher = nestedScrollDispatcher,
+                        layoutDirection = layoutDirection,
                     )
                 }
             },
@@ -112,6 +125,7 @@ private suspend fun flingBothAxes(
     horizontalState: ScrollState,
     verticalState: LazyListState,
     nestedScrollDispatcher: NestedScrollDispatcher,
+    layoutDirection: LayoutDirection,
 ) {
     // Participate in nested scroll for fling phase
     val preConsumed = nestedScrollDispatcher.dispatchPreFling(initialVelocity)
@@ -121,7 +135,9 @@ private suspend fun flingBothAxes(
     coroutineScope {
         val jobX =
             launch {
-                animateFlingAxis(available.x, decay) { delta -> horizontalState.dispatchRawDelta(-delta) }
+                animateFlingAxis(layoutDirection.sign(available.x), decay) { delta ->
+                    horizontalState.dispatchRawDelta(-delta)
+                }
             }
         val jobY =
             launch {

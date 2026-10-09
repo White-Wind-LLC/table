@@ -9,11 +9,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.getBoundsInRoot
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onRoot
+import androidx.compose.ui.test.performMouseInput
 import androidx.compose.ui.test.v2.runComposeUiTest
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
@@ -118,4 +121,37 @@ class RtlLayoutTest {
             assertThat(before).isNotEmpty()
             assertThat(headerBounds()).isEqualTo(before)
         }
+
+    private fun dragScrollTest(
+        direction: LayoutDirection,
+        stepPx: Float,
+    ) = runComposeUiTest {
+        lateinit var horizontalState: ScrollState
+        setContent {
+            horizontalState = rememberScrollState()
+            val state =
+                rememberTableState(
+                    columns = persistentListOf("a", "b", "c"),
+                    settings = TableSettings(enableDragToScroll = true),
+                )
+            RtlTable(state, horizontalState, itemsCount = 5, direction = direction)
+        }
+        waitForIdle()
+        val y = with(density) { 150.dp.toPx() }
+        val x = with(density) { 125.dp.toPx() }
+        onRoot().performMouseInput {
+            moveTo(Offset(x, y))
+            press()
+            repeat(5) { moveBy(Offset(stepPx, 0f)) }
+            release()
+        }
+        waitForIdle()
+        assertThat(horizontalState.value).isGreaterThan(0)
+    }
+
+    @Test
+    fun `dragging left scrolls toward the end in LTR`() = dragScrollTest(LayoutDirection.Ltr, stepPx = -20f)
+
+    @Test
+    fun `dragging right scrolls toward the end in RTL`() = dragScrollTest(LayoutDirection.Rtl, stepPx = 20f)
 }
