@@ -305,9 +305,9 @@ private fun <C, T : Any, E> RenderTableRowItem(
                 tabularFigures = spec.tabularFigures,
                 isSelected = isCellSelected,
                 isTableFocused = state.isFocused,
-                showLeftDivider = pinnedState.isFirstRightPinned,
-                leftDividerThickness = dimensions.pinnedColumnDividerThickness,
-                showRightDivider = appearance.showRightDivider,
+                showStartDivider = pinnedState.isFirstEndPinned,
+                startDividerThickness = dimensions.pinnedColumnDividerThickness,
+                showEndDivider = appearance.showEndDivider,
                 isPinned = pinnedState.isPinned,
                 pinnedEdge = pinnedState.edge,
                 hasContentUnderEdge = pinnedState.edge.hasContentUnder(horizontalState),
@@ -486,7 +486,7 @@ private fun Modifier.selectionIndicator(
 private class PinnedCellAppearance(
     val cellStyle: TableCellStyle,
     val dividerThickness: Dp,
-    val showRightDivider: Boolean,
+    val showEndDivider: Boolean,
 )
 
 /**
@@ -514,12 +514,12 @@ private fun pinnedCellAppearance(
                 cellStyle
             },
         dividerThickness =
-            if (pinnedState.isLastLeftPinned) {
+            if (pinnedState.isLastStartPinned) {
                 dimensions.pinnedColumnDividerThickness
             } else {
                 dimensions.dividerThickness
             },
-        showRightDivider =
-            !pinnedState.isLastBeforeRightPinned &&
-                (showVerticalDividers || pinnedState.isLastLeftPinned),
+        showEndDivider =
+            !pinnedState.isLastBeforeEndPinned &&
+                (showVerticalDividers || pinnedState.isLastStartPinned),
     )

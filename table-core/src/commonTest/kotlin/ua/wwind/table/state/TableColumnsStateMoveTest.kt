@@ -12,7 +12,7 @@ import kotlin.test.Test
 class TableColumnsStateMoveTest {
     private fun stateWith(
         pinned: Int = 0,
-        side: PinnedSide = PinnedSide.Left,
+        side: PinnedSide = PinnedSide.Start,
         keys: List<String> = listOf("a", "b", "c", "d"),
     ) = TableState(
         initialColumns = keys,
@@ -71,7 +71,7 @@ class TableColumnsStateMoveTest {
 
     @Test
     fun `moveBy on the right stays inside the pinned block`() {
-        val state = stateWith(pinned = 2, side = PinnedSide.Right)
+        val state = stateWith(pinned = 2, side = PinnedSide.End)
         assertThat(state.columns.canMoveBy("b", 1)).isFalse()
         assertThat(state.columns.canMoveBy("c", -1)).isFalse()
         assertThat(state.columns.canMoveBy("c", 1)).isTrue()
@@ -101,7 +101,7 @@ class TableColumnsStateMoveTest {
 
     @Test
     fun `moveBy with a hidden column inside the pinned block on the right`() {
-        val state = stateWith(keys = listOf("a", "b", "c", "d", "e"), pinned = 1, side = PinnedSide.Right)
+        val state = stateWith(keys = listOf("a", "b", "c", "d", "e"), pinned = 1, side = PinnedSide.End)
         state.columns.hide("d")
         state.columns.pin("c")
         state.columns.pin("b")

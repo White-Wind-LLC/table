@@ -51,8 +51,8 @@ class TableVisualsTest {
 
     @Test
     fun `a left-pinned edge has content under it only once scrolled`() {
-        assertThat(PinnedEdge.Right.hasContentUnder(ScrollState(0))).isFalse()
-        assertThat(PinnedEdge.Right.hasContentUnder(ScrollState(10))).isTrue()
+        assertThat(PinnedEdge.End.hasContentUnder(ScrollState(0))).isFalse()
+        assertThat(PinnedEdge.End.hasContentUnder(ScrollState(10))).isTrue()
         assertThat(PinnedEdge.None.hasContentUnder(ScrollState(10))).isFalse()
     }
 
@@ -93,7 +93,7 @@ class TableVisualsTest {
                             TableSettings(
                                 showVerticalDividers = false,
                                 pinnedColumnsCount = 1,
-                                pinnedColumnsSide = PinnedSide.Left,
+                                pinnedColumnsSide = PinnedSide.Start,
                             ),
                     )
                 dimensions = state.dimensions

@@ -13,7 +13,7 @@ import kotlin.test.Test
 class TableColumnsStatePinTest {
     private fun stateWith(
         pinned: Int,
-        side: PinnedSide = PinnedSide.Left,
+        side: PinnedSide = PinnedSide.Start,
         keys: List<String> = listOf("a", "b", "c", "d"),
     ) = TableState(
         initialColumns = keys,
@@ -49,7 +49,7 @@ class TableColumnsStatePinTest {
 
     @Test
     fun `pin on the right moves the column to the start of the pinned block`() {
-        val state = stateWith(pinned = 1, side = PinnedSide.Right)
+        val state = stateWith(pinned = 1, side = PinnedSide.End)
         state.columns.pin("a")
         assertThat(state.columns.order.toList()).containsExactly("b", "c", "a", "d")
         assertThat(state.columns.pinnedCount).isEqualTo(2)
@@ -57,7 +57,7 @@ class TableColumnsStatePinTest {
 
     @Test
     fun `unpin on the right moves the column right before the pinned block`() {
-        val state = stateWith(pinned = 2, side = PinnedSide.Right)
+        val state = stateWith(pinned = 2, side = PinnedSide.End)
         state.columns.unpin("d")
         assertThat(state.columns.order.toList()).containsExactly("a", "b", "d", "c")
         assertThat(state.columns.pinnedCount).isEqualTo(1)
@@ -106,7 +106,7 @@ class TableColumnsStatePinTest {
 
     @Test
     fun `pin with a hidden column inside the block on the right`() {
-        val state = stateWith(pinned = 1, side = PinnedSide.Right, keys = listOf("a", "b", "c", "d", "e"))
+        val state = stateWith(pinned = 1, side = PinnedSide.End, keys = listOf("a", "b", "c", "d", "e"))
         state.columns.hide("d")
         state.columns.pin("b")
         assertThat(state.columns.visibleKeys()).containsExactly("a", "c", "b", "e")

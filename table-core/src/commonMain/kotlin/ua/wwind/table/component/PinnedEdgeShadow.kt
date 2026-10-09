@@ -33,7 +33,7 @@ internal fun Modifier.pinnedEdgeShadow(
             val shade = Color.Black.copy(alpha = PINNED_SHADOW_ALPHA * a)
             val (left, colors) =
                 when (edge) {
-                    PinnedEdge.Right -> size.width to listOf(shade, Color.Transparent)
+                    PinnedEdge.End -> size.width to listOf(shade, Color.Transparent)
                     else -> -w to listOf(Color.Transparent, shade)
                 }
             drawRect(

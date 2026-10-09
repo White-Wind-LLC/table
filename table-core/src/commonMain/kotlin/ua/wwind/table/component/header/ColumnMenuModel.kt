@@ -198,7 +198,7 @@ private fun <C> pinEntry(
     val canPin = columns.canPin(key)
     return ColumnMenuEntry(
         id = Ids.Pin,
-        label = if (side == PinnedSide.Left) UiString.ColumnMenuPinLeft else UiString.ColumnMenuPinRight,
+        label = if (side == PinnedSide.Start) UiString.ColumnMenuPinLeft else UiString.ColumnMenuPinRight,
         icon = TableIcons.PushPin,
         enabled = canPin,
         disabledReason = UiString.ColumnMenuReasonLastUnpinned.takeUnless { canPin },

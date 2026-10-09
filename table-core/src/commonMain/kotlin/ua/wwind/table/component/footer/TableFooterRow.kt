@@ -46,7 +46,7 @@ internal fun <T : Any, C, E> TableFooterRow(
                 )
 
             val dividerThickness =
-                if (pinnedState.isLastLeftPinned) {
+                if (pinnedState.isLastStartPinned) {
                     dimensions.pinnedColumnDividerThickness
                 } else {
                     dimensions.dividerThickness
@@ -64,11 +64,11 @@ internal fun <T : Any, C, E> TableFooterRow(
                 alignment = spec.alignment,
                 tabularFigures = spec.tabularFigures,
                 isSelected = false,
-                showLeftDivider = pinnedState.isFirstRightPinned,
-                leftDividerThickness = dimensions.pinnedColumnDividerThickness,
-                showRightDivider =
-                    !pinnedState.isLastBeforeRightPinned &&
-                        (showVerticalDividers || pinnedState.isLastLeftPinned),
+                showStartDivider = pinnedState.isFirstEndPinned,
+                startDividerThickness = dimensions.pinnedColumnDividerThickness,
+                showEndDivider =
+                    !pinnedState.isLastBeforeEndPinned &&
+                        (showVerticalDividers || pinnedState.isLastStartPinned),
                 isPinned = pinnedState.isPinned,
                 pinnedEdge = pinnedState.edge,
                 hasContentUnderEdge = pinnedState.edge.hasContentUnder(horizontalState),

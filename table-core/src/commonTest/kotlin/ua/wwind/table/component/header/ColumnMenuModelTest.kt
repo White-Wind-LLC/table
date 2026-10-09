@@ -181,13 +181,13 @@ class ColumnMenuModelTest {
 
     @Test
     fun `pin label follows the pinned side`() {
-        val state = stateWith(TableSettings(pinnedColumnsSide = PinnedSide.Right))
+        val state = stateWith(TableSettings(pinnedColumnsSide = PinnedSide.End))
         assertThat(model(state, "full").entry(Ids.Pin).label).isEqualTo(UiString.ColumnMenuPinRight)
     }
 
     @Test
     fun `pin label is Pin left on the left side`() {
-        val state = stateWith(TableSettings(pinnedColumnsSide = PinnedSide.Left))
+        val state = stateWith(TableSettings(pinnedColumnsSide = PinnedSide.Start))
         assertThat(model(state, "full").entry(Ids.Pin).label).isEqualTo(UiString.ColumnMenuPinLeft)
     }
 

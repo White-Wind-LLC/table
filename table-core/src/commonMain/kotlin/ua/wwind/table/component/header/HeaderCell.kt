@@ -63,10 +63,10 @@ internal fun <T : Any, C, E> HeaderCell(
     onOpenFilter: () -> Unit,
     onDismissFilter: () -> Unit,
     onToggleSort: () -> Unit,
-    showLeftDivider: Boolean = false,
-    leftDividerThickness: Dp = dividerThickness,
-    showRightDivider: Boolean = true,
-    /** The pinned-run edge this cell sits on; its right divider then takes the pinned color. */
+    showStartDivider: Boolean = false,
+    startDividerThickness: Dp = dividerThickness,
+    showEndDivider: Boolean = true,
+    /** The pinned-run edge this cell sits on; its end divider then takes the pinned color. */
     pinnedEdge: PinnedEdge = PinnedEdge.None,
     onOpenMenu: (() -> Unit)? = null,
 ) {
@@ -126,10 +126,10 @@ internal fun <T : Any, C, E> HeaderCell(
     }
 
     Row {
-        if (showLeftDivider) {
+        if (showStartDivider) {
             VerticalDivider(
                 modifier = Modifier.fillMaxHeight(),
-                thickness = leftDividerThickness,
+                thickness = startDividerThickness,
                 color = colors.pinnedDividerColor,
             )
         }
@@ -158,11 +158,11 @@ internal fun <T : Any, C, E> HeaderCell(
                 }
             }
         }
-        if (showRightDivider) {
+        if (showEndDivider) {
             VerticalDivider(
                 modifier = Modifier.fillMaxHeight(),
                 thickness = dividerThickness,
-                color = if (pinnedEdge == PinnedEdge.Right) colors.pinnedDividerColor else colors.dividerColor,
+                color = if (pinnedEdge == PinnedEdge.End) colors.pinnedDividerColor else colors.dividerColor,
             )
         }
     }

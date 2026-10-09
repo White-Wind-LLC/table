@@ -153,7 +153,7 @@ internal fun <T : Any, C, E> TableHeaderRow(
                                     .headerFocusRing(state.showsHeaderFocusRing(spec.key)),
                         ) {
                             val dividerThickness =
-                                if (pinnedState.isLastLeftPinned) {
+                                if (pinnedState.isLastStartPinned) {
                                     style.dimensions.pinnedColumnDividerThickness
                                 } else {
                                     style.dimensions.dividerThickness
@@ -170,11 +170,11 @@ internal fun <T : Any, C, E> TableHeaderRow(
                                 onOpenFilter = { onFilterColumnChange(spec.key) },
                                 onDismissFilter = { onFilterColumnChange(null) },
                                 onToggleSort = { state.setSort(spec.key) },
-                                showLeftDivider = pinnedState.isFirstRightPinned,
-                                leftDividerThickness = style.dimensions.pinnedColumnDividerThickness,
-                                showRightDivider =
-                                    !pinnedState.isLastBeforeRightPinned &&
-                                        (state.settings.showVerticalDividers || pinnedState.isLastLeftPinned),
+                                showStartDivider = pinnedState.isFirstEndPinned,
+                                startDividerThickness = style.dimensions.pinnedColumnDividerThickness,
+                                showEndDivider =
+                                    !pinnedState.isLastBeforeEndPinned &&
+                                        (state.settings.showVerticalDividers || pinnedState.isLastStartPinned),
                                 pinnedEdge = pinnedState.edge,
                                 onOpenMenu = openMenu.takeIf { state.settings.showColumnMenuButton },
                             )

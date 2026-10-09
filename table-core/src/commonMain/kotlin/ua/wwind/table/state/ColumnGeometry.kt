@@ -18,8 +18,8 @@ internal fun dividerWidthAfterColumn(
     val bordersPinnedBlock =
         pinnedCount > 0 &&
             when (settings.pinnedColumnsSide) {
-                PinnedSide.Left -> columnIndex == pinnedCount - 1
-                PinnedSide.Right -> columnIndex == totalVisibleColumns - pinnedCount - 1
+                PinnedSide.Start -> columnIndex == pinnedCount - 1
+                PinnedSide.End -> columnIndex == totalVisibleColumns - pinnedCount - 1
             }
 
     return when {

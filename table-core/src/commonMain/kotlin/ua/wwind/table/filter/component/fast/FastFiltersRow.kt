@@ -112,7 +112,7 @@ internal fun <T : Any, C, E> FastFiltersRow(
                     val width = widthResolver(spec.key)
 
                     Row {
-                        if (pinnedState.isFirstRightPinned) {
+                        if (pinnedState.isFirstEndPinned) {
                             VerticalDivider(
                                 modifier = Modifier.fillMaxHeight(),
                                 thickness = state.dimensions.pinnedColumnDividerThickness,
@@ -200,8 +200,8 @@ internal fun <T : Any, C, E> FastFiltersRow(
                                 }
                             }
                         }
-                        if (!pinnedState.isLastBeforeRightPinned) {
-                            if (pinnedState.isLastLeftPinned) {
+                        if (!pinnedState.isLastBeforeEndPinned) {
+                            if (pinnedState.isLastStartPinned) {
                                 VerticalDivider(
                                     modifier = Modifier.fillMaxHeight(),
                                     thickness = state.dimensions.pinnedColumnDividerThickness,

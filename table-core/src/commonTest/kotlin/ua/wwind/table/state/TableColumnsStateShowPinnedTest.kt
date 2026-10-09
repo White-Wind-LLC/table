@@ -15,7 +15,7 @@ import kotlin.test.Test
 class TableColumnsStateShowPinnedTest {
     private fun stateWith(
         pinned: Int,
-        side: PinnedSide = PinnedSide.Left,
+        side: PinnedSide = PinnedSide.Start,
         keys: List<String> = listOf("a", "b", "c", "d"),
     ) = TableState(
         initialColumns = keys,
@@ -53,7 +53,7 @@ class TableColumnsStateShowPinnedTest {
 
     @Test
     fun `on the right a shown column lands at the last unpinned position`() {
-        val state = stateWith(pinned = 1, side = PinnedSide.Right)
+        val state = stateWith(pinned = 1, side = PinnedSide.End)
         state.columns.hide("c")
         state.columns.pin("b")
         assertThat(state.pinnedKeys()).containsExactly("b", "d")
@@ -64,7 +64,7 @@ class TableColumnsStateShowPinnedTest {
 
     @Test
     fun `on the right hiding a pinned column and showing it keeps the other pin`() {
-        val state = stateWith(pinned = 2, side = PinnedSide.Right)
+        val state = stateWith(pinned = 2, side = PinnedSide.End)
         state.columns.hide("d")
         assertThat(state.pinnedKeys()).containsExactly("c")
         state.columns.show("d")
@@ -111,8 +111,8 @@ class TableColumnsStateShowPinnedTest {
         savedHidden.forEach { restored.columns.hide(it) }
         val visible = savedOrder.filter { it !in specHidden && it !in savedHidden }
         when (side) {
-            PinnedSide.Left -> visible.take(savedPinned)
-            PinnedSide.Right -> visible.takeLast(savedPinned).asReversed()
+            PinnedSide.Start -> visible.take(savedPinned)
+            PinnedSide.End -> visible.takeLast(savedPinned).asReversed()
         }.forEach { restored.columns.pin(it) }
         return restored
     }
@@ -134,26 +134,26 @@ class TableColumnsStateShowPinnedTest {
         original.columns.pin("d")
         original.columns.moveBy("e", -1)
         assertThat(original.pinnedKeys()).containsExactly("a", "d")
-        assertRestored(original, restore(original, PinnedSide.Left))
+        assertRestored(original, restore(original, PinnedSide.Start))
     }
 
     @Test
     fun `the documented restore recipe brings back order hidden and pins on the right`() {
-        val original = stateWith(pinned = 1, side = PinnedSide.Right, keys = listOf("a", "b", "c", "d", "e"))
+        val original = stateWith(pinned = 1, side = PinnedSide.End, keys = listOf("a", "b", "c", "d", "e"))
         original.columns.hide("d")
         original.columns.pin("b")
         original.columns.moveBy("a", 1)
         assertThat(original.pinnedKeys()).containsExactly("b", "e")
-        assertRestored(original, restore(original, PinnedSide.Right))
+        assertRestored(original, restore(original, PinnedSide.End))
     }
 
     @Test
     fun `the restore recipe counts only rendered columns when the spec hides one`() {
-        val original = stateWith(pinned = 0, side = PinnedSide.Right, keys = listOf("a", "b", "c", "d"))
+        val original = stateWith(pinned = 0, side = PinnedSide.End, keys = listOf("a", "b", "c", "d"))
         original.columns.specVisibleKeys = setOf("a", "c", "d")
         original.columns.pin("d")
         original.columns.pin("c")
-        val restored = restore(original, PinnedSide.Right, specHidden = setOf("b"))
+        val restored = restore(original, PinnedSide.End, specHidden = setOf("b"))
         assertThat(restored.pinnedKeys()).containsExactly("c", "d")
         assertThat(restored.columns.pinnedCount).isEqualTo(2)
         assertThat(restored.columns.hidden.toList()).isEmpty()
@@ -183,7 +183,7 @@ class TableColumnsStateShowPinnedTest {
 
     @Test
     fun `on the right showAll keeps the relative order of columns that sat inside the block`() {
-        val state = stateWith(pinned = 1, side = PinnedSide.Right, keys = listOf("a", "b", "c", "d", "e"))
+        val state = stateWith(pinned = 1, side = PinnedSide.End, keys = listOf("a", "b", "c", "d", "e"))
         state.columns.hide("c")
         state.columns.hide("d")
         state.columns.pin("b")
