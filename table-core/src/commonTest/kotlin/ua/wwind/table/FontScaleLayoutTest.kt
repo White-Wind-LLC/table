@@ -162,6 +162,58 @@ class FontScaleLayoutTest {
         }
 
     @Test
+    fun `a group header sits above the first row of its group`() {
+        for (reorder in listOf(false, true)) {
+            for (scale in listOf(1f, 2f)) {
+                assertGroupHeadersAboveRows(reorder, scale)
+            }
+        }
+    }
+
+    private fun assertGroupHeadersAboveRows(
+        reorder: Boolean,
+        scale: Float,
+    ) = runComposeUiTest {
+        setContent {
+            val state =
+                rememberTableState(
+                    columns = persistentListOf("group", "id"),
+                    settings = TableSettings(rowReorderEnabled = reorder),
+                )
+            remember { state.groupBy("group") }
+            FontScale(scale) {
+                Box(Modifier.size(400.dp, 800.dp)) {
+                    Table(
+                        itemsCount = 4,
+                        itemAt = { Item(it, if (it < 2) "a" else "b") },
+                        state = state,
+                        columns = columns,
+                        onRowMove = if (reorder) { _, _ -> } else null,
+                    )
+                }
+            }
+        }
+        waitForIdle()
+
+        fun groupHeader(value: String) =
+            onAllNodesWithText(value).let { nodes ->
+                nodes
+                    .fetchSemanticsNodes()
+                    .indices
+                    .map { nodes[it].getBoundsInRoot() }
+                    .single { it.width > 200.dp }
+            }
+        val row0 = onNodeWithText("row-0").getBoundsInRoot()
+        val row1 = onNodeWithText("row-1").getBoundsInRoot()
+        val row2 = onNodeWithText("row-2").getBoundsInRoot()
+        assertThat(row0.top, "row-0 top, reorder=$reorder scale=$scale").isGreaterThanOrEqualTo(groupHeader("a").bottom)
+        assertThat(row1.top, "row-1 top, reorder=$reorder scale=$scale").isGreaterThanOrEqualTo(row0.bottom)
+        assertThat(groupHeader("b").top, "header b top, reorder=$reorder scale=$scale")
+            .isGreaterThanOrEqualTo(row1.bottom)
+        assertThat(row2.top, "row-2 top, reorder=$reorder scale=$scale").isGreaterThanOrEqualTo(groupHeader("b").bottom)
+    }
+
+    @Test
     fun `the fast filters row grows with the font`() =
         runComposeUiTest {
             lateinit var state: TableState<String>

@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ### Unreleased
 
+- Fixed: with `groupBy`, the inline group header sits above the first row of its group instead of covering it,
+  and row dividers sit below their rows ([#138](https://github.com/White-Wind-LLC/table/issues/138)).
 - Added: row, header, footer, group header and fast filter heights grow with the system font scale;
   `TableDimensions.scaleWithFontSize` opts out and `TableDimensions.fastFilterRowHeight` sets the fast filters row
   height ([#135](https://github.com/White-Wind-LLC/table/issues/135)).
