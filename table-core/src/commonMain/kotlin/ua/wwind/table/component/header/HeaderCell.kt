@@ -26,6 +26,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.Dp
@@ -63,10 +64,10 @@ internal fun <T : Any, C, E> HeaderCell(
     onOpenFilter: () -> Unit,
     onDismissFilter: () -> Unit,
     onToggleSort: () -> Unit,
-    showLeftDivider: Boolean = false,
-    leftDividerThickness: Dp = dividerThickness,
-    showRightDivider: Boolean = true,
-    /** The pinned-run edge this cell sits on; its right divider then takes the pinned color. */
+    showStartDivider: Boolean = false,
+    startDividerThickness: Dp = dividerThickness,
+    showEndDivider: Boolean = true,
+    /** The pinned-run edge this cell sits on; its end divider then takes the pinned color. */
     pinnedEdge: PinnedEdge = PinnedEdge.None,
     onOpenMenu: (() -> Unit)? = null,
 ) {
@@ -126,10 +127,10 @@ internal fun <T : Any, C, E> HeaderCell(
     }
 
     Row {
-        if (showLeftDivider) {
+        if (showStartDivider) {
             VerticalDivider(
                 modifier = Modifier.fillMaxHeight(),
-                thickness = leftDividerThickness,
+                thickness = startDividerThickness,
                 color = colors.pinnedDividerColor,
             )
         }
@@ -158,11 +159,11 @@ internal fun <T : Any, C, E> HeaderCell(
                 }
             }
         }
-        if (showRightDivider) {
+        if (showEndDivider) {
             VerticalDivider(
                 modifier = Modifier.fillMaxHeight(),
                 thickness = dividerThickness,
-                color = if (pinnedEdge == PinnedEdge.Right) colors.pinnedDividerColor else colors.dividerColor,
+                color = if (pinnedEdge == PinnedEdge.End) colors.pinnedDividerColor else colors.dividerColor,
             )
         }
     }
@@ -233,7 +234,7 @@ private fun <C, E> HeaderContent(
     strings: StringProvider,
     onOpenMenu: (() -> Unit)?,
 ) {
-    val arrangement = (spec.headerAlignment ?: spec.alignment).horizontalArrangement()
+    val arrangement = (spec.headerAlignment ?: spec.alignment).horizontalArrangement(LocalLayoutDirection.current)
     // In an end-aligned header the icon leads, so the title's end lines up with the cells below.
     val sortIconFirst = arrangement == Arrangement.End
     Row(
@@ -320,13 +321,16 @@ private fun HeaderMeasureContent(
     }
 }
 
-/** The horizontal part of this alignment as a row arrangement: start, centre or end. */
-private fun Alignment.horizontalArrangement(): Arrangement.Horizontal {
-    // Aligning a zero-width item in a 2px space yields 0, 1 or 2 for start, centre and end.
-    val x = align(IntSize.Zero, IntSize(2, 0), LayoutDirection.Ltr).x
+/**
+ * The horizontal part of this alignment as a relative row arrangement in [layoutDirection]. An absolute
+ * alignment keeps its physical side, so an absolutely right-aligned title stays on the right in RTL.
+ */
+internal fun Alignment.horizontalArrangement(layoutDirection: LayoutDirection): Arrangement.Horizontal {
+    // Aligning a zero-width item in a 2px space yields the physical position: 0 left, 1 centre, 2 right.
+    val x = align(IntSize.Zero, IntSize(2, 0), layoutDirection).x
     return when {
-        x <= 0 -> Arrangement.Start
-        x >= 2 -> Arrangement.End
-        else -> Arrangement.Center
+        x == 1 -> Arrangement.Center
+        (x <= 0) == (layoutDirection == LayoutDirection.Ltr) -> Arrangement.Start
+        else -> Arrangement.End
     }
 }

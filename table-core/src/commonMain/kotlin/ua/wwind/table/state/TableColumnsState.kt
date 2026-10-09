@@ -39,7 +39,7 @@ public class TableColumnsState<C>
         initialWidths: Map<C, Dp>,
         private val dimensions: TableDimensions,
         initialPinnedCount: Int = 0,
-        private val pinnedSide: PinnedSide = PinnedSide.Left,
+        private val pinnedSide: PinnedSide = PinnedSide.Start,
     ) {
         /** Column keys in render order. */
         public val order: SnapshotStateList<C> =
@@ -246,7 +246,7 @@ public class TableColumnsState<C>
             val toShow = order.filter { it in hidden }
             // Each column lands at the edge, ahead of those placed before it on the left, behind them
             // on the right; walking against that direction keeps the original order.
-            val sequence = if (pinnedSide == PinnedSide.Left) toShow.asReversed() else toShow
+            val sequence = if (pinnedSide == PinnedSide.Start) toShow.asReversed() else toShow
             sequence.forEach { reveal(it) }
         }
 
@@ -263,8 +263,8 @@ public class TableColumnsState<C>
             // The block's outer edge, when the column would otherwise land inside the block.
             val target =
                 when (pinnedSide) {
-                    PinnedSide.Left -> pinned.takeIf { index < pinned }
-                    PinnedSide.Right -> (keys.size - pinned - 1).takeIf { index >= keys.size - pinned }
+                    PinnedSide.Start -> pinned.takeIf { index < pinned }
+                    PinnedSide.End -> (keys.size - pinned - 1).takeIf { index >= keys.size - pinned }
                 } ?: return
             moveVisible(keys, index, target)
         }
@@ -280,8 +280,8 @@ public class TableColumnsState<C>
             if (index < 0) return false
             val pinned = effectivePinnedCount(keys.size)
             return when (pinnedSide) {
-                PinnedSide.Left -> index < pinned
-                PinnedSide.Right -> index >= keys.size - pinned
+                PinnedSide.Start -> index < pinned
+                PinnedSide.End -> index >= keys.size - pinned
             }
         }
 
@@ -298,8 +298,8 @@ public class TableColumnsState<C>
             val pinned = effectivePinnedCount(keys.size)
             val target =
                 when (pinnedSide) {
-                    PinnedSide.Left -> pinned
-                    PinnedSide.Right -> keys.size - pinned - 1
+                    PinnedSide.Start -> pinned
+                    PinnedSide.End -> keys.size - pinned - 1
                 }
             moveVisible(keys, keys.indexOf(column), target)
             pinnedCount = pinned + 1
@@ -312,8 +312,8 @@ public class TableColumnsState<C>
             val pinned = effectivePinnedCount(keys.size)
             val target =
                 when (pinnedSide) {
-                    PinnedSide.Left -> pinned - 1
-                    PinnedSide.Right -> keys.size - pinned
+                    PinnedSide.Start -> pinned - 1
+                    PinnedSide.End -> keys.size - pinned
                 }
             moveVisible(keys, keys.indexOf(column), target)
             pinnedCount = pinned - 1

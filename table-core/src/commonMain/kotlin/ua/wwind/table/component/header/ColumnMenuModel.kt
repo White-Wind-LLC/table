@@ -3,6 +3,7 @@ package ua.wwind.table.component.header
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.key
+import androidx.compose.ui.unit.LayoutDirection
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 import ua.wwind.table.ColumnSpec
@@ -17,6 +18,7 @@ import ua.wwind.table.data.SortOrder
 import ua.wwind.table.filter.data.TableFilterType
 import ua.wwind.table.filter.data.isActive
 import ua.wwind.table.icon.TableIcons
+import ua.wwind.table.isPhysicallyLeft
 import ua.wwind.table.state.ColumnWidthAction
 import ua.wwind.table.state.TableColumnsState
 import ua.wwind.table.state.TableState
@@ -58,6 +60,7 @@ internal fun <C> columnMenuModel(
     state: TableState<C>,
     context: ColumnMenuContext,
     onOpenFilter: () -> Unit,
+    layoutDirection: LayoutDirection,
     hasWidthOverride: Boolean = spec.key in state.columns.widths,
     canAutoFit: Boolean = spec.key in state.columns.contentMaxWidths,
 ): List<ColumnMenuEntrySection> =
@@ -66,7 +69,7 @@ internal fun <C> columnMenuModel(
             listOfNotNull(
                 sortSection(spec, state),
                 filterSection(spec, state, onOpenFilter),
-                layoutSection(spec, state, hasWidthOverride, canAutoFit),
+                layoutSection(spec, state, hasWidthOverride, canAutoFit, layoutDirection),
                 groupSection(spec, state),
                 visibilitySection(spec, state),
             )
@@ -154,14 +157,15 @@ private fun <C> layoutSection(
     state: TableState<C>,
     hasWidthOverride: Boolean,
     canFit: Boolean,
+    layoutDirection: LayoutDirection,
 ): ColumnMenuEntrySection {
     val columns = state.columns
     val key = spec.key
     val entries =
         buildList {
-            add(pinEntry(columns, key, state.settings.pinnedColumnsSide))
-            add(moveEntry(columns, key, -1))
-            add(moveEntry(columns, key, 1))
+            add(pinEntry(columns, key, state.settings.pinnedColumnsSide, layoutDirection))
+            add(moveEntry(columns, key, -1, layoutDirection))
+            add(moveEntry(columns, key, 1, layoutDirection))
             if (spec.resizable) {
                 add(
                     ColumnMenuEntry(
@@ -191,14 +195,16 @@ private fun <C> pinEntry(
     columns: TableColumnsState<C>,
     key: C,
     side: PinnedSide,
+    layoutDirection: LayoutDirection,
 ): ColumnMenuEntry {
     if (columns.isPinned(key)) {
         return ColumnMenuEntry(Ids.Unpin, UiString.ColumnMenuUnpin, TableIcons.PushPinOutlined) { columns.unpin(key) }
     }
     val canPin = columns.canPin(key)
+    val pinsLeft = layoutDirection.isPhysicallyLeft(towardStart = side == PinnedSide.Start)
     return ColumnMenuEntry(
         id = Ids.Pin,
-        label = if (side == PinnedSide.Left) UiString.ColumnMenuPinLeft else UiString.ColumnMenuPinRight,
+        label = if (pinsLeft) UiString.ColumnMenuPinLeft else UiString.ColumnMenuPinRight,
         icon = TableIcons.PushPin,
         enabled = canPin,
         disabledReason = UiString.ColumnMenuReasonLastUnpinned.takeUnless { canPin },
@@ -209,12 +215,20 @@ private fun <C> moveEntry(
     columns: TableColumnsState<C>,
     key: C,
     delta: Int,
+    layoutDirection: LayoutDirection,
 ): ColumnMenuEntry {
     val enabled = columns.canMoveBy(key, delta)
+    val towardStart = delta < 0
     return ColumnMenuEntry(
-        id = if (delta < 0) Ids.MoveLeft else Ids.MoveRight,
-        label = if (delta < 0) UiString.ColumnMenuMoveLeft else UiString.ColumnMenuMoveRight,
-        icon = if (delta < 0) TableIcons.KeyboardArrowLeft else TableIcons.KeyboardArrowRight,
+        id = if (towardStart) Ids.MoveToStart else Ids.MoveToEnd,
+        // The label names the physical side; the auto-mirrored arrow already points there.
+        label =
+            if (layoutDirection.isPhysicallyLeft(towardStart)) {
+                UiString.ColumnMenuMoveLeft
+            } else {
+                UiString.ColumnMenuMoveRight
+            },
+        icon = if (towardStart) TableIcons.KeyboardArrowLeft else TableIcons.KeyboardArrowRight,
         enabled = enabled,
         disabledReason = if (enabled) null else columns.moveBlockedReason(key, delta),
     ) { columns.moveBy(key, delta) }

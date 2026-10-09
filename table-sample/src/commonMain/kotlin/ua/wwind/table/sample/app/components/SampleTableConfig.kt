@@ -18,7 +18,7 @@ data class SampleTableConfig(
     val enableRowReorder: Boolean = false,
     val enableRowBlocks: Boolean = false,
     val pinnedColumnsCount: Int = 0,
-    val pinnedColumnsSide: PinnedSide = PinnedSide.Left,
+    val pinnedColumnsSide: PinnedSide = PinnedSide.Start,
     val showColumnMenuButton: Boolean = false,
     val enableEditing: Boolean = false,
     val useCompactMode: Boolean = true,
@@ -30,4 +30,6 @@ data class SampleTableConfig(
     val showFastFiltersDivider: Boolean = true,
     /** Columns hidden via the sidebar toggle; specs rebuild with `visible = false` for these. */
     val hiddenColumns: Set<PersonColumn> = emptySet(),
+    /** Lays the table and toolbar out right-to-left. */
+    val rtl: Boolean = false,
 )

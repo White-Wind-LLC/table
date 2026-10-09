@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.zIndex
 import kotlinx.collections.immutable.ImmutableList
@@ -43,10 +44,11 @@ internal fun <T : Any, C, E> TableFooterRow(
                     pinnedColumnsCount = pinnedColumnsCount,
                     pinnedColumnsSide = pinnedColumnsSide,
                     horizontalState = horizontalState,
+                    layoutDirection = LocalLayoutDirection.current,
                 )
 
             val dividerThickness =
-                if (pinnedState.isLastLeftPinned) {
+                if (pinnedState.isLastStartPinned) {
                     dimensions.pinnedColumnDividerThickness
                 } else {
                     dimensions.dividerThickness
@@ -64,11 +66,11 @@ internal fun <T : Any, C, E> TableFooterRow(
                 alignment = spec.alignment,
                 tabularFigures = spec.tabularFigures,
                 isSelected = false,
-                showLeftDivider = pinnedState.isFirstRightPinned,
-                leftDividerThickness = dimensions.pinnedColumnDividerThickness,
-                showRightDivider =
-                    !pinnedState.isLastBeforeRightPinned &&
-                        (showVerticalDividers || pinnedState.isLastLeftPinned),
+                showStartDivider = pinnedState.isFirstEndPinned,
+                startDividerThickness = dimensions.pinnedColumnDividerThickness,
+                showEndDivider =
+                    !pinnedState.isLastBeforeEndPinned &&
+                        (showVerticalDividers || pinnedState.isLastStartPinned),
                 isPinned = pinnedState.isPinned,
                 pinnedEdge = pinnedState.edge,
                 hasContentUnderEdge = pinnedState.edge.hasContentUnder(horizontalState),

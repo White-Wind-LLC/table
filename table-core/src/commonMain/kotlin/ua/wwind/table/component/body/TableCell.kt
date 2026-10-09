@@ -45,11 +45,11 @@ internal fun TableCell(
     isSelected: Boolean = false,
     /** Whether the table holds keyboard focus, which turns the selection border into a focus ring. */
     isTableFocused: Boolean = false,
-    showLeftDivider: Boolean = false,
-    leftDividerThickness: Dp = dividerThickness,
-    showRightDivider: Boolean = true,
+    showStartDivider: Boolean = false,
+    startDividerThickness: Dp = dividerThickness,
+    showEndDivider: Boolean = true,
     isPinned: Boolean = false,
-    /** The pinned-run edge this cell sits on; its right divider then takes the pinned color. */
+    /** The pinned-run edge this cell sits on; its end divider then takes the pinned color. */
     pinnedEdge: PinnedEdge = PinnedEdge.None,
     /** Whether content scrolls under [pinnedEdge], which fades in the edge shadow. */
     hasContentUnderEdge: Boolean = false,
@@ -79,10 +79,10 @@ internal fun TableCell(
     val resolvedAlignment = if (cellStyle.alignment != Alignment.CenterStart) cellStyle.alignment else alignment
 
     Row(modifier = modifier.then(decorationModifier.shadow)) {
-        if (showLeftDivider) {
+        if (showStartDivider) {
             VerticalDivider(
                 modifier = (if (height != null) Modifier.height(height) else Modifier.fillMaxHeight()),
-                thickness = leftDividerThickness,
+                thickness = startDividerThickness,
                 color = colors.pinnedDividerColor,
             )
         }
@@ -139,11 +139,11 @@ internal fun TableCell(
             }
         }
 
-        if (showRightDivider) {
+        if (showEndDivider) {
             VerticalDivider(
                 modifier = (if (height != null) Modifier.height(height) else Modifier.fillMaxHeight()),
                 thickness = dividerThickness,
-                color = if (pinnedEdge == PinnedEdge.Right) colors.pinnedDividerColor else colors.dividerColor,
+                color = if (pinnedEdge == PinnedEdge.End) colors.pinnedDividerColor else colors.dividerColor,
             )
         }
     }

@@ -19,10 +19,20 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.unit.LayoutDirection
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.canStartEditAt
 import ua.wwind.table.config.SelectionMode
 import ua.wwind.table.state.TableState
+
+/** The arrow as if the layout were LTR: in RTL ← means "toward the end" and → "toward the start". */
+internal fun Key.logicalArrow(layoutDirection: LayoutDirection): Key =
+    when {
+        layoutDirection == LayoutDirection.Ltr -> this
+        this == Key.DirectionLeft -> Key.DirectionRight
+        this == Key.DirectionRight -> Key.DirectionLeft
+        else -> this
+    }
 
 @Suppress("LongParameterList")
 internal fun <T : Any, C> Modifier.tableKeyboardNavigation(
@@ -35,6 +45,7 @@ internal fun <T : Any, C> Modifier.tableKeyboardNavigation(
     onRowClick: ((T) -> Unit)?,
     onExitToHeader: (column: C?) -> Unit,
     onOpenColumnMenu: (column: C?) -> Unit,
+    layoutDirection: LayoutDirection,
 ): Modifier =
     this
         .focusRequester(focusRequester)
@@ -65,7 +76,7 @@ internal fun <T : Any, C> Modifier.tableKeyboardNavigation(
 
                 else -> {
                     handleCellActionKey(event, itemAt, state, visibleColumns, onRowClick) ||
-                        handleNavigationKey(event, itemsCount, state, visibleColumns, verticalState)
+                        handleNavigationKey(event, itemsCount, state, visibleColumns, verticalState, layoutDirection)
                 }
             }
         }.onKeyEvent { event -> state.handleBubbledBodyKey(event, itemsCount, visibleColumns, focusRequester) }
@@ -232,6 +243,7 @@ private fun <T : Any, C> handleNavigationKey(
     state: TableState<C>,
     visibleColumns: List<ColumnSpec<T, C, *>>,
     verticalState: LazyListState,
+    layoutDirection: LayoutDirection,
 ): Boolean {
     val colKeys = visibleColumns.map { it.key }
     val cell = state.selection.selectedCell
@@ -245,6 +257,7 @@ private fun <T : Any, C> handleNavigationKey(
             // Ctrl/Cmd turns a step into a jump to the far edge.
             jumpToEdge = event.isCtrlPressed || event.isMetaPressed,
             pagedRow = { forward -> state.pagedRow(verticalState, cell?.rowIndex ?: 0, forward) },
+            layoutDirection = layoutDirection,
         ) ?: return false
     state.moveSelectionTo(targetRow, targetColIndex, itemsCount, colKeys)
     return true
@@ -264,8 +277,9 @@ private fun navigationTarget(
     lastColIndex: Int,
     jumpToEdge: Boolean,
     pagedRow: (forward: Boolean) -> Int,
+    layoutDirection: LayoutDirection,
 ): Pair<Int, Int>? =
-    when (event.key) {
+    when (event.key.logicalArrow(layoutDirection)) {
         Key.DirectionRight -> currentRow to currentColIndex + 1
         Key.DirectionLeft -> currentRow to currentColIndex - 1
         Key.DirectionDown -> (if (jumpToEdge) itemsCount - 1 else currentRow + 1) to currentColIndex

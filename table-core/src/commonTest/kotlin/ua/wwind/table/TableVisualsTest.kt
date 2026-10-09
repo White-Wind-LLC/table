@@ -12,6 +12,7 @@ import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.v2.runComposeUiTest
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import assertk.assertThat
 import assertk.assertions.isEqualTo
@@ -19,6 +20,9 @@ import assertk.assertions.isFalse
 import assertk.assertions.isLessThan
 import assertk.assertions.isTrue
 import kotlinx.collections.immutable.toImmutableList
+import ua.wwind.table.component.body.selectionIndicatorLeft
+import ua.wwind.table.component.pinnedShadowLeft
+import ua.wwind.table.component.shadowTouchesCellOnItsLeft
 import ua.wwind.table.config.PinnedSide
 import ua.wwind.table.config.TableColors
 import ua.wwind.table.config.TableDefaults
@@ -50,9 +54,40 @@ class TableVisualsTest {
         (0 until width).any { x -> (0 until height).any { y -> this[x, y] == color } }
 
     @Test
+    fun `the end-edge shadow lies after the cell in LTR and before it in RTL`() {
+        assertThat(pinnedShadowLeft(PinnedEdge.End, LayoutDirection.Ltr, cellWidth = 100f, shadowWidth = 8f))
+            .isEqualTo(100f)
+        assertThat(pinnedShadowLeft(PinnedEdge.End, LayoutDirection.Rtl, cellWidth = 100f, shadowWidth = 8f))
+            .isEqualTo(-8f)
+    }
+
+    @Test
+    fun `the start-edge shadow lies before the cell in LTR and after it in RTL`() {
+        assertThat(pinnedShadowLeft(PinnedEdge.Start, LayoutDirection.Ltr, cellWidth = 100f, shadowWidth = 8f))
+            .isEqualTo(-8f)
+        assertThat(pinnedShadowLeft(PinnedEdge.Start, LayoutDirection.Rtl, cellWidth = 100f, shadowWidth = 8f))
+            .isEqualTo(100f)
+    }
+
+    @Test
+    fun `the shadow is darkest where it touches the cell`() {
+        // Right of the cell: darkest at its left end. Left of the cell: darkest at its right end.
+        assertThat(shadowTouchesCellOnItsLeft(100f)).isTrue()
+        assertThat(shadowTouchesCellOnItsLeft(-8f)).isFalse()
+    }
+
+    @Test
+    fun `the selection bar sits at the viewport start in both directions`() {
+        assertThat(selectionIndicatorLeft(LayoutDirection.Ltr, scroll = 40f, barWidth = 3f, rowWidth = 500f))
+            .isEqualTo(40f)
+        assertThat(selectionIndicatorLeft(LayoutDirection.Rtl, scroll = 40f, barWidth = 3f, rowWidth = 500f))
+            .isEqualTo(457f)
+    }
+
+    @Test
     fun `a left-pinned edge has content under it only once scrolled`() {
-        assertThat(PinnedEdge.Right.hasContentUnder(ScrollState(0))).isFalse()
-        assertThat(PinnedEdge.Right.hasContentUnder(ScrollState(10))).isTrue()
+        assertThat(PinnedEdge.End.hasContentUnder(ScrollState(0))).isFalse()
+        assertThat(PinnedEdge.End.hasContentUnder(ScrollState(10))).isTrue()
         assertThat(PinnedEdge.None.hasContentUnder(ScrollState(10))).isFalse()
     }
 
@@ -93,7 +128,7 @@ class TableVisualsTest {
                             TableSettings(
                                 showVerticalDividers = false,
                                 pinnedColumnsCount = 1,
-                                pinnedColumnsSide = PinnedSide.Left,
+                                pinnedColumnsSide = PinnedSide.Start,
                             ),
                     )
                 dimensions = state.dimensions

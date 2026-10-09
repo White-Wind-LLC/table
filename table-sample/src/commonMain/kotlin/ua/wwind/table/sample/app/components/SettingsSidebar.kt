@@ -99,6 +99,12 @@ fun SettingsSidebar(
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                     SettingSwitch(
+                        label = "Right-to-left",
+                        checked = config.rtl,
+                        onCheckedChange = { onConfigChange(config.copy(rtl = it)) },
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    SettingSwitch(
                         label = "Striped rows",
                         checked = config.useStripedRows,
                         onCheckedChange = { onConfigChange(config.copy(useStripedRows = it)) },
@@ -251,15 +257,15 @@ fun SettingsSidebar(
                         Text("Pinned side")
                         SingleChoiceSegmentedButtonRow {
                             SegmentedButton(
-                                selected = config.pinnedColumnsSide == PinnedSide.Left,
-                                onClick = { onConfigChange(config.copy(pinnedColumnsSide = PinnedSide.Left)) },
+                                selected = config.pinnedColumnsSide == PinnedSide.Start,
+                                onClick = { onConfigChange(config.copy(pinnedColumnsSide = PinnedSide.Start)) },
                                 shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
-                            ) { Text("Left") }
+                            ) { Text("Start") }
                             SegmentedButton(
-                                selected = config.pinnedColumnsSide == PinnedSide.Right,
-                                onClick = { onConfigChange(config.copy(pinnedColumnsSide = PinnedSide.Right)) },
+                                selected = config.pinnedColumnsSide == PinnedSide.End,
+                                onClick = { onConfigChange(config.copy(pinnedColumnsSide = PinnedSide.End)) },
                                 shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
-                            ) { Text("Right") }
+                            ) { Text("End") }
                         }
                     }
 

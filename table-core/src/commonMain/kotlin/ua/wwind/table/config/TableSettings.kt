@@ -41,8 +41,8 @@ public data class TableSettings(
      * [ua.wwind.table.state.TableColumnsState.pinnedCount] on `TableState.columns`.
      */
     val pinnedColumnsCount: Int = 0,
-    /** Side to pin columns to */
-    val pinnedColumnsSide: PinnedSide = PinnedSide.Left,
+    /** Side to pin columns to: [PinnedSide.Start] pins the leading columns, [PinnedSide.End] the trailing ones. */
+    val pinnedColumnsSide: PinnedSide = PinnedSide.Start,
     /**
      * Enable cell editing mode for the table. When disabled, all column-level edit settings are
      * ignored.
@@ -87,10 +87,22 @@ public enum class SelectionMode {
     Multiple,
 }
 
-/** Side to pin columns to. */
+/** Side to pin columns to, relative to the layout direction. */
 public enum class PinnedSide {
-    Left,
-    Right,
+    /** The leading columns: physically left in LTR, right in RTL. */
+    Start,
+
+    /** The trailing columns: physically right in LTR, left in RTL. */
+    End,
+    ;
+
+    public companion object {
+        @Deprecated("Pins the leading columns, which are on the right in RTL.", ReplaceWith("PinnedSide.Start"))
+        public val Left: PinnedSide get() = Start
+
+        @Deprecated("Pins the trailing columns, which are on the left in RTL.", ReplaceWith("PinnedSide.End"))
+        public val Right: PinnedSide get() = End
+    }
 }
 
 /** Row height behavior. */

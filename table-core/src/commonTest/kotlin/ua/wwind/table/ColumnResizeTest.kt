@@ -5,16 +5,21 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Text
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.getBoundsInRoot
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performMouseInput
 import androidx.compose.ui.test.v2.runComposeUiTest
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import assertk.assertThat
 import assertk.assertions.isEqualTo
@@ -91,6 +96,86 @@ class ColumnResizeTest {
             assertThat(
                 resizeScrollPullback(boundaryAfter, horizontalState.value, horizontalState.viewportSize),
             ).isEqualTo(0f)
+        }
+
+    @Test
+    fun `dragging the last boundary physically left widens it and scrolls after it in RTL`() =
+        runComposeUiTest {
+            lateinit var state: TableState<String>
+            lateinit var horizontalState: ScrollState
+
+            setContent {
+                state = rememberTableState(columns = persistentListOf("a", "b"))
+                horizontalState = rememberScrollState()
+                CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+                    Box(Modifier.size(600.dp, 400.dp)) {
+                        Table(
+                            itemsCount = 1,
+                            itemAt = { "row" },
+                            state = state,
+                            columns = columns,
+                            horizontalState = horizontalState,
+                        )
+                    }
+                }
+            }
+
+            waitForIdle()
+            runOnIdle { horizontalState.dispatchRawDelta(10_000f) }
+            waitForIdle()
+
+            val scrollBeforeResize = horizontalState.value
+            val divider = state.dimensions.dividerThickness
+            val boundaryPx = with(density) { (state.tableWidth - divider).toPx() }
+            // The LTR grab point, mirrored across the viewport.
+            val ltrGrabX = boundaryPx - scrollBeforeResize - with(density) { 2.dp.toPx() }
+            val grabX = horizontalState.viewportSize - ltrGrabX
+            val grabY = with(density) { (state.dimensions.headerHeight / 2).toPx() }
+
+            onRoot().performMouseInput {
+                moveTo(Offset(grabX, grabY))
+                press()
+                repeat(4) { moveBy(Offset(-20f, 0f)) }
+                release()
+            }
+            waitForIdle()
+
+            val resized = state.columns.widths["b"]
+            assertThat(resized).isNotNull()
+            assertThat(resized!!.value).isGreaterThan(500f)
+            assertThat(horizontalState.value).isGreaterThan(scrollBeforeResize)
+        }
+
+    @Test
+    fun `dragging the first boundary physically right narrows the first column in RTL`() =
+        runComposeUiTest {
+            lateinit var state: TableState<String>
+
+            setContent {
+                state = rememberTableState(columns = persistentListOf("a", "b"))
+                CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+                    Box(Modifier.size(1000.dp, 400.dp)) {
+                        Table(itemsCount = 1, itemAt = { "row" }, state = state, columns = columns)
+                    }
+                }
+            }
+            waitForIdle()
+
+            // In RTL the boundary after column "a" is the physical left edge of its header cell.
+            val grabX = with(density) { (onNodeWithText("A").getBoundsInRoot().left + 2.dp).toPx() }
+            val grabY = with(density) { (state.dimensions.headerHeight / 2).toPx() }
+
+            onRoot().performMouseInput {
+                moveTo(Offset(grabX, grabY))
+                press()
+                repeat(4) { moveBy(Offset(20f, 0f)) }
+                release()
+            }
+            waitForIdle()
+
+            val resized = state.columns.widths["a"]
+            assertThat(resized).isNotNull()
+            assertThat(resized!!.value).isLessThan(500f)
         }
 
     @Test

@@ -29,6 +29,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
@@ -131,6 +132,20 @@ internal fun <T : Any, C, E> ActiveFilterChips(
     val scope = rememberCoroutineScope()
     // Also shown outside a Table, so it reads the motion setting from the state, not the table's local.
     val motion = rememberTableMotionSpecs(state.settings.motion)
+    // The arrows are auto-mirrored and scroll toward the start or the end; their labels name the physical side.
+    val layoutDirection = LocalLayoutDirection.current
+    val backwardLabel =
+        if (layoutDirection.isPhysicallyLeft(towardStart = true)) {
+            UiString.FilterChipsScrollLeft
+        } else {
+            UiString.FilterChipsScrollRight
+        }
+    val forwardLabel =
+        if (layoutDirection.isPhysicallyLeft(towardStart = false)) {
+            UiString.FilterChipsScrollLeft
+        } else {
+            UiString.FilterChipsScrollRight
+        }
 
     Column(modifier) {
         Row(
@@ -159,7 +174,7 @@ internal fun <T : Any, C, E> ActiveFilterChips(
                 listState = listState,
                 enabled = listState.canScrollBackward,
                 icon = TableIcons.KeyboardArrowLeft,
-                contentDescription = strings.get(UiString.FilterChipsScrollLeft),
+                contentDescription = strings.get(backwardLabel),
                 modifier = Modifier.padding(end = 4.dp),
                 onClick = {
                     scope.launch(motion.scrollContext) {
@@ -199,7 +214,7 @@ internal fun <T : Any, C, E> ActiveFilterChips(
                 listState = listState,
                 enabled = listState.canScrollForward,
                 icon = TableIcons.KeyboardArrowRight,
-                contentDescription = strings.get(UiString.FilterChipsScrollRight),
+                contentDescription = strings.get(forwardLabel),
                 modifier = Modifier.padding(start = 4.dp),
                 onClick = {
                     scope.launch(motion.scrollContext) {

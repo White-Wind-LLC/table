@@ -45,6 +45,7 @@ import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
@@ -367,6 +368,7 @@ public fun <T : Any, C, E> EditableTable(
                                     onRowClick = onRowClick,
                                     onExitToHeader = state::focusHeaderFromBody,
                                     onOpenColumnMenu = state::openColumnMenuFromBody,
+                                    layoutDirection = LocalLayoutDirection.current,
                                 ),
                             ) {
                                 val bubbledKeyHandler =
@@ -797,6 +799,7 @@ private fun Modifier.tableInteractionModifiers(
                     enableScrolling = enableScrolling,
                     enableDragToScroll = enableDragToScroll,
                     coroutineScope = coroutineScope,
+                    layoutDirection = LocalLayoutDirection.current,
                 )
             },
         )

@@ -26,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerHoverIcon
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -85,6 +86,7 @@ internal fun <T : Any, C, E> TableHeaderRow(
                     pinnedColumnsCount = state.columns.pinnedCount,
                     pinnedColumnsSide = settings.pinnedColumnsSide,
                     horizontalState = horizontalState,
+                    layoutDirection = LocalLayoutDirection.current,
                 )
 
             val shadowAlpha =
@@ -153,7 +155,7 @@ internal fun <T : Any, C, E> TableHeaderRow(
                                     .headerFocusRing(state.showsHeaderFocusRing(spec.key)),
                         ) {
                             val dividerThickness =
-                                if (pinnedState.isLastLeftPinned) {
+                                if (pinnedState.isLastStartPinned) {
                                     style.dimensions.pinnedColumnDividerThickness
                                 } else {
                                     style.dimensions.dividerThickness
@@ -170,11 +172,11 @@ internal fun <T : Any, C, E> TableHeaderRow(
                                 onOpenFilter = { onFilterColumnChange(spec.key) },
                                 onDismissFilter = { onFilterColumnChange(null) },
                                 onToggleSort = { state.setSort(spec.key) },
-                                showLeftDivider = pinnedState.isFirstRightPinned,
-                                leftDividerThickness = style.dimensions.pinnedColumnDividerThickness,
-                                showRightDivider =
-                                    !pinnedState.isLastBeforeRightPinned &&
-                                        (state.settings.showVerticalDividers || pinnedState.isLastLeftPinned),
+                                showStartDivider = pinnedState.isFirstEndPinned,
+                                startDividerThickness = style.dimensions.pinnedColumnDividerThickness,
+                                showEndDivider =
+                                    !pinnedState.isLastBeforeEndPinned &&
+                                        (state.settings.showVerticalDividers || pinnedState.isLastStartPinned),
                                 pinnedEdge = pinnedState.edge,
                                 onOpenMenu = openMenu.takeIf { state.settings.showColumnMenuButton },
                             )

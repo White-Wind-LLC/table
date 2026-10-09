@@ -42,7 +42,7 @@ class DividerWidthTest {
             TableSettings(
                 showVerticalDividers = false,
                 pinnedColumnsCount = 2,
-                pinnedColumnsSide = PinnedSide.Left,
+                pinnedColumnsSide = PinnedSide.Start,
             )
         val expected = List(8) { if (it == 1) dimensions.pinnedColumnDividerThickness else 0.dp }
         assertThat(widths(settings)).isEqualTo(expected)
@@ -54,7 +54,7 @@ class DividerWidthTest {
             TableSettings(
                 showVerticalDividers = false,
                 pinnedColumnsCount = 2,
-                pinnedColumnsSide = PinnedSide.Right,
+                pinnedColumnsSide = PinnedSide.End,
             )
         val expected = List(8) { if (it == 5) dimensions.pinnedColumnDividerThickness else 0.dp }
         assertThat(widths(settings)).isEqualTo(expected)
@@ -66,7 +66,7 @@ class DividerWidthTest {
             TableSettings(
                 showVerticalDividers = false,
                 pinnedColumnsCount = 8,
-                pinnedColumnsSide = PinnedSide.Left,
+                pinnedColumnsSide = PinnedSide.Start,
             )
         assertThat(widths(settings)).isEqualTo(List(8) { 0.dp })
     }

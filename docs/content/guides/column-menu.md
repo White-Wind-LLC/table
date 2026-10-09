@@ -103,9 +103,9 @@ LaunchedEffect(state) {
     val specVisible = columns.filter { it.visible }.map { it.key }.toSet()
     val visible = saved.order.filter { it in specVisible && it !in saved.hidden }
     when (settings.pinnedColumnsSide) {
-        PinnedSide.Left -> visible.take(saved.pinnedCount)
+        PinnedSide.Start -> visible.take(saved.pinnedCount)
         // pin() grows the block inwards, so pin the outermost column first.
-        PinnedSide.Right -> visible.takeLast(saved.pinnedCount).asReversed()
+        PinnedSide.End -> visible.takeLast(saved.pinnedCount).asReversed()
     }.forEach { state.columns.pin(it) }
 }
 ```

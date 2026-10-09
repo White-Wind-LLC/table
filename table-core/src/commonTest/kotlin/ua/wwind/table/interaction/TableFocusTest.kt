@@ -5,11 +5,13 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
@@ -23,6 +25,7 @@ import androidx.compose.ui.test.performMouseInput
 import androidx.compose.ui.test.pressKey
 import androidx.compose.ui.test.v2.runComposeUiTest
 import androidx.compose.ui.test.withKeyDown
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import assertk.assertThat
 import assertk.assertions.isEqualTo
@@ -66,7 +69,10 @@ class TableFocusTest {
         fun selectedCell(): Pair<Int, String>? = state().selection.selectedCell?.let { it.rowIndex to it.column }
     }
 
-    private fun ComposeUiTest.showTableBetweenFocusables(embedded: Boolean = false): Fixture {
+    private fun ComposeUiTest.showTableBetweenFocusables(
+        embedded: Boolean = false,
+        layoutDirection: LayoutDirection = LayoutDirection.Ltr,
+    ): Fixture {
         lateinit var state: TableState<String>
         var tableHasFocus = false
         val before = FocusRequester()
@@ -85,13 +91,15 @@ class TableFocusTest {
                         .focusable(),
                 )
                 Box(Modifier.size(400.dp, 300.dp).onFocusChanged { tableHasFocus = it.hasFocus }) {
-                    Table(
-                        itemsCount = 3,
-                        itemAt = { "row-$it" },
-                        state = state,
-                        columns = columns,
-                        embedded = embedded,
-                    )
+                    CompositionLocalProvider(LocalLayoutDirection provides layoutDirection) {
+                        Table(
+                            itemsCount = 3,
+                            itemAt = { "row-$it" },
+                            state = state,
+                            columns = columns,
+                            embedded = embedded,
+                        )
+                    }
                 }
                 Box(Modifier.size(10.dp).testTag("after").focusable())
             }
@@ -200,6 +208,19 @@ class TableFocusTest {
 
             press(Key.DirectionDown)
             press(Key.DirectionRight)
+
+            assertThat(fixture.selectedCell()).isEqualTo(1 to "copy")
+        }
+
+    @Test
+    fun `the left arrow moves to the next column in RTL`() =
+        desktopOnlyTest {
+            val fixture = showTableBetweenFocusables(layoutDirection = LayoutDirection.Rtl)
+            press(Key.Tab)
+            press(Key.Tab)
+
+            press(Key.DirectionDown)
+            press(Key.DirectionLeft)
 
             assertThat(fixture.selectedCell()).isEqualTo(1 to "copy")
         }
