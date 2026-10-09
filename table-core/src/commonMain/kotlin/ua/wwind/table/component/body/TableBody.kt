@@ -466,68 +466,71 @@ internal fun <T : Any, C, E> TableBodyRow(
     val viewportWidthDp = with(density) { horizontalState.viewportSize.toDp() }
     val layoutDirection = LocalLayoutDirection.current
 
-    val item = itemAt(index)
-    val groupKey = state.groupBy
-    val groupSpec =
-        if (groupKey != null) visibleColumns.firstOrNull { it.key == groupKey } else null
-    if (item != null && groupSpec != null) {
-        val currentValue = groupSpec.valueOf(item)
-        val previousValue =
-            if (index > 0) itemAt(index - 1)?.let { groupSpec.valueOf(it) } else null
-        if (index == 0 || currentValue != previousValue) {
-            Box(
-                modifier =
-                    Modifier.graphicsLayer {
-                        translationX = layoutDirection.sign(horizontalState.value.toFloat())
-                    },
-            ) {
-                Column {
-                    GroupHeaderCell(
-                        value = currentValue,
-                        item = item,
-                        tableData = tableData,
-                        spec = groupSpec,
-                        width = viewportWidthDp,
-                        height = state.effectiveDimensions.rowHeight,
-                        colors = colors,
-                        customization = customization,
-                    )
-                    if (state.settings.showRowDividers) {
-                        HorizontalDivider(
-                            modifier = Modifier.width(viewportWidthDp),
-                            thickness = state.effectiveDimensions.dividerThickness,
-                            color = currentTableColors().dividerColor,
+    // Callers wrap rows in a Box (animateItem, drag lift), which would stack these siblings.
+    Column {
+        val item = itemAt(index)
+        val groupKey = state.groupBy
+        val groupSpec =
+            if (groupKey != null) visibleColumns.firstOrNull { it.key == groupKey } else null
+        if (item != null && groupSpec != null) {
+            val currentValue = groupSpec.valueOf(item)
+            val previousValue =
+                if (index > 0) itemAt(index - 1)?.let { groupSpec.valueOf(it) } else null
+            if (index == 0 || currentValue != previousValue) {
+                Box(
+                    modifier =
+                        Modifier.graphicsLayer {
+                            translationX = layoutDirection.sign(horizontalState.value.toFloat())
+                        },
+                ) {
+                    Column {
+                        GroupHeaderCell(
+                            value = currentValue,
+                            item = item,
+                            tableData = tableData,
+                            spec = groupSpec,
+                            width = viewportWidthDp,
+                            height = state.effectiveDimensions.rowHeight,
+                            colors = colors,
+                            customization = customization,
                         )
+                        if (state.settings.showRowDividers) {
+                            HorizontalDivider(
+                                modifier = Modifier.width(viewportWidthDp),
+                                thickness = state.effectiveDimensions.dividerThickness,
+                                color = currentTableColors().dividerColor,
+                            )
+                        }
                     }
                 }
             }
         }
-    }
 
-    TableRowItem(
-        item = item,
-        index = index,
-        isInRowBlock = isInRowBlock,
-        visibleColumns = visibleColumns,
-        state = state,
-        colors = colors,
-        customization = customization,
-        tableData = tableData,
-        rowEmbedded = rowEmbedded,
-        placeholderRow = placeholderRow,
-        onRowClick = onRowClick,
-        onRowLongClick = onRowLongClick,
-        onContextMenu = onContextMenu,
-        requestTableFocus = requestTableFocus,
-        horizontalState = horizontalState,
-    )
-
-    if (state.settings.showRowDividers) {
-        HorizontalDivider(
-            modifier = Modifier.width(state.tableWidth),
-            thickness = state.effectiveDimensions.dividerThickness,
-            color = currentTableColors().dividerColor,
+        TableRowItem(
+            item = item,
+            index = index,
+            isInRowBlock = isInRowBlock,
+            visibleColumns = visibleColumns,
+            state = state,
+            colors = colors,
+            customization = customization,
+            tableData = tableData,
+            rowEmbedded = rowEmbedded,
+            placeholderRow = placeholderRow,
+            onRowClick = onRowClick,
+            onRowLongClick = onRowLongClick,
+            onContextMenu = onContextMenu,
+            requestTableFocus = requestTableFocus,
+            horizontalState = horizontalState,
         )
+
+        if (state.settings.showRowDividers) {
+            HorizontalDivider(
+                modifier = Modifier.width(state.tableWidth),
+                thickness = state.effectiveDimensions.dividerThickness,
+                color = currentTableColors().dividerColor,
+            )
+        }
     }
 }
 
