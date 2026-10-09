@@ -368,6 +368,7 @@ public fun <T : Any, C, E> EditableTable(
                                     onRowClick = onRowClick,
                                     onExitToHeader = state::focusHeaderFromBody,
                                     onOpenColumnMenu = state::openColumnMenuFromBody,
+                                    layoutDirection = LocalLayoutDirection.current,
                                 ),
                             ) {
                                 val bubbledKeyHandler =

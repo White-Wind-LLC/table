@@ -13,6 +13,7 @@ import androidx.compose.ui.input.key.isShiftPressed
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.unit.LayoutDirection
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.config.isInteractionLockByRowReorderEnabled
 import ua.wwind.table.state.TableState
@@ -21,13 +22,14 @@ import ua.wwind.table.state.TableState
 internal fun KeyEvent.isColumnMenuKey(): Boolean = (key == Key.F10 && isShiftPressed) || key == Key.Menu
 
 /**
- * The header row as one Tab stop. ←/→/Home/End move between columns, Enter/Space sorts,
- * Shift+F10 / Menu / Alt+↓ open the column menu, and ↓ moves focus into the body.
+ * The header row as one Tab stop. ←/→ (mirrored in RTL), Home and End move between columns,
+ * Enter/Space sorts, Shift+F10 / Menu / Alt+↓ open the column menu, and ↓ moves focus into the body.
  */
 internal fun <C> Modifier.tableHeaderKeyboardNavigation(
     state: TableState<C>,
     visibleColumns: List<ColumnSpec<*, C, *>>,
     onEnterBody: () -> Unit,
+    layoutDirection: LayoutDirection,
 ): Modifier =
     this
         .focusRequester(state.headerFocusRequester)
@@ -47,7 +49,8 @@ internal fun <C> Modifier.tableHeaderKeyboardNavigation(
         }.focusTarget()
         .onPreviewKeyEvent { event ->
             val handled =
-                event.type == KeyEventType.KeyDown && handleHeaderKey(event, state, visibleColumns, onEnterBody)
+                event.type == KeyEventType.KeyDown &&
+                    handleHeaderKey(event, state, visibleColumns, onEnterBody, layoutDirection)
             if (handled) state.isHeaderFocusFromKeyboard = true
             handled
         }
@@ -90,6 +93,7 @@ private fun <C> handleHeaderKey(
     state: TableState<C>,
     visibleColumns: List<ColumnSpec<*, C, *>>,
     onEnterBody: () -> Unit,
+    layoutDirection: LayoutDirection,
 ): Boolean {
     val keys = visibleColumns.map { it.key }
     val current = state.focusedHeaderColumn?.takeIf { it in keys } ?: keys.firstOrNull() ?: return false
@@ -115,7 +119,7 @@ private fun <C> handleHeaderKey(
         }
 
         else -> {
-            val target = headerTarget(event.key, index, keys.lastIndex) ?: return false
+            val target = headerTarget(event.key.logicalArrow(layoutDirection), index, keys.lastIndex) ?: return false
             state.focusedHeaderColumn = keys[target]
             true
         }
