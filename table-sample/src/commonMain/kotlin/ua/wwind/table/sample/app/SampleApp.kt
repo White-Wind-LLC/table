@@ -280,7 +280,9 @@ fun SampleApp(
                 },
                 gesturesEnabled = true,
             ) {
-                CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+                CompositionLocalProvider(
+                    LocalLayoutDirection provides if (tableConfig.rtl) LayoutDirection.Rtl else LayoutDirection.Ltr,
+                ) {
                     Surface(modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
                         Box(
                             modifier =

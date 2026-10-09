@@ -99,6 +99,12 @@ fun SettingsSidebar(
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                     SettingSwitch(
+                        label = "Right-to-left",
+                        checked = config.rtl,
+                        onCheckedChange = { onConfigChange(config.copy(rtl = it)) },
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    SettingSwitch(
                         label = "Striped rows",
                         checked = config.useStripedRows,
                         onCheckedChange = { onConfigChange(config.copy(useStripedRows = it)) },

@@ -30,4 +30,6 @@ data class SampleTableConfig(
     val showFastFiltersDivider: Boolean = true,
     /** Columns hidden via the sidebar toggle; specs rebuild with `visible = false` for these. */
     val hiddenColumns: Set<PersonColumn> = emptySet(),
+    /** Lays the table and toolbar out right-to-left. */
+    val rtl: Boolean = false,
 )

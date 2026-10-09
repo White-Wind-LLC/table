@@ -126,17 +126,19 @@ The `rtl` direction comes from `LocalLayoutDirection.current` unless stated othe
    Home, End and Tab are index-based and stay unchanged.
 8. **Header content arrangement** (`component/header/HeaderCell.kt`). The alignment-to-arrangement
    conversion uses the real layout direction instead of the hardcoded `LayoutDirection.Ltr`, and
-   returns `Arrangement.Absolute.Left/Right` for `AbsoluteAlignment` values, so an absolutely
-   right-aligned title stays physically on the right. `sortIconFirst` follows the resulting side.
+   maps the physical side back to a relative arrangement for the current direction, so an absolutely
+   right-aligned title stays physically on the right and the sort icon stays on its inner side.
+   (Absolute arrangements would not reverse the child order in RTL.)
 9. **Column menu at the pointer** (`component/header/ColumnHeaderDropdownMenuBox.kt`). Material3
    `DropdownMenu` anchors to the right edge and negates `offset.x` in RTL, so the pointer offset is
    `x = anchorWidth - pointer.x` in RTL.
 10. **Menu labels and icons** (`component/header/ColumnMenuModel.kt`). The model builder takes
     `layoutDirection`.
     - Pin: `Start` in LTR or `End` in RTL → `ColumnMenuPinLeft`; otherwise `ColumnMenuPinRight`.
-    - Move: toward the start in LTR or toward the end in RTL → `ColumnMenuMoveLeft` with
-      `KeyboardArrowLeft`; otherwise `ColumnMenuMoveRight` with `KeyboardArrowRight`. Ids are
-      `MoveToStart` / `MoveToEnd` by logical direction.
+    - Move: toward the start in LTR or toward the end in RTL → `ColumnMenuMoveLeft`; otherwise
+      `ColumnMenuMoveRight`. Ids are `MoveToStart` / `MoveToEnd` by logical direction.
+    - Icons stay logical (`KeyboardArrowLeft` toward the start): they are auto-mirrored drawables.
+      Only labels follow the physical side.
 11. **Filter chip scroll buttons** (`TableActiveFilters.kt`). Verify during implementation. If the
     button with the left arrow scrolls toward the start in RTL, its label `FilterChipsScrollLeft` is
     wrong; then pick the label by direction as in §3.10. Otherwise no change.
