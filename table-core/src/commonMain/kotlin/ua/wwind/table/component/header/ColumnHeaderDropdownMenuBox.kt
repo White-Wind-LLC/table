@@ -35,8 +35,11 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.DpOffset
@@ -53,6 +56,7 @@ import ua.wwind.table.platform.getPlatform
 import ua.wwind.table.platform.isMobile
 import ua.wwind.table.state.ColumnMenuRequest
 import ua.wwind.table.state.TableState
+import ua.wwind.table.strings.UiString
 import ua.wwind.table.strings.currentStrings
 
 /**
@@ -92,10 +96,9 @@ internal fun <T : Any, C, E> ColumnHeaderDropdownMenuBox(
         }
     }
     val onTap by rememberUpdatedState {
-        if (spec.sortable && spec.headerClickToSort && !state.settings.isInteractionLockByRowReorderEnabled) {
-            state.setSort(spec.key)
-        }
+        if (spec.sortsOnHeaderTap(state)) state.setSort(spec.key)
     }
+    val headerSort = headerSortSemantics(spec, state, context)
 
     Box(
         modifier =
@@ -108,7 +111,7 @@ internal fun <T : Any, C, E> ColumnHeaderDropdownMenuBox(
                     onTap = { onTap() },
                 ).then(
                     if (context == ColumnMenuContext.Header) {
-                        Modifier.columnMenuActions(sections.flatMap { it.items })
+                        Modifier.columnHeaderSemantics(sections.flatMap { it.items }, headerSort)
                     } else {
                         Modifier
                     },
@@ -295,13 +298,54 @@ internal fun Modifier.headerHandlePress(state: TableState<*>): Modifier =
         }
     }
 
+/** How a click-to-sort heading presents itself to screen readers: a [label]led button with a sort [state]. */
+private class HeaderSortSemantics(
+    val label: String,
+    val state: String,
+    val onSort: () -> Unit,
+)
+
+/** Whether a tap on [this] column's header sorts it. */
+private fun ColumnSpec<*, *, *>.sortsOnHeaderTap(state: TableState<*>): Boolean =
+    sortable && headerClickToSort && !state.settings.isInteractionLockByRowReorderEnabled
+
+/** The sort semantics of a column header in [context], or null when a tap on it does not sort. */
+@Composable
+private fun <C> headerSortSemantics(
+    spec: ColumnSpec<*, C, *>,
+    state: TableState<C>,
+    context: ColumnMenuContext,
+): HeaderSortSemantics? {
+    if (context != ColumnMenuContext.Header || !spec.sortsOnHeaderTap(state)) return null
+    val strings = currentStrings()
+    val order = state.sort?.takeIf { it.column == spec.key }?.order
+    return HeaderSortSemantics(
+        label = strings.get(UiString.HeaderSort),
+        state = sortStateDescription(order, strings),
+        onSort = { state.setSort(spec.key) },
+    )
+}
+
 /**
  * Marks the header and exposes the enabled [items] as accessibility custom actions. The header's text
- * merges in, so the heading is announced by its title; its buttons keep nodes of their own.
+ * merges in, so the heading is announced by its title; its buttons keep nodes of their own. With
+ * [sort], the heading is also a button that sorts and reports the sort order as its state; it stays
+ * out of keyboard focus, which the header row's single Tab stop handles.
  */
-private fun Modifier.columnMenuActions(items: List<ColumnMenuItem>): Modifier =
+private fun Modifier.columnHeaderSemantics(
+    items: List<ColumnMenuItem>,
+    sort: HeaderSortSemantics?,
+): Modifier =
     semantics(mergeDescendants = true) {
         heading()
+        if (sort != null) {
+            role = Role.Button
+            stateDescription = sort.state
+            onClick(label = sort.label) {
+                sort.onSort()
+                true
+            }
+        }
         val actions = items.filter { it.enabled }
         if (actions.isNotEmpty()) {
             customActions =

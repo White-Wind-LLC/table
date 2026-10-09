@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ### Unreleased
 
+- Changed: a click-to-sort header is a sort button for screen readers with a "Not sorted" / "Sorted …" state;
+  adds `UiString.HeaderNotSorted` ([#79](https://github.com/White-Wind-LLC/table/issues/79)).
 - Changed: icon-only controls (sort, filter, chip scroll arrows, condition expand / remove) have localized
   names, the sort order is announced; no hardcoded English left; adds 12 `UiString` keys ([#78](https://github.com/White-Wind-LLC/table/issues/78)).
 - Changed: screen readers get the table structure: grid size, cell positions, selected cell and row, header and

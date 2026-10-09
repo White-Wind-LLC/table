@@ -242,6 +242,9 @@ public sealed class UiString {
     /** State of a column sorted descending. */
     public object HeaderSortedDescending : UiString()
 
+    /** State of a sortable column that is not sorted. */
+    public object HeaderNotSorted : UiString()
+
     /** Name of the header's filter button while the column has no active filter. */
     public object HeaderFilter : UiString()
 
@@ -573,6 +576,8 @@ public object DefaultStrings : StringProvider {
             UiString.HeaderSortedAscending -> "Sorted ascending"
 
             UiString.HeaderSortedDescending -> "Sorted descending"
+
+            UiString.HeaderNotSorted -> "Not sorted"
 
             UiString.HeaderFilter -> "Filter"
 
