@@ -42,12 +42,7 @@ internal fun SortButton(
             null -> icons.sortNeutral
         }
     val sortName = strings.get(UiString.HeaderSort)
-    val sortedState: String? =
-        when (order) {
-            SortOrder.ASCENDING -> strings.get(UiString.HeaderSortedAscending)
-            SortOrder.DESCENDING -> strings.get(UiString.HeaderSortedDescending)
-            null -> null
-        }
+    val sortedState = sortStateDescription(order, strings)
     Box(
         contentAlignment = Alignment.Center,
         modifier =
@@ -61,12 +56,10 @@ internal fun SortButton(
                             .clickable(role = Role.Button) { onToggle() }
                             .semantics {
                                 contentDescription = sortName
-                                if (sortedState != null) stateDescription = sortedState
+                                stateDescription = sortedState
                             }
-                    } else if (sortedState != null) {
-                        // The header itself sorts, so the order merges into the heading's label.
-                        Modifier.semantics { contentDescription = sortedState }
                     } else {
+                        // The header itself sorts and reports the order (see columnHeaderSemantics).
                         Modifier
                     },
                 ),
@@ -84,6 +77,18 @@ internal fun SortButton(
         )
     }
 }
+
+/** The sort state a screen reader announces: sorted ascending, sorted descending or not sorted. */
+@Composable
+internal fun sortStateDescription(
+    order: SortOrder?,
+    strings: StringProvider,
+): String =
+    when (order) {
+        SortOrder.ASCENDING -> strings.get(UiString.HeaderSortedAscending)
+        SortOrder.DESCENDING -> strings.get(UiString.HeaderSortedDescending)
+        null -> strings.get(UiString.HeaderNotSorted)
+    }
 
 /** The sort icon's tint: [primary] while the column is sorted, a dimmed [contentColor] otherwise. */
 internal fun sortIconTint(

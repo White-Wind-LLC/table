@@ -5,7 +5,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.SemanticsMatcher
@@ -15,6 +18,7 @@ import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isHeading
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.v2.runComposeUiTest
 import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.persistentListOf
@@ -31,9 +35,13 @@ import ua.wwind.table.strings.StringProvider
 import ua.wwind.table.strings.UiString
 import ua.wwind.table.tableColumns
 import kotlin.test.Test
+import kotlin.test.assertEquals
 
 private fun hasStateDescription(value: String) =
     SemanticsMatcher.expectValue(SemanticsProperties.StateDescription, value)
+
+private fun hasClickLabel(label: String) =
+    SemanticsMatcher("onClick label is $label") { it.config.getOrNull(SemanticsActions.OnClick)?.label == label }
 
 private object UkrainianStrings : StringProvider {
     @Composable
@@ -45,7 +53,10 @@ private object UkrainianStrings : StringProvider {
         }
 }
 
-/** Icon-only header controls and the active-filter scroll arrows are named through [StringProvider] (#78). */
+/**
+ * Icon-only header controls and the active-filter scroll arrows are named through [StringProvider] (#78);
+ * a click-to-sort heading is a sort button for screen readers (#79).
+ */
 @OptIn(ExperimentalTestApi::class)
 class HeaderAccessibleLabelsTest {
     private fun columns(clickToSort: Boolean) =
@@ -64,10 +75,11 @@ class HeaderAccessibleLabelsTest {
     private fun ComposeUiTest.setTable(
         clickToSort: Boolean = false,
         strings: StringProvider = DefaultStrings,
+        settings: TableSettings = TableSettings(),
     ): TableState<String> {
         lateinit var state: TableState<String>
         setContent {
-            state = rememberTableState(columns = persistentListOf("name"))
+            state = rememberTableState(columns = persistentListOf("name"), settings = settings)
             Box(Modifier.size(400.dp)) {
                 Table(
                     itemsCount = 1,
@@ -86,8 +98,7 @@ class HeaderAccessibleLabelsTest {
     fun `the sort button is named sort and reports the sort order as its state`() =
         runComposeUiTest {
             val state = setTable()
-            val noState = SemanticsMatcher.keyNotDefined(SemanticsProperties.StateDescription)
-            onNodeWithContentDescription("Sort").assert(noState)
+            onNodeWithContentDescription("Sort").assert(hasStateDescription("Not sorted"))
 
             state.setSort("name", SortOrder.ASCENDING)
             waitForIdle()
@@ -99,20 +110,42 @@ class HeaderAccessibleLabelsTest {
         }
 
     @Test
-    fun `with click to sort the heading announces the sort order`() =
+    fun `with click to sort the heading is a sort button that reports the sort order as its state`() =
         runComposeUiTest {
             val state = setTable(clickToSort = true)
             val heading = onNode(isHeading() and hasText("Name"))
-            heading.assert(hasContentDescription("Sort").not())
+            heading.assert(SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Button))
+            heading.assert(hasClickLabel("Sort"))
+            heading.assert(hasStateDescription("Not sorted"))
             heading.assert(hasContentDescription("Sorted ascending").not())
 
             state.setSort("name", SortOrder.ASCENDING)
             waitForIdle()
-            heading.assert(hasContentDescription("Sorted ascending"))
+            heading.assert(hasStateDescription("Sorted ascending"))
+            heading.assert(hasContentDescription("Sorted ascending").not())
 
             state.setSort("name", SortOrder.DESCENDING)
             waitForIdle()
-            heading.assert(hasContentDescription("Sorted descending"))
+            heading.assert(hasStateDescription("Sorted descending"))
+        }
+
+    @Test
+    fun `with click to sort activating the heading sorts the column`() =
+        runComposeUiTest {
+            val state = setTable(clickToSort = true)
+            onNode(isHeading() and hasText("Name")).performSemanticsAction(SemanticsActions.OnClick)
+            waitForIdle()
+            assertEquals(SortOrder.ASCENDING, state.sort?.order)
+        }
+
+    @Test
+    fun `while rows reorder the heading is not a sort button`() =
+        runComposeUiTest {
+            setTable(clickToSort = true, settings = TableSettings(rowReorderEnabled = true))
+            val heading = onNode(isHeading() and hasText("Name"))
+            heading.assert(SemanticsMatcher.keyNotDefined(SemanticsActions.OnClick))
+            heading.assert(SemanticsMatcher.keyNotDefined(SemanticsProperties.Role))
+            heading.assert(SemanticsMatcher.keyNotDefined(SemanticsProperties.StateDescription))
         }
 
     @Test
