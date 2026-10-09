@@ -126,4 +126,62 @@ class TableDefaultColorsTest {
             assertThat(r.groupContentColor).isEqualTo(Color.Yellow)
             assertThat(r.stickyGroupContainerColor).isEqualTo(Color.DarkGray)
         }
+
+    @Test
+    fun `header accents stay primary on the default header`() =
+        runComposeUiTest {
+            var primary: Color? = null
+            var resolved: TableColors? = null
+            setContent {
+                val p = MaterialTheme.colorScheme.primary
+                val r = TableDefaults.colors().resolve()
+                SideEffect {
+                    primary = p
+                    resolved = r
+                }
+            }
+
+            waitForIdle()
+            assertThat(resolved?.headerSortIconActiveColor).isEqualTo(primary)
+            assertThat(resolved?.headerFocusIndicatorColor).isEqualTo(primary)
+        }
+
+    @Test
+    fun `header accents fall back to the header content color on a primary header`() =
+        runComposeUiTest {
+            var onPrimary: Color? = null
+            var resolved: TableColors? = null
+            setContent {
+                val s = MaterialTheme.colorScheme
+                val r = TableDefaults.colors(headerContainerColor = s.primary).resolve()
+                SideEffect {
+                    onPrimary = s.onPrimary
+                    resolved = r
+                }
+            }
+
+            waitForIdle()
+            assertThat(resolved?.headerSortIconActiveColor).isEqualTo(onPrimary)
+            assertThat(resolved?.headerFocusIndicatorColor).isEqualTo(onPrimary)
+        }
+
+    @Test
+    fun `explicit header accents survive a low contrast header`() =
+        runComposeUiTest {
+            var resolved: TableColors? = null
+            setContent {
+                val r =
+                    TableDefaults
+                        .colors(
+                            headerContainerColor = Color.Red,
+                            headerSortIconActiveColor = Color.Red,
+                            headerFocusIndicatorColor = Color.Red,
+                        ).resolve()
+                SideEffect { resolved = r }
+            }
+
+            waitForIdle()
+            assertThat(resolved?.headerSortIconActiveColor).isEqualTo(Color.Red)
+            assertThat(resolved?.headerFocusIndicatorColor).isEqualTo(Color.Red)
+        }
 }

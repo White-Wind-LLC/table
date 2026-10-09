@@ -53,6 +53,10 @@ public object TableDefaults {
         hoverColor: Color = MaterialTheme.colorScheme.onSurface,
         groupContentColor: Color = MaterialTheme.colorScheme.contentColorFor(groupContainerColor),
         stickyGroupContainerColor: Color = groupContainerColor,
+        /** Kept [Color.Unspecified] so it resolves to `primary` only where `primary` contrasts with the header. */
+        headerSortIconActiveColor: Color = Color.Unspecified,
+        /** Kept [Color.Unspecified] so it follows [focusIndicatorColor] only on a header that color contrasts with. */
+        headerFocusIndicatorColor: Color = Color.Unspecified,
     ): TableColors =
         TableColors(
             headerContainerColor = headerContainerColor,
@@ -72,6 +76,8 @@ public object TableDefaults {
             hoverColor = hoverColor,
             groupContentColor = groupContentColor,
             stickyGroupContainerColor = stickyGroupContainerColor,
+            headerSortIconActiveColor = headerSortIconActiveColor,
+            headerFocusIndicatorColor = headerFocusIndicatorColor,
         )
 
     /** Default [TableTypography] derived from [androidx.compose.material3.MaterialTheme.typography]. */

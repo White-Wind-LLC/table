@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -20,6 +19,7 @@ import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import ua.wwind.table.component.TableHeaderIcons
+import ua.wwind.table.config.currentTableColors
 import ua.wwind.table.data.SortOrder
 import ua.wwind.table.strings.StringProvider
 import ua.wwind.table.strings.UiString
@@ -72,7 +72,7 @@ internal fun SortButton(
                 sortIconTint(
                     order = order,
                     contentColor = LocalContentColor.current,
-                    primary = MaterialTheme.colorScheme.primary,
+                    activeColor = currentTableColors().headerSortIconActiveColor,
                 ),
         )
     }
@@ -90,12 +90,12 @@ internal fun sortStateDescription(
         null -> strings.get(UiString.HeaderNotSorted)
     }
 
-/** The sort icon's tint: [primary] while the column is sorted, a dimmed [contentColor] otherwise. */
+/** The sort icon's tint: [activeColor] while the column is sorted, a dimmed [contentColor] otherwise. */
 internal fun sortIconTint(
     order: SortOrder?,
     contentColor: Color,
-    primary: Color,
-): Color = if (order != null) primary else contentColor.copy(alpha = NEUTRAL_SORT_ICON_ALPHA)
+    activeColor: Color,
+): Color = if (order != null) activeColor else contentColor.copy(alpha = NEUTRAL_SORT_ICON_ALPHA)
 
 /** Material's disabled-content emphasis: visible enough to signal sortability without competing. */
 private const val NEUTRAL_SORT_ICON_ALPHA = 0.38f

@@ -8,7 +8,11 @@ import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.compositeOver
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.takeOrElse
+import kotlin.math.max
+import kotlin.math.min
 
 /** Color palette used by the table header and rows. */
 @Immutable
@@ -50,6 +54,16 @@ public data class TableColors(
     val groupContentColor: Color = Color.Unspecified,
     /** Group header pinned to the top while its rows scroll. [Color.Unspecified] resolves to [groupContainerColor]. */
     val stickyGroupContainerColor: Color = Color.Unspecified,
+    /**
+     * Sort icon of a sorted column. [Color.Unspecified] resolves to `primary`, or to
+     * [headerContentColor] when `primary` falls under 3:1 contrast with [headerContainerColor].
+     */
+    val headerSortIconActiveColor: Color = Color.Unspecified,
+    /**
+     * Keyboard focus ring of a header cell. [Color.Unspecified] resolves to [focusIndicatorColor], or to
+     * [headerContentColor] when that falls under 3:1 contrast with [headerContainerColor].
+     */
+    val headerFocusIndicatorColor: Color = Color.Unspecified,
 )
 
 /**
@@ -60,18 +74,39 @@ public data class TableColors(
 @ReadOnlyComposable
 internal fun TableColors.resolve(): TableColors {
     val scheme = MaterialTheme.colorScheme
+    val resolvedFocusIndicatorColor = focusIndicatorColor.takeOrElse { scheme.primary }
     return copy(
         rowBlockContainerColor = rowBlockContainerColor.takeOrElse { scheme.surfaceContainerHighest },
         rowSelectedIndicatorColor = rowSelectedIndicatorColor.takeOrElse { scheme.primary },
         dividerColor = dividerColor.takeOrElse { scheme.outlineVariant },
         pinnedDividerColor = pinnedDividerColor.takeOrElse { scheme.outlineVariant },
         borderColor = borderColor.takeOrElse { scheme.outlineVariant },
-        focusIndicatorColor = focusIndicatorColor.takeOrElse { scheme.primary },
+        focusIndicatorColor = resolvedFocusIndicatorColor,
         hoverColor = hoverColor.takeOrElse { scheme.onSurface },
         groupContentColor = groupContentColor.takeOrElse { scheme.contentColorFor(groupContainerColor) },
         stickyGroupContainerColor = stickyGroupContainerColor.takeOrElse { groupContainerColor },
+        headerSortIconActiveColor = headerSortIconActiveColor.takeOrElse { headerAccent(scheme.primary) },
+        headerFocusIndicatorColor = headerFocusIndicatorColor.takeOrElse { headerAccent(resolvedFocusIndicatorColor) },
     )
 }
+
+/** [accent] when it keeps the WCAG 1.4.11 non-text contrast with the header, else the header content color. */
+private fun TableColors.headerAccent(accent: Color): Color =
+    if (contrastRatio(accent, headerContainerColor) >= MIN_NON_TEXT_CONTRAST) accent else headerContentColor
+
+/** WCAG 2 contrast ratio, compositing a translucent [background] over white. */
+private fun contrastRatio(
+    foreground: Color,
+    background: Color,
+): Float {
+    val solidBackground = background.compositeOver(Color.White)
+    val fg = foreground.compositeOver(solidBackground).luminance()
+    val bg = solidBackground.luminance()
+    return (max(fg, bg) + LUMINANCE_OFFSET) / (min(fg, bg) + LUMINANCE_OFFSET)
+}
+
+private const val MIN_NON_TEXT_CONTRAST = 3f
+private const val LUMINANCE_OFFSET = 0.05f
 
 /** Resolved colors set by the table root; null only for components composed outside a table. */
 internal val LocalTableColors: ProvidableCompositionLocal<TableColors?> = staticCompositionLocalOf { null }

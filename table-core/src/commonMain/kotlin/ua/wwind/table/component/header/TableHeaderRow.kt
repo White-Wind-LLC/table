@@ -213,13 +213,13 @@ internal fun <T : Any, C, E> TableHeaderRow(
     }
 }
 
-/** The keyboard focus ring of a header cell: the same border a focused body cell shows. */
+/** The keyboard focus ring of a header cell: a focused body cell's border, in the header's own color. */
 @Composable
 private fun Modifier.headerFocusRing(focused: Boolean): Modifier =
     if (focused) {
         border(
             currentTableState().effectiveDimensions.focusIndicatorWidth,
-            currentTableColors().focusIndicatorColor,
+            currentTableColors().headerFocusIndicatorColor,
             RoundedCornerShape(2.dp),
         )
     } else {
