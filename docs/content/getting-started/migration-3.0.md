@@ -2,8 +2,9 @@
 
 3.0.0 collects the accessibility, keyboard, right-to-left and visual work done after 2.4.1, and
 removes what 2.x deprecated. Everything that changed is listed here, in the order you are likely to
-hit it. The compiler flags every change except the new visual defaults in the
-[last section](#new-visual-defaults).
+hit it. The compiler flags source changes; it does not flag the new visual defaults in the
+[last section](#new-visual-defaults), resource packaging on iOS and web, or libraries
+[compiled against 2.x](#recompile).
 
 ## Icons are Compose resources
 
@@ -113,9 +114,8 @@ object UkStrings : StringProvider {
 
 ## Deprecated in 3.0, removed in 4.0
 
-These still exist but are deprecated at ERROR level: a call site no longer compiles, and
-`@Suppress("DEPRECATION")` does not silence it. The IDE quick fix still applies where a direct
-replacement exists.
+These still compile, with a deprecation warning, and are removed in 4.0. The IDE quick fix applies
+where a direct replacement exists.
 
 | Deprecated                                 | Use instead                                                                                       |
 |--------------------------------------------|---------------------------------------------------------------------------------------------------|
@@ -126,9 +126,11 @@ replacement exists.
 
 ## Recompile
 
-New parameters change the JVM signatures of `Table`, `EditableTable`, the paged `Table`, and the
-constructors and `copy` of `TableDimensions` and `TableSettings`. A library compiled against 2.x
-that calls them fails at runtime with `NoSuchMethodError` until it is recompiled against 3.0.
+Binary compatibility with 2.x is broken. Among others, new parameters change the JVM signatures of
+`Table`, `EditableTable`, the paged `Table` and `TableDefaults.colors`, and the constructors and
+`copy` of `TableDimensions`, `TableSettings`, `TableColors` and `ColumnSpec`; `PinnedSide.Left` and
+`Right` are no longer enum entries. A library compiled against 2.x fails at runtime with
+`NoSuchMethodError` or `NoSuchFieldError` until it is recompiled against 3.0.
 
 ## New visual defaults
 
@@ -137,9 +139,9 @@ own carries through; to get the 2.x look back, pass the old value explicitly.
 
 | Change                                                                          | Old look                                                                                         |
 |---------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------|
-| Selected row is `secondaryContainer` with a leading indicator bar               | `TableDefaults.colors(rowSelectedContainerColor = MaterialTheme.colorScheme.tertiary)` and `TableDimensions(selectionIndicatorWidth = 0.dp)` |
+| Selected row is `secondaryContainer` with a leading indicator bar               | `TableDefaults.colors(rowSelectedContainerColor = MaterialTheme.colorScheme.tertiary)` and `TableDefaults.standardDimensions().copy(selectionIndicatorWidth = 0.dp)` |
 | Striped rows are `surfaceContainerLow`                                          | `TableDefaults.colors(stripedRowContainerColor = MaterialTheme.colorScheme.surfaceContainerLowest)` |
 | Header, body, footer and group rows have their own text styles                  | `Table(typography = TableDefaults.typography(...))`                                              |
-| Headers follow the column's `alignment`                                         | `headerAlign(Alignment.CenterStart)` on the column                                               |
-| Row, header, footer, group and fast filter heights grow with the system font size | `TableDimensions(scaleWithFontSize = false)`                                                   |
+| Headers follow the column's `alignment`                                         | `headerAlign(Alignment.Center)` on the column (2.x centered headers)                                              |
+| Row, header, footer, group and fast filter heights grow with the system font size | `TableDefaults.standardDimensions().copy(scaleWithFontSize = false)`                                                  |
 | Rows animate to their new place after a sort                                    | `TableSettings(motion = TableMotion.Reduced)`                                                    |

@@ -40,7 +40,7 @@ val items by pager.flow.collectAsState(initial = null)
 Table(items = items, state = state, columns = columns)
 ```
 
-`handleLoadState` no longer compiles as of 3.0.0 and is removed in 4.0; the table covers what it did.
+`handleLoadState` is deprecated and removed in 4.0; the table covers what it did.
 
 ## Row keys never move the pager
 
@@ -124,7 +124,7 @@ every emission however little of the window actually changed.
 `table-paging` declares those types stable for its own compilation, so the `Table` overloads above
 are already covered. A stability configuration only governs the module doing the compiling, so if
 your own composables take a `PagingData` — a screen, a view-model-bound wrapper, a `LazyColumn`
-that renders its own load states — you need the same file in your build.
+using the deprecated `handleLoadState` — you need the same file in your build.
 
 `paging-core` ships it as
 [`compose_compiler_config.conf`](https://github.com/White-Wind-LLC/paging-kmp/blob/main/compose_compiler_config.conf)

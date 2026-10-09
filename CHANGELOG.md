@@ -16,10 +16,7 @@ for the consolidated version.
 
 - Removed (breaking): `ExperimentalTableApi`, deprecated since 2.0.0, and the `TableState` forwarders
   deprecated in 2.1.0 (`columnOrder`, `toggleSelect`, `editingRow`, …); use `columns`, `selection` and
-  `editing` ([migration guide](https://white-wind-llc.github.io/table/getting-started/migration-3.0/)).
-- Changed (breaking): `PinnedSide.Left` / `Right`, `TableActiveFilters` without `tableData` and
-  `handleLoadState` are deprecated at ERROR level and removed in 4.0.
-- Fixed: with `groupBy`, the inline group header sits above the first row of its group instead of covering it,
+  `editing` ([migration guide](https://white-wind-llc.github.io/table/getting-started/migration-3.0/)).- Fixed: with `groupBy`, the inline group header sits above the first row of its group instead of covering it,
   and row dividers sit below their rows ([#138](https://github.com/White-Wind-LLC/table/issues/138)).
 - Added: row, header, footer, group header and fast filter heights grow with the system font scale;
   `TableDimensions.scaleWithFontSize` opts out and `TableDimensions.fastFilterRowHeight` sets the fast filters row

@@ -93,7 +93,6 @@ public fun <T : Any, C, E> TableActiveFilters(
 @Deprecated(
     "Pass tableData so that clicking a chip opens its filter panel. Removed in 4.0.",
     ReplaceWith("TableActiveFilters(columns, state, tableData, modifier, strings, includeClearAllChip)"),
-    level = DeprecationLevel.ERROR,
 )
 @Composable
 @Suppress("LongParameterList")

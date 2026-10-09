@@ -100,14 +100,12 @@ public enum class PinnedSide {
         @Deprecated(
             "Pins the leading columns, which are on the right in RTL. Removed in 4.0.",
             ReplaceWith("PinnedSide.Start"),
-            level = DeprecationLevel.ERROR,
         )
         public val Left: PinnedSide get() = Start
 
         @Deprecated(
             "Pins the trailing columns, which are on the left in RTL. Removed in 4.0.",
             ReplaceWith("PinnedSide.End"),
-            level = DeprecationLevel.ERROR,
         )
         public val Right: PinnedSide get() = End
     }
