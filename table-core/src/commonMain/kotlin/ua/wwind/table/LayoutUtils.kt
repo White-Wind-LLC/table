@@ -33,7 +33,10 @@ internal fun <C> computeAutoWidths(
         }
     }
 
-/** A horizontal delta measured toward the end edge, as a physical (left-to-right) delta; the mapping is its own inverse. */
+/**
+ * A horizontal delta measured toward the end edge, as a physical (left-to-right) delta; the mapping
+ * is its own inverse.
+ */
 internal fun LayoutDirection.sign(x: Float): Float = if (this == LayoutDirection.Rtl) -x else x
 
 /**
