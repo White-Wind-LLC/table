@@ -76,6 +76,8 @@ Compose:
       - LocalEditCellFocusRequester
       - LocalTableTypography
       - LocalTableColors
+      # Internal: carries the table's key handler to edit cells, past the row clickable.
+      - LocalBubbledBodyKeyHandler
   CompositionLocalNaming:
     active: true
   ContentEmitterReturningValues:

@@ -84,6 +84,16 @@ public data class ColumnSpec<T : Any, C, E>(
     val tabularFigures: Boolean = false,
 )
 
+/**
+ * Whether a click or a key may start editing this column's cell of row [index]: the table, the
+ * column and the row all have to allow it, and [ColumnSpec.canStartEdit] gets the final say.
+ */
+internal fun <T : Any> ColumnSpec<T, *, *>.canStartEditAt(
+    item: T,
+    index: Int,
+    editingEnabled: Boolean,
+): Boolean = editingEnabled && editable && (canStartEdit?.invoke(item, index) ?: true)
+
 /** DSL builder for a list of readonly [ColumnSpec]. */
 public class ReadonlyTableColumnsBuilder<T : Any, C, E> internal constructor() {
     private val specs = mutableListOf<ColumnSpec<T, C, E>>()

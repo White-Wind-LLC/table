@@ -37,6 +37,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollDispatcher
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
@@ -75,9 +76,11 @@ import ua.wwind.table.interaction.ApplyAutoWidthEffect
 import ua.wwind.table.interaction.ApplyAutoWidthEmbeddedEffect
 import ua.wwind.table.interaction.ContextMenuState
 import ua.wwind.table.interaction.EnsureSelectedCellVisibleEffect
+import ua.wwind.table.interaction.LocalBubbledBodyKeyHandler
 import ua.wwind.table.interaction.draggableTable
 import ua.wwind.table.interaction.enterBodyFromHeader
 import ua.wwind.table.interaction.focusHeaderFromBody
+import ua.wwind.table.interaction.handleBubbledBodyKey
 import ua.wwind.table.interaction.openColumnMenuFromBody
 import ua.wwind.table.interaction.tableKeyboardNavigation
 import ua.wwind.table.platform.getPlatform
@@ -357,17 +360,32 @@ public fun <T : Any, C, E> EditableTable(
                                 Modifier.tableKeyboardNavigation(
                                     focusRequester = tableFocusRequester,
                                     itemsCount = itemsCount,
+                                    itemAt = effectiveItemAt,
                                     state = state,
                                     visibleColumns = visibleColumns,
                                     verticalState = verticalState,
+                                    onRowClick = onRowClick,
                                     onExitToHeader = state::focusHeaderFromBody,
                                     onOpenColumnMenu = state::openColumnMenuFromBody,
                                 ),
                             ) {
-                                if (state.settings.enableTextSelection && state.editing.rowIndex == null) {
-                                    SelectionContainer { bodyContent() }
-                                } else {
-                                    bodyContent()
+                                val bubbledKeyHandler =
+                                    remember(state, itemsCount, visibleColumns) {
+                                        { event: KeyEvent ->
+                                            state.handleBubbledBodyKey(
+                                                event,
+                                                itemsCount,
+                                                visibleColumns,
+                                                tableFocusRequester,
+                                            )
+                                        }
+                                    }
+                                CompositionLocalProvider(LocalBubbledBodyKeyHandler provides bubbledKeyHandler) {
+                                    if (state.settings.enableTextSelection && state.editing.rowIndex == null) {
+                                        SelectionContainer { bodyContent() }
+                                    } else {
+                                        bodyContent()
+                                    }
                                 }
                             }
                         }

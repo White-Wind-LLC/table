@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ### Unreleased
 
+- Added: keyboard Enter/F2 to edit, Enter to commit or open the row, Ctrl/Cmd+Enter, Shift+Tab while editing,
+  Space to toggle selection ([#80](https://github.com/White-Wind-LLC/table/issues/80)).
 - Changed: a click-to-sort header is a sort button for screen readers with a "Not sorted" / "Sorted …" state;
   adds `UiString.HeaderNotSorted` ([#79](https://github.com/White-Wind-LLC/table/issues/79)).
 - Changed: icon-only controls (sort, filter, chip scroll arrows, condition expand / remove) have localized
