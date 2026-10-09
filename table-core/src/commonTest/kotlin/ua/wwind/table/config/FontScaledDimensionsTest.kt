@@ -4,6 +4,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import assertk.assertThat
 import assertk.assertions.isCloseTo
@@ -74,6 +75,14 @@ class FontScaledDimensionsTest {
         val custom = TableTypography(header = fallback, body = fallback, footer = fallback, groupHeader = fallback)
         val scaled = standard.scaledForFont(custom, density(2f))
         assertThat(scaled.headerHeight.value).isCloseTo(68f, 0.01f)
+    }
+
+    @Test
+    fun `an em line height is relative to the font size`() {
+        val em = TextStyle(fontSize = 14.sp, lineHeight = 1.5.em)
+        val custom = TableTypography(header = em, body = em, footer = em, groupHeader = em)
+        val scaled = standard.scaledForFont(custom, density(2f))
+        assertThat(scaled.headerHeight.value).isCloseTo(56f + 21f, 0.01f)
     }
 
     @Test
