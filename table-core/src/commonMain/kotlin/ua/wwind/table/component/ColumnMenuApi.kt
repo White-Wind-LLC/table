@@ -99,11 +99,11 @@ public object ColumnMenuDefaults {
         /** Unpin the column. */
         public val Unpin: ColumnMenuItemId = ColumnMenuItemId("unpin")
 
-        /** Move the column one step left. */
-        public val MoveLeft: ColumnMenuItemId = ColumnMenuItemId("move-left")
+        /** Move the column one step toward the start: left in LTR, right in RTL. */
+        public val MoveToStart: ColumnMenuItemId = ColumnMenuItemId("move-start")
 
-        /** Move the column one step right. */
-        public val MoveRight: ColumnMenuItemId = ColumnMenuItemId("move-right")
+        /** Move the column one step toward the end: right in LTR, left in RTL. */
+        public val MoveToEnd: ColumnMenuItemId = ColumnMenuItemId("move-end")
 
         /** Fit the column width to its content. */
         public val AutoFit: ColumnMenuItemId = ColumnMenuItemId("auto-fit")

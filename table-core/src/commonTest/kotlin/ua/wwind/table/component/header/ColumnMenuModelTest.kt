@@ -3,6 +3,7 @@ package ua.wwind.table.component.header
 import androidx.compose.material3.Text
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.v2.runComposeUiTest
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import assertk.assertThat
 import assertk.assertions.contains
@@ -23,6 +24,7 @@ import ua.wwind.table.config.TableSettings
 import ua.wwind.table.data.SortOrder
 import ua.wwind.table.filter.data.TableFilterState
 import ua.wwind.table.filter.data.TableFilterType
+import ua.wwind.table.icon.TableIcons
 import ua.wwind.table.state.ColumnWidthAction
 import ua.wwind.table.state.SortState
 import ua.wwind.table.state.TableState
@@ -67,7 +69,8 @@ class ColumnMenuModelTest {
         state: TableState<String>,
         key: String,
         context: ColumnMenuContext = ColumnMenuContext.Header,
-    ) = columnMenuModel(spec(key), state, context, onOpenFilter = {})
+        layoutDirection: LayoutDirection = LayoutDirection.Ltr,
+    ) = columnMenuModel(spec(key), state, context, onOpenFilter = {}, layoutDirection = layoutDirection)
 
     private fun List<ColumnMenuEntrySection>.ids(): List<ColumnMenuItemId> = flatMap { s -> s.entries.map { it.id } }
 
@@ -84,8 +87,8 @@ class ColumnMenuModelTest {
             Ids.SortDescending,
             Ids.OpenFilter,
             Ids.Pin,
-            Ids.MoveLeft,
-            Ids.MoveRight,
+            Ids.MoveToStart,
+            Ids.MoveToEnd,
             Ids.AutoFit,
             Ids.ResetWidth,
             Ids.GroupBy,
@@ -151,12 +154,12 @@ class ColumnMenuModelTest {
     @Test
     fun `move items explain the edge they hit`() {
         val state = stateWith(TableSettings(pinnedColumnsCount = 1))
-        assertThat(model(state, "full").entry(Ids.MoveLeft).disabledReason).isEqualTo(UiString.ColumnMenuReasonFirst)
+        assertThat(model(state, "full").entry(Ids.MoveToStart).disabledReason).isEqualTo(UiString.ColumnMenuReasonFirst)
         assertThat(
-            model(state, "full").entry(Ids.MoveRight).disabledReason,
+            model(state, "full").entry(Ids.MoveToEnd).disabledReason,
         ).isEqualTo(UiString.ColumnMenuReasonPinnedEdge)
-        assertThat(model(state, "last").entry(Ids.MoveRight).disabledReason).isEqualTo(UiString.ColumnMenuReasonLast)
-        assertThat(model(state, "plain").entry(Ids.MoveRight).disabledReason).isNull()
+        assertThat(model(state, "last").entry(Ids.MoveToEnd).disabledReason).isEqualTo(UiString.ColumnMenuReasonLast)
+        assertThat(model(state, "plain").entry(Ids.MoveToEnd).disabledReason).isNull()
     }
 
     @Test
@@ -192,6 +195,34 @@ class ColumnMenuModelTest {
     }
 
     @Test
+    fun `pin labels name the physical side in RTL`() {
+        val start = stateWith(TableSettings(pinnedColumnsSide = PinnedSide.Start))
+        val end = stateWith(TableSettings(pinnedColumnsSide = PinnedSide.End))
+        assertThat(model(start, "full", layoutDirection = LayoutDirection.Rtl).entry(Ids.Pin).label)
+            .isEqualTo(UiString.ColumnMenuPinRight)
+        assertThat(model(end, "full", layoutDirection = LayoutDirection.Rtl).entry(Ids.Pin).label)
+            .isEqualTo(UiString.ColumnMenuPinLeft)
+    }
+
+    @Test
+    fun `move labels name the physical side while ids and icons stay logical in RTL`() {
+        val sections = model(stateWith(), "plain", layoutDirection = LayoutDirection.Rtl)
+        val toStart = sections.entry(Ids.MoveToStart)
+        val toEnd = sections.entry(Ids.MoveToEnd)
+        assertThat(toStart.label).isEqualTo(UiString.ColumnMenuMoveRight)
+        assertThat(toStart.icon).isEqualTo(TableIcons.KeyboardArrowLeft)
+        assertThat(toEnd.label).isEqualTo(UiString.ColumnMenuMoveLeft)
+        assertThat(toEnd.icon).isEqualTo(TableIcons.KeyboardArrowRight)
+    }
+
+    @Test
+    fun `move labels name the physical side in LTR`() {
+        val sections = model(stateWith(), "plain")
+        assertThat(sections.entry(Ids.MoveToStart).label).isEqualTo(UiString.ColumnMenuMoveLeft)
+        assertThat(sections.entry(Ids.MoveToEnd).label).isEqualTo(UiString.ColumnMenuMoveRight)
+    }
+
+    @Test
     fun `a disabled filter gets no filter section`() {
         val disabled =
             tableColumns<String, String, Unit> {
@@ -202,7 +233,8 @@ class ColumnMenuModelTest {
                 }
             }.single()
         val state = stateWith()
-        val sections = columnMenuModel(disabled, state, ColumnMenuContext.Header, onOpenFilter = {})
+        val sections =
+            columnMenuModel(disabled, state, ColumnMenuContext.Header, onOpenFilter = {}, LayoutDirection.Ltr)
         assertThat(sections.map { it.id }).doesNotContain(Sections.Filter)
         assertThat(sections.ids()).doesNotContain(Ids.OpenFilter)
     }
@@ -243,7 +275,7 @@ class ColumnMenuModelTest {
         val state = stateWith()
         model(state, "full").entry(Ids.SortDescending).onClick()
         assertThat(state.sort).isEqualTo(SortState("full", SortOrder.DESCENDING))
-        model(state, "full").entry(Ids.MoveRight).onClick()
+        model(state, "full").entry(Ids.MoveToEnd).onClick()
         assertThat(state.columns.order.toList()).containsExactly("plain", "full", "last")
         model(state, "full").entry(Ids.Hide).onClick()
         assertThat(state.columns.hidden.toList()).containsExactly("full")

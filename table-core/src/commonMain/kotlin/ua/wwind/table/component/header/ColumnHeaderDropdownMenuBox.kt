@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -33,6 +34,7 @@ import androidx.compose.ui.input.pointer.isSecondaryPressed
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.Role
@@ -52,6 +54,7 @@ import ua.wwind.table.component.ColumnMenuSection
 import ua.wwind.table.component.LocalColumnMenuBuilder
 import ua.wwind.table.config.isInteractionLockByRowReorderEnabled
 import ua.wwind.table.icon.TableIcons
+import ua.wwind.table.physicalLeft
 import ua.wwind.table.platform.getPlatform
 import ua.wwind.table.platform.isMobile
 import ua.wwind.table.state.ColumnMenuRequest
@@ -75,8 +78,10 @@ internal fun <T : Any, C, E> ColumnHeaderDropdownMenuBox(
     content: @Composable (openMenu: (() -> Unit)?) -> Unit,
 ) {
     val density = LocalDensity.current
+    val layoutDirection = LocalLayoutDirection.current
     val instance = remember { Any() }
     var anchorHeight by remember { mutableStateOf(0.dp) }
+    var anchorWidthPx by remember { mutableFloatStateOf(0f) }
     val sections = columnMenuSections(spec, state, context, onOpenFilter)
     val hasMenu = sections.isNotEmpty()
     val request = state.columnMenuRequest
@@ -90,7 +95,12 @@ internal fun <T : Any, C, E> ColumnHeaderDropdownMenuBox(
     }
     val openAt by rememberUpdatedState { position: Offset? ->
         if (hasMenu) {
-            val offset = position?.let { with(density) { DpOffset(it.x.toDp(), it.y.toDp() - anchorHeight) } }
+            // DropdownMenu measures offset.x from the anchor's start edge, which is the right one in RTL.
+            val offset =
+                position?.let {
+                    val x = layoutDirection.physicalLeft(it.x, 0f, anchorWidthPx)
+                    with(density) { DpOffset(x.toDp(), it.y.toDp() - anchorHeight) }
+                }
             state.columnMenuRequest =
                 ColumnMenuRequest(spec.key, context, offset, fromKeyboard = false, anchor = instance)
         }
@@ -103,8 +113,10 @@ internal fun <T : Any, C, E> ColumnHeaderDropdownMenuBox(
     Box(
         modifier =
             modifier
-                .onGloballyPositioned { anchorHeight = with(density) { it.size.height.toDp() } }
-                .columnMenuGestures(
+                .onGloballyPositioned {
+                    anchorHeight = with(density) { it.size.height.toDp() }
+                    anchorWidthPx = it.size.width.toFloat()
+                }.columnMenuGestures(
                     state = state,
                     openAt = { openAt(it) },
                     onPress = { focusHeader() },
@@ -149,7 +161,8 @@ private fun <C> columnMenuSections(
     val hasWidthOverride by remember(state, spec.key) { derivedStateOf { spec.key in state.columns.widths } }
     val canAutoFit by remember(state, spec.key) { derivedStateOf { spec.key in state.columns.contentMaxWidths } }
     val defaults =
-        columnMenuModel(spec, state, context, onOpenFilter, hasWidthOverride, canAutoFit).resolve(currentStrings())
+        columnMenuModel(spec, state, context, onOpenFilter, LocalLayoutDirection.current, hasWidthOverride, canAutoFit)
+            .resolve(currentStrings())
     val sections =
         when (context) {
             ColumnMenuContext.Header -> {
