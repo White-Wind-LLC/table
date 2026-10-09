@@ -26,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerHoverIcon
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -85,6 +86,7 @@ internal fun <T : Any, C, E> TableHeaderRow(
                     pinnedColumnsCount = state.columns.pinnedCount,
                     pinnedColumnsSide = settings.pinnedColumnsSide,
                     horizontalState = horizontalState,
+                    layoutDirection = LocalLayoutDirection.current,
                 )
 
             val shadowAlpha =

@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.Unspecified
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
@@ -78,6 +79,7 @@ internal fun <T : Any, C, E> FastFiltersRow(
                         pinnedColumnsCount = state.columns.pinnedCount,
                         pinnedColumnsSide = settings.pinnedColumnsSide,
                         horizontalState = horizontalState,
+                        layoutDirection = LocalLayoutDirection.current,
                     )
 
                 val surfaceColor =

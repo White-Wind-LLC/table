@@ -18,6 +18,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.flow.collectLatest
@@ -25,6 +26,7 @@ import ua.wwind.table.ColumnSpec
 import ua.wwind.table.config.TableColors
 import ua.wwind.table.config.TableCustomization
 import ua.wwind.table.config.currentTableColors
+import ua.wwind.table.sign
 import ua.wwind.table.state.TableState
 import ua.wwind.table.state.currentTableState
 import kotlin.math.min
@@ -54,6 +56,7 @@ internal fun <T : Any, C, E> GroupStickyOverlay(
     var currentItem by remember { mutableStateOf<T?>(null) }
     var overlayOffsetPx by remember { mutableIntStateOf(0) }
     val density = LocalDensity.current
+    val layoutDirection = LocalLayoutDirection.current
     val headerHeightPx =
         remember(state.dimensions.rowHeight, density) {
             with(density) { state.dimensions.rowHeight.roundToPx() }
@@ -110,9 +113,9 @@ internal fun <T : Any, C, E> GroupStickyOverlay(
             modifier =
                 Modifier.clearAndSetSemantics {}.graphicsLayer {
                     translationY = overlayOffsetPx.toFloat()
-                    // Pin horizontally within the viewport by negating current horizontal
-                    // scroll
-                    translationX = horizontalState.value.toFloat()
+                    // Hold still horizontally by cancelling the scroll, which moves content left in LTR
+                    // and right in RTL.
+                    translationX = layoutDirection.sign(horizontalState.value.toFloat())
                 },
         ) {
             Column {

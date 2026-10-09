@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.semantics.CollectionInfo
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.collectionInfo
@@ -37,6 +38,7 @@ import ua.wwind.table.component.tableAnimateItem
 import ua.wwind.table.config.TableColors
 import ua.wwind.table.config.TableCustomization
 import ua.wwind.table.config.currentTableColors
+import ua.wwind.table.sign
 import ua.wwind.table.state.RowBlocksState
 import ua.wwind.table.state.RowUnitIndex
 import ua.wwind.table.state.TableState
@@ -462,6 +464,7 @@ internal fun <T : Any, C, E> TableBodyRow(
 ) {
     val density = LocalDensity.current
     val viewportWidthDp = with(density) { horizontalState.viewportSize.toDp() }
+    val layoutDirection = LocalLayoutDirection.current
 
     val item = itemAt(index)
     val groupKey = state.groupBy
@@ -475,7 +478,7 @@ internal fun <T : Any, C, E> TableBodyRow(
             Box(
                 modifier =
                     Modifier.graphicsLayer {
-                        translationX = horizontalState.value.toFloat()
+                        translationX = layoutDirection.sign(horizontalState.value.toFloat())
                     },
             ) {
                 Column {

@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.ImmutableList
 import sh.calvin.reorderable.ReorderableColumn
@@ -28,6 +29,7 @@ import ua.wwind.table.TableItemScope
 import ua.wwind.table.config.TableColors
 import ua.wwind.table.config.TableCustomization
 import ua.wwind.table.config.resolveRowBlockContainerColor
+import ua.wwind.table.sign
 import ua.wwind.table.state.TableState
 
 /**
@@ -110,6 +112,7 @@ internal fun <T : Any, C, E> RowUnit(
     // A header cannot render without its block id: runs only form over loaded rows, so a block
     // unit always has one — the null check is for the type system, not a reachable state.
     val header = blockHeader?.takeIf { blockId != null }
+    val layoutDirection = LocalLayoutDirection.current
     Column(
         modifier =
             Modifier
@@ -144,7 +147,7 @@ internal fun <T : Any, C, E> RowUnit(
                     Modifier
                         .heightIn(min = state.dimensions.rowBlockSpacing)
                         .graphicsLayer {
-                            translationX = horizontalState.value.toFloat()
+                            translationX = layoutDirection.sign(horizontalState.value.toFloat())
                         },
             ) {
                 Box(modifier = Modifier.width(viewportWidth)) {

@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.zIndex
 import kotlinx.collections.immutable.ImmutableList
@@ -43,6 +44,7 @@ internal fun <T : Any, C, E> TableFooterRow(
                     pinnedColumnsCount = pinnedColumnsCount,
                     pinnedColumnsSide = pinnedColumnsSide,
                     horizontalState = horizontalState,
+                    layoutDirection = LocalLayoutDirection.current,
                 )
 
             val dividerThickness =

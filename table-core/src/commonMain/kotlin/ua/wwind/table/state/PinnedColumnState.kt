@@ -1,7 +1,9 @@
 package ua.wwind.table.state
 
 import androidx.compose.foundation.ScrollState
+import androidx.compose.ui.unit.LayoutDirection
 import ua.wwind.table.config.PinnedSide
+import ua.wwind.table.sign
 
 /**
  * Information about the pinned column state
@@ -52,6 +54,7 @@ internal fun PinnedEdge.hasContentUnder(horizontalState: ScrollState): Boolean =
  * @param pinnedColumnsCount number of pinned columns
  * @param pinnedColumnsSide side of pinning (start or end)
  * @param horizontalState horizontal scroll state
+ * @param layoutDirection the table's layout direction; translations are physical
  */
 internal fun calculatePinnedColumnState(
     columnIndex: Int,
@@ -59,6 +62,7 @@ internal fun calculatePinnedColumnState(
     pinnedColumnsCount: Int,
     pinnedColumnsSide: PinnedSide,
     horizontalState: ScrollState,
+    layoutDirection: LayoutDirection,
 ): PinnedColumnState {
     val effectivePinnedCount = effectivePinnedCount(pinnedColumnsCount, totalVisibleColumns)
     val isPinned =
@@ -79,7 +83,12 @@ internal fun calculatePinnedColumnState(
                 isPinned &&
                 columnIndex == totalVisibleColumns - effectivePinnedCount,
         zIndex = if (isPinned) 1f else 0f,
-        translationX = if (isPinned) pinnedTranslationX(pinnedColumnsSide, horizontalState) else 0f,
+        translationX =
+            if (isPinned) {
+                pinnedTranslationX(pinnedColumnsSide, horizontalState.value, horizontalState.maxValue, layoutDirection)
+            } else {
+                0f
+            },
     )
 }
 
@@ -103,13 +112,17 @@ private fun isColumnPinned(
         }
 
 /** Offset that holds a pinned column still while the rest of the row scrolls under it. */
-private fun pinnedTranslationX(
+internal fun pinnedTranslationX(
     side: PinnedSide,
-    horizontalState: ScrollState,
+    scrollValue: Int,
+    maxScroll: Int,
+    layoutDirection: LayoutDirection,
 ): Float =
-    when (side) {
-        PinnedSide.Start -> horizontalState.value.toFloat()
+    layoutDirection.sign(
+        when (side) {
+            PinnedSide.Start -> scrollValue.toFloat()
 
-        // For the end side use a simplified formula: translationX = scroll - maxValue
-        PinnedSide.End -> horizontalState.value.toFloat() - horizontalState.maxValue
-    }
+            // scroll - maxScroll keeps an end-pinned run at the viewport's end edge.
+            PinnedSide.End -> (scrollValue - maxScroll).toFloat()
+        },
+    )

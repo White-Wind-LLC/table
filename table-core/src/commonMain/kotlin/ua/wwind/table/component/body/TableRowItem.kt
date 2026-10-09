@@ -36,6 +36,7 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.semantics.CollectionItemInfo
 import androidx.compose.ui.semantics.collectionItemInfo
 import androidx.compose.ui.semantics.selected
@@ -285,6 +286,7 @@ private fun <C, T : Any, E> RenderTableRowItem(
                     pinnedColumnsCount = state.columns.pinnedCount,
                     pinnedColumnsSide = settings.pinnedColumnsSide,
                     horizontalState = horizontalState,
+                    layoutDirection = LocalLayoutDirection.current,
                 )
 
             val appearance =

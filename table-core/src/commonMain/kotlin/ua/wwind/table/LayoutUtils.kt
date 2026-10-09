@@ -1,6 +1,7 @@
 package ua.wwind.table
 
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.LayoutDirection
 import co.touchlab.kermit.Logger
 import ua.wwind.table.state.TableColumnsState
 import ua.wwind.table.state.TableState
@@ -31,3 +32,20 @@ internal fun <C> computeAutoWidths(
             }
         }
     }
+
+/** A horizontal delta measured toward the end edge, as a physical (left-to-right) delta; the mapping is its own inverse. */
+internal fun LayoutDirection.sign(x: Float): Float = if (this == LayoutDirection.Rtl) -x else x
+
+/**
+ * Physical left of a span that starts [start] px from the start edge of a container [containerWidth] px
+ * wide. With a zero [width] it maps a point, such as a pointer position, both ways.
+ */
+internal fun LayoutDirection.physicalLeft(
+    start: Float,
+    width: Float,
+    containerWidth: Float,
+): Float = if (this == LayoutDirection.Rtl) containerWidth - start - width else start
+
+/** Whether a move toward the start ([towardStart]) or the end goes physically left in this direction. */
+internal fun LayoutDirection.isPhysicallyLeft(towardStart: Boolean): Boolean =
+    towardStart == (this == LayoutDirection.Ltr)
