@@ -2,7 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
-### Unreleased
+### 3.0.0 — 2026-10-09
+
+The table works with screen readers and the keyboard. Screen readers get the grid structure, cell
+positions, sort state and names for every icon-only control; the keyboard reaches the header, the
+column menu and cell editing, and right-to-left layouts mirror correctly. The defaults now follow the
+theme and the system font size: new selection, stripe and divider colors, per-row typography, and row,
+header and filter heights that grow with the font scale. The filter panels and the format dialog are
+reworked, and icons ship as Compose resources. The deprecations promised for this major are removed:
+`ExperimentalTableApi` and the `TableState` forwarders from 2.1.0. Every break is listed below with its
+migration; see the [3.0 migration guide](https://white-wind-llc.github.io/table/getting-started/migration-3.0/)
+for the consolidated version.
 
 - Removed (breaking): `ExperimentalTableApi`, deprecated since 2.0.0, and the `TableState` forwarders
   deprecated in 2.1.0 (`columnOrder`, `toggleSelect`, `editingRow`, …); use `columns`, `selection` and
@@ -113,6 +123,8 @@ All notable changes to this project will be documented in this file.
 - Added: `TableColors` for dividers, pinned divider, border, focus ring, hover, group content and sticky group; a
   shadow on the pinned column edge while content scrolls under it; a dragged row is lifted like a column (column
   lift lowered to 8 dp); new sizes in `TableDimensions` ([#87](https://github.com/White-Wind-LLC/table/issues/87)).
+
+Compare: [v2.4.1...v3.0.0](https://github.com/White-Wind-LLC/table/compare/v2.4.1...v3.0.0)
 
 ### 2.4.1 — 2026-09-26
 
