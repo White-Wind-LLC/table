@@ -7,6 +7,10 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEvent
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.PointerInputScope
@@ -60,6 +64,27 @@ internal fun <T : Any> Modifier.tableRowInteractions(
         ).contextMenuGesture(item, onContextMenu)
     }
 }
+
+/**
+ * Keeps keys that bubble up from a cell's content away from the row's clickable, and hands them to
+ * the table instead. The clickable never holds focus, so every key it would see comes from content
+ * such as an edit field — and it would turn Enter or Space into a row click. Chain it after
+ * [tableRowInteractions] so that it sees those keys first.
+ */
+internal fun Modifier.forwardContentKeysToTable(onKey: (KeyEvent) -> Boolean): Modifier =
+    onKeyEvent { event ->
+        when (event.key) {
+            Key.Enter, Key.NumPadEnter, Key.Spacebar, Key.DirectionCenter -> {
+                onKey(event)
+                true
+            }
+
+            // Anything else bubbles on to the table as usual.
+            else -> {
+                false
+            }
+        }
+    }
 
 private fun <T : Any> Modifier.mobileRowInteractions(
     item: T,

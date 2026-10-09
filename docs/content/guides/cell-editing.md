@@ -8,7 +8,8 @@ The table supports row‑scoped cell editing with custom edit UI, validation and
   footers, and edit cells. This allows passing validation errors, aggregated values, or any other table-wide state.
 - **Editable columns DSL**: declare columns with `editableTableColumns<T, C, E> { ... }` and per‑cell `editCell`.
 - **Callbacks**: validate and react to edit lifecycle with `onRowEditStart`, `onRowEditComplete`, `onEditCancel`.
-- **Keyboard**: Enter/Done moves to the next editable cell; Escape cancels editing (desktop targets).
+- **Keyboard**: Enter or F2 starts editing the selected cell, Tab / Shift+Tab move between editable cells, Enter
+  commits the row, Escape cancels — see [Keyboard](#keyboard).
 
 #### TableCellTextField: text field adapted for table editing
 
@@ -16,7 +17,7 @@ For text editing inside table cells there is a dedicated composable `TableCellTe
 
 - **Focus integration**: it is already wired to the table focus system via `syncEditCellFocus()` on its `Modifier`.
   This ensures that when a row enters edit mode, the correct cell receives focus, and that keyboard navigation
-  (Enter/Done to move to the next editable cell, Escape to cancel) works consistently across targets.
+  (see [Keyboard](#keyboard)) works consistently across targets.
 - **Compact layout**: by default it uses reduced paddings and no border to better fit into dense table rows.
 - **Visual consistency**: styles and colors match Material 3 inputs used in the rest of the table UI.
 
@@ -158,8 +159,33 @@ consistent with the default table editing behavior.
 
 Runtime behavior:
 
-- Double‑click on an editable cell to enter **row edit mode**.
+- Double‑click on an editable cell, or press **Enter**/**F2** on it, to enter **row edit mode**.
 - All editable cells in the row render their `editCell` content.
-- Press **Enter/Done** in a cell to call `onComplete()` and move to the next editable column.
+- An editor that calls `onComplete()` (for example on IME **Done**) moves the edit to the next editable column.
 - After the last editable cell, `onRowEditComplete` is invoked; returning `false` keeps the row in edit mode.
 - Press **Escape** to cancel editing and trigger `onEditCancel` (desktop targets).
+
+#### Keyboard
+
+The keys follow the [WAI‑ARIA grid pattern](https://www.w3.org/WAI/ARIA/apg/patterns/grid/). While the table body
+has focus:
+
+| Key | Action |
+|---|---|
+| Enter / F2 | Start editing the selected cell, if the table, the column and `canEdit` allow it |
+| Enter | On a cell that cannot be edited, call `onRowClick` |
+| Space | Toggle the row's selection: the checkmark in `Multiple`, the selected row in `Single` |
+
+While a row is being edited:
+
+| Key | Action |
+|---|---|
+| Tab | Next editable cell; after the last one, complete the row |
+| Shift+Tab | Previous editable cell; stays put on the first one |
+| Enter | Complete the row and move the selection one row down — unless the editor uses Enter itself |
+| Ctrl+Enter / Cmd+Enter | Complete the row and move down, from any editor |
+| Escape | Cancel editing |
+
+The editor gets Enter first: a multi‑line `TableCellTextField` types a line break, and a single‑line one with
+`ImeAction.Done` runs its `onDone`. Use Ctrl+Enter (Cmd+Enter on macOS) to leave a multi‑line editor. When
+`onRowEditComplete` returns `false`, Enter keeps the row in edit mode.

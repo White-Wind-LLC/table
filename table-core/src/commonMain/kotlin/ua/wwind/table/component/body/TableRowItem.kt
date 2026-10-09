@@ -48,6 +48,7 @@ import ua.wwind.table.ColumnSpec
 import ua.wwind.table.MeasureCellMinWidth
 import ua.wwind.table.TableCellScopeImpl
 import ua.wwind.table.TableItemScope
+import ua.wwind.table.canStartEditAt
 import ua.wwind.table.config.RowHeightMode
 import ua.wwind.table.config.SelectionMode
 import ua.wwind.table.config.TableCellContext
@@ -59,6 +60,8 @@ import ua.wwind.table.config.TableRowStyle
 import ua.wwind.table.config.TableSettings
 import ua.wwind.table.config.currentTableColors
 import ua.wwind.table.config.resolveRowSelectedIndicatorColor
+import ua.wwind.table.interaction.LocalBubbledBodyKeyHandler
+import ua.wwind.table.interaction.forwardContentKeysToTable
 import ua.wwind.table.interaction.tableRowInteractions
 import ua.wwind.table.state.PinnedColumnState
 import ua.wwind.table.state.TableState
@@ -241,6 +244,7 @@ private fun <C, T : Any, E> RenderTableRowItem(
 ) {
     // Every cell reports hover and press here, so the state layer spans the row rather than the cell.
     val rowInteractionSource = remember { MutableInteractionSource() }
+    val bubbledKeyHandler = LocalBubbledBodyKeyHandler.current
     Row(
         modifier =
             modifier
@@ -345,7 +349,7 @@ private fun <C, T : Any, E> RenderTableRowItem(
                                                 )
                                             }
                                         },
-                                ),
+                                ).forwardContentKeysToTable(bubbledKeyHandler),
                         ),
             ) {
                 // Determine if we should show edit UI for this cell
@@ -439,8 +443,8 @@ private fun <C> canMoveFocusTo(
 /**
  * Decides what a click on a cell does: start editing it, or fall through to the row's own action.
  *
- * Editing wins only when the table, the column and the row all allow it — [ColumnSpec.canStartEdit]
- * gets the final say, and a refusal is a plain row click rather than nothing at all.
+ * Editing wins only when [canStartEditAt] allows it, and a refusal is a plain row click rather than
+ * nothing at all. Enter on the selected cell makes the same choice.
  */
 @Suppress("LongParameterList")
 private fun <T : Any, C, E> onCellClick(
@@ -453,11 +457,7 @@ private fun <T : Any, C, E> onCellClick(
     onRowClick: ((T) -> Unit)?,
 ) {
     if (!canMoveFocusTo(state, settings, index)) return
-    val canEdit =
-        settings.editingEnabled &&
-            spec.editable &&
-            (spec.canStartEdit?.invoke(item, index) ?: true)
-    if (canEdit) {
+    if (spec.canStartEditAt(item, index, settings.editingEnabled)) {
         state.editing.start(item, index, spec.key)
     } else {
         onRowClick?.invoke(clicked)

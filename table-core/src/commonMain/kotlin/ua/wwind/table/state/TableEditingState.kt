@@ -158,6 +158,25 @@ public class TableEditingState<C>
             }
         }
 
+        /**
+         * Move the edit to the previous editable column of the row. On the first editable column the
+         * edit stays where it is: going back never completes the row.
+         */
+        internal fun moveToPreviousCell(visibleColumns: List<ColumnSpec<*, C, *>>) {
+            val currentRow = rowIndex ?: return
+            val currentCol = column ?: return
+            val currentIndex = columns.order.indexOf(currentCol)
+            if (currentIndex == -1) return
+
+            val previousEditableColumn =
+                columns.order.take(currentIndex).lastOrNull { colKey ->
+                    visibleColumns.any { it.key == colKey && it.editable }
+                } ?: return
+
+            column = previousEditableColumn
+            selection.selectCell(currentRow, previousEditableColumn)
+        }
+
         /** Cancel editing without validation. Calls [onEditCancel] and clears edit state. */
         public fun cancel() {
             val currentRow = rowIndex
