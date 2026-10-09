@@ -166,18 +166,18 @@ class HeaderLayoutTest {
         }
 
     @Test
-    fun `an active sort icon is tinted primary`() {
-        val primary = Color.Blue
-        assertThat(sortIconTint(SortOrder.ASCENDING, contentColor = Color.Black, primary = primary))
-            .isEqualTo(primary)
-        assertThat(sortIconTint(SortOrder.DESCENDING, contentColor = Color.Black, primary = primary))
-            .isEqualTo(primary)
+    fun `an active sort icon takes the active color`() {
+        val active = Color.Blue
+        assertThat(sortIconTint(SortOrder.ASCENDING, contentColor = Color.Black, activeColor = active))
+            .isEqualTo(active)
+        assertThat(sortIconTint(SortOrder.DESCENDING, contentColor = Color.Black, activeColor = active))
+            .isEqualTo(active)
     }
 
     @Test
     fun `the neutral sort icon is dimmed to 38 percent`() {
         val content = Color.Black
-        assertThat(sortIconTint(order = null, contentColor = content, primary = Color.Blue))
+        assertThat(sortIconTint(order = null, contentColor = content, activeColor = Color.Blue))
             .isEqualTo(content.copy(alpha = 0.38f))
     }
 }

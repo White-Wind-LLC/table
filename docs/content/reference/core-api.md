@@ -115,8 +115,10 @@ column(PersonField.Name, valueOf = { it.name }) {
       indicator bar (`rowSelectedIndicatorColor`), striped rows `surfaceContainerLow`. `dividerColor`,
       `pinnedDividerColor` and `borderColor` default to `outlineVariant`, `focusIndicatorColor` to `primary`,
       `hoverColor` (row state layer) to `onSurface`, `groupContentColor` to the content color of the group
-      container, and `stickyGroupContainerColor` to `groupContainerColor`. The table's default `shape` is
-      `MaterialTheme.shapes.extraSmall`.
+      container, and `stickyGroupContainerColor` to `groupContainerColor`. `headerSortIconActiveColor` (sorted
+      column's icon) defaults to `primary` and `headerFocusIndicatorColor` to `focusIndicatorColor`; each falls
+      back to `headerContentColor` when under 3:1 contrast with the header, e.g. on a `primary` header. The
+      table's default `shape` is `MaterialTheme.shapes.extraSmall`.
     - `TableTypography`: via `TableDefaults.typography(...)` — header `titleSmall`, body `bodyMedium`, footer
       `labelLarge`, group header `titleSmall`; a cell style's `textStyle` merges over the body style.
 - **Row blocks**: `rowBlocks = RowBlocks(blockOf, onCommit, blockHeader, onRowReorderWithinBlock)` makes adjacent
