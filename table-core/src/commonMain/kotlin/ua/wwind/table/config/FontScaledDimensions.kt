@@ -45,6 +45,7 @@ private fun Density.lineGrowth(style: TextStyle): Dp {
     val line =
         when {
             style.lineHeight.isSp -> style.lineHeight
+            style.lineHeight.isEm && style.fontSize.isSp -> (style.fontSize.value * style.lineHeight.value).sp
             style.fontSize.isSp -> (style.fontSize.value * FALLBACK_LINE_HEIGHT_RATIO).sp
             else -> return 0.dp
         }

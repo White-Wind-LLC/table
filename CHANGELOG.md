@@ -6,7 +6,8 @@ All notable changes to this project will be documented in this file.
 
 - Added: row, header, footer, group header and fast filter heights grow with the system font scale;
   `TableDimensions.scaleWithFontSize` opts out and `TableDimensions.fastFilterRowHeight` sets the fast filters row
-  height ([#135](https://github.com/White-Wind-LLC/table/issues/135)).
+  height; the new fields change the JVM signatures of `TableDimensions.copy` and its constructor, recompile code
+  built against 2.4.x ([#135](https://github.com/White-Wind-LLC/table/issues/135)).
 - Added: right-to-left layout support ([#134](https://github.com/White-Wind-LLC/table/issues/134)).
 - Changed: `PinnedSide.Start` / `End` replace the deprecated `Left` / `Right`; recompile code built against 2.4.x
   ([#134](https://github.com/White-Wind-LLC/table/issues/134)).

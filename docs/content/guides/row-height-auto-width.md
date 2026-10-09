@@ -27,3 +27,7 @@ rememberTableState(
 
 Content taller than one line in the header, footer or group headers is still clipped; use `RowHeightMode.Dynamic`
 for body rows that wrap.
+
+The growth follows the `TableTypography` styles only. A larger font set per cell (`CellStyle.textStyle`) or per
+group header (the customization's `textStyle`) is not measured, so at 2× it can clip fixed-height rows and group
+headers. Raise `rowHeight` for such styles, or use `RowHeightMode.Dynamic` for body rows.
