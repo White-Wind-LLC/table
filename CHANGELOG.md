@@ -2,13 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
-### Unreleased
+### 3.1.0 — 2026-10-09
+
+The sort icon and the focus ring stay visible on a header painted in `primary`. Both were drawn in
+`primary` themselves and disappeared into such a header; they now switch to the header content color
+whenever their accent lacks contrast with the header, and two new `TableColors` fields set them
+explicitly.
 
 - Fixed: on a header painted in `primary`, the sorted column's icon and the header focus ring no longer vanish;
   they switch to the header content color when `primary` (or `focusIndicatorColor`) falls under 3:1 contrast with
   the header. New `TableColors.headerSortIconActiveColor` and `headerFocusIndicatorColor` set them explicitly;
   the new fields change the JVM signatures of `TableColors.copy` and its constructor, recompile code built against
-  3.0.0.
+  3.0.0 ([#143](https://github.com/White-Wind-LLC/table/pull/143)).
+
+Compare: [v3.0.0...v3.1.0](https://github.com/White-Wind-LLC/table/compare/v3.0.0...v3.1.0)
 
 ### 3.0.0 — 2026-10-09
 
