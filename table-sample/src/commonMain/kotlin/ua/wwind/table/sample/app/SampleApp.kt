@@ -33,7 +33,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -280,8 +282,11 @@ fun SampleApp(
                 },
                 gesturesEnabled = true,
             ) {
+                val density = LocalDensity.current
                 CompositionLocalProvider(
                     LocalLayoutDirection provides if (tableConfig.rtl) LayoutDirection.Rtl else LayoutDirection.Ltr,
+                    LocalDensity provides
+                        if (tableConfig.largeFont) Density(density.density, fontScale = 2f) else density,
                 ) {
                     Surface(modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
                         Box(

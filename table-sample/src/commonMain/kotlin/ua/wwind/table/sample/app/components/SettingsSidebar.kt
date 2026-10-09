@@ -105,6 +105,12 @@ fun SettingsSidebar(
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                     SettingSwitch(
+                        label = "Large font (2×)",
+                        checked = config.largeFont,
+                        onCheckedChange = { onConfigChange(config.copy(largeFont = it)) },
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    SettingSwitch(
                         label = "Striped rows",
                         checked = config.useStripedRows,
                         onCheckedChange = { onConfigChange(config.copy(useStripedRows = it)) },
