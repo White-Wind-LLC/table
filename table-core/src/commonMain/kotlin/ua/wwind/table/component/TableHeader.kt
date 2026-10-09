@@ -19,6 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -71,12 +72,16 @@ internal fun <T : Any, C, E> TableHeader(
     var restoreFocusAfterFilter by remember { mutableStateOf(false) }
     val derived = rememberHeaderDerivedState(columns, state, dimensions)
     var isResizing by remember { mutableStateOf(false) }
+    // The library captures the layout direction once and does not key its state on it, so a table
+    // switched to RTL after it was first shown would mirror every header drag.
     val reorderState =
-        rememberReorderableLazyListState(lazyListState) { from, to ->
-            val fullOrder = state.columns.order.toList()
-            val visibleKeys = derived.visibleColumns.map { it.key }
-            val move = computeReorderMove(from.index, to.index, fullOrder, visibleKeys)
-            if (move != null) state.columns.move(move.first, move.second)
+        key(LocalLayoutDirection.current) {
+            rememberReorderableLazyListState(lazyListState) { from, to ->
+                val fullOrder = state.columns.order.toList()
+                val visibleKeys = derived.visibleColumns.map { it.key }
+                val move = computeReorderMove(from.index, to.index, fullOrder, visibleKeys)
+                if (move != null) state.columns.move(move.first, move.second)
+            }
         }
 
     // Keep the keyboard-focused header column scrolled into view. A pointer focuses a column already on screen.

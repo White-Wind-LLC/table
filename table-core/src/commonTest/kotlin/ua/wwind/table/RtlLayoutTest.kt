@@ -7,13 +7,17 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.getBoundsInRoot
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performMouseInput
@@ -26,6 +30,8 @@ import assertk.assertions.isGreaterThan
 import assertk.assertions.isNotEmpty
 import kotlinx.collections.immutable.persistentListOf
 import ua.wwind.table.config.TableSettings
+import ua.wwind.table.platform.getPlatform
+import ua.wwind.table.platform.isNonMobile
 import ua.wwind.table.state.TableState
 import ua.wwind.table.state.rememberTableState
 import kotlin.test.Test
@@ -154,4 +160,50 @@ class RtlLayoutTest {
 
     @Test
     fun `dragging right scrolls toward the end in RTL`() = dragScrollTest(LayoutDirection.Rtl, stepPx = 20f)
+
+    /** Drags column "a" by its header handle one column toward the end: [stepPx] is physical. */
+    private fun reorderTest(
+        direction: LayoutDirection,
+        stepPx: Float,
+        switchedFromLtr: Boolean = false,
+    ) = runComposeUiTest {
+        if (!getPlatform().isNonMobile()) return@runComposeUiTest
+        lateinit var state: TableState<String>
+        var shownDirection by mutableStateOf(if (switchedFromLtr) LayoutDirection.Ltr else direction)
+        setContent {
+            state = rememberTableState(columns = persistentListOf("a", "b", "c"))
+            CompositionLocalProvider(LocalLayoutDirection provides shownDirection) {
+                Box(Modifier.size(600.dp, 300.dp)) {
+                    Table(itemsCount = 1, itemAt = { "row-$it" }, state = state, columns = columns)
+                }
+            }
+        }
+        waitForIdle()
+        // The table was first shown in LTR, as when an app switches direction at runtime.
+        shownDirection = direction
+        waitForIdle()
+        onRoot().performMouseInput { moveTo(onNodeWithText("A").fetchSemanticsNode().boundsInRoot.center) }
+        waitForIdle()
+        val handle = onNodeWithContentDescription("Drag column").fetchSemanticsNode().boundsInRoot.center
+        onRoot().performMouseInput {
+            moveTo(handle)
+            press()
+            repeat(10) { moveBy(Offset(stepPx, 0f)) }
+            release()
+        }
+        waitForIdle()
+        assertThat(state.columns.order.toList()).isEqualTo(listOf("b", "a", "c"))
+    }
+
+    @Test
+    fun `dragging a column header right moves it toward the end in LTR`() =
+        reorderTest(LayoutDirection.Ltr, stepPx = 20f)
+
+    @Test
+    fun `dragging a column header left moves it toward the end in RTL`() =
+        reorderTest(LayoutDirection.Rtl, stepPx = -20f)
+
+    @Test
+    fun `dragging a column header follows a switch from LTR to RTL`() =
+        reorderTest(LayoutDirection.Rtl, stepPx = -20f, switchedFromLtr = true)
 }
