@@ -9,3 +9,21 @@
 - Alternatively, use `state.columns.recalculateAutoWidths()` to manually trigger width recalculation based on
   current content measurements (useful for deferred/paginated data loading scenarios). The recalculation also
   replaces explicit widths of auto‑width columns.
+
+## Large font scale
+
+Above 1.0× system font scale, `rowHeight`, `headerHeight`, `footerHeight` and `fastFilterRowHeight` from
+`TableDimensions` grow by as much as one line of their text grows, so single-line text is not clipped. At 1.0× and
+below they are used as given. Group headers use the grown `rowHeight`.
+
+Set `scaleWithFontSize = false` to keep the heights exactly as given:
+
+```kotlin
+rememberTableState(
+    columns = columns,
+    dimensions = TableDefaults.standardDimensions().copy(scaleWithFontSize = false),
+)
+```
+
+Content taller than one line in the header, footer or group headers is still clipped; use `RowHeightMode.Dynamic`
+for body rows that wrap.

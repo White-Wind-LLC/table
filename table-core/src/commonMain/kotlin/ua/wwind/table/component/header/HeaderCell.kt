@@ -122,7 +122,12 @@ internal fun <T : Any, C, E> HeaderCell(
                 state.columns.updateMaxContentWidth(spec.key, adjusted, source = "Header")
             },
         ) { _, _ ->
-            HeaderMeasureContent(spec, info, showMenuButton = onOpenMenu != null, dimensions = state.effectiveDimensions)
+            HeaderMeasureContent(
+                spec,
+                info,
+                showMenuButton = onOpenMenu != null,
+                dimensions = state.effectiveDimensions,
+            )
         }
     }
 
