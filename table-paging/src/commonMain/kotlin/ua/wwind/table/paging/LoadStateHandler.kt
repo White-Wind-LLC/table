@@ -24,7 +24,8 @@ import ua.wwind.table.strings.currentStrings
 @Deprecated(
     message =
         "The paged Table renders load states itself; use its loadingContent, errorContent, " +
-            "emptyContent, loadingIndicator and errorBar parameters.",
+            "emptyContent, loadingIndicator and errorBar parameters. Removed in 4.0.",
+    level = DeprecationLevel.ERROR,
 )
 public fun <T : Any> LazyListScope.handleLoadState(
     data: PagingData<T>,
