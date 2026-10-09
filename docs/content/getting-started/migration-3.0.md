@@ -37,7 +37,8 @@ renders. See [Custom header icons](../guides/custom-header-icons.md).
 
 ## No more `ExperimentalTableApi`
 
-The marker has been deprecated since 2.0.0 and is now gone. Delete every opt-in:
+The marker has been deprecated since 2.0.0 and is now gone; a leftover opt-in fails with
+*Unresolved reference: ExperimentalTableApi*. Delete every opt-in:
 
 ```kotlin title="Before"
 @OptIn(ExperimentalTableApi::class)
@@ -135,13 +136,15 @@ Binary compatibility with 2.x is broken. Among others, new parameters change the
 ## New visual defaults
 
 These compile unchanged but look different. Each comes from the theme, so a Material theme of your
-own carries through; to get the 2.x look back, pass the old value explicitly.
+own carries through; to get the 2.x look back, pass the old value explicitly. Some have no switch.
 
 | Change                                                                          | Old look                                                                                         |
 |---------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------|
 | Selected row is `secondaryContainer` with a leading indicator bar               | `TableDefaults.colors(rowSelectedContainerColor = MaterialTheme.colorScheme.tertiary)` and `TableDefaults.standardDimensions().copy(selectionIndicatorWidth = 0.dp)` |
 | Striped rows are `surfaceContainerLow`                                          | `TableDefaults.colors(stripedRowContainerColor = MaterialTheme.colorScheme.surfaceContainerLowest)` |
-| Header, body, footer and group rows have their own text styles                  | `Table(typography = TableDefaults.typography(...))`                                              |
+| Header, body, footer and group rows have their own text styles                  | `Table(typography = TableDefaults.typography(header = LocalTextStyle.current, body = LocalTextStyle.current, footer = LocalTextStyle.current, groupHeader = LocalTextStyle.current))` (2.x used the ambient text style everywhere) |
 | Headers follow the column's `alignment`                                         | `headerAlign(Alignment.Center)` on the column (2.x centered headers)                                              |
 | Row, header, footer, group and fast filter heights grow with the system font size | `TableDefaults.standardDimensions().copy(scaleWithFontSize = false)`                                                  |
-| Rows animate to their new place after a sort                                    | `TableSettings(motion = TableMotion.Reduced)`                                                    |
+| Rows animate to their new place after a sort                                    | `TableSettings(motion = TableMotion.Reduced)` is the closest switch; it also turns off the column-move and drag-lift animations 2.x had |
+| Icons are Material Rounded glyphs                                               | Header icons: your own painters in `TableHeaderDefaults.icons(...)`; other icons have no switch |
+| The sort icon of an unsorted column is dimmed                                   | No switch                                                                                        |

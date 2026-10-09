@@ -20,5 +20,5 @@ dependencies {
 }
 ```
 
-The table API is stable — no opt-in annotation is required. Upgrading from 1.x? See the
-[2.0 migration guide](migration-2.0.md).
+The table API is stable — no opt-in annotation is required. Upgrading from 2.x? See the
+[3.0 migration guide](migration-3.0.md). From 1.x, start with the [2.0 migration guide](migration-2.0.md).
