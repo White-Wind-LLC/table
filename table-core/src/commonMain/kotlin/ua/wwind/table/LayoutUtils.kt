@@ -20,7 +20,7 @@ internal fun <C> computeAutoWidths(
         visibleColumns.forEach { spec ->
             if (spec.autoWidth && state.columns.needsAutoFit(spec.key)) {
                 val measured = state.columns.contentMaxWidths[spec.key]
-                val fallback = spec.width ?: state.dimensions.defaultColumnWidth
+                val fallback = spec.width ?: state.effectiveDimensions.defaultColumnWidth
                 val base = measured ?: fallback
                 val minClamped = maxOf(base, spec.minWidth)
                 val finalWidth =

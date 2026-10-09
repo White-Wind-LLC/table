@@ -73,6 +73,7 @@ import ua.wwind.table.config.TableDefaults
 import ua.wwind.table.config.TableTypography
 import ua.wwind.table.config.isInteractionLockByRowReorderEnabled
 import ua.wwind.table.config.resolve
+import ua.wwind.table.config.scaledForFont
 import ua.wwind.table.interaction.ApplyAutoWidthEffect
 import ua.wwind.table.interaction.ApplyAutoWidthEmbeddedEffect
 import ua.wwind.table.interaction.ContextMenuState
@@ -201,7 +202,10 @@ public fun <T : Any, C, E> EditableTable(
     /** Callback when editing is cancelled */
     onEditCancel: ((rowIndex: Int) -> Unit)? = null,
 ) {
-    val dimensions = state.dimensions
+    val density = LocalDensity.current
+    val dimensions =
+        remember(state.dimensions, typography, density) { state.dimensions.scaledForFont(typography, density) }
+    state.effectiveDimensions = dimensions
     val resolvedColors = colors.resolve()
     val visibleColumns by remember(columns, state.columns.order) {
         derivedStateOf {
@@ -726,7 +730,7 @@ private fun BoxScope.BodyOverlay(
     overlay: @Composable BoxScope.() -> Unit,
 ) {
     val showEmpty = !embedded && itemsCount == 0
-    val dimensions = state.dimensions
+    val dimensions = state.effectiveDimensions
     val footerHeight =
         dimensions.footerHeight + if (state.settings.showRowDividers) dimensions.dividerThickness else 0.dp
     val headerBottom = with(LocalDensity.current) { headerBottomPx.toDp() }
@@ -914,7 +918,7 @@ private fun <T : Any, C, E> PinnedFooterOverlay(
     horizontalState: ScrollState,
     modifier: Modifier = Modifier,
 ) {
-    val dimensions = state.dimensions
+    val dimensions = state.effectiveDimensions
     Column(modifier = modifier) {
         if (state.settings.showRowDividers) {
             HorizontalDivider(modifier = Modifier.width(state.tableWidth), color = colors.dividerColor)

@@ -22,7 +22,7 @@ internal fun DragLift(
     content: @Composable () -> Unit,
 ) {
     val elevation by animateDpAsState(
-        if (isDragging) currentTableState().dimensions.dragElevation else 0.dp,
+        if (isDragging) currentTableState().effectiveDimensions.dragElevation else 0.dp,
         currentTableMotion().settle(Dp.VisibilityThreshold),
     )
     // No layer at rest, and no clip when lifted: the pinned-edge shadow draws past a cell's bounds.

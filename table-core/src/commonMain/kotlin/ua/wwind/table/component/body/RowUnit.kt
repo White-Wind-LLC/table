@@ -123,13 +123,13 @@ internal fun <T : Any, C, E> RowUnit(
                         if (header != null) {
                             0.dp
                         } else {
-                            state.dimensions.rowBlockSpacing
+                            state.effectiveDimensions.rowBlockSpacing
                         },
                     bottom =
                         if (nextIsGroup) {
                             0.dp
                         } else {
-                            state.dimensions.rowBlockSpacing
+                            state.effectiveDimensions.rowBlockSpacing
                         },
                 ),
     ) {
@@ -145,7 +145,7 @@ internal fun <T : Any, C, E> RowUnit(
             Box(
                 modifier =
                     Modifier
-                        .heightIn(min = state.dimensions.rowBlockSpacing)
+                        .heightIn(min = state.effectiveDimensions.rowBlockSpacing)
                         .graphicsLayer {
                             translationX = layoutDirection.sign(horizontalState.value.toFloat())
                         },

@@ -94,6 +94,12 @@ public class TableState<C>
         internal var visibleColumns: List<ColumnSpec<*, C, *>> by mutableStateOf(emptyList())
 
         /**
+         * [dimensions] with heights grown for the font scale; set by the table root on every
+         * composition, read by everything the table draws.
+         */
+        internal var effectiveDimensions: TableDimensions by mutableStateOf(dimensions)
+
+        /**
          * Row-to-unit mapping for the current data set. Identity unless the consumer passed
          * `rowBlocks`. Assigned by `Table` during composition, read by scroll/keyboard effects.
          *

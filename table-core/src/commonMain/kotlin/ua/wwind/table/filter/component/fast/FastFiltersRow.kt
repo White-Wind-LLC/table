@@ -23,7 +23,6 @@ import androidx.compose.ui.graphics.Color.Companion.Unspecified
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.datetime.LocalDate
@@ -37,8 +36,6 @@ import ua.wwind.table.state.TableState
 import ua.wwind.table.state.calculatePinnedColumnState
 import ua.wwind.table.state.hasContentUnder
 import ua.wwind.table.strings.StringProvider
-
-private const val FAST_FILTER_ROW_HEIGHT = 40
 
 /**
  * The complexity here is the `when (filterType)` that picks which fast-filter composable to emit,
@@ -63,7 +60,7 @@ internal fun <T : Any, C, E> FastFiltersRow(
 
     Column(modifier = modifier) {
         LazyRow(
-            modifier = Modifier.height(FAST_FILTER_ROW_HEIGHT.dp).width(state.tableWidth),
+            modifier = Modifier.height(state.effectiveDimensions.fastFilterRowHeight).width(state.tableWidth),
             state = rememberLazyListState(),
             userScrollEnabled = false,
         ) {
@@ -107,7 +104,7 @@ internal fun <T : Any, C, E> FastFiltersRow(
                                 this.translationX = pinnedState.translationX
                             }.pinnedEdgeShadow(
                                 edge = pinnedState.edge,
-                                width = state.dimensions.pinnedColumnShadowWidth,
+                                width = state.effectiveDimensions.pinnedColumnShadowWidth,
                                 alpha = { shadowAlpha.value },
                             ),
                 ) {
@@ -117,7 +114,7 @@ internal fun <T : Any, C, E> FastFiltersRow(
                         if (pinnedState.isFirstEndPinned) {
                             VerticalDivider(
                                 modifier = Modifier.fillMaxHeight(),
-                                thickness = state.dimensions.pinnedColumnDividerThickness,
+                                thickness = state.effectiveDimensions.pinnedColumnDividerThickness,
                                 color = currentTableColors().pinnedDividerColor,
                             )
                         }
@@ -137,7 +134,7 @@ internal fun <T : Any, C, E> FastFiltersRow(
                                                 ?: TableFilterState(constraint = null, values = null),
                                         autoFilterDebounce = autoFilterDebounce,
                                         strings = strings,
-                                        clearTargetSize = state.dimensions.headerIconTargetSize,
+                                        clearTargetSize = state.effectiveDimensions.headerIconTargetSize,
                                         onChange = onChange,
                                     )
                                 }
@@ -158,7 +155,7 @@ internal fun <T : Any, C, E> FastFiltersRow(
                                         state = state.filters[spec.key],
                                         autoFilterDebounce = autoFilterDebounce,
                                         strings = strings,
-                                        clearTargetSize = state.dimensions.headerIconTargetSize,
+                                        clearTargetSize = state.effectiveDimensions.headerIconTargetSize,
                                         onChange = onChange,
                                     )
                                 }
@@ -169,7 +166,7 @@ internal fun <T : Any, C, E> FastFiltersRow(
                                         state = state.filters[spec.key] as? TableFilterState<LocalDate>,
                                         autoFilterDebounce = autoFilterDebounce,
                                         strings = strings,
-                                        clearTargetSize = state.dimensions.headerIconTargetSize,
+                                        clearTargetSize = state.effectiveDimensions.headerIconTargetSize,
                                         onChange = onChange,
                                     )
                                 }
@@ -180,7 +177,7 @@ internal fun <T : Any, C, E> FastFiltersRow(
                                         state = state.filters[spec.key],
                                         autoFilterDebounce = autoFilterDebounce,
                                         strings = strings,
-                                        clearTargetSize = state.dimensions.headerIconTargetSize,
+                                        clearTargetSize = state.effectiveDimensions.headerIconTargetSize,
                                         onChange = onChange,
                                     )
                                 }
@@ -206,14 +203,14 @@ internal fun <T : Any, C, E> FastFiltersRow(
                             if (pinnedState.isLastStartPinned) {
                                 VerticalDivider(
                                     modifier = Modifier.fillMaxHeight(),
-                                    thickness = state.dimensions.pinnedColumnDividerThickness,
+                                    thickness = state.effectiveDimensions.pinnedColumnDividerThickness,
                                     color = currentTableColors().pinnedDividerColor,
                                 )
                             }
                             if (state.settings.showVerticalDividers) {
                                 VerticalDivider(
                                     modifier = Modifier.fillMaxHeight(),
-                                    thickness = state.dimensions.dividerThickness,
+                                    thickness = state.effectiveDimensions.dividerThickness,
                                     color = currentTableColors().dividerColor,
                                 )
                             }
@@ -225,7 +222,7 @@ internal fun <T : Any, C, E> FastFiltersRow(
         if (state.settings.showFastFiltersDivider) {
             HorizontalDivider(
                 modifier = Modifier.width(state.tableWidth),
-                thickness = state.dimensions.dividerThickness,
+                thickness = state.effectiveDimensions.dividerThickness,
                 color = currentTableColors().dividerColor,
             )
         }

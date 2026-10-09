@@ -115,7 +115,7 @@ internal fun <T : Any, C, E> TableHeader(
             ) {
                 Box(
                     Modifier
-                        .height(state.dimensions.headerHeight)
+                        .height(state.effectiveDimensions.headerHeight)
                         .tableHeaderKeyboardNavigation(
                             state,
                             derived.visibleColumns,

@@ -149,7 +149,7 @@ private suspend fun <C> LazyListState.jumpDownToUnit(
 private fun <C> TableState<C>.estimatedRowHeight(
     index: Int,
     density: Density,
-): Int = rowHeightsPx[index] ?: with(density) { dimensions.rowHeight.toPx() }.toInt()
+): Int = rowHeightsPx[index] ?: with(density) { effectiveDimensions.rowHeight.toPx() }.toInt()
 
 internal fun LazyListLayoutInfo.viewportHeightPx(): Int = (viewportEndOffset - viewportStartOffset).coerceAtLeast(0)
 
@@ -162,7 +162,7 @@ public suspend fun <T : Any, C, E> ensureColumnFullyVisible(
     horizontalState: ScrollState,
     density: Density,
 ) {
-    val dimensions = state.dimensions
+    val dimensions = state.effectiveDimensions
 
     var x = 0.dp
     visibleColumns.take(targetColIndex).forEachIndexed { index, spec ->
