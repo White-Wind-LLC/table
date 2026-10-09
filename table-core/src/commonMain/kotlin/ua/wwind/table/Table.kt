@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Surface
@@ -72,6 +73,7 @@ import ua.wwind.table.config.TableCustomization
 import ua.wwind.table.config.TableDefaults
 import ua.wwind.table.config.TableTypography
 import ua.wwind.table.config.isInteractionLockByRowReorderEnabled
+import ua.wwind.table.config.mergedOver
 import ua.wwind.table.config.resolve
 import ua.wwind.table.config.scaledForFont
 import ua.wwind.table.interaction.ApplyAutoWidthEffect
@@ -203,8 +205,12 @@ public fun <T : Any, C, E> EditableTable(
     onEditCancel: ((rowIndex: Int) -> Unit)? = null,
 ) {
     val density = LocalDensity.current
+    // Each band renders its style merged over the ambient one, so a weight-only style still has a size.
+    val ambientTextStyle = LocalTextStyle.current
     val dimensions =
-        remember(state.dimensions, typography, density) { state.dimensions.scaledForFont(typography, density) }
+        remember(state.dimensions, typography, ambientTextStyle, density.density, density.fontScale) {
+            state.dimensions.scaledForFont(typography.mergedOver(ambientTextStyle), density)
+        }
     state.effectiveDimensions = dimensions
     val resolvedColors = colors.resolve()
     val visibleColumns by remember(columns, state.columns.order) {
@@ -245,7 +251,7 @@ public fun <T : Any, C, E> EditableTable(
     val nestedScrollDispatcher = remember { NestedScrollDispatcher() }
 
     // Cached heights are pixels for one dataset size, density and font scale.
-    LaunchedEffect(itemsCount, density, dimensions) { state.rowHeightsPx.clear() }
+    LaunchedEffect(itemsCount, density.density, density.fontScale, dimensions) { state.rowHeightsPx.clear() }
     ScrollToTopOnSortChange(state, verticalState)
 
     RegisterEditCallbacks(state, effectiveItemAt, onRowEditStart, onRowEditComplete, onEditCancel)

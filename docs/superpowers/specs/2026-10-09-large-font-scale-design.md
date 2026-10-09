@@ -86,7 +86,9 @@ internal fun TableDimensions.scaledForFont(typography: TableTypography, density:
 
 - `TableState` gets `internal var effectiveDimensions: TableDimensions by mutableStateOf(dimensions)`.
 - In `Table.kt`, the root replaces `val dimensions = state.dimensions` with
-  `remember(state.dimensions, typography, density) { state.dimensions.scaledForFont(typography, density) }`
+  `remember(state.dimensions, typography, LocalTextStyle.current, density.density, density.fontScale) { state.dimensions.scaledForFont(typography.mergedOver(LocalTextStyle.current), density) }`.
+  Each style is merged over the ambient `LocalTextStyle` first, as the bands render it, so a style
+  that only sets weight or colour still grows by the size it inherits.
   and assigns it to `state.effectiveDimensions`, in the same way the root already assigns
   `state.visibleColumns` and `state.rowUnits`.
 - Every internal height read switches from `state.dimensions` to `state.effectiveDimensions` (or

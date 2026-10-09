@@ -3,11 +3,13 @@ package ua.wwind.table
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -18,10 +20,13 @@ import androidx.compose.ui.test.getBoundsInRoot
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.v2.runComposeUiTest
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.height
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.width
 import assertk.assertThat
 import assertk.assertions.doesNotContainKey
@@ -32,6 +37,7 @@ import kotlinx.collections.immutable.persistentListOf
 import ua.wwind.table.config.RowHeightMode
 import ua.wwind.table.config.TableDefaults
 import ua.wwind.table.config.TableSettings
+import ua.wwind.table.config.TableTypography
 import ua.wwind.table.filter.data.TableFilterType
 import ua.wwind.table.state.TableState
 import ua.wwind.table.state.rememberTableState
@@ -232,5 +238,65 @@ class FontScaleLayoutTest {
             scale = 2f
             waitForIdle()
             assertThat(state.rowHeightsPx).doesNotContainKey(999)
+        }
+
+    @Test
+    fun `a style without a size grows by the ambient text it renders with`() =
+        runComposeUiTest {
+            lateinit var state: TableState<String>
+            val bold = TextStyle(fontWeight = FontWeight.Bold)
+            setContent {
+                state = rememberTableState(columns = persistentListOf("group", "id"))
+                FontScale(2f) {
+                    ProvideTextStyle(TextStyle(fontSize = 16.sp, lineHeight = 24.sp)) {
+                        Box(Modifier.size(400.dp, 500.dp)) {
+                            Table(
+                                itemsCount = 1,
+                                itemAt = { Item(it, "a") },
+                                state = state,
+                                columns = columns,
+                                typography =
+                                    TableTypography(header = bold, body = bold, footer = bold, groupHeader = bold),
+                            )
+                        }
+                    }
+                }
+            }
+            waitForIdle()
+            assertThat(state.effectiveDimensions.headerHeight).isEqualTo(80.dp)
+            assertThat(state.effectiveDimensions.rowHeight).isEqualTo(76.dp)
+        }
+
+    @Test
+    fun `an equal density in a new object keeps cached row heights`() =
+        runComposeUiTest {
+            lateinit var state: TableState<String>
+            var tick by mutableIntStateOf(0)
+            setContent {
+                state =
+                    rememberTableState(
+                        columns = persistentListOf("group", "id"),
+                        settings = TableSettings(rowHeightMode = RowHeightMode.Dynamic),
+                    )
+                val outer = LocalDensity.current
+                // Reading tick builds a new, equal-valued, non-data Density on every change.
+                val density =
+                    tick.let {
+                        object : Density {
+                            override val density = outer.density
+                            override val fontScale = outer.fontScale
+                        }
+                    }
+                CompositionLocalProvider(LocalDensity provides density) {
+                    Box(Modifier.size(400.dp, 500.dp)) {
+                        Table(itemsCount = 3, itemAt = { Item(it, "a") }, state = state, columns = columns)
+                    }
+                }
+            }
+            waitForIdle()
+            runOnIdle { state.rowHeightsPx[999] = 1 }
+            tick++
+            waitForIdle()
+            assertThat(state.rowHeightsPx[999]).isEqualTo(1)
         }
 }

@@ -32,6 +32,15 @@ internal fun TableDimensions.scaledForFont(
     )
 }
 
+/** The styles as the bands render them: each merged over the ambient text style. */
+internal fun TableTypography.mergedOver(ambient: TextStyle): TableTypography =
+    TableTypography(
+        header = ambient.merge(header),
+        body = ambient.merge(body),
+        footer = ambient.merge(footer),
+        groupHeader = ambient.merge(groupHeader),
+    )
+
 private fun Density.lineGrowth(style: TextStyle): Dp {
     val line =
         when {
