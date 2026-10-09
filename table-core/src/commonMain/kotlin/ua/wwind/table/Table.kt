@@ -244,8 +244,8 @@ public fun <T : Any, C, E> EditableTable(
     val blockParentScrollConnection = rememberBlockParentScrollConnection()
     val nestedScrollDispatcher = remember { NestedScrollDispatcher() }
 
-    // Reset cached row heights when dataset size changes
-    LaunchedEffect(itemsCount) { state.rowHeightsPx.clear() }
+    // Cached heights are pixels for one dataset size, density and font scale.
+    LaunchedEffect(itemsCount, density, dimensions) { state.rowHeightsPx.clear() }
     ScrollToTopOnSortChange(state, verticalState)
 
     RegisterEditCallbacks(state, effectiveItemAt, onRowEditStart, onRowEditComplete, onEditCancel)

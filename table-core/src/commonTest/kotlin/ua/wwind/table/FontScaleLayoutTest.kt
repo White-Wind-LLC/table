@@ -6,14 +6,17 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.getBoundsInRoot
-import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.v2.runComposeUiTest
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
@@ -21,10 +24,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.height
 import androidx.compose.ui.unit.width
 import assertk.assertThat
+import assertk.assertions.doesNotContainKey
 import assertk.assertions.isBetween
 import assertk.assertions.isEqualTo
 import assertk.assertions.isGreaterThanOrEqualTo
 import kotlinx.collections.immutable.persistentListOf
+import ua.wwind.table.config.RowHeightMode
 import ua.wwind.table.config.TableDefaults
 import ua.wwind.table.config.TableSettings
 import ua.wwind.table.filter.data.TableFilterType
@@ -204,4 +209,28 @@ class FontScaleLayoutTest {
             assertNear(onNodeWithText("top").getBoundsInRoot().top, 56.dp)
         }
 
+    @Test
+    fun `changing the font scale drops cached row heights`() =
+        runComposeUiTest {
+            lateinit var state: TableState<String>
+            var scale by mutableFloatStateOf(1f)
+            setContent {
+                state =
+                    rememberTableState(
+                        columns = persistentListOf("group", "id"),
+                        settings = TableSettings(rowHeightMode = RowHeightMode.Dynamic),
+                    )
+                FontScale(scale) {
+                    Box(Modifier.size(400.dp, 500.dp)) {
+                        Table(itemsCount = 3, itemAt = { Item(it, "a") }, state = state, columns = columns)
+                    }
+                }
+            }
+            waitForIdle()
+            // An offscreen entry no row re-measures: only a reset removes it.
+            runOnIdle { state.rowHeightsPx[999] = 1 }
+            scale = 2f
+            waitForIdle()
+            assertThat(state.rowHeightsPx).doesNotContainKey(999)
+        }
 }
