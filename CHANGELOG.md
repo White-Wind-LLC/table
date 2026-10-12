@@ -2,11 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
-### Unreleased
+### 3.1.1 — 2026-10-12
+
+With `groupBy`, the sticky group header keeps up with the table. It used to hold on to the group it
+first showed when rows were added under an unchanged layout, or when the data, row height, font scale
+or grouping changed; it now always shows the group of the top visible row and hands off to the next
+one at the right offset.
 
 - Fixed: with `groupBy`, the sticky group header follows changes to the data, row height, font scale and the grouped
   column's `valueOf`; it no longer shows a stale group or gets pushed up by the wrong amount
   ([#145](https://github.com/White-Wind-LLC/table/pull/145), [#147](https://github.com/White-Wind-LLC/table/pull/147)).
+
+Compare: [v3.1.0...v3.1.1](https://github.com/White-Wind-LLC/table/compare/v3.1.0...v3.1.1)
 
 ### 3.1.0 — 2026-10-09
 
