@@ -4,13 +4,9 @@ All notable changes to this project will be documented in this file.
 
 ### Unreleased
 
-- Fixed: with `groupBy`, the sticky group header follows the data again. A sort or refresh that kept the row count
-  and the first row's height left it showing the group of the previous first row
-  ([#145](https://github.com/White-Wind-LLC/table/pull/145)).
-- Fixed: with `groupBy`, the sticky group header no longer goes stale when data or layout changes behind an unchanged
-  `itemAt`. A sort of a `SnapshotStateList`, a new row height or font scale, a new `valueOf` for the grouped column
-  and a next row that finishes loading now update both the header and how far the next group pushes it up
-  ([#146](https://github.com/White-Wind-LLC/table/issues/146)).
+- Fixed: with `groupBy`, the sticky group header follows changes to the data, row height, font scale and the grouped
+  column's `valueOf`; it no longer shows a stale group or gets pushed up by the wrong amount
+  ([#145](https://github.com/White-Wind-LLC/table/pull/145), [#147](https://github.com/White-Wind-LLC/table/pull/147)).
 
 ### 3.1.0 — 2026-10-09
 
