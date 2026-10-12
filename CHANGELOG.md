@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+### Unreleased
+
+- Fixed: with `groupBy`, the sticky group header follows the data again. A sort or refresh that kept the row count
+  and the first row's height left it showing the group of the previous first row
+  ([#145](https://github.com/White-Wind-LLC/table/pull/145)).
+
 ### 3.1.0 — 2026-10-09
 
 The sort icon and the focus ring stay visible on a header painted in `primary`. Both were drawn in
