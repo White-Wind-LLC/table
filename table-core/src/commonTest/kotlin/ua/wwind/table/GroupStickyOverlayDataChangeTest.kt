@@ -6,6 +6,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -114,5 +115,46 @@ class GroupStickyOverlayDataChangeTest {
             waitForIdle()
 
             assertThat(shownCells.sorted()).isEqualTo(listOf("row-0", "row-0", "row-1", "row-1", "row-1"))
+        }
+
+    @Test
+    fun `the sticky group header follows a sort behind an unchanged loader`() =
+        runComposeUiTest {
+            val rows = mutableStateListOf(*initialRows.toTypedArray())
+            val shownHeaders = mutableListOf<String>()
+            setContent {
+                val columns =
+                    remember {
+                        tableColumns<SortedRow, String, Unit> {
+                            column("group", valueOf = { it.group }) {
+                                header("Group")
+                                width(120.dp, 120.dp)
+                                resizable(false)
+                                cell { item, _ -> Text(item.group) }
+                                groupHeader { value ->
+                                    DisposableEffect(value) {
+                                        shownHeaders += value as String
+                                        onDispose { shownHeaders -= value }
+                                    }
+                                    Text("group-$value")
+                                }
+                            }
+                        }
+                    }
+                val state = rememberTableState(columns = persistentListOf("group"))
+                remember { state.groupBy("group") }
+                // The same loader instance throughout: only the list it reads changes.
+                val itemAt = remember { { index: Int -> rows[index] } }
+                Box(Modifier.size(400.dp, 320.dp)) {
+                    Table(itemsCount = rows.size, itemAt = itemAt, state = state, columns = columns)
+                }
+            }
+            waitForIdle()
+            assertThat(shownHeaders.sorted()).isEqualTo(listOf("a", "b", "b"))
+
+            runOnIdle { rows.sortBy { it.group } }
+            waitForIdle()
+
+            assertThat(shownHeaders.sorted()).isEqualTo(listOf("a", "a", "b"))
         }
 }

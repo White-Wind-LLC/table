@@ -21,7 +21,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import kotlinx.collections.immutable.ImmutableList
-import kotlinx.coroutines.flow.collectLatest
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.config.TableColors
 import ua.wwind.table.config.TableCustomization
@@ -65,43 +64,41 @@ internal fun <T : Any, C, E> GroupStickyOverlay(
         remember(state.effectiveDimensions.dividerThickness, density) {
             with(density) { state.effectiveDimensions.dividerThickness.roundToPx() }
         }
-    val overlayHeightPx = headerHeightPx + dividerThicknessPx
     // Read through updated state: a paged loader passes a new itemAt on every emission, and keying
-    // the effect on it would restart the collection each time.
+    // the effect on it would restart the collection each time. Being state, these are also tracked
+    // by the snapshotFlow below, so a new loader, spec or height recomputes the header.
     val currentItemAt by rememberUpdatedState(itemAt)
     val currentItemsCount by rememberUpdatedState(itemsCount)
+    val currentSpec by rememberUpdatedState(spec)
+    val currentOverlayHeightPx by rememberUpdatedState(headerHeightPx + dividerThicknessPx)
+    val currentDividerThicknessPx by rememberUpdatedState(dividerThicknessPx)
     LaunchedEffect(verticalState, state.groupBy) {
+        // Rows are read inside the flow so that snapshot-backed data (a SnapshotStateList behind an
+        // unchanged loader, a row that finishes loading) re-emits too.
         snapshotFlow {
             val firstInfo = verticalState.layoutInfo.visibleItemsInfo.firstOrNull()
-            // The loader is part of the key: a sort or refresh can bring new rows under an unchanged layout.
-            FirstVisibleRow(
-                index = firstInfo?.index ?: -1,
-                bottomOnScreenPx = (firstInfo?.offset ?: 0) + (firstInfo?.size ?: 0),
-                itemsCount = currentItemsCount,
-                itemAt = currentItemAt,
-            )
-        }.collectLatest { row ->
+            val count = currentItemsCount
             // groupBy suppresses row blocks, so every lazy item before the footer is one row and
             // the row count bounds the index; the footer itself sits at index == count.
-            if (row.index !in 0 until row.itemsCount) {
-                currentItem = null
-                overlayOffsetPx = 0
-                return@collectLatest
+            if (firstInfo == null || firstInfo.index !in 0 until count) {
+                return@snapshotFlow StickyHeader<T>(item = null, offsetPx = 0)
             }
-            currentItem = row.itemAt(row.index)
-
-            val currentValue = currentItem?.let { spec.valueOf(it) }
-            val nextValue =
-                if (row.index + 1 < row.itemsCount) row.itemAt(row.index + 1)?.let { spec.valueOf(it) } else null
-            val isNextDifferent = currentValue != nextValue
-
-            if (isNextDifferent) {
-                // Include row divider thickness to match the actual next row top
-                val bottomWithDivider = row.bottomOnScreenPx + dividerThicknessPx
-                overlayOffsetPx = min(0, bottomWithDivider - overlayHeightPx)
-            } else {
-                overlayOffsetPx = 0
-            }
+            val index = firstInfo.index
+            val item = currentItemAt(index)
+            val currentValue = item?.let { currentSpec.valueOf(it) }
+            val nextValue = if (index + 1 < count) currentItemAt(index + 1)?.let { currentSpec.valueOf(it) } else null
+            val offsetPx =
+                if (currentValue != nextValue) {
+                    // Include row divider thickness to match the actual next row top
+                    val bottomWithDivider = firstInfo.offset + firstInfo.size + currentDividerThicknessPx
+                    min(0, bottomWithDivider - currentOverlayHeightPx)
+                } else {
+                    0
+                }
+            StickyHeader(item, offsetPx)
+        }.collect { header ->
+            currentItem = header.item
+            overlayOffsetPx = header.offsetPx
         }
     }
 
@@ -142,9 +139,7 @@ internal fun <T : Any, C, E> GroupStickyOverlay(
     }
 }
 
-private data class FirstVisibleRow<T>(
-    val index: Int,
-    val bottomOnScreenPx: Int,
-    val itemsCount: Int,
-    val itemAt: (Int) -> T?,
+private data class StickyHeader<T>(
+    val item: T?,
+    val offsetPx: Int,
 )
