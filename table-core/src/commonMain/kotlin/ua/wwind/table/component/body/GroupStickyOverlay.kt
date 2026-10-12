@@ -70,34 +70,34 @@ internal fun <T : Any, C, E> GroupStickyOverlay(
     // the effect on it would restart the collection each time.
     val currentItemAt by rememberUpdatedState(itemAt)
     val currentItemsCount by rememberUpdatedState(itemsCount)
-    // Track first visible item layout to compute push-up effect precisely
     LaunchedEffect(verticalState, state.groupBy) {
         snapshotFlow {
             val firstInfo = verticalState.layoutInfo.visibleItemsInfo.firstOrNull()
-            // Index, bottom-on-screen in px, and the row count that bounds both reads
-            Triple(
-                firstInfo?.index ?: -1,
-                (firstInfo?.offset ?: 0) + (firstInfo?.size ?: 0),
-                currentItemsCount,
+            // The loader is part of the key: a sort or refresh can bring new rows under an unchanged layout.
+            FirstVisibleRow(
+                index = firstInfo?.index ?: -1,
+                bottomOnScreenPx = (firstInfo?.offset ?: 0) + (firstInfo?.size ?: 0),
+                itemsCount = currentItemsCount,
+                itemAt = currentItemAt,
             )
-        }.collectLatest { (index, bottomOnScreenPx, count) ->
+        }.collectLatest { row ->
             // groupBy suppresses row blocks, so every lazy item before the footer is one row and
             // the row count bounds the index; the footer itself sits at index == count.
-            if (index !in 0 until count) {
+            if (row.index !in 0 until row.itemsCount) {
                 currentItem = null
                 overlayOffsetPx = 0
                 return@collectLatest
             }
-            currentItem = currentItemAt(index)
+            currentItem = row.itemAt(row.index)
 
             val currentValue = currentItem?.let { spec.valueOf(it) }
             val nextValue =
-                if (index + 1 < count) currentItemAt(index + 1)?.let { spec.valueOf(it) } else null
+                if (row.index + 1 < row.itemsCount) row.itemAt(row.index + 1)?.let { spec.valueOf(it) } else null
             val isNextDifferent = currentValue != nextValue
 
             if (isNextDifferent) {
                 // Include row divider thickness to match the actual next row top
-                val bottomWithDivider = bottomOnScreenPx + dividerThicknessPx
+                val bottomWithDivider = row.bottomOnScreenPx + dividerThicknessPx
                 overlayOffsetPx = min(0, bottomWithDivider - overlayHeightPx)
             } else {
                 overlayOffsetPx = 0
@@ -141,3 +141,10 @@ internal fun <T : Any, C, E> GroupStickyOverlay(
         }
     }
 }
+
+private data class FirstVisibleRow<T>(
+    val index: Int,
+    val bottomOnScreenPx: Int,
+    val itemsCount: Int,
+    val itemAt: (Int) -> T?,
+)
