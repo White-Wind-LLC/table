@@ -2,11 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
-### Unreleased
+### 3.2.0 — 2026-10-19
+
+A column can draw its own chip in the active filters row, e.g. to mark a filter that cannot be applied
+right now, to change what a click does, or to let the chip itself edit the filter. `DefaultActiveFilterChip`
+keeps the table's chip and lets you swap only a part of it.
 
 - Added: `activeFilterChip { ctx -> }` in the column DSL draws that column's active filter chip;
   `DefaultActiveFilterChip` keeps the default look with overridable parts. The new `ColumnSpec` field changes the
   JVM signatures of its constructor and `copy` ([#149](https://github.com/White-Wind-LLC/table/issues/149)).
+
+Compare: [v3.1.1...v3.2.0](https://github.com/White-Wind-LLC/table/compare/v3.1.1...v3.2.0)
 
 ### 3.1.1 — 2026-10-12
 
