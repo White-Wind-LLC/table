@@ -6,7 +6,6 @@ import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkHorizontally
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -20,7 +19,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.InputChip
 import androidx.compose.material3.Text
-import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -30,7 +28,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.ImmutableList
@@ -51,9 +48,6 @@ import ua.wwind.table.state.TableState
 import ua.wwind.table.strings.DefaultStrings
 import ua.wwind.table.strings.StringProvider
 import ua.wwind.table.strings.UiString
-
-/** Radius of the round press and hover indication around a chip's ×; fits the 32 dp chip. */
-private val ClearIconRippleRadius = 12.dp
 
 /**
  * Renders a compact header row with chips describing currently active filters.
@@ -197,7 +191,8 @@ internal fun <T : Any, C, E> ActiveFilterChips(
                                 filter = st,
                                 isOpen = isOpen,
                                 strings = strings,
-                                onClick = { if (filterPanel != null) openColumn = col },
+                                onOpen = { if (filterPanel != null) openColumn = col },
+                                onChange = { newState -> state.setFilter(col, newState) },
                                 onClear = {
                                     if (isOpen) openColumn = null
                                     clearFilter(state, col, spec)
@@ -252,8 +247,9 @@ private fun RowScope.ChipsScrollButton(
 }
 
 /**
- * [spec]'s chip: a click calls [onClick], its × calls [onClear]. While [isOpen], [panel] is anchored under
- * the chip, and the chip stays with only the column title if [filter] no longer describes a value.
+ * [spec]'s chip, drawn by [ColumnSpec.activeFilterChip] or [DefaultActiveFilterChip]: [onOpen] opens the
+ * panel, [onChange] sets the filter, [onClear] removes it. While [isOpen], [panel] is anchored under the
+ * chip, and the chip stays with only the column title if [filter] no longer describes a value.
  */
 @Composable
 @Suppress("LongParameterList")
@@ -262,35 +258,31 @@ private fun <T : Any, C, E> ActiveFilterChip(
     filter: TableFilterState<*>,
     isOpen: Boolean,
     strings: StringProvider,
-    onClick: () -> Unit,
+    onOpen: () -> Unit,
+    onChange: (TableFilterState<*>) -> Unit,
     onClear: () -> Unit,
     panel: @Composable () -> Unit,
 ) {
     val text = spec.filter?.let { buildFilterChipTextUnsafe(it, filter, strings) }
     if (text == null && !isOpen) return
-    val title = spec.title?.invoke() ?: spec.key.toString()
-    Box {
-        InputChip(
-            selected = true,
-            onClick = onClick,
-            label = { Text(if (text != null) "$title: $text" else title) },
-            trailingIcon = {
-                Icon(
-                    painter = painterResource(TableIcons.Close),
-                    contentDescription = strings.get(UiString.ColumnMenuClearFilter),
-                    // A round, unbounded indication like an IconButton's, without its 48 dp target that would
-                    // make the chip taller.
-                    modifier =
-                        Modifier.clickable(
-                            interactionSource = null,
-                            indication = ripple(bounded = false, radius = ClearIconRippleRadius),
-                            role = Role.Button,
-                            onClick = onClear,
-                        ),
-                )
-            },
-            modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp),
+    val ctx =
+        TableFilterChipContext(
+            column = spec.key,
+            state = filter,
+            title = spec.title?.invoke() ?: spec.key.toString(),
+            text = text,
+            isOpen = isOpen,
+            strings = strings,
+            onOpen = onOpen,
+            onChange = onChange,
+            onClear = onClear,
         )
+    // The panel is anchored outside the slot, so a custom chip gets it by calling onOpen.
+    Box {
+        Box(Modifier.padding(horizontal = 4.dp, vertical = 4.dp)) {
+            val chip = spec.activeFilterChip
+            if (chip != null) chip(ctx) else DefaultActiveFilterChip(ctx)
+        }
         if (isOpen) panel()
     }
 }
