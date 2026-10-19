@@ -38,6 +38,8 @@ import ua.wwind.table.filter.data.TableFilterType
  * @param headerDecorations whether to render built-in sort/filter icons in the header cell
  * @param headerClickToSort whether clicking the entire header cell toggles sorting
  * @param footer optional composable content for the footer cell; receives table state data
+ * @param activeFilterChip optional chip for this column's filter in the active filters row; null draws
+ * [DefaultActiveFilterChip]
  */
 @Immutable
 public data class ColumnSpec<T : Any, C, E>(
@@ -82,6 +84,8 @@ public data class ColumnSpec<T : Any, C, E>(
     val headerAlignment: Alignment? = null,
     /** Whether body and footer cells render digits with tabular (fixed-width) figures. */
     val tabularFigures: Boolean = false,
+    /** Optional chip for this column's filter in the active filters row; null draws [DefaultActiveFilterChip]. */
+    val activeFilterChip: (@Composable (TableFilterChipContext<C>) -> Unit)? = null,
 )
 
 /**
@@ -168,6 +172,7 @@ public open class ReadonlyColumnBuilder<T : Any, C, E>
         protected var canStartEdit: ((T, Int) -> Boolean)? = null
         protected var editCell: (@Composable BoxScope.(T, E, onComplete: () -> Unit) -> Unit)? = null
         protected var footer: (@Composable BoxScope.(E) -> Unit)? = null
+        protected var activeFilterChip: (@Composable (TableFilterChipContext<C>) -> Unit)? = null
 
         /** Set simple text header. */
         public fun header(text: String) {
@@ -271,6 +276,19 @@ public open class ReadonlyColumnBuilder<T : Any, C, E>
             filter = type
         }
 
+        /**
+         * Draw this column's chip in the active filters row, e.g. to mark a filter that cannot be applied
+         * right now or to replace what a click does. [DefaultActiveFilterChip] draws the table's chip and
+         * takes overrides for its parts. The filter panel stays anchored under the chip and opens on
+         * [TableFilterChipContext.onOpen].
+         *
+         * A custom chip owns its accessibility labels: give the × a localized `contentDescription`, and
+         * do not report a chip whose click does nothing as a button.
+         */
+        public fun activeFilterChip(content: @Composable (ctx: TableFilterChipContext<C>) -> Unit) {
+            activeFilterChip = content
+        }
+
         /** Optional custom renderer for the group header. */
         public fun groupHeader(renderer: @Composable BoxScope.(Any?) -> Unit) {
             groupHeader = renderer
@@ -318,6 +336,7 @@ public open class ReadonlyColumnBuilder<T : Any, C, E>
                 canStartEdit = canStartEdit,
                 editCell = editCell,
                 footer = footer,
+                activeFilterChip = activeFilterChip,
             )
     }
 

@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+### Unreleased
+
+- Added: `activeFilterChip { ctx -> }` in the column DSL draws that column's active filter chip;
+  `DefaultActiveFilterChip` keeps the default look with overridable parts. The new `ColumnSpec` field changes the
+  JVM signatures of its constructor and `copy` ([#149](https://github.com/White-Wind-LLC/table/issues/149)).
+
 ### 3.1.1 — 2026-10-12
 
 With `groupBy`, the sticky group header keeps up with the table. It used to hold on to the group it

@@ -23,12 +23,13 @@ import ua.wwind.table.sample.generated.resources.link_filled
 import ua.wwind.table.sample.generated.resources.link_off_filled
 import ua.wwind.table.sample.generated.resources.reorder_filled
 import ua.wwind.table.sample.generated.resources.settings_filled
+import ua.wwind.table.sample.generated.resources.star_border_filled
 import ua.wwind.table.sample.generated.resources.star_filled
 
 /**
  * Icons used only by the sample app. Deliberately not part of the library's public API.
  *
- * All 11 icons are `Icons.Filled.*` from Material.
+ * All 12 icons are `Icons.Filled.*` from Material.
  */
 @Suppress("VariableNaming", "ktlint:standard:property-naming")
 internal object SampleIcons {
@@ -55,6 +56,9 @@ internal object SampleIcons {
 
     /** Material `Icons.Filled.Star`. */
     val Star: DrawableResource get() = Res.drawable.star_filled
+
+    /** Material `Icons.Filled.StarBorder`. */
+    val StarBorder: DrawableResource get() = Res.drawable.star_border_filled
 
     /** Material `Icons.Filled.BarChart`. */
     val BarChart: DrawableResource get() = Res.drawable.bar_chart_filled

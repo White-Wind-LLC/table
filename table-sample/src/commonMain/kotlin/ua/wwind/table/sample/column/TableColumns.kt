@@ -414,6 +414,7 @@ fun createTableColumns(
                 autoWidth()
                 sortable()
                 filterTypes[PersonColumn.RATING]?.let { filter(it) }
+                activeFilterChip { ctx -> RatingFilterChip(ctx) }
                 align(Alignment.Center)
                 cell { item, _ ->
                     Row(

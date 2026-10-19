@@ -42,6 +42,11 @@
         - Editing: `editCell { item, tableData, onComplete -> ... }` for custom edit UI.
         - Sorting: `sortable()`, `headerClickToSort(Boolean)`.
         - Filters UI: `filter(TableFilterType.*)`.
+        - Active filter chip: `activeFilterChip { ctx -> ... }` draws this column's chip in the active filters row.
+          `ctx` carries the filter state, title, chip text and `onOpen` / `onChange` / `onClear`. Call
+          `DefaultActiveFilterChip(ctx, label = …, leadingIcon = …, colors = …, onClick = …)` to change one part
+          and keep the rest; `onClick = null` leaves only the × clickable. The filter panel opens under the chip
+          on `ctx.onOpen()`. A custom chip owns its accessibility labels.
         - Sizing: `width(min, pref)`, `autoWidth(max)`, `resizable(Boolean)`, `align(Alignment.Horizontal)`.
         - Row height hints: `rowHeight(min, max)` used when `rowHeightMode = Dynamic`.
         - Decorations: `headerDecorations(Boolean)` to hide built‑ins when fully customizing header.
