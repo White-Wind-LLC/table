@@ -235,15 +235,13 @@ internal fun <T : Any, C, E> ActiveFilterChips(
                                         texts = texts,
                                         filterChips = filterChips,
                                         onOpen = { if (filterPanel != null) openPath = item.path },
+                                        // A null state removes the condition, as the header's panel does.
                                         onChange = { newState ->
-                                            state.updateFilterExpression {
-                                                it.replaceAt(
-                                                    item.path,
-                                                    TableFilterNode.Condition(
-                                                        item.column,
-                                                        newState ?: TableFilterState<Any?>(null, null),
-                                                    ),
-                                                )
+                                            if (newState == null) {
+                                                removeNode(item.path)
+                                            } else {
+                                                val condition = TableFilterNode.Condition(item.column, newState)
+                                                state.updateFilterExpression { it.replaceAt(item.path, condition) }
                                             }
                                         },
                                         onClear = {

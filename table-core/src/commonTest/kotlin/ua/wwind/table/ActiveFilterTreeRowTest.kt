@@ -83,6 +83,21 @@ class ActiveFilterTreeRowTest {
         }
 
     @Test
+    fun `clear in the row panel removes the key like the header`() =
+        runComposeUiTest {
+            val state = setTable(and(eq("a", "x")))
+
+            onNodeWithText("A: Equals \"x\"").performClick()
+            waitForIdle()
+            onNodeWithText("Clear").performClick()
+            waitForIdle()
+
+            assertThat(state.filters.containsKey("a")).isFalse()
+            assertThat(state.filterExpression.children).isEmpty()
+            onNodeWithText("Condition").assertDoesNotExist()
+        }
+
+    @Test
     fun `x on the group chip removes the whole node`() =
         runComposeUiTest {
             val state = setTable(and(or(eq("a", "a"), eq("b", "b")), eq("c", "c")))
