@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+### 3.4.0 — Unreleased
+
+A saved condition on a field the app no longer knows stays in the filter tree, visible and removable where it
+is, and marks the whole filter as not applicable ([#157](https://github.com/White-Wind-LLC/table/issues/157)).
+
+- Added: `TableFilterNode.Unresolved(key, payload)`, kept in place with its payload by every edit;
+  `unresolvedLeaves()` and `TableState.unresolvedFilters` tell apps not to apply the filter.
+- Added: a warning chip and popover line with × for it, `TableFilterChipStyle.unresolvedTitle`,
+  `TableFilterChipNode.Unresolved`, `TableFilterChipNode.Group.hasUnresolved`, the row's
+  `UiString.FilterUnresolvedBlocked` line and `StringProvider.unresolvedFilterDescription`.
+- Added: `TableEmptyScope.hasUnresolvedFilters`; the default empty state then says the filter contains unknown
+  fields instead of "No results".
+- Changed: the new branches of the sealed `TableFilterNode`, `TableFilterChipNode` and `UiString` break exhaustive
+  `when`s over them, including a custom `StringProvider.get` without `else`. `unresolvedTitle` comes before
+  `chip` in `TableFilterChipStyle` and `TableFilterChipDefaults.style`, so pass `chip` by name; it also changes
+  the JVM signatures of the style's constructor and `copy`.
+
 ### 3.3.0 — 2026-10-20
 
 Filters can be AND/OR/NOT trees, and the active filters row shows and edits the whole tree.

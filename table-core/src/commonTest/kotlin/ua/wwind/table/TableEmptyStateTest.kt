@@ -31,6 +31,7 @@ import kotlin.test.Test
 private const val NO_DATA = "No data"
 private const val NO_RESULTS = "No results match the current filters"
 private const val CLEAR_FILTERS = "Clear filters"
+private const val UNRESOLVED = "Filter contains unknown fields — remove them to apply"
 
 /** The body's empty state: what an empty table says, and that it keeps the header and footer. */
 @OptIn(ExperimentalTestApi::class)
@@ -273,5 +274,26 @@ class TableEmptyStateTest {
             val centreY = (bounds.top + bounds.bottom) / 2
             assertThat(centreX).isBetween(196.dp, 204.dp)
             assertThat(centreY).isBetween((headerBottom + 400.dp) / 2 - 6.dp, (headerBottom + 400.dp) / 2 + 6.dp)
+        }
+
+    @Test
+    fun `an unresolved filter says so and clearFilters removes it`() =
+        runComposeUiTest {
+            lateinit var state: TableState<String>
+            setContent {
+                val columns = remember { columns() }
+                state = rememberTableState(columns = persistentListOf("name"))
+                Box(Modifier.size(400.dp)) {
+                    Table(itemsCount = 0, itemAt = { null }, state = state, columns = columns)
+                }
+            }
+            runOnIdle { state.setFilterExpression(TableFilterNode.Unresolved("old")) }
+            onNodeWithText(UNRESOLVED).assertIsDisplayed()
+            onNodeWithText(NO_RESULTS).assertDoesNotExist()
+            onNodeWithText(CLEAR_FILTERS).performClick()
+            waitForIdle()
+
+            assertThat(state.filterExpression.children).isEmpty()
+            onNodeWithText(NO_DATA).assertIsDisplayed()
         }
 }

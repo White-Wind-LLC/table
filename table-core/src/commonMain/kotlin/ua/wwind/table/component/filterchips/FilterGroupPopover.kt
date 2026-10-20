@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.PopupProperties
 import org.jetbrains.compose.resources.painterResource
 import ua.wwind.table.ColumnSpec
+import ua.wwind.table.FilterChipBadge
 import ua.wwind.table.FilterChipTexts
 import ua.wwind.table.ResolvedFilterChip
 import ua.wwind.table.ReturnFocus
@@ -62,6 +63,7 @@ import ua.wwind.table.filter.data.TableFilterNode.Condition
 import ua.wwind.table.filter.data.TableFilterNode.Group
 import ua.wwind.table.filter.data.TableFilterNode.Not
 import ua.wwind.table.filter.data.TableFilterNode.Operator
+import ua.wwind.table.filter.data.TableFilterNode.Unresolved
 import ua.wwind.table.filter.data.TableFilterState
 import ua.wwind.table.filter.data.TableFilterType
 import ua.wwind.table.filter.data.isActive
@@ -100,7 +102,9 @@ internal fun <T : Any, C, E> FilterGroupPopover(
     val node = state.filterExpression.nodeAt(rootPath)
     if (node !is Group && node !is Not) return
     val texts =
-        remember(keyToSpec, style.unknownTitle, strings) { FilterChipTexts(keyToSpec, style.unknownTitle, strings) }
+        remember(keyToSpec, style.unknownTitle, style.unresolvedTitle, strings) {
+            FilterChipTexts(keyToSpec, style.unknownTitle, style.unresolvedTitle, strings)
+        }
     val edit: (transform: (Group<C>) -> Group<C>) -> Unit = { transform ->
         val before = state.filterExpression
         state.updateFilterExpression(transform)
@@ -313,7 +317,7 @@ private fun <C> Group<C>.siblingCount(path: FilterPath): Int =
     when (val parent = nodeAt(path.dropLast(1))) {
         is Group -> parent.children.size
         is Not -> 1
-        is Condition, null -> 0
+        is Condition, is Unresolved, null -> 0
     }
 
 private class PopoverTree<C>(
@@ -352,6 +356,10 @@ private class PopoverTree<C>(
                 GroupLine(path, path, node, negated = false, isTop)
             }
 
+            is Unresolved -> {
+                UnresolvedLeaf(path, node)
+            }
+
             is Not -> {
                 when (val child = node.child) {
                     is Group -> {
@@ -371,6 +379,17 @@ private class PopoverTree<C>(
                     is Not -> {
                         NotToggle(path, negated = true)
                         Children { Line(path + 0, child) }
+                    }
+
+                    // The table never changes the meaning around an unresolved leaf, so the NOT is not a toggle.
+                    is Unresolved -> {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            FilterChipBadge(strings.get(UiString.FilterNot))
+                            UnresolvedLeaf(path + 0, child)
+                        }
                     }
                 }
             }
@@ -395,7 +414,7 @@ private class PopoverTree<C>(
                 if (isTop) Text(strings.get(UiString.FilterOperatorOfThese))
                 NotToggle(linePath, negated)
                 if (!isTop) {
-                    val columns = group.summary().columns.map { texts.title(it) }
+                    val columns = texts.titles(group.summary())
                     IconButton(onClick = { edit { it.removeAt(linePath) } }) {
                         Icon(
                             painter = painterResource(TableIcons.Close),
@@ -477,6 +496,25 @@ private class PopoverTree<C>(
             }
         ReturnFocus(requested = path == drill.focusLeaf, onReturn = { drill.focusLeaf = null }) {
             ResolvedFilterChip(node, spec, style)
+        }
+    }
+
+    @Composable
+    private fun UnresolvedLeaf(
+        path: FilterPath,
+        leaf: Unresolved,
+    ) {
+        val node =
+            TableFilterChipNode.Unresolved<C>(
+                key = leaf.key,
+                payload = leaf.payload,
+                title = texts.unresolvedTitle(leaf),
+                placement = TableFilterChipPlacement.Tree,
+                strings = strings,
+                onClear = { edit { it.removeAt(path) } },
+            )
+        ReturnFocus(requested = path == drill.focusLeaf, onReturn = { drill.focusLeaf = null }) {
+            ResolvedFilterChip(node, null, style)
         }
     }
 

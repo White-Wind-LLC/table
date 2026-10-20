@@ -61,6 +61,8 @@ public data class TableFilterChipColors(
  * @property colors colors of each chip kind
  * @property unknownTitle a readable title for a column key the table does not know; null or a null result
  *   shows the key itself
+ * @property unresolvedTitle a readable title for an unresolved condition from its raw key and payload; null or
+ *   a null result shows the key itself
  * @property chip draws every chip in place of [DefaultFilterChip], which it can call to keep parts of the
  *   default; the library still owns the popover and its navigation
  */
@@ -68,6 +70,7 @@ public data class TableFilterChipColors(
 public data class TableFilterChipStyle<C>(
     val colors: TableFilterChipColors,
     val unknownTitle: ((C) -> String?)? = null,
+    val unresolvedTitle: ((key: String, payload: Any?) -> String?)? = null,
     val chip: (@Composable (TableFilterChipNode<C>) -> Unit)? = null,
 )
 
@@ -96,8 +99,9 @@ public object TableFilterChipDefaults {
     public fun <C> style(
         colors: TableFilterChipColors = colors(),
         unknownTitle: ((C) -> String?)? = null,
+        unresolvedTitle: ((key: String, payload: Any?) -> String?)? = null,
         chip: (@Composable (TableFilterChipNode<C>) -> Unit)? = null,
-    ): TableFilterChipStyle<C> = TableFilterChipStyle(colors, unknownTitle, chip)
+    ): TableFilterChipStyle<C> = TableFilterChipStyle(colors, unknownTitle, unresolvedTitle, chip)
 
     @Composable
     private fun containerColors(
@@ -202,7 +206,7 @@ private fun <C> TableFilterChipNode<C>.defaultOnClick(): (() -> Unit)? =
     when (this) {
         is TableFilterChipNode.Condition -> onOpen.takeIf { canOpen }
         is TableFilterChipNode.Group -> onOpen.takeIf { canOpen }
-        is TableFilterChipNode.Unknown -> null
+        is TableFilterChipNode.Unknown, is TableFilterChipNode.Unresolved -> null
     }
 
 private fun <C> TableFilterChipNode<C>.defaultLeadingIcon(): (@Composable () -> Unit)? {
@@ -215,7 +219,7 @@ private fun <C> TableFilterChipColors.of(node: TableFilterChipNode<C>): Selectab
     when (node) {
         is TableFilterChipNode.Condition -> condition
         is TableFilterChipNode.Group -> if (node.negated) negatedGroup else group
-        is TableFilterChipNode.Unknown -> unknown
+        is TableFilterChipNode.Unknown, is TableFilterChipNode.Unresolved -> unknown
     }
 
 @Composable
@@ -235,6 +239,10 @@ private fun <C> TableFilterChipNode<C>.defaultClearContentDescription(): String 
         is TableFilterChipNode.Unknown -> {
             strings.removeFilterLabel(title)
         }
+
+        is TableFilterChipNode.Unresolved -> {
+            strings.removeFilterLabel(title)
+        }
     }
 
 @Composable
@@ -250,18 +258,30 @@ private fun <C> DefaultFilterChipLabel(node: TableFilterChipNode<C>) {
         }
 
         is TableFilterChipNode.Unknown -> {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                Icon(
-                    painter = painterResource(TableIcons.Warning),
-                    contentDescription = node.strings.get(UiString.FilterUnknownField),
-                    modifier = Modifier.size(InputChipDefaults.IconSize),
-                )
-                Text(node.title)
-            }
+            WarningLabel(node.title, node.strings.get(UiString.FilterUnknownField))
         }
+
+        is TableFilterChipNode.Unresolved -> {
+            WarningLabel(node.title, node.strings.get(UiString.FilterUnknownField))
+        }
+    }
+}
+
+@Composable
+private fun WarningLabel(
+    title: String,
+    iconDescription: String,
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Icon(
+            painter = painterResource(TableIcons.Warning),
+            contentDescription = iconDescription,
+            modifier = Modifier.size(InputChipDefaults.IconSize),
+        )
+        Text(title)
     }
 }
 
@@ -272,8 +292,16 @@ private fun <C> GroupLabel(node: TableFilterChipNode.Group<C>) {
         horizontalArrangement = Arrangement.spacedBy(6.dp),
         modifier = Modifier.clearAndSetSemantics { contentDescription = node.description },
     ) {
-        if (node.negated) Badge(node.strings.get(UiString.FilterNot))
-        if (node.isGroup) Badge(node.strings.filterOperatorBadge(node.operator, node.itemCount))
+        // The description already names the unresolved leaves.
+        if (node.hasUnresolved) {
+            Icon(
+                painter = painterResource(TableIcons.Warning),
+                contentDescription = null,
+                modifier = Modifier.size(InputChipDefaults.IconSize),
+            )
+        }
+        if (node.negated) FilterChipBadge(node.strings.get(UiString.FilterNot))
+        if (node.isGroup) FilterChipBadge(node.strings.filterOperatorBadge(node.operator, node.itemCount))
         Text(node.text)
         Icon(
             painter = painterResource(TableIcons.KeyboardArrowDown),
@@ -283,8 +311,9 @@ private fun <C> GroupLabel(node: TableFilterChipNode.Group<C>) {
     }
 }
 
+/** A small tag on a filter chip, e.g. a group's `NOT` or its operator. */
 @Composable
-private fun Badge(text: String) {
+internal fun FilterChipBadge(text: String) {
     Surface(
         shape = RoundedCornerShape(4.dp),
         color = LocalContentColor.current.copy(alpha = BADGE_BACKGROUND_ALPHA),

@@ -77,6 +77,8 @@ public sealed interface TableFilterChipNode<C> {
      * @property text the chip's text: `"Status: Active or Pending"` for a shared column, else the column titles,
      *   e.g. `"Type, Qty, Vip"`
      * @property description the whole group read as a sentence, for accessibility
+     * @property hasUnresolved whether an [Unresolved] leaf is anywhere under the group; its title is then in
+     *   [columnTitles] and [text], after the columns
      * @property isOpen whether the group's popover is open
      * @property canOpen whether [onOpen] opens the popover: false where there are no popovers. The default chip
      *   is then not clickable
@@ -91,6 +93,7 @@ public sealed interface TableFilterChipNode<C> {
         public val sharedColumn: C?,
         public val text: String,
         public val description: String,
+        public val hasUnresolved: Boolean,
         public val isOpen: Boolean,
         public val canOpen: Boolean,
         public val onOpen: () -> Unit,
@@ -109,6 +112,22 @@ public sealed interface TableFilterChipNode<C> {
     public class Unknown<C> internal constructor(
         public val column: C,
         public val state: TableFilterState<*>,
+        public val title: String,
+        override val placement: TableFilterChipPlacement,
+        override val strings: StringProvider,
+        override val onClear: () -> Unit,
+    ) : TableFilterChipNode<C>
+
+    /**
+     * A stored condition the app could not map to a column ([TableFilterNode.Unresolved]); it can only be removed.
+     *
+     * @property key the condition's raw field key
+     * @property payload the app's opaque data for the condition
+     * @property title [TableFilterChipStyle.unresolvedTitle] of the condition, or [key]
+     */
+    public class Unresolved<C> internal constructor(
+        public val key: String,
+        public val payload: Any?,
         public val title: String,
         override val placement: TableFilterChipPlacement,
         override val strings: StringProvider,

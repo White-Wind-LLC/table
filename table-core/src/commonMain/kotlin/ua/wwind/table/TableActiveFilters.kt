@@ -6,12 +6,14 @@ import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkHorizontally
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -19,6 +21,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.InputChip
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -35,6 +38,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.ImmutableList
@@ -45,6 +51,7 @@ import org.jetbrains.compose.resources.painterResource
 import ua.wwind.table.component.TableMotionSpecs
 import ua.wwind.table.component.filterchips.FilterChipItem
 import ua.wwind.table.component.filterchips.FilterGroupPopover
+import ua.wwind.table.component.filterchips.FilterGroupSummary
 import ua.wwind.table.component.filterchips.rowItems
 import ua.wwind.table.component.filterchips.summary
 import ua.wwind.table.component.header.ColumnFilterPanel
@@ -109,7 +116,8 @@ public fun <T : Any, C, E> TableActiveFilters(
 
 /**
  * Renders a compact header row with one chip per top-level node of the filter tree.
- * Without table data the chips cannot open filter panels; their × removes the filter.
+ * Without table data the chips cannot open filter panels; their × removes the filter. Groups cannot be opened,
+ * so an unresolved condition inside a group goes away only with its group or with "Clear all".
  */
 @Deprecated(
     "Pass tableData so that clicking a chip opens its filter panel. Removed in 4.0.",
@@ -190,8 +198,8 @@ internal fun <T : Any, C, E> ActiveFilterChips(
     val chips = rowItems(root, isKnown = keyToSpec::containsKey, keepPath = openConditionPath ?: openGroupPath)
     if (chips.isEmpty()) return
     val texts =
-        remember(keyToSpec, filterChips.unknownTitle, strings) {
-            FilterChipTexts(keyToSpec, filterChips.unknownTitle, strings)
+        remember(keyToSpec, filterChips.unknownTitle, filterChips.unresolvedTitle, strings) {
+            FilterChipTexts(keyToSpec, filterChips.unknownTitle, filterChips.unresolvedTitle, strings)
         }
     val listState: LazyListState = rememberLazyListState()
     val scope = rememberCoroutineScope()
@@ -297,7 +305,35 @@ internal fun <T : Any, C, E> ActiveFilterChips(
                 },
             )
         }
+        if (state.unresolvedFilters.isNotEmpty()) UnresolvedFiltersLine(strings)
         footer()
+    }
+}
+
+/** Says that the filter is not applied while it has unresolved conditions. */
+@Composable
+private fun UnresolvedFiltersLine(strings: StringProvider) {
+    val color = MaterialTheme.colorScheme.error
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp, vertical = 2.dp)
+                .semantics { liveRegion = LiveRegionMode.Polite },
+    ) {
+        Icon(
+            painter = painterResource(TableIcons.Warning),
+            contentDescription = null,
+            tint = color,
+            modifier = Modifier.size(16.dp),
+        )
+        Text(
+            text = strings.get(UiString.FilterUnresolvedBlocked),
+            color = color,
+            style = MaterialTheme.typography.bodySmall,
+        )
     }
 }
 
@@ -441,6 +477,21 @@ private fun <T : Any, C, E> RowChip(
                             popover(item.path, keyToSpec, { row.groupEdited(state.filterExpression) }, row::closeGroup)
                         }
                     },
+            )
+        }
+
+        is FilterChipItem.Unresolved -> {
+            FilterChipSlot(
+                TableFilterChipNode.Unresolved(
+                    key = item.node.key,
+                    payload = item.node.payload,
+                    title = texts.unresolvedTitle(item.node),
+                    placement = TableFilterChipPlacement.Row,
+                    strings = texts.strings,
+                    onClear = { removeNode(item.path) },
+                ),
+                spec = null,
+                filterChips = filterChips,
             )
         }
 
@@ -590,10 +641,11 @@ private fun <C> GroupChip(
                 operator = item.summary.operator,
                 negated = item.summary.negated,
                 itemCount = item.summary.activeCount,
-                columnTitles = item.summary.columns.map { texts.title(it) },
+                columnTitles = texts.titles(item.summary),
                 sharedColumn = item.summary.sharedColumn,
                 text = texts.groupText(node),
                 description = texts.describe(node),
+                hasUnresolved = item.summary.unresolved.isNotEmpty(),
                 isOpen = isOpen,
                 canOpen = popover != null,
                 onOpen = onOpen,
@@ -630,8 +682,18 @@ internal fun ReturnFocus(
 internal class FilterChipTexts<C>(
     private val keyToSpec: Map<C, ColumnSpec<*, C, *>>,
     private val unknownTitle: ((C) -> String?)?,
+    private val unresolvedTitle: ((key: String, payload: Any?) -> String?)?,
     val strings: StringProvider,
 ) {
+    /** An unresolved condition's title: the app's title for it, else its key. */
+    fun unresolvedTitle(node: TableFilterNode.Unresolved): String =
+        unresolvedTitle?.invoke(node.key, node.payload) ?: node.key
+
+    /** The distinct titles of [summary]'s columns, then of its unresolved leaves. */
+    @Composable
+    fun titles(summary: FilterGroupSummary<C>): List<String> =
+        (summary.columns.map { title(it) } + summary.unresolved.map { unresolvedTitle(it) }).distinct()
+
     /** The column's plain-text title; for an unknown column the app's title for it, else the key. */
     @Composable
     fun title(column: C): String {
@@ -677,6 +739,10 @@ internal class FilterChipTexts<C>(
                 if (text != null) strings.filterConditionDescription(title(node.column), text) else title(node.column)
             }
 
+            is TableFilterNode.Unresolved -> {
+                strings.unresolvedFilterDescription(unresolvedTitle(node))
+            }
+
             is TableFilterNode.Group, is TableFilterNode.Not -> {
                 var inner: TableFilterNode<C> = node
                 var negated = false
@@ -707,12 +773,7 @@ internal class FilterChipTexts<C>(
         }
 
     @Composable
-    private fun columnTitles(node: TableFilterNode<C>): String =
-        node
-            .summary()
-            .columns
-            .map { title(it) }
-            .joinToString(", ")
+    private fun columnTitles(node: TableFilterNode<C>): String = titles(node.summary()).joinToString(", ")
 }
 
 /** [column]'s condition reset to its first constraint with no value. */

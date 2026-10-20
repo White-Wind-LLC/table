@@ -23,6 +23,7 @@ class FilterChipStringsTest {
                     UiString.FilterAnd,
                     UiString.FilterBack,
                     UiString.FilterUnknownField,
+                    UiString.FilterUnresolvedBlocked,
                 ).forEach { resolved[it] = DefaultStrings.get(it) }
             }
             runOnIdle {
@@ -36,6 +37,7 @@ class FilterChipStringsTest {
                         UiString.FilterAnd to "and",
                         UiString.FilterBack to "Back",
                         UiString.FilterUnknownField to "Unknown field",
+                        UiString.FilterUnresolvedBlocked to "Filter contains unknown fields — remove them to apply",
                     ),
                 )
             }

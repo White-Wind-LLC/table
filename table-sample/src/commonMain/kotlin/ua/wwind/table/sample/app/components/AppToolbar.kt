@@ -24,6 +24,7 @@ fun AppToolbar(
     pagingDemo: Boolean,
     onPagingDemoChange: (Boolean) -> Unit,
     onNestedFilterDemo: () -> Unit,
+    onUnresolvedFilterDemo: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Row(
@@ -41,6 +42,10 @@ fun AppToolbar(
                 AssistChip(
                     onClick = onNestedFilterDemo,
                     label = { Text("Nested filter demo") },
+                )
+                AssistChip(
+                    onClick = onUnresolvedFilterDemo,
+                    label = { Text("Unknown fields demo") },
                 )
             }
             FilterChip(

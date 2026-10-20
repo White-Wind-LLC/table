@@ -61,9 +61,9 @@ import ua.wwind.table.sample.app.components.SampleTableConfig
 import ua.wwind.table.sample.app.components.SelectionActionBar
 import ua.wwind.table.sample.app.components.SettingsSidebar
 import ua.wwind.table.sample.app.components.nestedFilterDemo
+import ua.wwind.table.sample.app.components.unresolvedFilterDemo
 import ua.wwind.table.sample.column.PersonColumn
 import ua.wwind.table.sample.column.createTableColumns
-import ua.wwind.table.sample.column.personTableColumns
 import ua.wwind.table.sample.icon.SampleIcons
 import ua.wwind.table.sample.model.Person
 import ua.wwind.table.sample.util.PersonFilterMatcher
@@ -210,7 +210,7 @@ fun SampleApp(
 
     val state =
         rememberTableState(
-            columns = personTableColumns.toImmutableList(),
+            columns = PersonColumn.entries.toImmutableList(),
             settings = settings,
             dimensions =
                 remember(tableConfig.useCompactMode) {
@@ -300,6 +300,7 @@ fun SampleApp(
                                     pagingDemo = pagingDemo,
                                     onPagingDemoChange = { pagingDemo = it },
                                     onNestedFilterDemo = { state.setFilterExpression(nestedFilterDemo()) },
+                                    onUnresolvedFilterDemo = { state.setFilterExpression(unresolvedFilterDemo()) },
                                 )
 
                                 HorizontalDivider()

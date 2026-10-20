@@ -1,6 +1,8 @@
 package ua.wwind.table.filter
 
 import assertk.assertThat
+import assertk.assertions.containsExactly
+import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
 import assertk.assertions.isFalse
 import assertk.assertions.isNull
@@ -21,6 +23,7 @@ import ua.wwind.table.filter.data.removeAt
 import ua.wwind.table.filter.data.replaceAt
 import ua.wwind.table.filter.data.setOperatorAt
 import ua.wwind.table.filter.data.toggleNotAt
+import ua.wwind.table.filter.data.unresolvedLeaves
 import kotlin.test.Test
 
 class FilterTreeTest {
@@ -131,5 +134,52 @@ class FilterTreeTest {
         val empty = Condition("e", TableFilterState<String>(FilterConstraint.EQUALS, emptyList()))
         assertThat(and(or(empty), Not(empty)).isActive()).isFalse()
         assertThat(and(or(empty), Not(a)).isActive()).isTrue()
+    }
+
+    private val u = TableFilterNode.Unresolved("old", payload = Any())
+
+    @Test
+    fun `unresolved leaf is active`() {
+        assertThat(u.isActive()).isTrue()
+    }
+
+    @Test
+    fun `removeAt keeps an unresolved leaf in a group`() {
+        val result = and(or(a, b, u), c).removeAt(listOf(0, 1))
+        assertThat(result).isEqualTo(and(or(a, u), c))
+        val leaf = result.nodeAt(listOf(0, 1)) as TableFilterNode.Unresolved
+        assertThat(leaf).isSameInstanceAs(u)
+        assertThat(leaf.payload).isSameInstanceAs(u.payload)
+    }
+
+    @Test
+    fun `removing the unresolved leaf keeps its siblings`() {
+        assertThat(and(or(a, b, u), c).removeAt(listOf(0, 2))).isEqualTo(and(or(a, b), c))
+    }
+
+    @Test
+    fun `collapsing a group leaves the unresolved leaf at its place`() {
+        val result = and(or(a, b, u), c).removeAt(listOf(0, 0)).removeAt(listOf(0, 0))
+        assertThat(result).isEqualTo(and(u, c))
+        assertThat(result.children[0]).isSameInstanceAs(u)
+    }
+
+    @Test
+    fun `setOperatorAt and toggleNotAt keep the unresolved leaf`() {
+        val root = and(or(a, b, u), c)
+        assertThat(root.setOperatorAt(listOf(0), AND)).isEqualTo(and(Group(AND, listOf(a, b, u)), c))
+        assertThat(root.toggleNotAt(listOf(0))).isEqualTo(and(Not(or(a, b, u)), c))
+    }
+
+    @Test
+    fun `nodeAt does not step into an unresolved leaf`() {
+        assertThat(and(u).nodeAt(listOf(0, 0))).isNull()
+    }
+
+    @Test
+    fun `unresolvedLeaves lists leaves in tree order`() {
+        val u2 = TableFilterNode.Unresolved("older")
+        assertThat(and(u, or(a, Not(u2))).unresolvedLeaves()).containsExactly(u, u2)
+        assertThat(and(a).unresolvedLeaves()).isEmpty()
     }
 }

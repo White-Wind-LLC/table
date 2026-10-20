@@ -91,15 +91,23 @@ column(PersonField.Name, valueOf = { it.name }) {
       the simple top-level conditions of the filter tree. The whole tree is `state.filterExpression`;
       `state.setFilterExpression(root)` replaces it (a root that is not an AND is wrapped in one).
       `TableEmptyScope.isFiltered` and `clearFilters()` see the whole tree.
+    - Unresolved conditions: `TableFilterNode.Unresolved(key, payload)` holds a stored condition the app cannot
+      map to a column; the table keeps it in place with the same payload on every edit and lets the user only
+      remove it. `state.unresolvedFilters` (or `node.unresolvedLeaves()`) lists them; while it is not empty, do
+      not apply or send the filter at all. The active filters row shows them and a line saying the filter is not
+      applied (`UiString.FilterUnresolvedBlocked`); an app that hides the row must check `unresolvedFilters` itself.
+      Show no rows meanwhile: the default empty state then says the same (`TableEmptyScope.hasUnresolvedFilters`).
     - Filter chips: `Table(..., filterChips = TableFilterChipDefaults.style(colors = ..., unknownTitle = { key ->
-      ... }, chip = { node -> ... }))`, also accepted by `TableActiveFilters`. `node` is a
-      `TableFilterChipNode` (`Condition`, `Group` or `Unknown`) with a `TableFilterChipPlacement` (`Row` or
+      ... }, unresolvedTitle = { key, payload -> ... }, chip = { node -> ... }))`, also accepted by
+      `TableActiveFilters`. `node` is a `TableFilterChipNode` (`Condition`, `Group`, `Unknown` or `Unresolved`) with a `TableFilterChipPlacement` (`Row` or
       `Tree`). `chip` replaces every chip and can call `DefaultFilterChip(node, onClick, label, leadingIcon,
       colors, clearContentDescription)` to change one part. A filter key with no `ColumnSpec` in `columns` shows
       an unknown chip with `unknownTitle` of the key, or the key itself. A node whose `canOpen` is false (a column
       without a filter type, or a row without panels) has a chip that is not clickable; a `Group` node's
-      `isGroup` is false for a NOT over a single condition. `StringProvider.filterOperatorBadge(operator, count)`
-      words a group's badge and `filterConditionDescription(title, text)` a condition in a group's description.
+      `isGroup` is false for a NOT over a single condition, and `hasUnresolved` marks a group with an unresolved
+      condition under it. `StringProvider.filterOperatorBadge(operator, count)` words a group's badge,
+      `filterConditionDescription(title, text)` a condition in a group's description and
+      `unresolvedFilterDescription(title)` an unresolved one.
     - Selection: `state.selection.toggleRow(index)`, `state.selection.toggleCheck(index)`,
       `state.selection.toggleCheckAll(count)`, `state.selection.selectCell(row, column)`; current
       `state.selection.selectedIndex`, `state.selection.checkedIndices`, `state.selection.selectedCell`.

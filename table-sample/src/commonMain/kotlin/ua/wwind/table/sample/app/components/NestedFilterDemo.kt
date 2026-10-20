@@ -17,8 +17,7 @@ private fun <T> condition(
 
 /**
  * A nested filter over the sample columns: two OR groups, a negated group and plain conditions under
- * the AND root, and a condition on [PersonColumn.REGION], which has no column, so the row shows the
- * chip of a key the table does not know (titled by [personUnknownColumnTitle]).
+ * the AND root.
  */
 internal fun nestedFilterDemo(): TableFilterNode.Group<PersonColumn> =
     TableFilterNode.Group(
@@ -54,10 +53,36 @@ internal fun nestedFilterDemo(): TableFilterNode.Group<PersonColumn> =
                     condition(PersonColumn.DEPARTMENT, FilterConstraint.EQUALS, "Engineering"),
                 ),
             ),
-            condition(PersonColumn.REGION, FilterConstraint.EQUALS, "EMEA"),
         ),
     )
 
-/** The chips' title of a key the table has no column for. */
-internal fun personUnknownColumnTitle(column: PersonColumn): String? =
-    if (column == PersonColumn.REGION) "Region" else null
+/** Payload of the demo's unresolved condition that the app can still name. */
+private const val SALARY_BAND_PAYLOAD = "salaryBand"
+
+/**
+ * A saved filter with fields the app no longer knows: `(Senior developer OR Team lead OR legacyField) AND
+ * name contains "a"`, plus a second unresolved condition the app can still title. The table shows both, and
+ * the sample does not apply the filter until they are removed.
+ */
+internal fun unresolvedFilterDemo(): TableFilterNode.Group<PersonColumn> =
+    TableFilterNode.Group(
+        Operator.AND,
+        listOf(
+            TableFilterNode.Group(
+                Operator.OR,
+                listOf(
+                    condition(PersonColumn.POSITION, FilterConstraint.EQUALS, Position.SENIOR_DEVELOPER),
+                    condition(PersonColumn.POSITION, FilterConstraint.EQUALS, Position.TEAM_LEAD),
+                    TableFilterNode.Unresolved("legacyField", payload = mapOf("eq" to "x")),
+                ),
+            ),
+            condition(PersonColumn.NAME, FilterConstraint.CONTAINS, "a"),
+            TableFilterNode.Unresolved("salary_band", payload = SALARY_BAND_PAYLOAD),
+        ),
+    )
+
+/** The chips' title of an unresolved condition the sample can still name. */
+internal fun personUnresolvedTitle(
+    key: String,
+    payload: Any?,
+): String? = if (key == "salary_band" && payload == SALARY_BAND_PAYLOAD) "Salary band" else null

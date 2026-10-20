@@ -18,6 +18,7 @@ import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isPopup
 import androidx.compose.ui.test.isRoot
+import androidx.compose.ui.test.isSelectable
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onFirst
@@ -34,6 +35,7 @@ import androidx.compose.ui.test.v2.runComposeUiTest
 import androidx.compose.ui.unit.dp
 import assertk.assertThat
 import assertk.assertions.isEqualTo
+import assertk.assertions.isSameInstanceAs
 import kotlinx.collections.immutable.persistentListOf
 import ua.wwind.table.DefaultFilterChip
 import ua.wwind.table.Table
@@ -46,6 +48,7 @@ import ua.wwind.table.filter.data.TableFilterNode.Condition
 import ua.wwind.table.filter.data.TableFilterNode.Group
 import ua.wwind.table.filter.data.TableFilterNode.Not
 import ua.wwind.table.filter.data.TableFilterNode.Operator
+import ua.wwind.table.filter.data.TableFilterNode.Unresolved
 import ua.wwind.table.filter.data.TableFilterState
 import ua.wwind.table.filter.data.TableFilterType
 import ua.wwind.table.state.TableState
@@ -433,6 +436,90 @@ class FilterGroupPopoverTest {
         }
 
     /** A click on the popup layer below the table, which the popover takes as a tap outside. */
+    @Test
+    fun `unresolved leaf inside a group shows a warning line with x only`() =
+        runComposeUiTest {
+            setTable(and(or(eq("a"), eq("b"), Unresolved("old")), eq("c")))
+            openGroup()
+
+            onNodeWithText(leaf("a")).assertIsDisplayed()
+            onNodeWithText(leaf("b")).assertIsDisplayed()
+            onNodeWithText("old").assertIsDisplayed().assertIsNotEnabled()
+            assertThat(onAllNodesWithContentDescription("Unknown field").fetchSemanticsNodes().size).isEqualTo(1)
+        }
+
+    @Test
+    fun `removing a sibling keeps the unresolved leaf in the group`() =
+        runComposeUiTest {
+            val state = setTable(and(or(eq("a"), eq("b"), Unresolved("old")), eq("c")))
+            openGroup()
+
+            onNodeWithContentDescription("Remove filter B").performClick()
+            waitForIdle()
+
+            assertThat(state.filterExpression).isEqualTo(and(or(eq("a"), Unresolved("old")), eq("c")))
+        }
+
+    @Test
+    fun `removing the unresolved leaf keeps the rest of the group`() =
+        runComposeUiTest {
+            val state = setTable(and(or(eq("a"), eq("b"), Unresolved("old")), eq("c")))
+            openGroup()
+
+            onNodeWithContentDescription("Remove filter old").performClick()
+            waitForIdle()
+
+            assertThat(state.filterExpression).isEqualTo(and(or(eq("a"), eq("b")), eq("c")))
+        }
+
+    @Test
+    fun `switching to All and toggling NOT keep the unresolved leaf`() =
+        runComposeUiTest {
+            val state = setTable(and(or(eq("a"), eq("b"), Unresolved("old")), eq("c")))
+            openGroup()
+
+            onNodeWithText("All").performClick()
+            waitForIdle()
+            onNodeWithText("NOT").performClick()
+            waitForIdle()
+
+            assertThat(state.filterExpression)
+                .isEqualTo(and(Not(Group(Operator.AND, listOf(eq("a"), eq("b"), Unresolved("old")))), eq("c")))
+            onNodeWithText("old").assertIsDisplayed()
+        }
+
+    @Test
+    fun `negated unresolved leaf shows NOT without a toggle`() =
+        runComposeUiTest {
+            val state = setTable(and(or(eq("a"), Not(Unresolved("old")))))
+            openGroup()
+
+            // The group line's toggle and the leaf's badge; only the toggle is selectable.
+            assertThat(onAllNodesWithText("NOT").fetchSemanticsNodes().size).isEqualTo(2)
+            assertThat(onAllNodes(isSelectable() and hasText("NOT")).fetchSemanticsNodes().size).isEqualTo(1)
+            onNodeWithText("old").assertIsDisplayed()
+            onNodeWithContentDescription("Remove filter old").performClick()
+            waitForIdle()
+
+            assertThat(state.filterExpression).isEqualTo(and(eq("a")))
+        }
+
+    @Test
+    fun `popover stays open and keeps an array payload instance across edits`() =
+        runComposeUiTest {
+            val payload = arrayOf("x")
+            val state = setTable(and(or(eq("a"), eq("b"), Unresolved("old", payload))))
+            openGroup()
+
+            onNodeWithContentDescription("Remove filter B").performClick()
+            waitForIdle()
+
+            onNodeWithText("old").assertIsDisplayed()
+            onNodeWithText("Any").assertIsDisplayed()
+            val group = state.filterExpression.children.single() as Group
+            assertThat((group.children[1] as Unresolved).payload).isSameInstanceAs(payload)
+        }
+
     private fun ComposeUiTest.tapOutside() {
         val outside =
             onAllNodes(isRoot())

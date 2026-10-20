@@ -5,6 +5,7 @@ import ua.wwind.table.filter.data.TableFilterNode
 import ua.wwind.table.filter.data.TableFilterState
 import ua.wwind.table.filter.data.isActive
 import ua.wwind.table.filter.data.isNullCheck
+import ua.wwind.table.filter.data.unresolvedLeaves
 import ua.wwind.table.sample.column.PersonColumn
 import ua.wwind.table.sample.filter.NumericRangeFilterState
 import ua.wwind.table.sample.model.Person
@@ -14,6 +15,20 @@ import ua.wwind.table.sample.model.Position
  * Utility class for filtering Person objects based on filter constraints.
  */
 object PersonFilterMatcher {
+    /**
+     * The people matching the filter tree. A tree with unresolved leaves matches no one: it is not applied, not
+     * even with them left out, and the table's empty state and active filters row tell the user to remove them.
+     */
+    fun filterPeople(
+        people: List<Person>,
+        expression: TableFilterNode<PersonColumn>,
+    ): List<Person> =
+        if (expression.unresolvedLeaves().isNotEmpty()) {
+            emptyList()
+        } else {
+            people.filter { matchesPerson(it, expression) }
+        }
+
     /** Evaluate whether the person matches every entry of the simple filter map. */
     fun matchesPerson(
         person: Person,
@@ -44,6 +59,11 @@ object PersonFilterMatcher {
                     TableFilterNode.Operator.AND -> active.all { matchesPerson(person, it) }
                     TableFilterNode.Operator.OR -> active.any { matchesPerson(person, it) }
                 }
+            }
+
+            // filterPeople never evaluates a tree that has unresolved leaves.
+            is TableFilterNode.Unresolved -> {
+                false
             }
         }
     }
@@ -76,39 +96,21 @@ object PersonFilterMatcher {
 
         return when (column) {
             PersonColumn.NAME -> matchesTextField(person.name, stateAny)
-
             PersonColumn.AGE -> matchesComparableField(person.age, stateAny)
-
             PersonColumn.ACTIVE -> matchesBooleanField(person.active, stateAny)
-
             PersonColumn.ID -> matchesComparableField(person.id, stateAny)
-
             PersonColumn.EMAIL -> matchesTextField(person.email, stateAny)
-
             PersonColumn.CITY -> matchesTextField(person.city, stateAny)
-
             PersonColumn.COUNTRY -> matchesTextField(person.country, stateAny)
-
             PersonColumn.DEPARTMENT -> matchesTextField(person.department, stateAny)
-
             PersonColumn.POSITION -> matchesPositionField(person.position, stateAny)
-
             PersonColumn.SALARY -> matchesSalaryField(person.salary, stateAny)
-
             PersonColumn.RATING -> matchesComparableField(person.rating, stateAny)
-
             PersonColumn.HIRE_DATE -> matchesComparableField(person.hireDate, stateAny)
-
             PersonColumn.NOTES -> matchesTextField(person.notes, stateAny)
-
             PersonColumn.AGE_GROUP -> matchesAgeGroupField(person.age, stateAny)
-
             PersonColumn.EXPAND -> true
-
             PersonColumn.SELECTION -> true
-
-            // Person has no region any more; a saved filter on it restricts nothing.
-            PersonColumn.REGION -> true
         }
     }
 

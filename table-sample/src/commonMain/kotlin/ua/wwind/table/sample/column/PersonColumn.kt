@@ -22,13 +22,4 @@ enum class PersonColumn {
 
     // Computed fields
     AGE_GROUP,
-
-    /**
-     * Not a column of the table: a dropped column that saved filters may still name. The nested filter demo
-     * filters on it to show the chip of a key the table does not know.
-     */
-    REGION,
 }
-
-/** The keys the table has columns for: every [PersonColumn] but [PersonColumn.REGION]. */
-val personTableColumns: List<PersonColumn> = PersonColumn.entries - PersonColumn.REGION

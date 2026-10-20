@@ -4,6 +4,7 @@ import ua.wwind.table.filter.data.TableFilterNode.Condition
 import ua.wwind.table.filter.data.TableFilterNode.Group
 import ua.wwind.table.filter.data.TableFilterNode.Not
 import ua.wwind.table.filter.data.TableFilterNode.Operator
+import ua.wwind.table.filter.data.TableFilterNode.Unresolved
 
 /** Child indices from the root; a [Not]'s child is index 0. */
 internal typealias FilterPath = List<Int>
@@ -18,7 +19,7 @@ internal fun <C> Group<C>.nodeAt(path: FilterPath): TableFilterNode<C>? {
             when (node) {
                 is Group -> node.children.getOrNull(index)
                 is Not -> if (index == 0) node.child else null
-                is Condition -> null
+                is Condition, is Unresolved -> null
             } ?: return null
     }
     return node
