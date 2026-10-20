@@ -83,4 +83,16 @@ class PersonFilterMatcherTest {
         assertThat(matching(TableFilterNode.Not(or))).isEqualTo(listOf("Ann", "Bob", "Cid"))
         assertThat(matching(TableFilterNode.Not(inactive))).isEqualTo(listOf("Ann", "Bob", "Cid"))
     }
+
+    @Test
+    fun `a tree with an unresolved leaf filters nothing`() {
+        val tree =
+            TableFilterNode.Group(
+                TableFilterNode.Operator.AND,
+                listOf(name("Ann"), TableFilterNode.Unresolved("legacyField")),
+            )
+
+        assertThat(PersonFilterMatcher.filterPeople(listOf(ann, bob, cid), tree)).isEqualTo(listOf(ann, bob, cid))
+        assertThat(PersonFilterMatcher.filterPeople(listOf(ann, bob, cid), name("Ann"))).isEqualTo(listOf(ann))
+    }
 }

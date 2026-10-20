@@ -5,6 +5,7 @@ import ua.wwind.table.filter.data.TableFilterNode
 import ua.wwind.table.filter.data.TableFilterState
 import ua.wwind.table.filter.data.isActive
 import ua.wwind.table.filter.data.isNullCheck
+import ua.wwind.table.filter.data.unresolvedLeaves
 import ua.wwind.table.sample.column.PersonColumn
 import ua.wwind.table.sample.filter.NumericRangeFilterState
 import ua.wwind.table.sample.model.Person
@@ -14,6 +15,20 @@ import ua.wwind.table.sample.model.Position
  * Utility class for filtering Person objects based on filter constraints.
  */
 object PersonFilterMatcher {
+    /**
+     * The people matching the filter tree. A tree with unresolved leaves is not applied at all, not even
+     * with them left out; the active filters row tells the user to remove them.
+     */
+    fun filterPeople(
+        people: List<Person>,
+        expression: TableFilterNode<PersonColumn>,
+    ): List<Person> =
+        if (expression.unresolvedLeaves().isNotEmpty()) {
+            people
+        } else {
+            people.filter { matchesPerson(it, expression) }
+        }
+
     /** Evaluate whether the person matches every entry of the simple filter map. */
     fun matchesPerson(
         person: Person,
@@ -46,7 +61,7 @@ object PersonFilterMatcher {
                 }
             }
 
-            // The view model never evaluates a tree that has unresolved leaves.
+            // filterPeople never evaluates a tree that has unresolved leaves.
             is TableFilterNode.Unresolved -> {
                 false
             }

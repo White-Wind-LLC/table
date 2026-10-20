@@ -73,10 +73,7 @@ class SampleViewModel : ViewModel() {
             _sortWithinBlocks,
         ) { peopleList, filters, sort, withinBlocks ->
             // Apply filtering
-            val filtered =
-                peopleList.filter { person ->
-                    PersonFilterMatcher.matchesPerson(person, filters)
-                }
+            val filtered = PersonFilterMatcher.filterPeople(peopleList, filters)
 
             // Apply sorting
             val comparator = PersonSorter.comparatorFor(sort)
@@ -100,9 +97,7 @@ class SampleViewModel : ViewModel() {
     private val peopleExcludingSalaryFilter: StateFlow<List<Person>> =
         combine(_people, currentFilters) { peopleList, filters ->
             val filtersExcludingSalary = filters.withoutTopLevelConditions(PersonColumn.SALARY)
-            peopleList.filter { person ->
-                PersonFilterMatcher.matchesPerson(person, filtersExcludingSalary)
-            }
+            PersonFilterMatcher.filterPeople(peopleList, filtersExcludingSalary)
         }.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),

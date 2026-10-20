@@ -31,9 +31,14 @@ row selection, i18n, styling/customization, and dynamic or fixed row height.
   node, a group left with one child dissolves, and a condition drills into its filter panel (‹ or Escape goes
   back). Nothing can be added from the row. `state.filters` is a view of the root's simple top-level conditions:
   header edits and `setFilter` touch only those.
+- Unresolved conditions: a saved condition the app cannot map to a column (a renamed or removed field) goes into
+  the tree as `TableFilterNode.Unresolved(key, payload)`. The table never interprets it and keeps it, with its
+  payload, in place on every edit; it shows as a warning chip or popover line with × only, and the row says the
+  filter is not applied until it is removed. Check `state.unresolvedFilters` and do not apply or send the filter
+  while it is not empty. The row is the only place the table shows these conditions.
 - Chip customization: a column draws the content of its chips with `filterChipContent(leadingIcon, label)`;
-  `TableFilterChipDefaults.style(colors, unknownTitle, chip)` passed as `filterChips` to `Table` or
-  `TableActiveFilters` sets colors, titles of unknown keys and a full chip renderer, which can call
+  `TableFilterChipDefaults.style(colors, unknownTitle, unresolvedTitle, chip)` passed as `filterChips` to `Table` or
+  `TableActiveFilters` sets colors, titles of unknown keys and unresolved conditions, and a full chip renderer, which can call
   `DefaultFilterChip` to keep parts of the default. `activeFilterChip`, `TableFilterChipContext` and
   `DefaultActiveFilterChip` are deprecated and removed in 4.0.
 - Row selection modes: None / Single / Multiple; optional striped rows.

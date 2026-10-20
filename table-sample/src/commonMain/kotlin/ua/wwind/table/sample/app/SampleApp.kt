@@ -61,6 +61,7 @@ import ua.wwind.table.sample.app.components.SampleTableConfig
 import ua.wwind.table.sample.app.components.SelectionActionBar
 import ua.wwind.table.sample.app.components.SettingsSidebar
 import ua.wwind.table.sample.app.components.nestedFilterDemo
+import ua.wwind.table.sample.app.components.unresolvedFilterDemo
 import ua.wwind.table.sample.column.PersonColumn
 import ua.wwind.table.sample.column.createTableColumns
 import ua.wwind.table.sample.column.personTableColumns
@@ -300,6 +301,7 @@ fun SampleApp(
                                     pagingDemo = pagingDemo,
                                     onPagingDemoChange = { pagingDemo = it },
                                     onNestedFilterDemo = { state.setFilterExpression(nestedFilterDemo()) },
+                                    onUnresolvedFilterDemo = { state.setFilterExpression(unresolvedFilterDemo()) },
                                 )
 
                                 HorizontalDivider()

@@ -120,7 +120,11 @@ fun MainTable(
             columns = columns,
             customization = customization,
             strings = DefaultStrings,
-            filterChips = TableFilterChipDefaults.style(unknownTitle = ::personUnknownColumnTitle),
+            filterChips =
+                TableFilterChipDefaults.style(
+                    unknownTitle = ::personUnknownColumnTitle,
+                    unresolvedTitle = ::personUnresolvedTitle,
+                ),
             columnMenu =
                 remember(state) {
                     ColumnMenuBuilder<PersonColumn> { _, defaults ->
