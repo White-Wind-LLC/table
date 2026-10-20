@@ -23,8 +23,19 @@ row selection, i18n, styling/customization, and dynamic or fixed row height.
 - Column resize via drag with per‑column min width.
 - Filters: text, number (int/double, ranges), boolean, date, enum (single/multi; IN/NOT IN/EQUALS) with built‑in
   `FilterPanel`.
-- Active filters header above the table: a chip opens its filter, × removes it, "Clear all" resets all. A column
-  can draw its own chip with `activeFilterChip { ctx -> ... }`, starting from `DefaultActiveFilterChip`.
+- Active filters header above the table: a chip opens its filter, × removes it, "Clear all" resets all. The filter
+  is a tree of AND/OR/NOT groups (`state.filterExpression`, `state.setFilterExpression(root)`); the row shows one
+  chip per top-level node. A condition is a plain chip, a group or NOT is a summary chip ("ANY 2 · Type, Qty"), an
+  OR of one column is a merged chip ("Status: Active or Pending"), and a key with no column in `columns` is an
+  unknown-key chip (warning colors, × only). A group chip opens a popover: Any/All switch, NOT toggle, × on any
+  node, a group left with one child dissolves, and a condition drills into its filter panel (‹ or Escape goes
+  back). Nothing can be added from the row. `state.filters` is a view of the root's simple top-level conditions:
+  header edits and `setFilter` touch only those.
+- Chip customization: a column draws the content of its chips with `filterChipContent(leadingIcon, label)`;
+  `TableFilterChipDefaults.style(colors, unknownTitle, chip)` passed as `filterChips` to `Table` or
+  `TableActiveFilters` sets colors, titles of unknown keys and a full chip renderer, which can call
+  `DefaultFilterChip` to keep parts of the default. `activeFilterChip`, `TableFilterChipContext` and
+  `DefaultActiveFilterChip` are deprecated and removed in 4.0.
 - Row selection modes: None / Single / Multiple; optional striped rows.
 - Embedded (nested) tables via the `embedded` flag and `rowEmbedded` slot for building master–detail layouts inside
   a single table.
