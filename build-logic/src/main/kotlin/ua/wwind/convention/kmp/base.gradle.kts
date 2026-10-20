@@ -25,7 +25,7 @@ kotlin {
     applyDefaultHierarchyTemplate()
 
     // Centralized Kotlin compiler flags and opt-ins
-    val warningsAsErrors: String? by project
+    val warningsAsErrors = providers.gradleProperty("warningsAsErrors").orNull
     compilerOptions {
         allWarningsAsErrors.set(warningsAsErrors.toBoolean())
     }

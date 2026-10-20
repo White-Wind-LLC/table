@@ -46,7 +46,7 @@ extensions.configure(KoverProjectExtension::class.java) {
 // Add all subprojects to merged coverage for root reports
 dependencies {
     subprojects.forEach { sub ->
-        add("kover", project(sub.path))
+        add("kover", dependencies.project(sub.path))
     }
 }
 

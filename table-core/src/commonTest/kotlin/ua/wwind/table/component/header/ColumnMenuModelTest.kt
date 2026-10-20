@@ -7,7 +7,7 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import assertk.assertThat
 import assertk.assertions.contains
-import assertk.assertions.containsAll
+import assertk.assertions.containsAtLeast
 import assertk.assertions.containsExactly
 import assertk.assertions.doesNotContain
 import assertk.assertions.isEqualTo
@@ -115,7 +115,8 @@ class ColumnMenuModelTest {
 
         val sections = model(state, "full")
         assertThat(sections.entry(Ids.SortDescending).checked).isTrue()
-        assertThat(sections.ids()).containsAll(Ids.ClearSort, Ids.ClearFilter, Ids.Unpin, Ids.Ungroup, Ids.ShowHidden)
+        assertThat(sections.ids())
+            .containsAtLeast(Ids.ClearSort, Ids.ClearFilter, Ids.Unpin, Ids.Ungroup, Ids.ShowHidden)
         assertThat(sections.entry(Ids.ShowHidden).count).isEqualTo(1)
     }
 

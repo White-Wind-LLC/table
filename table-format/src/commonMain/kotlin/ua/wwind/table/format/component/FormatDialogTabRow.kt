@@ -5,9 +5,9 @@ package ua.wwind.table.format.component
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.ScrollableTabRow
+import androidx.compose.material3.SecondaryScrollableTabRow
+import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Surface
-import androidx.compose.material3.TabRow
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Modifier
@@ -50,13 +50,13 @@ public fun <E, T> FormatDialogTabRow(
             }
 
             if (isScrollable) {
-                ScrollableTabRow(
+                SecondaryScrollableTabRow(
                     selectedTabIndex = selectedIndex,
                     tabs = tabContent,
                     containerColor = Color.Transparent,
                 )
             } else {
-                TabRow(
+                SecondaryTabRow(
                     selectedTabIndex = selectedIndex,
                     tabs = tabContent,
                     containerColor = Color.Transparent,
