@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
@@ -34,9 +36,14 @@ internal fun <T, E> FilterPanel(
     autoFilterDebounce: Long,
     onChange: (TableFilterState<T>?) -> Unit,
 ) {
+    val session = remember { FilterPanelSession() }
+    val close = {
+        session.applyPending()
+        onDismissRequest()
+    }
     DropdownMenu(
         expanded = expanded,
-        onDismissRequest = onDismissRequest,
+        onDismissRequest = close,
         offset = DpOffset(0.dp, 8.dp),
         // Grows past the minimum for longer translations instead of clipping them.
         modifier = Modifier.widthIn(min = 280.dp, max = 360.dp),
@@ -45,19 +52,41 @@ internal fun <T, E> FilterPanel(
             type = type,
             state = state,
             tableData = tableData,
-            onClose = onDismissRequest,
+            onClose = close,
             strings = strings,
             autoApplyFilters = autoApplyFilters,
             autoFilterDebounce = autoFilterDebounce,
+            session = session,
             onChange = onChange,
         )
     }
 }
 
-/** The form of a filter panel for [type]; [onClose] is called when the form is done, as after Apply. */
+/**
+ * The form of a filter panel for [type]; [onClose] is called when the form is done, as after Apply. The form
+ * registers its pending edit and its value field with [session].
+ */
 @Suppress("LongParameterList", "UNCHECKED_CAST")
 @Composable
 internal fun <T, E> FilterPanelContent(
+    type: TableFilterType<T>?,
+    state: TableFilterState<T>?,
+    tableData: E,
+    onClose: () -> Unit,
+    strings: StringProvider,
+    autoApplyFilters: Boolean,
+    autoFilterDebounce: Long,
+    session: FilterPanelSession,
+    onChange: (TableFilterState<T>?) -> Unit,
+) {
+    CompositionLocalProvider(LocalFilterPanelSession provides session) {
+        FilterForm(type, state, tableData, onClose, strings, autoApplyFilters, autoFilterDebounce, onChange)
+    }
+}
+
+@Suppress("LongParameterList", "UNCHECKED_CAST")
+@Composable
+private fun <T, E> FilterForm(
     type: TableFilterType<T>?,
     state: TableFilterState<T>?,
     tableData: E,

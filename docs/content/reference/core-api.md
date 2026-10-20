@@ -44,9 +44,9 @@
         - Filters UI: `filter(TableFilterType.*)`.
         - Filter chip content: `filterChipContent(leadingIcon, label) { node -> ... }` draws the content of this
           column's condition chips, in the row and in a group's popover. `node` is a
-          `TableFilterChipNode.Condition` with `state`, `title`, `text`, `label`, `isOpen` and `onOpen` /
-          `onChange` / `onClear`. The table keeps the chip, its click, its × and the panel. A group of conditions
-          on this column alone is drawn as a group and does not use it.
+          `TableFilterChipNode.Condition` with `column`, `state`, `title`, `text`, `label`, `isOpen`, `canOpen`,
+          `placement`, `strings` and `onOpen` / `onChange` / `onClear`. The table keeps the chip, its click, its ×
+          and the panel. A group of conditions on this column alone is drawn as a group and does not use it.
         - Deprecated, removed in 4.0: `activeFilterChip { ctx -> ... }` with `TableFilterChipContext` and
           `DefaultActiveFilterChip`; use `filterChipContent` or `TableFilterChipStyle.chip`.
         - Sizing: `width(min, pref)`, `autoWidth(max)`, `resizable(Boolean)`, `align(Alignment.Horizontal)`.
@@ -96,7 +96,10 @@ column(PersonField.Name, valueOf = { it.name }) {
       `TableFilterChipNode` (`Condition`, `Group` or `Unknown`) with a `TableFilterChipPlacement` (`Row` or
       `Tree`). `chip` replaces every chip and can call `DefaultFilterChip(node, onClick, label, leadingIcon,
       colors, clearContentDescription)` to change one part. A filter key with no `ColumnSpec` in `columns` shows
-      an unknown chip with `unknownTitle` of the key, or the key itself.
+      an unknown chip with `unknownTitle` of the key, or the key itself. A node whose `canOpen` is false (a column
+      without a filter type, or a row without panels) has a chip that is not clickable; a `Group` node's
+      `isGroup` is false for a NOT over a single condition. `StringProvider.filterOperatorBadge(operator, count)`
+      words a group's badge and `filterConditionDescription(title, text)` a condition in a group's description.
     - Selection: `state.selection.toggleRow(index)`, `state.selection.toggleCheck(index)`,
       `state.selection.toggleCheckAll(count)`, `state.selection.selectCell(row, column)`; current
       `state.selection.selectedIndex`, `state.selection.checkedIndices`, `state.selection.selectedCell`.

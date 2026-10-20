@@ -4,6 +4,7 @@ import ua.wwind.table.filter.data.TableFilterState
 import ua.wwind.table.format.FormatFilterData
 import ua.wwind.table.format.data.TableFormatRule
 import ua.wwind.table.sample.column.PersonColumn
+import ua.wwind.table.sample.column.personTableColumns
 import ua.wwind.table.sample.filter.filterTypes
 
 /**
@@ -18,7 +19,7 @@ object PersonFormatFilterData {
         rule: TableFormatRule<PersonColumn, Map<PersonColumn, TableFilterState<*>>>,
         onApply: (TableFormatRule<PersonColumn, Map<PersonColumn, TableFilterState<*>>>) -> Unit,
     ): List<FormatFilterData<PersonColumn>> =
-        PersonColumn.entries.map { column ->
+        personTableColumns.map { column ->
             val type = filterTypes.getValue(column)
             val current: TableFilterState<*>? = rule.filter[column]
             val defaultState: TableFilterState<*> = PersonFilterStateFactory.createDefaultState(column)

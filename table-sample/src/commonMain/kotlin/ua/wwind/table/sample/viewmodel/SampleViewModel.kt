@@ -34,6 +34,15 @@ import ua.wwind.table.sample.util.PersonValidator
 import ua.wwind.table.sortedWithinRowBlocks
 import ua.wwind.table.state.SortState
 
+/**
+ * The tree without its top-level conditions on [column], the ones the column's own filter panel edits; the
+ * salary range is computed this way. Conditions on [column] inside groups and nots stay.
+ */
+internal fun TableFilterNode.Group<PersonColumn>.withoutTopLevelConditions(
+    column: PersonColumn,
+): TableFilterNode.Group<PersonColumn> =
+    copy(children = children.filterNot { it is TableFilterNode.Condition && it.column == column })
+
 class SampleViewModel : ViewModel() {
     // StateFlow for people list to enable reactive transformations
     private val _people = MutableStateFlow<List<Person>>(createDemoData())
@@ -90,14 +99,7 @@ class SampleViewModel : ViewModel() {
     // People filtered by all filters except salary filter (for salary range calculation)
     private val peopleExcludingSalaryFilter: StateFlow<List<Person>> =
         combine(_people, currentFilters) { peopleList, filters ->
-            // Apply all filters except salary filter
-            val filtersExcludingSalary =
-                filters.copy(
-                    children =
-                        filters.children.filterNot {
-                            it is TableFilterNode.Condition && it.column == PersonColumn.SALARY
-                        },
-                )
+            val filtersExcludingSalary = filters.withoutTopLevelConditions(PersonColumn.SALARY)
             peopleList.filter { person ->
                 PersonFilterMatcher.matchesPerson(person, filtersExcludingSalary)
             }

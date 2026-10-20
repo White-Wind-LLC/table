@@ -12,6 +12,7 @@ import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.assertIsNotFocused
 import androidx.compose.ui.test.click
 import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasText
@@ -51,6 +52,8 @@ import ua.wwind.table.state.TableState
 import ua.wwind.table.state.rememberTableState
 import ua.wwind.table.tableColumns
 import kotlin.test.Test
+
+private const val HOUR_MS = 3_600_000L
 
 @OptIn(ExperimentalTestApi::class)
 class FilterGroupPopoverTest {
@@ -255,9 +258,9 @@ class FilterGroupPopoverTest {
             onNodeWithText(leaf("b")).performClick()
             waitForIdle()
 
-            // Drilling in moves the focus into the drill-in view, so Escape reaches the popover.
-            onNodeWithContentDescription("Back").assertIsFocused()
-            onNodeWithContentDescription("Back").performKeyInput { pressKey(Key.Escape) }
+            // Drilling in focuses the value field, so the user can type and Escape reaches the popover.
+            onNodeWithText("Value").assertIsFocused()
+            onNodeWithText("Value").performKeyInput { pressKey(Key.Escape) }
             waitForIdle()
             onNodeWithText("Value").assertDoesNotExist()
             onNodeWithText(leaf("b")).assertIsFocused()
@@ -301,14 +304,7 @@ class FilterGroupPopoverTest {
             onNodeWithText("Value").performTextReplacement("")
             waitUntil { state.filterExpression == and(or(eq("a"), empty("b"), eq("c"))) }
 
-            // The popup layer takes a click below the table.
-            val outside =
-                onAllNodes(isRoot())
-                    .onFirst()
-                    .fetchSemanticsNode()
-                    .boundsInRoot.bottomCenter - Offset(0f, 8f)
-            onAllNodes(isRoot()).onLast().performMouseInput { click(outside) }
-            waitForIdle()
+            tapOutside()
 
             assertThat(state.filterExpression).isEqualTo(and(or(eq("a"), eq("c"))))
             onNodeWithText("Value").assertDoesNotExist()
@@ -321,10 +317,12 @@ class FilterGroupPopoverTest {
             val state = setTable(and(or(eq("a"), eq("e"))))
             openGroup()
 
-            // The chip's center is its ×, so the click goes to the chip's own action.
+            // The chip has nothing to open, so it is not reported as clickable.
             onNode(hasText("E") and hasAnyAncestor(isPopup()))
                 .assertIsDisplayed()
-                .performSemanticsAction(SemanticsActions.OnClick)
+                .assertIsNotEnabled()
+            // The chip's center is its ×, so the click goes to the chip's own action.
+            onNode(hasText("E") and hasAnyAncestor(isPopup())).performSemanticsAction(SemanticsActions.OnClick)
             waitForIdle()
 
             onNodeWithContentDescription("Back").assertDoesNotExist()
@@ -334,18 +332,132 @@ class FilterGroupPopoverTest {
             assertThat(state.filterExpression).isEqualTo(and(eq("a")))
         }
 
+    @Test
+    fun `clear in drill-in empties the leaf then goes back and prunes it`() =
+        runComposeUiTest {
+            val state = setTable(and(or(eq("a"), eq("b"))))
+            openGroup()
+            onNodeWithText(leaf("b")).performClick()
+            waitForIdle()
+
+            // Clear empties the leaf (onChange(null)) and then closes the form, which goes back.
+            onNodeWithText("Clear").performClick()
+            waitForIdle()
+
+            assertThat(state.filterExpression).isEqualTo(and(eq("a")))
+            onNodeWithText("Value").assertDoesNotExist()
+            onNodeWithText("Any").assertDoesNotExist()
+            onNodeWithText("A: Equals \"a\"").assertIsFocused()
+        }
+
+    @Test
+    fun `a tap outside that prunes the leaf also dissolves its group`() =
+        runComposeUiTest {
+            val state = setTable(and(or(eq("a"), eq("b"))))
+            openGroup()
+            onNodeWithText(leaf("b")).performClick()
+            waitForIdle()
+            onNodeWithText("Value").performTextReplacement("")
+            waitUntil { state.filterExpression == and(or(eq("a"), empty("b"))) }
+
+            tapOutside()
+
+            assertThat(state.filterExpression).isEqualTo(and(eq("a")))
+            onNodeWithText("Value").assertDoesNotExist()
+            onNodeWithText("Any").assertDoesNotExist()
+            onNodeWithText("A: Equals \"a\"").assertIsDisplayed()
+        }
+
+    @Test
+    fun `a tap outside does not pull the focus back to the group chip`() =
+        runComposeUiTest {
+            setTable(and(or(eq("a"), eq("b"))))
+            // A semantics click, which unlike a pointer one does not focus the chip itself.
+            onNodeWithContentDescription(lastGroup!!.description).performSemanticsAction(SemanticsActions.OnClick)
+            waitForIdle()
+            onNodeWithText("Any").assertIsFocused()
+
+            tapOutside()
+
+            onNodeWithText("Any").assertDoesNotExist()
+            onNodeWithContentDescription(lastGroup!!.description).assertIsNotFocused()
+        }
+
+    @Test
+    fun `app swapping another group in at the open path closes the popover`() =
+        runComposeUiTest {
+            val state = setTable(and(or(eq("a"), eq("b"))))
+            openGroup()
+            onNodeWithText(leaf("a")).assertIsDisplayed()
+
+            state.setFilterExpression(and(or(eq("c"), eq("d"))))
+            waitForIdle()
+
+            onNodeWithText("Any").assertDoesNotExist()
+            onNodeWithText(leaf("c")).assertDoesNotExist()
+            assertThat(lastGroup!!.columnTitles).isEqualTo(listOf("C", "D"))
+        }
+
+    @Test
+    fun `an edit waiting on the debounce lands when going back from drill-in`() =
+        runComposeUiTest {
+            val state = setTable(and(or(eq("a"), eq("b"))), debounce = HOUR_MS)
+            openGroup()
+            onNodeWithText(leaf("b")).performClick()
+            waitForIdle()
+
+            onNodeWithText("Value").performTextReplacement("z")
+            waitForIdle()
+            assertThat(state.filterExpression).isEqualTo(and(or(eq("a"), eq("b"))))
+            onNodeWithContentDescription("Back").performClick()
+            waitForIdle()
+
+            assertThat(state.filterExpression).isEqualTo(and(or(eq("a"), eq("b", "z"))))
+            onNodeWithText("B: Equals \"z\"").assertIsDisplayed().assertIsFocused()
+        }
+
+    @Test
+    fun `an emptied leaf waiting on the debounce is pruned when going back`() =
+        runComposeUiTest {
+            val state = setTable(and(or(eq("a"), eq("b"), eq("c"))), debounce = HOUR_MS)
+            openGroup()
+            onNodeWithText(leaf("b")).performClick()
+            waitForIdle()
+
+            onNodeWithText("Value").performTextReplacement("")
+            waitForIdle()
+            onNodeWithContentDescription("Back").performClick()
+            waitForIdle()
+
+            assertThat(state.filterExpression).isEqualTo(and(or(eq("a"), eq("c"))))
+        }
+
+    /** A click on the popup layer below the table, which the popover takes as a tap outside. */
+    private fun ComposeUiTest.tapOutside() {
+        val outside =
+            onAllNodes(isRoot())
+                .onFirst()
+                .fetchSemanticsNode()
+                .boundsInRoot.bottomCenter - Offset(0f, 8f)
+        onAllNodes(isRoot()).onLast().performMouseInput { click(outside) }
+        waitForIdle()
+    }
+
     private fun ComposeUiTest.openGroup() {
         onNodeWithContentDescription(lastGroup!!.description).performClick()
         waitForIdle()
     }
 
-    private fun ComposeUiTest.setTable(expression: Group<String>): TableState<String> {
+    private fun ComposeUiTest.setTable(
+        expression: Group<String>,
+        debounce: Long = 0,
+    ): TableState<String> {
         lateinit var state: TableState<String>
         setContent {
             state =
                 rememberTableState(
                     columns = persistentListOf("a", "b", "c", "d", "e"),
-                    settings = TableSettings(showActiveFiltersHeader = true, autoFilterDebounce = 0),
+                    settings = TableSettings(showActiveFiltersHeader = true, autoFilterDebounce = debounce),
                 )
             Box(Modifier.size(1200.dp, 800.dp)) {
                 Table(

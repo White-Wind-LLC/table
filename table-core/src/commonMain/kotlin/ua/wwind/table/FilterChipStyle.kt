@@ -27,7 +27,6 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.painterResource
-import ua.wwind.table.filter.data.TableFilterNode
 import ua.wwind.table.icon.TableIcons
 import ua.wwind.table.strings.UiString
 
@@ -120,8 +119,9 @@ public object TableFilterChipDefaults {
  *
  * @param node the chip's node
  * @param modifier modifier for the chip
- * @param onClick called on a click on the chip; null makes only the × clickable, as for an unknown column.
- *   Such a chip is reported to accessibility services as disabled and keeps its colors
+ * @param onClick called on a click on the chip; null makes only the × clickable, as for an unknown column or a
+ *   node whose `canOpen` is false. Such a chip is reported to accessibility services as disabled and keeps its
+ *   colors
  * @param label the chip's label; a condition's defaults to its column's [TableFilterChipContent.label] or
  *   [TableFilterChipNode.Condition.label], a group's to its badges, text and an expand arrow
  * @param leadingIcon optional icon before the label; give it a `contentDescription` when it carries meaning
@@ -164,7 +164,7 @@ internal fun FilterInputChip(
 ) {
     InputChip(
         selected = true,
-        onClick = onClick ?: {},
+        onClick = onClick ?: NoClick,
         label = label,
         enabled = onClick != null,
         leadingIcon = leadingIcon,
@@ -196,10 +196,12 @@ internal fun FilterInputChip(
     )
 }
 
+private val NoClick: () -> Unit = {}
+
 private fun <C> TableFilterChipNode<C>.defaultOnClick(): (() -> Unit)? =
     when (this) {
-        is TableFilterChipNode.Condition -> onOpen
-        is TableFilterChipNode.Group -> onOpen
+        is TableFilterChipNode.Condition -> onOpen.takeIf { canOpen }
+        is TableFilterChipNode.Group -> onOpen.takeIf { canOpen }
         is TableFilterChipNode.Unknown -> null
     }
 
@@ -265,18 +267,13 @@ private fun <C> DefaultFilterChipLabel(node: TableFilterChipNode<C>) {
 
 @Composable
 private fun <C> GroupLabel(node: TableFilterChipNode.Group<C>) {
-    val operator =
-        when (node.operator) {
-            TableFilterNode.Operator.OR -> node.strings.get(UiString.FilterOperatorAny)
-            TableFilterNode.Operator.AND -> node.strings.get(UiString.FilterOperatorAll)
-        }
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(6.dp),
         modifier = Modifier.clearAndSetSemantics { contentDescription = node.description },
     ) {
         if (node.negated) Badge(node.strings.get(UiString.FilterNot))
-        Badge("$operator ${node.itemCount}")
+        if (node.isGroup) Badge(node.strings.filterOperatorBadge(node.operator, node.itemCount))
         Text(node.text)
         Icon(
             painter = painterResource(TableIcons.KeyboardArrowDown),

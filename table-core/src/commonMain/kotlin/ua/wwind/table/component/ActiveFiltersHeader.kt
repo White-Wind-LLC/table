@@ -31,8 +31,8 @@ internal fun <T : Any, C, E> ActiveFiltersHeader(
         filterPanel = { spec, filter, onChange, onDismiss ->
             ColumnFilterPanel(spec, state, tableData, strings, onDismiss, filter, onChange)
         },
-        groupPopover = { path, keyToSpec, onDismiss ->
-            FilterGroupPopover(path, state, keyToSpec, tableData, filterChips, strings, onDismiss)
+        groupPopover = { path, keyToSpec, onEdit, onDismiss ->
+            FilterGroupPopover(path, state, keyToSpec, tableData, filterChips, strings, onEdit, onDismiss)
         },
         filterChips = filterChips,
         modifier = modifier,

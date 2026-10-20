@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.getBoundsInRoot
@@ -98,18 +99,24 @@ class TableEmptyStateTest {
             ),
         )
 
+    /** An empty table whose filter tree is [expression]. */
+    private fun ComposeUiTest.setEmptyTable(expression: TableFilterNode.Group<String>): TableState<String> {
+        lateinit var state: TableState<String>
+        setContent {
+            val columns = remember { columns() }
+            state = rememberTableState(columns = persistentListOf("name"))
+            Box(Modifier.size(400.dp)) {
+                Table(itemsCount = 0, itemAt = { null }, state = state, columns = columns)
+            }
+        }
+        runOnIdle { state.setFilterExpression(expression) }
+        return state
+    }
+
     @Test
     fun `only a complex node counts as filtered`() =
         runComposeUiTest {
-            lateinit var state: TableState<String>
-            setContent {
-                val columns = remember { columns() }
-                state = rememberTableState(columns = persistentListOf("name"))
-                Box(Modifier.size(400.dp)) {
-                    Table(itemsCount = 0, itemAt = { null }, state = state, columns = columns)
-                }
-            }
-            runOnIdle { state.setFilterExpression(complexTree()) }
+            setEmptyTable(complexTree())
             onNodeWithText(NO_RESULTS).assertIsDisplayed()
             onNodeWithText(NO_DATA).assertDoesNotExist()
         }
@@ -117,17 +124,22 @@ class TableEmptyStateTest {
     @Test
     fun `clear filters removes complex nodes`() =
         runComposeUiTest {
-            lateinit var state: TableState<String>
-            setContent {
-                val columns = remember { columns() }
-                state = rememberTableState(columns = persistentListOf("name"))
-                Box(Modifier.size(400.dp)) {
-                    Table(itemsCount = 0, itemAt = { null }, state = state, columns = columns)
-                }
-            }
-            runOnIdle { state.setFilterExpression(complexTree()) }
+            val state = setEmptyTable(complexTree())
             onNodeWithText(CLEAR_FILTERS).performClick()
             waitForIdle()
+            assertThat(state.filterExpression.children).isEmpty()
+            onNodeWithText(NO_DATA).assertIsDisplayed()
+        }
+
+    @Test
+    fun `clear filters removes simple and complex filters together`() =
+        runComposeUiTest {
+            val nameFilter =
+                TableFilterNode.Condition("name", TableFilterState(FilterConstraint.CONTAINS, listOf("zzz")))
+            val state = setEmptyTable(complexTree().let { it.copy(children = listOf(nameFilter) + it.children) })
+            onNodeWithText(CLEAR_FILTERS).performClick()
+            waitForIdle()
+            assertThat(state.filters).isEmpty()
             assertThat(state.filterExpression.children).isEmpty()
             onNodeWithText(NO_DATA).assertIsDisplayed()
         }

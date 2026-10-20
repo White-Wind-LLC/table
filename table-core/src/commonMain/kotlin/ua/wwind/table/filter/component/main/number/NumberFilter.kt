@@ -20,6 +20,7 @@ import org.jetbrains.compose.resources.painterResource
 import ua.wwind.table.component.TableTextField
 import ua.wwind.table.filter.component.FilterDropdownField
 import ua.wwind.table.filter.component.FilterPanelActions
+import ua.wwind.table.filter.component.main.rememberFilterValueFieldModifier
 import ua.wwind.table.filter.data.FilterConstraint
 import ua.wwind.table.filter.data.TableFilterState
 import ua.wwind.table.filter.data.TableFilterType
@@ -143,7 +144,7 @@ private fun <T : Number> NumberFields(
                         { Text(strings.get(UiString.FilterEnterNumberPlaceholder), maxLines = 1) }
                     },
                 textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.End),
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(1f).then(rememberFilterValueFieldModifier()),
                 singleLine = true,
                 isError = numberFilterState.isError,
                 keyboardOptions = keyboardOptions,

@@ -40,7 +40,9 @@ public sealed interface TableFilterChipNode<C> {
      * @property text the filter described for the chip, e.g. `contains "x"`; null while its panel is open
      *   and the filter no longer describes a value
      * @property isOpen whether the condition's filter panel is open
-     * @property onOpen opens the condition's filter panel; does nothing where there are no panels
+     * @property canOpen whether [onOpen] opens a filter panel: false for a column without a filter type and
+     *   where there are no panels. The default chip is then not clickable
+     * @property onOpen opens the condition's filter panel; does nothing while [canOpen] is false
      * @property onChange replaces the condition's filter state, e.g. from a value picked on the chip itself
      */
     public class Condition<C> internal constructor(
@@ -49,6 +51,7 @@ public sealed interface TableFilterChipNode<C> {
         public val title: String,
         public val text: String?,
         public val isOpen: Boolean,
+        public val canOpen: Boolean,
         override val placement: TableFilterChipPlacement,
         override val strings: StringProvider,
         public val onOpen: () -> Unit,
@@ -63,18 +66,24 @@ public sealed interface TableFilterChipNode<C> {
     /**
      * An AND/OR group, or a NOT.
      *
+     * @property isGroup false for a NOT over a single condition, which has no operator: [operator] is then AND
+     *   and [itemCount] is 1 while the condition is active, and the default chip shows no operator badge
      * @property operator the operator joining the group's children
      * @property negated whether the group is negated
      * @property itemCount the number of active children
-     * @property columnTitles the distinct titles of the columns under the group, in tree order
+     * @property columnTitles the distinct titles of the columns under the group's active conditions, in tree
+     *   order; of all its conditions while none is active
      * @property sharedColumn the column of a non-negated OR group whose children are all conditions on it
      * @property text the chip's text: `"Status: Active or Pending"` for a shared column, else the column titles,
      *   e.g. `"Type, Qty, Vip"`
      * @property description the whole group read as a sentence, for accessibility
      * @property isOpen whether the group's popover is open
-     * @property onOpen opens the group's popover
+     * @property canOpen whether [onOpen] opens the popover: false where there are no popovers. The default chip
+     *   is then not clickable
+     * @property onOpen opens the group's popover; does nothing while [canOpen] is false
      */
     public class Group<C> internal constructor(
+        public val isGroup: Boolean,
         public val operator: TableFilterNode.Operator,
         public val negated: Boolean,
         public val itemCount: Int,
@@ -83,6 +92,7 @@ public sealed interface TableFilterChipNode<C> {
         public val text: String,
         public val description: String,
         public val isOpen: Boolean,
+        public val canOpen: Boolean,
         public val onOpen: () -> Unit,
         override val placement: TableFilterChipPlacement,
         override val strings: StringProvider,

@@ -1,6 +1,7 @@
 package ua.wwind.table.component.filterchips
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -24,6 +25,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
@@ -53,6 +55,7 @@ import ua.wwind.table.TableFilterChipNode
 import ua.wwind.table.TableFilterChipPlacement
 import ua.wwind.table.TableFilterChipStyle
 import ua.wwind.table.filter.component.main.FilterPanelContent
+import ua.wwind.table.filter.component.main.FilterPanelSession
 import ua.wwind.table.filter.data.FilterPath
 import ua.wwind.table.filter.data.TableFilterNode
 import ua.wwind.table.filter.data.TableFilterNode.Condition
@@ -79,7 +82,8 @@ private val TreeBorderWidth = 2.dp
 /**
  * The popover of the group or not at [rootPath], anchored under its chip: the node as an indented tree whose
  * lines switch Any/All, toggle NOT and remove nodes, and whose condition chips drill into the condition's
- * filter panel. Calls [onDismiss] when it is closed and when an edit leaves no group or not at [rootPath].
+ * filter panel. Calls [onEdit] after each of its edits, and [onDismiss] when it is closed and when an edit
+ * leaves no group or not at [rootPath]; `returnFocus` is false when it closed on a tap outside.
  */
 @Composable
 @Suppress("LongParameterList")
@@ -90,31 +94,40 @@ internal fun <T : Any, C, E> FilterGroupPopover(
     tableData: E,
     style: TableFilterChipStyle<C>,
     strings: StringProvider,
-    onDismiss: () -> Unit,
+    onEdit: () -> Unit,
+    onDismiss: (returnFocus: Boolean) -> Unit,
 ) {
     val node = state.filterExpression.nodeAt(rootPath)
     if (node !is Group && node !is Not) return
-    val texts = FilterChipTexts(keyToSpec, style.unknownTitle, strings)
+    val texts =
+        remember(keyToSpec, style.unknownTitle, strings) { FilterChipTexts(keyToSpec, style.unknownTitle, strings) }
     val edit: (transform: (Group<C>) -> Group<C>) -> Unit = { transform ->
         val before = state.filterExpression
         state.updateFilterExpression(transform)
+        onEdit()
         val after = state.filterExpression
         if (!after.isGroupLikeAt(rootPath) || after.siblingCount(rootPath) < before.siblingCount(rootPath)) {
-            onDismiss()
+            onDismiss(true)
         }
     }
+    // A leaf drills into its column's filter panel; a column without a filter type has none.
+    val canDrill: (C) -> Boolean = { column -> keyToSpec[column]?.filter != null }
     val drill = remember { PopoverDrill() }
+    val session = remember { FilterPanelSession() }
     val drilled =
-        drill.path?.let { path ->
-            (state.filterExpression.nodeAt(path) as? Condition)?.takeIf { keyToSpec[it.column]?.filter != null }
-        }
+        drill.path?.let { path -> (state.filterExpression.nodeAt(path) as? Condition)?.takeIf { canDrill(it.column) } }
     if (drill.path != null && drilled == null) LaunchedEffect(drill.path) { drill.path = null }
-    val back = { drill.leave(state.filterExpression) { path -> edit { it.removeAt(path) } } }
-    val dismiss = {
-        drill.leave(state.filterExpression) { path -> state.updateFilterExpression { it.removeAt(path) } }
-        onDismiss()
+    // The edit still waiting on the panel's debounce lands before the leaf is checked for pruning.
+    val back = {
+        session.applyPending()
+        drill.leave(state.filterExpression) { path -> edit { it.removeAt(path) } }
     }
-    val tree = PopoverTree(keyToSpec, style, texts, edit, drill)
+    val dismiss = {
+        session.applyPending()
+        drill.leave(state.filterExpression) { path -> state.updateFilterExpression { it.removeAt(path) } }
+        onDismiss(false)
+    }
+    val tree = PopoverTree(keyToSpec, style, texts, edit, drill, canDrill)
     DropdownMenu(
         expanded = true,
         onDismissRequest = dismiss,
@@ -126,7 +139,7 @@ internal fun <T : Any, C, E> FilterGroupPopover(
             Modifier.onPreviewKeyEvent { event ->
                 if (event.key != Key.Escape && event.key != Key.Back) return@onPreviewKeyEvent false
                 if (event.type == KeyEventType.KeyUp) {
-                    if (drilled != null) back() else onDismiss()
+                    if (drilled != null) back() else onDismiss(true)
                 }
                 true
             },
@@ -136,15 +149,17 @@ internal fun <T : Any, C, E> FilterGroupPopover(
                 DrillIn(
                     title = texts.title(drilled.column),
                     trail = drillTrail(state.filterExpression, rootPath, path, strings),
+                    session = session,
                     strings = strings,
                     onBack = back,
                 ) {
-                    ConditionPanel(drilled, keyToSpec.getValue(drilled.column), state, tableData, strings, back) {
+                    val spec = keyToSpec.getValue(drilled.column)
+                    ConditionPanel(drilled, spec, state, tableData, strings, session, back) {
                         edit { root -> root.replaceAt(path, it) }
                     }
                 }
             } else {
-                TreeView(tree, rootPath, node, focusFirst = drill.focusLeaf == null)
+                TreeView(tree, rootPath, node, drill)
             }
         }
     }
@@ -166,14 +181,17 @@ private fun <C> PopoverDrill.leave(
     if ((root.nodeAt(leaf) as? Condition)?.state?.isActive() == false) remove(leaf) else focusLeaf = leaf
 }
 
+/** The tree; the focus goes to [drill]'s leaf coming back from a drill-in, else to the first control. */
 @Composable
 private fun <C> TreeView(
     tree: PopoverTree<C>,
     rootPath: FilterPath,
     node: TableFilterNode<C>,
-    focusFirst: Boolean,
+    drill: PopoverDrill,
 ) {
     val firstControl = remember { FocusRequester() }
+    // Read once: the leaf clears focusLeaf as it takes the focus, which may be before the effect below starts.
+    val returningToLeaf = remember { drill.focusLeaf != null }
     Column(
         modifier =
             Modifier
@@ -183,48 +201,67 @@ private fun <C> TreeView(
     ) {
         tree.Line(rootPath, node, Modifier.focusRequester(firstControl), isTop = true)
         // Keys reach the popover only through a focused control inside it.
-        LaunchedEffect(Unit) { if (focusFirst) firstControl.requestFocus() }
+        LaunchedEffect(Unit) {
+            if (returningToLeaf) {
+                // The leaf takes the focus as it composes; one that never does, e.g. after the app replaced the
+                // tree, leaves it to the first control.
+                repeat(2) { withFrameNanos {} }
+                if (drill.focusLeaf == null) return@LaunchedEffect
+                drill.focusLeaf = null
+            }
+            firstControl.requestFocus()
+        }
     }
 }
 
-/** A condition's panel under a header with a back button, the column [title] and the [trail] above it. */
+/**
+ * A condition's panel under a header with a back button, the column [title] and the [trail] above it. The
+ * focus goes to the panel's value field, else to its first control, else to the back button.
+ */
 @Composable
+@Suppress("LongParameterList")
 private fun DrillIn(
     title: String,
     trail: String,
+    session: FilterPanelSession,
     strings: StringProvider,
     onBack: () -> Unit,
     content: @Composable () -> Unit,
 ) {
     val backButton = remember { FocusRequester() }
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(start = 4.dp, end = 16.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        IconButton(onClick = onBack, modifier = Modifier.focusRequester(backButton)) {
-            Icon(
-                painter = painterResource(TableIcons.KeyboardArrowLeft),
-                contentDescription = strings.get(UiString.FilterBack),
+    val panel = remember { FocusRequester() }
+    Column {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(start = 4.dp, end = 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            IconButton(onClick = onBack, modifier = Modifier.focusRequester(backButton)) {
+                Icon(
+                    painter = painterResource(TableIcons.KeyboardArrowLeft),
+                    contentDescription = strings.get(UiString.FilterBack),
+                )
+            }
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleSmall,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f),
+            )
+            Text(
+                text = trail,
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
             )
         }
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleSmall,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.weight(1f),
-        )
-        Text(
-            text = trail,
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            maxLines = 1,
-        )
+        Box(Modifier.focusRequester(panel)) { content() }
     }
-    content()
     // Keys reach the popover only through a focused control inside it.
-    LaunchedEffect(Unit) { backButton.requestFocus() }
+    LaunchedEffect(Unit) {
+        if (!session.focusValueField() && !panel.requestFocus()) backButton.requestFocus()
+    }
 }
 
 /** [condition]'s filter panel; clearing it sets an empty condition, so the leaf keeps its place. */
@@ -236,6 +273,7 @@ private fun <C, E> ConditionPanel(
     state: TableState<C>,
     tableData: E,
     strings: StringProvider,
+    session: FilterPanelSession,
     onClose: () -> Unit,
     onChange: (Condition<C>) -> Unit,
 ) {
@@ -248,6 +286,7 @@ private fun <C, E> ConditionPanel(
         strings = strings,
         autoApplyFilters = state.settings.autoApplyFilters,
         autoFilterDebounce = state.settings.autoFilterDebounce,
+        session = session,
         onChange = { new -> onChange(Condition(condition.column, new ?: TableFilterState<Any?>(null, null))) },
     )
 }
@@ -283,6 +322,7 @@ private class PopoverTree<C>(
     private val texts: FilterChipTexts<C>,
     private val edit: (transform: (Group<C>) -> Group<C>) -> Unit,
     private val drill: PopoverDrill,
+    private val canDrill: (C) -> Boolean,
 ) {
     private val strings get() = texts.strings
 
@@ -417,10 +457,10 @@ private class PopoverTree<C>(
                     title = texts.title(column),
                     text = texts.leafText(column, condition.state),
                     isOpen = false,
+                    canOpen = canDrill(column),
                     placement = TableFilterChipPlacement.Tree,
                     strings = strings,
-                    // A column without a filter type has no panel to drill into.
-                    onOpen = if (spec.filter != null) ({ drill.path = path }) else ({}),
+                    onOpen = { drill.path = path },
                     onChange = { new -> edit { it.replaceAt(path, Condition(column, new)) } },
                     onClear = remove,
                     content = spec.filterChipContent,
