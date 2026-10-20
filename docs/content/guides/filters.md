@@ -11,6 +11,11 @@
   optional fast filter (both receive `tableData: E` parameter), and `CustomFilterStateProvider<T>` for chip text.
   Supports data visualizations of any complexity, including dynamic histograms and statistics based on current table
   data.
+  For a reference column with a group hierarchy, a custom filter can use `FilterConstraint.IN_HIERARCHY`: the value
+  is one of the listed node ids or any of their descendants. The table knows no hierarchy and no built-in type
+  offers it; the app's panel draws the node picker and its chip text names the nodes (prefix them with
+  `UiString.FilterConstraintInHierarchy`). The table never evaluates it, so filter such columns on the server or
+  in your own matcher.
 - **DisabledTableFilter**: special marker filter type that completely disables filtering for a column while keeping
   the API contract (no filter UI is rendered for such columns in filter panels and conditional formatting dialogs).
 

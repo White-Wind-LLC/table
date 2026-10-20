@@ -18,6 +18,13 @@ public enum class FilterConstraint {
     LTE,
     IS_NULL,
     IS_NOT_NULL,
+
+    /**
+     * The value is one of the listed hierarchy nodes or any of their descendants; values are node ids, like [IN].
+     * No built-in filter type offers it: the table knows no hierarchy, so a [TableFilterType.CustomTableFilter]
+     * whose app supplies the node picker and chip text uses it.
+     */
+    IN_HIERARCHY,
     ;
 
     /**
@@ -45,6 +52,7 @@ public enum class FilterConstraint {
             LTE -> UiString.FilterConstraintLte
             IS_NULL -> UiString.FilterConstraintIsNull
             IS_NOT_NULL -> UiString.FilterConstraintIsNotNull
+            IN_HIERARCHY -> UiString.FilterConstraintInHierarchy
         }
 }
 

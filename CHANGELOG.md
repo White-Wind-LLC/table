@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+### Unreleased
+
+- Added: `FilterConstraint.IN_HIERARCHY` (value under any of the listed hierarchy nodes) and
+  `UiString.FilterConstraintInHierarchy`, for custom filters on reference columns; no built-in type offers it
+  ([#163](https://github.com/White-Wind-LLC/table/issues/163)).
+- Changed: the new `FilterConstraint` and `UiString` branches break exhaustive `when`s.
+
 ### 3.5.0 — 2026-10-20
 
 The paged `Table` takes the same filter chip style as the core table.

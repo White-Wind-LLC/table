@@ -87,6 +87,8 @@ public sealed class UiString {
 
     public object FilterConstraintNotIn : UiString()
 
+    public object FilterConstraintInHierarchy : UiString()
+
     public object FilterConstraintGt : UiString()
 
     public object FilterConstraintGte : UiString()
@@ -530,6 +532,8 @@ public object DefaultStrings : StringProvider {
             UiString.FilterConstraintEndsWith -> "Ends with"
 
             UiString.FilterConstraintNotIn -> "Is none of"
+
+            UiString.FilterConstraintInHierarchy -> "In group"
 
             UiString.FilterConstraintGt -> "Greater than"
 

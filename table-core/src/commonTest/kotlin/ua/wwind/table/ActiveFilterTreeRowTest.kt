@@ -40,6 +40,9 @@ import assertk.assertions.isNotNull
 import assertk.assertions.isTrue
 import kotlinx.collections.immutable.persistentListOf
 import ua.wwind.table.config.TableSettings
+import ua.wwind.table.filter.data.CustomFilterPanelActions
+import ua.wwind.table.filter.data.CustomFilterRenderer
+import ua.wwind.table.filter.data.CustomFilterStateProvider
 import ua.wwind.table.filter.data.FilterConstraint
 import ua.wwind.table.filter.data.TableFilterNode
 import ua.wwind.table.filter.data.TableFilterNode.Condition
@@ -62,6 +65,43 @@ private const val BLOCKED = "Filter contains unknown fields — remove them to a
 
 @OptIn(ExperimentalTestApi::class)
 class ActiveFilterTreeRowTest {
+    private val groupTitles = mapOf("g1" to "Drinks", "g2" to "Snacks")
+
+    /** A reference column whose app draws its own group picker and names the groups on the chip. */
+    private val groupFilter =
+        TableFilterType.CustomTableFilter<List<String>, Unit>(
+            renderFilter =
+                object : CustomFilterRenderer<List<String>, Unit> {
+                    @Composable
+                    override fun RenderPanel(
+                        currentState: TableFilterState<List<String>>?,
+                        tableData: Unit,
+                        panelActions: CustomFilterPanelActions,
+                        onDismiss: () -> Unit,
+                        onChange: (TableFilterState<List<String>>?) -> Unit,
+                    ) {
+                        Text("Group picker: ${currentState?.constraint}")
+                    }
+
+                    @Composable
+                    override fun RenderFastFilter(
+                        currentState: TableFilterState<List<String>>?,
+                        tableData: Unit,
+                        onChange: (TableFilterState<List<String>>?) -> Unit,
+                    ) = Unit
+                },
+            stateProvider =
+                object : CustomFilterStateProvider<List<String>> {
+                    @Composable
+                    override fun buildChipText(state: TableFilterState<List<String>>?): String? {
+                        val constraint = state?.constraint ?: return null
+                        val ids = state.values?.flatten().orEmpty()
+                        return "${DefaultStrings.get(constraint.toUiString())} " +
+                            ids.joinToString(", ") { groupTitles[it] ?: it }
+                    }
+                },
+        )
+
     private val columns =
         tableColumns<String, String, Unit> {
             listOf("a", "b", "c", "d").forEach { key ->
@@ -73,6 +113,11 @@ class ActiveFilterTreeRowTest {
             }
             column("e", valueOf = { it }) {
                 header("E")
+                cell { item, _ -> Text(item) }
+            }
+            column("g", valueOf = { it }) {
+                header("G")
+                filter(groupFilter)
                 cell { item, _ -> Text(item) }
             }
         }
@@ -353,6 +398,35 @@ class ActiveFilterTreeRowTest {
             onNodeWithText("Value").assertDoesNotExist()
         }
 
+    @Test
+    fun `an in-hierarchy condition on a custom column is a normal chip`() =
+        runComposeUiTest {
+            val state = setTable(and(inGroups("g1", "g2")))
+
+            assertThat(state.unresolvedFilters).isEmpty()
+            onNodeWithText(BLOCKED).assertDoesNotExist()
+            onNodeWithText("G: In group Drinks, Snacks").assertIsDisplayed().performClick()
+            waitForIdle()
+
+            onNodeWithText("Group picker: IN_HIERARCHY").assertIsDisplayed()
+        }
+
+    @Test
+    fun `an in-hierarchy condition opens its picker from the group popover`() =
+        runComposeUiTest {
+            setTable(and(or(eq("a", "a"), inGroups("g1"))))
+
+            onNodeWithContentDescription(lastGroup!!.description).performClick()
+            waitForIdle()
+            onNodeWithText("G: In group Drinks").performClick()
+            waitForIdle()
+
+            onNodeWithText("Group picker: IN_HIERARCHY").assertIsDisplayed()
+        }
+
+    private fun inGroups(vararg ids: String): Condition<String> =
+        Condition("g", TableFilterState(FilterConstraint.IN_HIERARCHY, listOf(ids.toList())))
+
     private fun ComposeUiTest.setTable(
         expression: Group<String>,
         unknownTitle: ((String) -> String?)? = null,
@@ -363,7 +437,7 @@ class ActiveFilterTreeRowTest {
         setContent {
             state =
                 rememberTableState(
-                    columns = persistentListOf("a", "b", "c", "d", "e"),
+                    columns = persistentListOf("a", "b", "c", "d", "e", "g"),
                     settings = TableSettings(showActiveFiltersHeader = true, autoFilterDebounce = debounce),
                 )
             Box(Modifier.size(1200.dp, 400.dp)) {
