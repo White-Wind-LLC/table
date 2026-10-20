@@ -20,6 +20,7 @@ import assertk.assertions.isEmpty
 import kotlinx.collections.immutable.persistentListOf
 import ua.wwind.table.config.TableSettings
 import ua.wwind.table.filter.data.FilterConstraint
+import ua.wwind.table.filter.data.TableFilterNode
 import ua.wwind.table.filter.data.TableFilterState
 import ua.wwind.table.filter.data.TableFilterType
 import ua.wwind.table.state.TableState
@@ -80,6 +81,54 @@ class TableEmptyStateTest {
             onNodeWithText(CLEAR_FILTERS).performClick()
             waitForIdle()
             assertThat(state.filters).isEmpty()
+            onNodeWithText(NO_DATA).assertIsDisplayed()
+        }
+
+    private fun complexTree() =
+        TableFilterNode.Group(
+            TableFilterNode.Operator.AND,
+            listOf(
+                TableFilterNode.Group(
+                    TableFilterNode.Operator.OR,
+                    listOf(
+                        TableFilterNode.Condition("name", TableFilterState(FilterConstraint.CONTAINS, listOf("x"))),
+                        TableFilterNode.Condition("name", TableFilterState(FilterConstraint.CONTAINS, listOf("y"))),
+                    ),
+                ),
+            ),
+        )
+
+    @Test
+    fun `only a complex node counts as filtered`() =
+        runComposeUiTest {
+            lateinit var state: TableState<String>
+            setContent {
+                val columns = remember { columns() }
+                state = rememberTableState(columns = persistentListOf("name"))
+                Box(Modifier.size(400.dp)) {
+                    Table(itemsCount = 0, itemAt = { null }, state = state, columns = columns)
+                }
+            }
+            runOnIdle { state.setFilterExpression(complexTree()) }
+            onNodeWithText(NO_RESULTS).assertIsDisplayed()
+            onNodeWithText(NO_DATA).assertDoesNotExist()
+        }
+
+    @Test
+    fun `clear filters removes complex nodes`() =
+        runComposeUiTest {
+            lateinit var state: TableState<String>
+            setContent {
+                val columns = remember { columns() }
+                state = rememberTableState(columns = persistentListOf("name"))
+                Box(Modifier.size(400.dp)) {
+                    Table(itemsCount = 0, itemAt = { null }, state = state, columns = columns)
+                }
+            }
+            runOnIdle { state.setFilterExpression(complexTree()) }
+            onNodeWithText(CLEAR_FILTERS).performClick()
+            waitForIdle()
+            assertThat(state.filterExpression.children).isEmpty()
             onNodeWithText(NO_DATA).assertIsDisplayed()
         }
 
