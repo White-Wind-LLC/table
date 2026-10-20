@@ -689,10 +689,10 @@ internal class FilterChipTexts<C>(
     fun unresolvedTitle(node: TableFilterNode.Unresolved): String =
         unresolvedTitle?.invoke(node.key, node.payload) ?: node.key
 
-    /** The titles of [summary]'s columns, then of its unresolved leaves. */
+    /** The distinct titles of [summary]'s columns, then of its unresolved leaves. */
     @Composable
     fun titles(summary: FilterGroupSummary<C>): List<String> =
-        summary.columns.map { title(it) } + summary.unresolved.map { unresolvedTitle(it) }
+        (summary.columns.map { title(it) } + summary.unresolved.map { unresolvedTitle(it) }).distinct()
 
     /** The column's plain-text title; for an unknown column the app's title for it, else the key. */
     @Composable

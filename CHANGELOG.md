@@ -12,9 +12,10 @@ is, and marks the whole filter as not applicable ([#157](https://github.com/Whit
 - Added: a warning chip and popover line with × for it, `TableFilterChipStyle.unresolvedTitle`,
   `TableFilterChipNode.Unresolved`, `TableFilterChipNode.Group.hasUnresolved`, the row's
   `UiString.FilterUnresolvedBlocked` line and `StringProvider.unresolvedFilterDescription`.
-- Changed: the new branches of the sealed `TableFilterNode` and `TableFilterChipNode` break exhaustive `when`s
-  over them. The new `TableFilterChipStyle.unresolvedTitle` field changes the JVM signatures of its constructor
-  and `copy`.
+- Changed: the new branches of the sealed `TableFilterNode`, `TableFilterChipNode` and `UiString` break exhaustive
+  `when`s over them, including a custom `StringProvider.get` without `else`. `unresolvedTitle` comes before
+  `chip` in `TableFilterChipStyle` and `TableFilterChipDefaults.style`, so pass `chip` by name; it also changes
+  the JVM signatures of the style's constructor and `copy`.
 
 ### 3.3.0 — 2026-10-20
 

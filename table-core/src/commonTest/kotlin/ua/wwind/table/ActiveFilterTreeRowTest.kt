@@ -526,4 +526,14 @@ class ActiveFilterTreeRowTest {
             assertThat(state.filterExpression.children).isEmpty()
             onNodeWithText(BLOCKED).assertDoesNotExist()
         }
+
+    @Test
+    fun `group chip names repeated unresolved titles once`() =
+        runComposeUiTest {
+            setTable(and(or(eq("a", "a"), TableFilterNode.Unresolved("old"), TableFilterNode.Unresolved("old"))))
+
+            val group = lastGroup!!
+            assertThat(group.columnTitles).containsExactly("A", "old")
+            assertThat(group.text).isEqualTo("A, old")
+        }
 }
