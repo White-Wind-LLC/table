@@ -30,6 +30,7 @@ import androidx.compose.ui.test.v2.runComposeUiTest
 import androidx.compose.ui.unit.dp
 import assertk.assertThat
 import assertk.assertions.containsExactly
+import assertk.assertions.hasSize
 import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
 import assertk.assertions.isFalse
@@ -42,6 +43,7 @@ import ua.wwind.table.filter.data.FilterConstraint
 import ua.wwind.table.filter.data.TableFilterNode
 import ua.wwind.table.filter.data.TableFilterNode.Condition
 import ua.wwind.table.filter.data.TableFilterNode.Group
+import ua.wwind.table.filter.data.TableFilterNode.Not
 import ua.wwind.table.filter.data.TableFilterNode.Operator
 import ua.wwind.table.filter.data.TableFilterState
 import ua.wwind.table.filter.data.TableFilterType
@@ -85,6 +87,7 @@ class ActiveFilterTreeRowTest {
 
     private var lastGroup: TableFilterChipNode.Group<String>? = null
     private var lastUnknown: TableFilterChipNode.Unknown<String>? = null
+    private val unresolvedNodes = mutableListOf<TableFilterChipNode.Unresolved<String>>()
 
     @Test
     fun `complex node and simple condition show two chips`() =
@@ -350,6 +353,7 @@ class ActiveFilterTreeRowTest {
         expression: Group<String>,
         unknownTitle: ((String) -> String?)? = null,
         debounce: Long = 0,
+        unresolvedTitle: ((key: String, payload: Any?) -> String?)? = null,
     ): TableState<String> {
         lateinit var state: TableState<String>
         setContent {
@@ -368,10 +372,12 @@ class ActiveFilterTreeRowTest {
                     filterChips =
                         TableFilterChipDefaults.style(
                             unknownTitle = unknownTitle,
+                            unresolvedTitle = unresolvedTitle,
                             chip = { node ->
                                 when (node) {
                                     is TableFilterChipNode.Group -> lastGroup = node
                                     is TableFilterChipNode.Unknown -> lastUnknown = node
+                                    is TableFilterChipNode.Unresolved -> unresolvedNodes += node
                                     is TableFilterChipNode.Condition -> Unit
                                 }
                                 DefaultFilterChip(node)
@@ -407,4 +413,71 @@ class ActiveFilterTreeRowTest {
     private fun and(vararg children: TableFilterNode<String>): Group<String> = Group(Operator.AND, children.toList())
 
     private fun or(vararg children: TableFilterNode<String>): Group<String> = Group(Operator.OR, children.toList())
+
+    @Test
+    fun `unresolved leaf at top level shows a warning chip with x only`() =
+        runComposeUiTest {
+            val state = setTable(and(TableFilterNode.Unresolved("old"), eq("c", "c")))
+
+            onNodeWithText("old").assertIsDisplayed().assertIsNotEnabled()
+            assertThat(onAllNodesWithContentDescription("Unknown field").fetchSemanticsNodes()).hasSize(1)
+            onNodeWithContentDescription("Remove filter old").performClick()
+            waitForIdle()
+
+            assertThat(state.filterExpression).isEqualTo(and(eq("c", "c")))
+        }
+
+    @Test
+    fun `group with an unresolved leaf names it and is marked`() =
+        runComposeUiTest {
+            setTable(and(or(eq("a", "a"), eq("b", "b"), TableFilterNode.Unresolved("old")), eq("c", "c")))
+
+            val group = lastGroup!!
+            assertThat(group.hasUnresolved).isTrue()
+            assertThat(group.text).isEqualTo("A, B, old")
+            assertThat(group.columnTitles).containsExactly("A", "B", "old")
+            assertThat(group.description)
+                .isEqualTo("Any of: A equals \"a\", or B equals \"b\", or Unknown field: old")
+            onNodeWithText("C: Equals \"c\"").assertIsDisplayed()
+        }
+
+    @Test
+    fun `top-level negated unresolved leaf is a NOT chip naming it`() =
+        runComposeUiTest {
+            val state = setTable(and(Not(TableFilterNode.Unresolved("old"))))
+
+            val group = lastGroup!!
+            assertThat(group.negated).isTrue()
+            assertThat(group.hasUnresolved).isTrue()
+            assertThat(group.text).isEqualTo("old")
+            onNodeWithContentDescription("Remove group old").performClick()
+            waitForIdle()
+
+            assertThat(state.filterExpression.children).isEmpty()
+        }
+
+    @Test
+    fun `x on one of two equal unresolved chips removes only that one`() =
+        runComposeUiTest {
+            val state = setTable(and(TableFilterNode.Unresolved("old"), TableFilterNode.Unresolved("old")))
+
+            onAllNodesWithContentDescription("Remove filter old").onFirst().performClick()
+            waitForIdle()
+
+            assertThat(state.filterExpression).isEqualTo(and(TableFilterNode.Unresolved("old")))
+        }
+
+    @Test
+    fun `unresolvedTitle titles the chip from key and payload`() =
+        runComposeUiTest {
+            setTable(
+                and(TableFilterNode.Unresolved("x", "known"), TableFilterNode.Unresolved("y")),
+                unresolvedTitle = { _, payload -> if (payload == "known") "Known name" else null },
+            )
+
+            onNodeWithText("Known name").assertIsDisplayed()
+            onNodeWithText("y").assertIsDisplayed()
+            onNodeWithText("x").assertDoesNotExist()
+            assertThat(unresolvedNodes.map { it.key to it.title }).containsExactly("x" to "Known name", "y" to "y")
+        }
 }

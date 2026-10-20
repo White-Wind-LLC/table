@@ -101,7 +101,9 @@ internal fun <T : Any, C, E> FilterGroupPopover(
     val node = state.filterExpression.nodeAt(rootPath)
     if (node !is Group && node !is Not) return
     val texts =
-        remember(keyToSpec, style.unknownTitle, strings) { FilterChipTexts(keyToSpec, style.unknownTitle, strings) }
+        remember(keyToSpec, style.unknownTitle, style.unresolvedTitle, strings) {
+            FilterChipTexts(keyToSpec, style.unknownTitle, style.unresolvedTitle, strings)
+        }
     val edit: (transform: (Group<C>) -> Group<C>) -> Unit = { transform ->
         val before = state.filterExpression
         state.updateFilterExpression(transform)

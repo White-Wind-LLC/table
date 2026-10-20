@@ -9,6 +9,7 @@ import ua.wwind.table.filter.data.TableFilterNode.Operator
 import ua.wwind.table.filter.data.TableFilterNode.Unresolved
 import ua.wwind.table.filter.data.TableFilterState
 import ua.wwind.table.filter.data.isActive
+import ua.wwind.table.filter.data.unresolvedLeaves
 
 internal sealed interface FilterChipItem<C> {
     val path: FilterPath
@@ -24,6 +25,11 @@ internal sealed interface FilterChipItem<C> {
         override val path: FilterPath,
         val column: C,
         val state: TableFilterState<*>,
+    ) : FilterChipItem<C>
+
+    data class Unresolved<C>(
+        override val path: FilterPath,
+        val node: TableFilterNode.Unresolved,
     ) : FilterChipItem<C>
 
     data class Group<C>(
@@ -43,6 +49,8 @@ internal data class FilterGroupSummary<C>(
     val columns: List<C>,
     /** Set only for a non-negated OR whose children are all active conditions on one column. */
     val sharedColumn: C?,
+    /** Unresolved leaves under the node, in tree order. */
+    val unresolved: List<TableFilterNode.Unresolved> = emptyList(),
 )
 
 /** Top-level items of [root]; inactive nodes are skipped except the one at [keepPath] (the open chip). */
@@ -68,7 +76,7 @@ internal fun <C> rowItems(
             }
 
             is Unresolved -> {
-                null
+                FilterChipItem.Unresolved(path, node)
             }
         }
     }
@@ -86,6 +94,7 @@ internal fun <C> TableFilterNode<C>.summary(): FilterGroupSummary<C> {
             .also { inner.collectColumns(it, activeOnly = true) }
             .ifEmpty { LinkedHashSet<C>().also { inner.collectColumns(it, activeOnly = false) } }
             .toList()
+    val unresolved = inner.unresolvedLeaves()
     return when (val node = inner) {
         is Group -> {
             val shared =
@@ -98,11 +107,19 @@ internal fun <C> TableFilterNode<C>.summary(): FilterGroupSummary<C> {
                 } else {
                     null
                 }
-            FilterGroupSummary(true, node.operator, negated, node.children.count { it.isActive() }, columns, shared)
+            FilterGroupSummary(
+                true,
+                node.operator,
+                negated,
+                node.children.count { it.isActive() },
+                columns,
+                shared,
+                unresolved,
+            )
         }
 
         else -> {
-            FilterGroupSummary(false, Operator.AND, negated, if (node.isActive()) 1 else 0, columns, null)
+            FilterGroupSummary(false, Operator.AND, negated, if (node.isActive()) 1 else 0, columns, null, unresolved)
         }
     }
 }

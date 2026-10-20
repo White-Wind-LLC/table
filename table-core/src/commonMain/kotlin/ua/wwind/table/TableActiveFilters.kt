@@ -45,6 +45,7 @@ import org.jetbrains.compose.resources.painterResource
 import ua.wwind.table.component.TableMotionSpecs
 import ua.wwind.table.component.filterchips.FilterChipItem
 import ua.wwind.table.component.filterchips.FilterGroupPopover
+import ua.wwind.table.component.filterchips.FilterGroupSummary
 import ua.wwind.table.component.filterchips.rowItems
 import ua.wwind.table.component.filterchips.summary
 import ua.wwind.table.component.header.ColumnFilterPanel
@@ -190,8 +191,8 @@ internal fun <T : Any, C, E> ActiveFilterChips(
     val chips = rowItems(root, isKnown = keyToSpec::containsKey, keepPath = openConditionPath ?: openGroupPath)
     if (chips.isEmpty()) return
     val texts =
-        remember(keyToSpec, filterChips.unknownTitle, strings) {
-            FilterChipTexts(keyToSpec, filterChips.unknownTitle, strings)
+        remember(keyToSpec, filterChips.unknownTitle, filterChips.unresolvedTitle, strings) {
+            FilterChipTexts(keyToSpec, filterChips.unknownTitle, filterChips.unresolvedTitle, strings)
         }
     val listState: LazyListState = rememberLazyListState()
     val scope = rememberCoroutineScope()
@@ -444,6 +445,21 @@ private fun <T : Any, C, E> RowChip(
             )
         }
 
+        is FilterChipItem.Unresolved -> {
+            FilterChipSlot(
+                TableFilterChipNode.Unresolved(
+                    key = item.node.key,
+                    payload = item.node.payload,
+                    title = texts.unresolvedTitle(item.node),
+                    placement = TableFilterChipPlacement.Row,
+                    strings = texts.strings,
+                    onClear = { removeNode(item.path) },
+                ),
+                spec = null,
+                filterChips = filterChips,
+            )
+        }
+
         is FilterChipItem.Unknown -> {
             FilterChipSlot(
                 TableFilterChipNode.Unknown(
@@ -590,10 +606,11 @@ private fun <C> GroupChip(
                 operator = item.summary.operator,
                 negated = item.summary.negated,
                 itemCount = item.summary.activeCount,
-                columnTitles = item.summary.columns.map { texts.title(it) },
+                columnTitles = texts.titles(item.summary),
                 sharedColumn = item.summary.sharedColumn,
                 text = texts.groupText(node),
                 description = texts.describe(node),
+                hasUnresolved = item.summary.unresolved.isNotEmpty(),
                 isOpen = isOpen,
                 canOpen = popover != null,
                 onOpen = onOpen,
@@ -630,8 +647,18 @@ internal fun ReturnFocus(
 internal class FilterChipTexts<C>(
     private val keyToSpec: Map<C, ColumnSpec<*, C, *>>,
     private val unknownTitle: ((C) -> String?)?,
+    private val unresolvedTitle: ((key: String, payload: Any?) -> String?)?,
     val strings: StringProvider,
 ) {
+    /** An unresolved condition's title: the app's title for it, else its key. */
+    fun unresolvedTitle(node: TableFilterNode.Unresolved): String =
+        unresolvedTitle?.invoke(node.key, node.payload) ?: node.key
+
+    /** The titles of [summary]'s columns, then of its unresolved leaves. */
+    @Composable
+    fun titles(summary: FilterGroupSummary<C>): List<String> =
+        summary.columns.map { title(it) } + summary.unresolved.map { unresolvedTitle(it) }
+
     /** The column's plain-text title; for an unknown column the app's title for it, else the key. */
     @Composable
     fun title(column: C): String {
@@ -678,7 +705,7 @@ internal class FilterChipTexts<C>(
             }
 
             is TableFilterNode.Unresolved -> {
-                strings.unresolvedFilterDescription(node.key)
+                strings.unresolvedFilterDescription(unresolvedTitle(node))
             }
 
             is TableFilterNode.Group, is TableFilterNode.Not -> {
@@ -711,12 +738,7 @@ internal class FilterChipTexts<C>(
         }
 
     @Composable
-    private fun columnTitles(node: TableFilterNode<C>): String =
-        node
-            .summary()
-            .columns
-            .map { title(it) }
-            .joinToString(", ")
+    private fun columnTitles(node: TableFilterNode<C>): String = titles(node.summary()).joinToString(", ")
 }
 
 /** [column]'s condition reset to its first constraint with no value. */

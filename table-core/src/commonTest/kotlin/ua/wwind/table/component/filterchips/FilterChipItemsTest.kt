@@ -9,6 +9,7 @@ import ua.wwind.table.filter.data.TableFilterNode.Group
 import ua.wwind.table.filter.data.TableFilterNode.Not
 import ua.wwind.table.filter.data.TableFilterNode.Operator.AND
 import ua.wwind.table.filter.data.TableFilterNode.Operator.OR
+import ua.wwind.table.filter.data.TableFilterNode.Unresolved
 import ua.wwind.table.filter.data.TableFilterState
 import kotlin.test.Test
 
@@ -142,5 +143,24 @@ class FilterChipItemsTest {
         val root = Group(AND, listOf(cond("a", "1"), cond("a", "2")))
 
         assertThat(rowItems(root, known, null).map { it.path }).isEqualTo(listOf(listOf(0), listOf(1)))
+    }
+
+    @Test
+    fun `rowItems lists a top-level unresolved leaf`() {
+        val u = Unresolved("old")
+        val items = rowItems(Group(AND, listOf(cond("a"), u)), known, keepPath = null)
+
+        assertThat(items[1]).isEqualTo(FilterChipItem.Unresolved(listOf(1), u))
+    }
+
+    @Test
+    fun `summary of a group with an unresolved leaf`() {
+        val u = Unresolved("old")
+        val summary = Group(OR, listOf(cond("a"), u)).summary()
+
+        assertThat(summary.unresolved).isEqualTo(listOf(u))
+        assertThat(summary.sharedColumn).isNull()
+        assertThat(summary.activeCount).isEqualTo(2)
+        assertThat(Not(u).summary().unresolved).isEqualTo(listOf(u))
     }
 }
