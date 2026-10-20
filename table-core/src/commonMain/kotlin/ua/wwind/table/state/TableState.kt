@@ -25,7 +25,9 @@ import ua.wwind.table.config.TableDefaults
 import ua.wwind.table.config.TableDimensions
 import ua.wwind.table.config.TableSettings
 import ua.wwind.table.data.SortOrder
+import ua.wwind.table.filter.data.TableFilterNode
 import ua.wwind.table.filter.data.TableFilterState
+import ua.wwind.table.filter.data.asRoot
 
 private val settingsLogger = Logger.withTag("TableSettings")
 
@@ -56,7 +58,11 @@ public sealed interface ColumnWidthAction {
  *
  * The members those holders took over remain here as deprecated forwarders for one release, each
  * naming its replacement, so existing call sites keep compiling; they are removed in the next major.
+ *
+ * `TooManyFunctions` is suppressed because the public filter-tree setter is part of the contract
+ * next to [setFilter]; the tree operations themselves live outside the class.
  */
+@Suppress("TooManyFunctions")
 @Stable
 public class TableState<C>
     internal constructor(
@@ -228,9 +234,23 @@ public class TableState<C>
         public var groupBy: C? by mutableStateOf(null)
             private set
 
-        // Filters per column
+        /** The whole filter tree; always an AND group. Snapshot-backed: observe with snapshotFlow. */
+        public var filterExpression: TableFilterNode.Group<C> by mutableStateOf(
+            TableFilterNode.Group(TableFilterNode.Operator.AND, emptyList()),
+        )
+            internal set
+
+        /** Replaces the tree. A root that is not an AND group becomes the single child of an AND root. */
+        public fun setFilterExpression(root: TableFilterNode<C>) {
+            filterExpression = root.asRoot()
+        }
+
+        /**
+         * Per-column filters: a mutable view of the first top-level condition of each column in
+         * [filterExpression]. Writes leave groups and nots untouched.
+         */
         public val filters: MutableMap<C, TableFilterState<*>> =
-            mutableStateMapOf<C, TableFilterState<*>>()
+            FilterExpressionMap({ filterExpression }, { filterExpression = it })
 
         // Cell selection
         public data class SelectedCell<C>(
