@@ -96,6 +96,7 @@ column(PersonField.Name, valueOf = { it.name }) {
       remove it. `state.unresolvedFilters` (or `node.unresolvedLeaves()`) lists them; while it is not empty, do
       not apply or send the filter at all. The active filters row shows them and a line saying the filter is not
       applied (`UiString.FilterUnresolvedBlocked`); an app that hides the row must check `unresolvedFilters` itself.
+      Show no rows meanwhile: the default empty state then says the same (`TableEmptyScope.hasUnresolvedFilters`).
     - Filter chips: `Table(..., filterChips = TableFilterChipDefaults.style(colors = ..., unknownTitle = { key ->
       ... }, unresolvedTitle = { key, payload -> ... }, chip = { node -> ... }))`, also accepted by
       `TableActiveFilters`. `node` is a `TableFilterChipNode` (`Condition`, `Group`, `Unknown` or `Unresolved`) with a `TableFilterChipPlacement` (`Row` or

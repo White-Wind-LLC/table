@@ -16,15 +16,15 @@ import ua.wwind.table.sample.model.Position
  */
 object PersonFilterMatcher {
     /**
-     * The people matching the filter tree. A tree with unresolved leaves is not applied at all, not even
-     * with them left out; the active filters row tells the user to remove them.
+     * The people matching the filter tree. A tree with unresolved leaves matches no one: it is not applied, not
+     * even with them left out, and the table's empty state and active filters row tell the user to remove them.
      */
     fun filterPeople(
         people: List<Person>,
         expression: TableFilterNode<PersonColumn>,
     ): List<Person> =
         if (expression.unresolvedLeaves().isNotEmpty()) {
-            people
+            emptyList()
         } else {
             people.filter { matchesPerson(it, expression) }
         }

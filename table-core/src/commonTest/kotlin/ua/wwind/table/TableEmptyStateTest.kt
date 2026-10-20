@@ -31,6 +31,7 @@ import kotlin.test.Test
 private const val NO_DATA = "No data"
 private const val NO_RESULTS = "No results match the current filters"
 private const val CLEAR_FILTERS = "Clear filters"
+private const val UNRESOLVED = "Filter contains unknown fields — remove them to apply"
 
 /** The body's empty state: what an empty table says, and that it keeps the header and footer. */
 @OptIn(ExperimentalTestApi::class)
@@ -276,7 +277,7 @@ class TableEmptyStateTest {
         }
 
     @Test
-    fun `isFiltered covers an unresolved leaf and clearFilters removes it`() =
+    fun `an unresolved filter says so and clearFilters removes it`() =
         runComposeUiTest {
             lateinit var state: TableState<String>
             setContent {
@@ -287,7 +288,8 @@ class TableEmptyStateTest {
                 }
             }
             runOnIdle { state.setFilterExpression(TableFilterNode.Unresolved("old")) }
-            onNodeWithText(NO_RESULTS).assertIsDisplayed()
+            onNodeWithText(UNRESOLVED).assertIsDisplayed()
+            onNodeWithText(NO_RESULTS).assertDoesNotExist()
             onNodeWithText(CLEAR_FILTERS).performClick()
             waitForIdle()
 

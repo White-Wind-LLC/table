@@ -12,6 +12,8 @@ is, and marks the whole filter as not applicable ([#157](https://github.com/Whit
 - Added: a warning chip and popover line with × for it, `TableFilterChipStyle.unresolvedTitle`,
   `TableFilterChipNode.Unresolved`, `TableFilterChipNode.Group.hasUnresolved`, the row's
   `UiString.FilterUnresolvedBlocked` line and `StringProvider.unresolvedFilterDescription`.
+- Added: `TableEmptyScope.hasUnresolvedFilters`; the default empty state then says the filter contains unknown
+  fields instead of "No results".
 - Changed: the new branches of the sealed `TableFilterNode`, `TableFilterChipNode` and `UiString` break exhaustive
   `when`s over them, including a custom `StringProvider.get` without `else`. `unresolvedTitle` comes before
   `chip` in `TableFilterChipStyle` and `TableFilterChipDefaults.style`, so pass `chip` by name; it also changes

@@ -35,7 +35,8 @@ row selection, i18n, styling/customization, and dynamic or fixed row height.
   the tree as `TableFilterNode.Unresolved(key, payload)`. The table never interprets it and keeps it, with its
   payload, in place on every edit; it shows as a warning chip or popover line with × only, and the row says the
   filter is not applied until it is removed. Check `state.unresolvedFilters` and do not apply or send the filter
-  while it is not empty. The row is the only place the table shows these conditions.
+  while it is not empty; show no rows meanwhile, and the default empty state says why. The row is the only place
+  the table shows the conditions themselves.
 - Chip customization: a column draws the content of its chips with `filterChipContent(leadingIcon, label)`;
   `TableFilterChipDefaults.style(colors, unknownTitle, unresolvedTitle, chip)` passed as `filterChips` to `Table` or
   `TableActiveFilters` sets colors, titles of unknown keys and unresolved conditions, and a full chip renderer, which can call

@@ -131,6 +131,12 @@ My calls (the builder may refine the details but not the behavior):
   it when it appears. It disappears when the last unresolved leaf is removed.
 - No other styling of the row changes.
 
+### Empty state
+
+- `TableEmptyScope.hasUnresolvedFilters` (default `false` on the interface, so other implementations keep
+  compiling). The default empty content shows the warning icon and `UiString.FilterUnresolvedBlocked` in place of
+  "No results" while it is true, and keeps the "Clear filters" button.
+
 ### Strings
 
 - `UiString.FilterUnresolvedBlocked` (new key, English default above, added to every locale default table the
@@ -141,8 +147,9 @@ My calls (the builder may refine the details but not the behavior):
 
 ### Sample
 
-- `PersonFilterMatcher` handles the new branch. While `unresolvedFilters` is not empty the sample applies no
-  filter at all (all rows shown) and the row shows the blocked line — the pattern the KDoc recommends.
+- `PersonFilterMatcher` handles the new branch. While `unresolvedFilters` is not empty the sample shows no rows
+  at all, and the table's empty state says the filter contains unknown fields — the pattern the KDoc recommends.
+  Rows appear again once the filter is valid.
 - A new sample action next to the nested filter demo sets
   `(A OR B OR Unresolved("legacyField", payload)) AND C`, and `unresolvedTitle` in `MainTable` gives one
   payload a readable title, to show both title paths. The existing nested demo stays a working filter.

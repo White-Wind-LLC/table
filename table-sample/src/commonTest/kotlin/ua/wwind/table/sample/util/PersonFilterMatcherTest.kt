@@ -1,6 +1,7 @@
 package ua.wwind.table.sample.util
 
 import assertk.assertThat
+import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
 import kotlinx.datetime.LocalDate
 import ua.wwind.table.filter.data.FilterConstraint
@@ -85,14 +86,14 @@ class PersonFilterMatcherTest {
     }
 
     @Test
-    fun `a tree with an unresolved leaf filters nothing`() {
+    fun `a tree with an unresolved leaf shows no one`() {
         val tree =
             TableFilterNode.Group(
                 TableFilterNode.Operator.AND,
                 listOf(name("Ann"), TableFilterNode.Unresolved("legacyField")),
             )
 
-        assertThat(PersonFilterMatcher.filterPeople(listOf(ann, bob, cid), tree)).isEqualTo(listOf(ann, bob, cid))
+        assertThat(PersonFilterMatcher.filterPeople(listOf(ann, bob, cid), tree)).isEmpty()
         assertThat(PersonFilterMatcher.filterPeople(listOf(ann, bob, cid), name("Ann"))).isEqualTo(listOf(ann))
     }
 }

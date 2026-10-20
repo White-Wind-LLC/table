@@ -29,6 +29,12 @@ public interface TableEmptyScope {
     /** Whether any filter, including nested ones, is active — the rows may exist but be filtered out. */
     public val isFiltered: Boolean
 
+    /**
+     * Whether the filter has unresolved conditions, so the app shows no rows until they are removed
+     * (see [ua.wwind.table.state.TableState.unresolvedFilters]).
+     */
+    public val hasUnresolvedFilters: Boolean get() = false
+
     /** Removes every filter, including nested ones. */
     public fun clearFilters()
 }
@@ -38,6 +44,9 @@ internal class TableStateEmptyScope<C>(
 ) : TableEmptyScope {
     override val isFiltered: Boolean
         get() = state.filterExpression.isActive()
+
+    override val hasUnresolvedFilters: Boolean
+        get() = state.unresolvedFilters.isNotEmpty()
 
     override fun clearFilters() {
         state.filters.clear()
@@ -54,7 +63,10 @@ internal fun TableEmptyStateBox(
     Box(modifier = modifier, contentAlignment = Alignment.Center) { content() }
 }
 
-/** Default empty state: "No data", or "No results" with a button clearing the filters. */
+/**
+ * Default empty state: "No data", or "No results" with a button clearing the filters; while the filter has
+ * unresolved conditions, it says so instead of "No results".
+ */
 @Composable
 internal fun TableEmptyScope.DefaultTableEmptyContent() {
     val strings = currentStrings()
@@ -64,14 +76,26 @@ internal fun TableEmptyScope.DefaultTableEmptyContent() {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
+        val icon =
+            when {
+                hasUnresolvedFilters -> TableIcons.Warning
+                isFiltered -> TableIcons.FilterAltOutlined
+                else -> TableIcons.TableRows
+            }
+        val text =
+            when {
+                hasUnresolvedFilters -> UiString.FilterUnresolvedBlocked
+                isFiltered -> UiString.EmptyNoResults
+                else -> UiString.EmptyNoData
+            }
         Icon(
-            painter = painterResource(if (isFiltered) TableIcons.FilterAltOutlined else TableIcons.TableRows),
+            painter = painterResource(icon),
             contentDescription = null,
             tint = color,
             modifier = Modifier.size(32.dp),
         )
         Text(
-            text = strings.get(if (isFiltered) UiString.EmptyNoResults else UiString.EmptyNoData),
+            text = strings.get(text),
             color = color,
             textAlign = TextAlign.Center,
         )
