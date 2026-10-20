@@ -37,6 +37,7 @@ private fun pagingData(onGet: (Int) -> Unit): PagingData<Person> =
                 onGet = onGet,
             ),
         loadState = LoadState.Success,
+        prefetchState = LoadState.Success,
         retry = {},
     )
 

@@ -18,8 +18,9 @@ import ua.wwind.paging.core.PagingData
 import ua.wwind.table.TableEmptyScope
 
 /**
- * How long rows must keep loading before the indicator shows. The pager reports one global state
- * and goes `Loading` on every scroll preload; most of those pulses are shorter than this.
+ * How long rows must keep loading before the indicator shows. `loadState` goes `Loading` whenever
+ * the accessed rows are missing, which a fast scroll hits briefly; most such pulses are shorter
+ * than this.
  */
 internal const val LOADING_INDICATOR_DELAY_MS: Long = 400
 

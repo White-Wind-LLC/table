@@ -18,6 +18,7 @@ class PagedBodyStateTest {
     ) = PagingData(
         data = PagingMap<String>(size = size, values = persistentMapOf(), onGet = {}),
         loadState = loadState,
+        prefetchState = LoadState.Success,
         retry = {},
     )
 

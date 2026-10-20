@@ -57,6 +57,7 @@ class PagedEmptyStateTest {
                         PagingData(
                             data = PagingMap<String>(size = 0, values = persistentMapOf(), onGet = {}),
                             loadState = LoadState.Success,
+                            prefetchState = LoadState.Success,
                             retry = {},
                         )
                     }

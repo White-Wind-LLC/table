@@ -48,6 +48,7 @@ private fun rows(
 ) = PagingData(
     data = PagingMap(size = 3, values = if (loaded) loadedValues else persistentMapOf(), onGet = {}),
     loadState = loadState,
+    prefetchState = LoadState.Success,
     retry = retry,
 )
 

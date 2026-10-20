@@ -88,6 +88,7 @@ class PagedFilterChipsTest {
                     PagingData(
                         data = PagingMap(size = 1, values = persistentMapOf(0 to "row"), onGet = {}),
                         loadState = LoadState.Success,
+                        prefetchState = LoadState.Success,
                         retry = {},
                     )
                 }
