@@ -14,7 +14,7 @@ plugins {
     id("com.android.application")
 }
 
-val androidApplicationId: String by project
+val androidApplicationId: String = providers.gradleProperty("androidApplicationId").get()
 
 android {
     // SDK versions from version catalog
@@ -65,7 +65,7 @@ android {
     // Standard Android layout (the MPP layout belongs to the multiplatform module)
     sourceSets.getByName("main").apply {
         manifest.srcFile("src/main/AndroidManifest.xml")
-        res.srcDirs("src/main/res")
+        res.directories.add("src/main/res")
     }
 
     buildTypes {

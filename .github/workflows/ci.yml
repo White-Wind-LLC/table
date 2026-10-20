@@ -46,7 +46,7 @@ jobs:
 
       - name: Upload detekt reports
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: detekt-reports
           path: '**/build/reports/detekt/'
@@ -106,14 +106,14 @@ jobs:
 
       - name: Upload test reports
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: test-reports-linux
           path: '**/build/reports/tests/'
           if-no-files-found: ignore
 
       - name: Upload coverage
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: coverage
           path: build/reports/kover/
@@ -142,7 +142,7 @@ jobs:
 
       - name: Upload test reports
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: test-reports-ios
           path: '**/build/reports/tests/'

@@ -11,17 +11,10 @@ plugins {
     id("ua.wwind.convention.coroutines")
 }
 
-val baseNamespace: String by project
-val androidApplicationId: String by project
+val jsOutputModuleName: String = providers.gradleProperty("jsOutputModuleName").get()
+val jsOutputFileName: String = providers.gradleProperty("jsOutputFileName").get()
 
-val desktopPackageName: String by project
-
-val jsOutputModuleName: String by project
-val jsOutputFileName: String by project
-
-val iosFrameworkBaseName: String by project
-
-val buildKonfigPackage: String by project
+val iosFrameworkBaseName: String = providers.gradleProperty("iosFrameworkBaseName").get()
 
 kotlin {
     jvm()
