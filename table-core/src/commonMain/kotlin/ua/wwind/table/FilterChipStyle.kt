@@ -300,8 +300,8 @@ private fun <C> GroupLabel(node: TableFilterChipNode.Group<C>) {
                 modifier = Modifier.size(InputChipDefaults.IconSize),
             )
         }
-        if (node.negated) Badge(node.strings.get(UiString.FilterNot))
-        if (node.isGroup) Badge(node.strings.filterOperatorBadge(node.operator, node.itemCount))
+        if (node.negated) FilterChipBadge(node.strings.get(UiString.FilterNot))
+        if (node.isGroup) FilterChipBadge(node.strings.filterOperatorBadge(node.operator, node.itemCount))
         Text(node.text)
         Icon(
             painter = painterResource(TableIcons.KeyboardArrowDown),
@@ -311,8 +311,9 @@ private fun <C> GroupLabel(node: TableFilterChipNode.Group<C>) {
     }
 }
 
+/** A small tag on a filter chip, e.g. a group's `NOT` or its operator. */
 @Composable
-private fun Badge(text: String) {
+internal fun FilterChipBadge(text: String) {
     Surface(
         shape = RoundedCornerShape(4.dp),
         color = LocalContentColor.current.copy(alpha = BADGE_BACKGROUND_ALPHA),
