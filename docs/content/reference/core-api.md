@@ -42,11 +42,13 @@
         - Editing: `editCell { item, tableData, onComplete -> ... }` for custom edit UI.
         - Sorting: `sortable()`, `headerClickToSort(Boolean)`.
         - Filters UI: `filter(TableFilterType.*)`.
-        - Active filter chip: `activeFilterChip { ctx -> ... }` draws this column's chip in the active filters row.
-          `ctx` carries the filter state, title, chip text and `onOpen` / `onChange` / `onClear`. Call
-          `DefaultActiveFilterChip(ctx, label = …, leadingIcon = …, colors = …, onClick = …)` to change one part
-          and keep the rest; `onClick = null` leaves only the × clickable. The filter panel opens under the chip
-          on `ctx.onOpen()`. A custom chip owns its accessibility labels.
+        - Filter chip content: `filterChipContent(leadingIcon, label) { node -> ... }` draws the content of this
+          column's condition chips, in the row and in a group's popover. `node` is a
+          `TableFilterChipNode.Condition` with `state`, `title`, `text`, `label`, `isOpen` and `onOpen` /
+          `onChange` / `onClear`. The table keeps the chip, its click, its × and the panel. A group of conditions
+          on this column alone is drawn as a group and does not use it.
+        - Deprecated, removed in 4.0: `activeFilterChip { ctx -> ... }` with `TableFilterChipContext` and
+          `DefaultActiveFilterChip`; use `filterChipContent` or `TableFilterChipStyle.chip`.
         - Sizing: `width(min, pref)`, `autoWidth(max)`, `resizable(Boolean)`, `align(Alignment.Horizontal)`.
         - Row height hints: `rowHeight(min, max)` used when `rowHeightMode = Dynamic`.
         - Decorations: `headerDecorations(Boolean)` to hide built‑ins when fully customizing header.
@@ -85,7 +87,16 @@ column(PersonField.Name, valueOf = { it.name }) {
     - Auto-width recalculation: `state.columns.recalculateAutoWidths()` to manually recompute column
       widths based on current content measurements. Useful for deferred/paginated data loading where initial auto-width
       calculation happened on empty data.
-    - Filters: `state.setFilter(column, TableFilterState(...))`; current per‑column `state.filters`.
+    - Filters: `state.setFilter(column, TableFilterState(...))`; current per‑column `state.filters`, a view of
+      the simple top-level conditions of the filter tree. The whole tree is `state.filterExpression`;
+      `state.setFilterExpression(root)` replaces it (a root that is not an AND is wrapped in one).
+      `TableEmptyScope.isFiltered` and `clearFilters()` see the whole tree.
+    - Filter chips: `Table(..., filterChips = TableFilterChipDefaults.style(colors = ..., unknownTitle = { key ->
+      ... }, chip = { node -> ... }))`, also accepted by `TableActiveFilters`. `node` is a
+      `TableFilterChipNode` (`Condition`, `Group` or `Unknown`) with a `TableFilterChipPlacement` (`Row` or
+      `Tree`). `chip` replaces every chip and can call `DefaultFilterChip(node, onClick, label, leadingIcon,
+      colors, clearContentDescription)` to change one part. A filter key with no `ColumnSpec` in `columns` shows
+      an unknown chip with `unknownTitle` of the key, or the key itself.
     - Selection: `state.selection.toggleRow(index)`, `state.selection.toggleCheck(index)`,
       `state.selection.toggleCheckAll(count)`, `state.selection.selectCell(row, column)`; current
       `state.selection.selectedIndex`, `state.selection.checkedIndices`, `state.selection.selectedCell`.

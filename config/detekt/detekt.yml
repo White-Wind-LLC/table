@@ -78,6 +78,8 @@ Compose:
       - LocalTableColors
       # Internal: carries the table's key handler to edit cells, past the row clickable.
       - LocalBubbledBodyKeyHandler
+      # Internal: the active filters row's chip colors, read by DefaultFilterChip in custom renderers.
+      - LocalFilterChipColors
   CompositionLocalNaming:
     active: true
   ContentEmitterReturningValues:

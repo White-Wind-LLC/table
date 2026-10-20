@@ -21,7 +21,7 @@ import ua.wwind.table.filter.data.TableFilterState
 import ua.wwind.table.filter.data.TableFilterType
 import ua.wwind.table.strings.StringProvider
 
-@Suppress("LongParameterList", "UNCHECKED_CAST")
+@Suppress("LongParameterList")
 @Composable
 internal fun <T, E> FilterPanel(
     type: TableFilterType<T>?,
@@ -41,105 +41,130 @@ internal fun <T, E> FilterPanel(
         // Grows past the minimum for longer translations instead of clipping them.
         modifier = Modifier.widthIn(min = 280.dp, max = 360.dp),
     ) {
-        Column(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-                    .padding(top = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            when (type) {
-                is TableFilterType.TextTableFilter -> {
-                    TextFilter(
-                        filter = type,
-                        state =
-                            state as? TableFilterState<String>
-                                ?: TableFilterState(constraint = null, values = null),
-                        onClose = onDismissRequest,
-                        strings = strings,
-                        autoApplyFilters = autoApplyFilters,
-                        autoFilterDebounce = autoFilterDebounce,
-                        onChange = { onChange(it as? TableFilterState<T>) },
-                    )
-                }
+        FilterPanelContent(
+            type = type,
+            state = state,
+            tableData = tableData,
+            onClose = onDismissRequest,
+            strings = strings,
+            autoApplyFilters = autoApplyFilters,
+            autoFilterDebounce = autoFilterDebounce,
+            onChange = onChange,
+        )
+    }
+}
 
-                is TableFilterType.NumberTableFilter<*> -> {
-                    NumberFilter<Number>(
-                        filter = type as TableFilterType.NumberTableFilter<Number>,
-                        state =
-                            state as? TableFilterState<Number>
-                                ?: TableFilterState(constraint = null, values = null),
-                        onClose = onDismissRequest,
-                        strings = strings,
-                        autoApplyFilters = autoApplyFilters,
-                        autoFilterDebounce = autoFilterDebounce,
-                        onChange = { onChange(it as? TableFilterState<T>) },
-                    )
-                }
+/** The form of a filter panel for [type]; [onClose] is called when the form is done, as after Apply. */
+@Suppress("LongParameterList", "UNCHECKED_CAST")
+@Composable
+internal fun <T, E> FilterPanelContent(
+    type: TableFilterType<T>?,
+    state: TableFilterState<T>?,
+    tableData: E,
+    onClose: () -> Unit,
+    strings: StringProvider,
+    autoApplyFilters: Boolean,
+    autoFilterDebounce: Long,
+    onChange: (TableFilterState<T>?) -> Unit,
+) {
+    Column(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .padding(top = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        when (type) {
+            is TableFilterType.TextTableFilter -> {
+                TextFilter(
+                    filter = type,
+                    state =
+                        state as? TableFilterState<String>
+                            ?: TableFilterState(constraint = null, values = null),
+                    onClose = onClose,
+                    strings = strings,
+                    autoApplyFilters = autoApplyFilters,
+                    autoFilterDebounce = autoFilterDebounce,
+                    onChange = { onChange(it as? TableFilterState<T>) },
+                )
+            }
 
-                is TableFilterType.BooleanTableFilter -> {
-                    BooleanFilter(
-                        filter = type,
-                        state =
-                            state as? TableFilterState<Boolean>
-                                ?: TableFilterState(constraint = null, values = null),
-                        onClose = onDismissRequest,
-                        strings = strings,
-                        autoApplyFilters = autoApplyFilters,
-                        autoFilterDebounce = autoFilterDebounce,
-                        onChange = { onChange(it as? TableFilterState<T>) },
-                    )
-                }
+            is TableFilterType.NumberTableFilter<*> -> {
+                NumberFilter<Number>(
+                    filter = type as TableFilterType.NumberTableFilter<Number>,
+                    state =
+                        state as? TableFilterState<Number>
+                            ?: TableFilterState(constraint = null, values = null),
+                    onClose = onClose,
+                    strings = strings,
+                    autoApplyFilters = autoApplyFilters,
+                    autoFilterDebounce = autoFilterDebounce,
+                    onChange = { onChange(it as? TableFilterState<T>) },
+                )
+            }
 
-                is TableFilterType.DateTableFilter -> {
-                    DateFilter(
-                        filter = type,
-                        state =
-                            state as? TableFilterState<LocalDate>
-                                ?: TableFilterState(constraint = null, values = null),
-                        onClose = onDismissRequest,
-                        strings = strings,
-                        autoApplyFilters = autoApplyFilters,
-                        autoFilterDebounce = autoFilterDebounce,
-                        onChange = { onChange(it as? TableFilterState<T>) },
-                    )
-                }
+            is TableFilterType.BooleanTableFilter -> {
+                BooleanFilter(
+                    filter = type,
+                    state =
+                        state as? TableFilterState<Boolean>
+                            ?: TableFilterState(constraint = null, values = null),
+                    onClose = onClose,
+                    strings = strings,
+                    autoApplyFilters = autoApplyFilters,
+                    autoFilterDebounce = autoFilterDebounce,
+                    onChange = { onChange(it as? TableFilterState<T>) },
+                )
+            }
 
-                is TableFilterType.EnumTableFilter<*> -> {
-                    EnumFilter(
-                        filter = type,
-                        state =
-                            state as? TableFilterState<*>
-                                ?: TableFilterState<Any?>(constraint = null, values = null),
-                        onClose = onDismissRequest,
-                        strings = strings,
-                        autoApplyFilters = autoApplyFilters,
-                        autoFilterDebounce = autoFilterDebounce,
-                        onChange = { onChange(it as? TableFilterState<T>) },
-                    )
-                }
+            is TableFilterType.DateTableFilter -> {
+                DateFilter(
+                    filter = type,
+                    state =
+                        state as? TableFilterState<LocalDate>
+                            ?: TableFilterState(constraint = null, values = null),
+                    onClose = onClose,
+                    strings = strings,
+                    autoApplyFilters = autoApplyFilters,
+                    autoFilterDebounce = autoFilterDebounce,
+                    onChange = { onChange(it as? TableFilterState<T>) },
+                )
+            }
 
-                is TableFilterType.CustomTableFilter<*, *> -> {
-                    val customFilter = type as TableFilterType.CustomTableFilter<Any, E>
-                    CustomFilter<Any, E>(
-                        filter = customFilter,
-                        state = state as? TableFilterState<Any>,
-                        tableData = tableData,
-                        onClose = onDismissRequest,
-                        strings = strings,
-                        autoApplyFilters = autoApplyFilters,
-                        onChange = { onChange(it as? TableFilterState<T>) },
-                    )
-                }
+            is TableFilterType.EnumTableFilter<*> -> {
+                EnumFilter(
+                    filter = type,
+                    state =
+                        state as? TableFilterState<*>
+                            ?: TableFilterState<Any?>(constraint = null, values = null),
+                    onClose = onClose,
+                    strings = strings,
+                    autoApplyFilters = autoApplyFilters,
+                    autoFilterDebounce = autoFilterDebounce,
+                    onChange = { onChange(it as? TableFilterState<T>) },
+                )
+            }
 
-                TableFilterType.DisabledTableFilter -> {
-                    // No-op
-                }
+            is TableFilterType.CustomTableFilter<*, *> -> {
+                val customFilter = type as TableFilterType.CustomTableFilter<Any, E>
+                CustomFilter<Any, E>(
+                    filter = customFilter,
+                    state = state as? TableFilterState<Any>,
+                    tableData = tableData,
+                    onClose = onClose,
+                    strings = strings,
+                    autoApplyFilters = autoApplyFilters,
+                    onChange = { onChange(it as? TableFilterState<T>) },
+                )
+            }
 
-                null -> {
-                    error("Filter type cannot be null")
-                }
+            TableFilterType.DisabledTableFilter -> {
+                // No-op
+            }
+
+            null -> {
+                error("Filter type cannot be null")
             }
         }
     }

@@ -47,6 +47,8 @@ class TableIconsTest {
             "TableRows" to TableIcons.TableRows,
             "ErrorOutline" to TableIcons.ErrorOutline,
             "MoreVert" to TableIcons.MoreVert,
+            "KeyboardArrowDown" to TableIcons.KeyboardArrowDown,
+            "Warning" to TableIcons.Warning,
         )
 
     private fun loadAll(): Map<String, ImageVector> {

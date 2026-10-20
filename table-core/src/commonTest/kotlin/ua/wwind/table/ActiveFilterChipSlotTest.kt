@@ -31,6 +31,7 @@ import ua.wwind.table.state.rememberTableState
 import kotlin.test.Test
 
 @OptIn(ExperimentalTestApi::class)
+@Suppress("DEPRECATION")
 class ActiveFilterChipSlotTest {
     private var offlineClicks = 0
 

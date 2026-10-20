@@ -1,28 +1,22 @@
+// The file is named after DefaultActiveFilterChip; all its declarations go in 4.0.
+@file:Suppress("MatchingDeclarationName")
+
 package ua.wwind.table
 
-import androidx.compose.foundation.clickable
-import androidx.compose.material3.Icon
 import androidx.compose.material3.InputChip
 import androidx.compose.material3.InputChipDefaults
 import androidx.compose.material3.SelectableChipColors
 import androidx.compose.material3.Text
-import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.unit.dp
-import org.jetbrains.compose.resources.painterResource
 import ua.wwind.table.filter.data.TableFilterState
-import ua.wwind.table.icon.TableIcons
 import ua.wwind.table.strings.StringProvider
 import ua.wwind.table.strings.UiString
 
-/** Radius of the round press and hover indication around a chip's ×; fits the 32 dp chip. */
-private val ClearIconRippleRadius = 12.dp
-
 /**
- * What a column's chip in the active filters row knows, passed to [ColumnSpec.activeFilterChip].
+ * What a column's condition chip knows, passed to [ColumnSpec.activeFilterChip], in the active filters row
+ * and in a group's popover.
  *
  * @property column key of the column the filter belongs to
  * @property state the column's current filter state
@@ -35,6 +29,9 @@ private val ClearIconRippleRadius = 12.dp
  * @property onChange replaces the column's filter state, e.g. from a value picked on the chip itself
  * @property onClear resets the column's filter and closes its panel
  */
+@Deprecated(
+    "Use TableFilterChipNode.Condition, passed to filterChipContent and TableFilterChipStyle.chip. Removed in 4.0.",
+)
 @Stable
 public class TableFilterChipContext<C> internal constructor(
     public val column: C,
@@ -65,8 +62,9 @@ public class TableFilterChipContext<C> internal constructor(
  * @param colors the chip's colors; the chip is always selected, so the `selected*` colors are the ones shown
  * @param clearContentDescription accessibility label of the ×
  */
+@Deprecated("Call DefaultFilterChip from TableFilterChipStyle.chip. Removed in 4.0.")
 @Composable
-@Suppress("LongParameterList")
+@Suppress("LongParameterList", "DEPRECATION")
 public fun <C> DefaultActiveFilterChip(
     ctx: TableFilterChipContext<C>,
     modifier: Modifier = Modifier,
@@ -76,36 +74,28 @@ public fun <C> DefaultActiveFilterChip(
     colors: SelectableChipColors = InputChipDefaults.inputChipColors(),
     clearContentDescription: String = ctx.strings.get(UiString.ColumnMenuClearFilter),
 ) {
-    InputChip(
-        selected = true,
-        onClick = onClick ?: {},
+    FilterInputChip(
+        onClick = onClick,
+        onClear = ctx.onClear,
         label = label,
-        enabled = onClick != null,
         leadingIcon = leadingIcon,
-        trailingIcon = {
-            Icon(
-                painter = painterResource(TableIcons.Close),
-                contentDescription = clearContentDescription,
-                // A round, unbounded indication like an IconButton's, without its 48 dp target that would
-                // make the chip taller.
-                modifier =
-                    Modifier.clickable(
-                        interactionSource = null,
-                        indication = ripple(bounded = false, radius = ClearIconRippleRadius),
-                        role = Role.Button,
-                        onClick = ctx.onClear,
-                    ),
-            )
-        },
-        // A chip without a click is disabled only so that it does not react; it keeps the look of an active one.
-        colors =
-            colors.copy(
-                disabledSelectedContainerColor = colors.selectedContainerColor,
-                disabledLabelColor = colors.selectedLabelColor,
-                disabledLeadingIconColor = colors.selectedLeadingIconColor,
-                disabledTrailingIconColor = colors.selectedTrailingIconColor,
-            ),
-        border = InputChipDefaults.inputChipBorder(enabled = true, selected = true),
+        colors = colors,
+        clearContentDescription = clearContentDescription,
         modifier = modifier,
     )
 }
+
+/** [this] condition as the context of the deprecated [ColumnSpec.activeFilterChip]. */
+@Suppress("DEPRECATION")
+internal fun <C> TableFilterChipNode.Condition<C>.toChipContext(): TableFilterChipContext<C> =
+    TableFilterChipContext(
+        column = column,
+        state = state,
+        title = title,
+        text = text,
+        isOpen = isOpen,
+        strings = strings,
+        onOpen = onOpen,
+        onChange = onChange,
+        onClear = onClear,
+    )

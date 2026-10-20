@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.AssistChip
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -22,6 +23,7 @@ fun AppToolbar(
     onSettingsClick: () -> Unit,
     pagingDemo: Boolean,
     onPagingDemoChange: (Boolean) -> Unit,
+    onNestedFilterDemo: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Row(
@@ -35,6 +37,12 @@ fun AppToolbar(
             fontWeight = FontWeight.Bold,
         )
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            if (!pagingDemo) {
+                AssistChip(
+                    onClick = onNestedFilterDemo,
+                    label = { Text("Nested filter demo") },
+                )
+            }
             FilterChip(
                 selected = pagingDemo,
                 onClick = { onPagingDemoChange(!pagingDemo) },

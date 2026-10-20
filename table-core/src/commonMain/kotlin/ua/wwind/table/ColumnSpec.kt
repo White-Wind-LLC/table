@@ -38,8 +38,10 @@ import ua.wwind.table.filter.data.TableFilterType
  * @param headerDecorations whether to render built-in sort/filter icons in the header cell
  * @param headerClickToSort whether clicking the entire header cell toggles sorting
  * @param footer optional composable content for the footer cell; receives table state data
- * @param activeFilterChip optional chip for this column's filter in the active filters row; null draws
- * [DefaultActiveFilterChip]
+ * @param activeFilterChip deprecated: optional chip for this column's conditions in the active filters row
+ * and in a group's popover; null draws the table's chip
+ * @param filterChipContent optional content of this column's condition chips, drawn inside the table's chip
+ * in the active filters row and in a group's popover
  */
 @Immutable
 public data class ColumnSpec<T : Any, C, E>(
@@ -84,8 +86,15 @@ public data class ColumnSpec<T : Any, C, E>(
     val headerAlignment: Alignment? = null,
     /** Whether body and footer cells render digits with tabular (fixed-width) figures. */
     val tabularFigures: Boolean = false,
-    /** Optional chip for this column's filter in the active filters row; null draws [DefaultActiveFilterChip]. */
+    /** Optional chip for this column's conditions; null draws the table's chip. */
+    @Deprecated(
+        "Draw the column's chip content with filterChipContent, or every chip with TableFilterChipStyle.chip. " +
+            "Removed in 4.0.",
+    )
+    @Suppress("DEPRECATION")
     val activeFilterChip: (@Composable (TableFilterChipContext<C>) -> Unit)? = null,
+    /** Optional content of this column's condition chips, drawn inside the table's chip. */
+    val filterChipContent: TableFilterChipContent<C>? = null,
 )
 
 /**
@@ -172,7 +181,10 @@ public open class ReadonlyColumnBuilder<T : Any, C, E>
         protected var canStartEdit: ((T, Int) -> Boolean)? = null
         protected var editCell: (@Composable BoxScope.(T, E, onComplete: () -> Unit) -> Unit)? = null
         protected var footer: (@Composable BoxScope.(E) -> Unit)? = null
+
+        @Suppress("DEPRECATION")
         protected var activeFilterChip: (@Composable (TableFilterChipContext<C>) -> Unit)? = null
+        protected var filterChipContent: TableFilterChipContent<C>? = null
 
         /** Set simple text header. */
         public fun header(text: String) {
@@ -277,16 +289,39 @@ public open class ReadonlyColumnBuilder<T : Any, C, E>
         }
 
         /**
-         * Draw this column's chip in the active filters row, e.g. to mark a filter that cannot be applied
-         * right now or to replace what a click does. [DefaultActiveFilterChip] draws the table's chip and
-         * takes overrides for its parts. The filter panel stays anchored under the chip and opens on
-         * [TableFilterChipContext.onOpen].
+         * Draw this column's condition chips in the active filters row and in a group's popover, e.g. to mark a
+         * filter that cannot be applied right now or to replace what a click does. [DefaultActiveFilterChip]
+         * draws the table's chip and takes overrides for its parts. The filter panel opens on
+         * [TableFilterChipContext.onOpen]. A group of conditions on this column alone does not use it.
          *
          * A custom chip owns its accessibility labels: give the × a localized `contentDescription`, and
          * do not report a chip whose click does nothing as a button.
          */
+        @Deprecated(
+            "Draw the column's chip content with filterChipContent, or every chip with TableFilterChipStyle.chip. " +
+                "Removed in 4.0.",
+        )
+        @Suppress("DEPRECATION")
         public fun activeFilterChip(content: @Composable (ctx: TableFilterChipContext<C>) -> Unit) {
             activeFilterChip = content
+        }
+
+        /**
+         * Draw the content of this column's condition chips in the active filters row and in a group's
+         * popover, e.g. a rating as stars. The table keeps the chip around it: its click, its × and the panel.
+         * The content may be interactive and change its own condition through
+         * [TableFilterChipNode.Condition.onChange]. A group of conditions on this column alone is drawn as a
+         * group and does not use it.
+         *
+         * @param leadingIcon optional icon before the label; give it a `contentDescription` when it carries
+         *   meaning
+         * @param label the chip's label, in place of [TableFilterChipNode.Condition.label]
+         */
+        public fun filterChipContent(
+            leadingIcon: (@Composable (TableFilterChipNode.Condition<C>) -> Unit)? = null,
+            label: @Composable (TableFilterChipNode.Condition<C>) -> Unit,
+        ) {
+            filterChipContent = TableFilterChipContent(label, leadingIcon)
         }
 
         /** Optional custom renderer for the group header. */
@@ -337,6 +372,7 @@ public open class ReadonlyColumnBuilder<T : Any, C, E>
                 editCell = editCell,
                 footer = footer,
                 activeFilterChip = activeFilterChip,
+                filterChipContent = filterChipContent,
             )
     }
 

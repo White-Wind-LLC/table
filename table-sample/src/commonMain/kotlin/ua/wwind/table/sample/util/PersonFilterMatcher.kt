@@ -1,7 +1,9 @@
 package ua.wwind.table.sample.util
 
 import ua.wwind.table.filter.data.FilterConstraint
+import ua.wwind.table.filter.data.TableFilterNode
 import ua.wwind.table.filter.data.TableFilterState
+import ua.wwind.table.filter.data.isActive
 import ua.wwind.table.filter.data.isNullCheck
 import ua.wwind.table.sample.column.PersonColumn
 import ua.wwind.table.sample.filter.NumericRangeFilterState
@@ -12,8 +14,41 @@ import ua.wwind.table.sample.model.Position
  * Utility class for filtering Person objects based on filter constraints.
  */
 object PersonFilterMatcher {
+    /** Evaluate whether the person matches every entry of the simple filter map. */
+    fun matchesPerson(
+        person: Person,
+        filters: Map<PersonColumn, TableFilterState<*>>,
+    ): Boolean = filters.all { (column, state) -> matchesCondition(person, column, state) }
+
     /**
-     * Evaluate whether the given person matches the filter map.
+     * Evaluate whether the person matches the filter tree. Inactive nodes match everyone and groups skip
+     * their inactive children, so a half-edited leaf never hides or admits rows.
+     */
+    fun matchesPerson(
+        person: Person,
+        expression: TableFilterNode<PersonColumn>,
+    ): Boolean {
+        if (!expression.isActive()) return true
+        return when (expression) {
+            is TableFilterNode.Condition -> {
+                matchesCondition(person, expression.column, expression.state)
+            }
+
+            is TableFilterNode.Not -> {
+                !matchesPerson(person, expression.child)
+            }
+
+            is TableFilterNode.Group -> {
+                val active = expression.children.filter { it.isActive() }
+                when (expression.operator) {
+                    TableFilterNode.Operator.AND -> active.all { matchesPerson(person, it) }
+                    TableFilterNode.Operator.OR -> active.any { matchesPerson(person, it) }
+                }
+            }
+        }
+    }
+
+    /**
      * Supports Text, Number(Int), Boolean, LocalDate filter types.
      *
      * One exhaustive arm per column, each naming the matcher for that field's type. The complexity
@@ -22,45 +57,40 @@ object PersonFilterMatcher {
      * that hides the missing-column check from the compiler.
      */
     @Suppress("CyclomaticComplexMethod")
-    fun matchesPerson(
+    private fun matchesCondition(
         person: Person,
-        filters: Map<PersonColumn, TableFilterState<*>>,
+        column: PersonColumn,
+        stateAny: TableFilterState<*>,
     ): Boolean {
-        for ((column, stateAny) in filters) {
-            // If state has no constraint or values, skip this field (not restrictive)
-            val constraint = stateAny.constraint
-            if (constraint == null ||
-                (
-                    stateAny.values == null &&
-                        !constraint.isNullCheck()
-                )
-            ) {
-                continue
-            }
-
-            val matches =
-                when (column) {
-                    PersonColumn.NAME -> matchesTextField(person.name, stateAny)
-                    PersonColumn.AGE -> matchesComparableField(person.age, stateAny)
-                    PersonColumn.ACTIVE -> matchesBooleanField(person.active, stateAny)
-                    PersonColumn.ID -> matchesComparableField(person.id, stateAny)
-                    PersonColumn.EMAIL -> matchesTextField(person.email, stateAny)
-                    PersonColumn.CITY -> matchesTextField(person.city, stateAny)
-                    PersonColumn.COUNTRY -> matchesTextField(person.country, stateAny)
-                    PersonColumn.DEPARTMENT -> matchesTextField(person.department, stateAny)
-                    PersonColumn.POSITION -> matchesPositionField(person.position, stateAny)
-                    PersonColumn.SALARY -> matchesSalaryField(person.salary, stateAny)
-                    PersonColumn.RATING -> matchesComparableField(person.rating, stateAny)
-                    PersonColumn.HIRE_DATE -> matchesComparableField(person.hireDate, stateAny)
-                    PersonColumn.NOTES -> matchesTextField(person.notes, stateAny)
-                    PersonColumn.AGE_GROUP -> matchesAgeGroupField(person.age, stateAny)
-                    PersonColumn.EXPAND -> true
-                    PersonColumn.SELECTION -> true
-                }
-
-            if (!matches) return false
+        // If state has no constraint or values, skip this field (not restrictive)
+        val constraint = stateAny.constraint
+        if (constraint == null ||
+            (
+                stateAny.values == null &&
+                    !constraint.isNullCheck()
+            )
+        ) {
+            return true
         }
-        return true
+
+        return when (column) {
+            PersonColumn.NAME -> matchesTextField(person.name, stateAny)
+            PersonColumn.AGE -> matchesComparableField(person.age, stateAny)
+            PersonColumn.ACTIVE -> matchesBooleanField(person.active, stateAny)
+            PersonColumn.ID -> matchesComparableField(person.id, stateAny)
+            PersonColumn.EMAIL -> matchesTextField(person.email, stateAny)
+            PersonColumn.CITY -> matchesTextField(person.city, stateAny)
+            PersonColumn.COUNTRY -> matchesTextField(person.country, stateAny)
+            PersonColumn.DEPARTMENT -> matchesTextField(person.department, stateAny)
+            PersonColumn.POSITION -> matchesPositionField(person.position, stateAny)
+            PersonColumn.SALARY -> matchesSalaryField(person.salary, stateAny)
+            PersonColumn.RATING -> matchesComparableField(person.rating, stateAny)
+            PersonColumn.HIRE_DATE -> matchesComparableField(person.hireDate, stateAny)
+            PersonColumn.NOTES -> matchesTextField(person.notes, stateAny)
+            PersonColumn.AGE_GROUP -> matchesAgeGroupField(person.age, stateAny)
+            PersonColumn.EXPAND -> true
+            PersonColumn.SELECTION -> true
+        }
     }
 
     private fun matchesTextField(

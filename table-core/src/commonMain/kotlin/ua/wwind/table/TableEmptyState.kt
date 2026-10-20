@@ -19,16 +19,17 @@ import org.jetbrains.compose.resources.painterResource
 import ua.wwind.table.filter.data.isActive
 import ua.wwind.table.icon.TableIcons
 import ua.wwind.table.state.TableState
+import ua.wwind.table.state.clearComplexFilters
 import ua.wwind.table.strings.UiString
 import ua.wwind.table.strings.currentStrings
 
 /** Receiver of the table's `emptyContent` slot, shown in the body while the table has no rows. */
 @Stable
 public interface TableEmptyScope {
-    /** Whether any column filter is active — the rows may exist but be filtered out. */
+    /** Whether any filter, including nested ones, is active — the rows may exist but be filtered out. */
     public val isFiltered: Boolean
 
-    /** Removes every column filter. */
+    /** Removes every filter, including nested ones. */
     public fun clearFilters()
 }
 
@@ -36,10 +37,11 @@ internal class TableStateEmptyScope<C>(
     private val state: TableState<C>,
 ) : TableEmptyScope {
     override val isFiltered: Boolean
-        get() = state.filters.values.any { it.isActive() }
+        get() = state.filterExpression.isActive()
 
     override fun clearFilters() {
         state.filters.clear()
+        state.clearComplexFilters()
     }
 }
 
