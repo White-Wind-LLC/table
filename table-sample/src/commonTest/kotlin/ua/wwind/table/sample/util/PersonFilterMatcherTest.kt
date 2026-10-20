@@ -48,7 +48,7 @@ class PersonFilterMatcherTest {
         listOf(ann, bob, cid).filter { PersonFilterMatcher.matchesPerson(it, expression) }.map { it.name }
 
     @Test
-    fun `matcher honors OR, AND and NOT`() {
+    fun `matcher honors OR and AND and NOT`() {
         val or = TableFilterNode.Group(TableFilterNode.Operator.OR, listOf(name("Ann"), name("Bob")))
         assertThat(matching(or)).isEqualTo(listOf("Ann", "Bob"))
 

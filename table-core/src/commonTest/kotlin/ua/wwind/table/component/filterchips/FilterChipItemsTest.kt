@@ -23,7 +23,7 @@ class FilterChipItemsTest {
     private val known: (String) -> Boolean = { true }
 
     @Test
-    fun `(A OR B) AND C gives one group and one condition`() {
+    fun `A OR B group AND C gives one group and one condition`() {
         val root = Group(AND, listOf(Group(OR, listOf(cond("a"), cond("b"))), cond("c")))
 
         val items = rowItems(root, known, keepPath = null)

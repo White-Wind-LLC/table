@@ -57,7 +57,7 @@ class FilterChipStringsTest {
         }
 
     @Test
-    fun `group description reads the operator, its parts and the negation`() =
+    fun `group description reads the operator with its parts and the negation`() =
         runComposeUiTest {
             val actual = mutableListOf<String>()
             setContent {

@@ -212,7 +212,7 @@ class FilterGroupPopoverTest {
         }
 
     @Test
-    fun `drill in, change, go back changes only that leaf`() =
+    fun `drill in then change then go back changes only that leaf`() =
         runComposeUiTest {
             val state = setTable(and(or(eq("a"), eq("b"))))
             openGroup()
@@ -248,7 +248,7 @@ class FilterGroupPopoverTest {
         }
 
     @Test
-    fun `escape in drill-in goes back, second escape closes`() =
+    fun `escape in drill-in goes back and a second escape closes`() =
         runComposeUiTest {
             val state = setTable(and(or(eq("a"), eq("b"))))
             openGroup()
