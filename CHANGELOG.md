@@ -2,38 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
-### Unreleased
+### 3.3.0 — 2026-10-20
 
-The active filters row shows the whole filter tree. A filter can be an AND/OR/NOT tree set with
-`TableState.setFilterExpression`; the row draws one chip per top-level node and a group chip opens a popover to
-edit it. A column draws the content of its chips with `filterChipContent`, and `TableFilterChipStyle` sets their
-colors, the titles of unknown keys or the chip itself.
+Filters can be AND/OR/NOT trees, and the active filters row shows and edits the whole tree.
 
-- Added: `TableState.filterExpression` and `setFilterExpression(root)` (a root that is not an AND is wrapped);
-  `filters` stays a view of the root's simple top-level conditions, and header edits and `setFilter` touch only
-  those. The row shows summary chips for groups and NOT, a merged chip for an OR on one column, and a chip with
-  only a × for a filter key the table has no column for. A group's popover has an Any/All switch, a NOT toggle,
-  a × on any node and a drill-in to a condition's filter panel; adds eight `UiString` keys (`FilterOperatorAny`,
-  `FilterOperatorAll`, `FilterOperatorOfThese`, `FilterNot`, `FilterOr`, `FilterAnd`, `FilterBack`,
-  `FilterUnknownField`) and five `StringProvider` methods with English defaults (`removeFilterLabel`,
-  `removeFilterGroupLabel`, `filterGroupDescription`, `filterOperatorBadge`, `filterConditionDescription`)
-  ([#152](https://github.com/White-Wind-LLC/table/issues/152), [#154](https://github.com/White-Wind-LLC/table/issues/154)).
-- Added: `filterChipContent(leadingIcon, label)` in the column DSL; `TableFilterChipStyle` (`colors`,
-  `unknownTitle`, `chip`) from `TableFilterChipDefaults.style(...)`, passed as `filterChips` to `Table` and
-  `TableActiveFilters`; `TableFilterChipColors`, one set of colors per chip kind, from
-  `TableFilterChipDefaults.colors(...)`; `DefaultFilterChip` with overridable parts; `TableFilterChipNode` and
-  `TableFilterChipPlacement`. A node whose `canOpen` is false has nothing to open and its default chip is not
-  clickable; a group node's `isGroup` is false for a NOT over a single condition, which shows no operator badge.
-- Fixed: an edit still waiting on the auto-apply debounce is applied when its filter panel closes, in the header,
-  in the active filters row and in a group's drill-in, instead of being dropped
-  ([#154](https://github.com/White-Wind-LLC/table/issues/154)).
-- Fixed: an active condition on a column without a filter type shows a chip with the column title in the active
-  filters row; before, only "Clear all" removed it ([#154](https://github.com/White-Wind-LLC/table/issues/154)).
-- Changed: `TableEmptyScope.isFiltered` and `clearFilters()` see the whole filter tree. A filter key with no
-  `ColumnSpec` in `columns` now shows an unknown chip. The new `ColumnSpec.filterChipContent` field changes the JVM
-  signatures of its constructor and `copy`.
-- Deprecated, removed in 4.0: `activeFilterChip` (the `ColumnSpec` field and the DSL builder),
-  `TableFilterChipContext` and `DefaultActiveFilterChip`; use `filterChipContent` or `TableFilterChipStyle.chip`.
+- Added: `TableState.filterExpression` and `setFilterExpression(root)`; a group chip opens a popover to edit
+  the group ([#152](https://github.com/White-Wind-LLC/table/issues/152)).
+- Added: `filterChipContent` in the column DSL and `TableFilterChipStyle` (`filterChips` on `Table` and
+  `TableActiveFilters`) to customize the chips.
+- Fixed: a pending debounced filter edit is applied when its panel closes; a condition on a column without a
+  filter type gets a chip ([#154](https://github.com/White-Wind-LLC/table/issues/154)).
+- Changed: `TableEmptyScope.isFiltered` and `clearFilters()` cover the whole tree. The new
+  `ColumnSpec.filterChipContent` field changes the JVM signatures of its constructor and `copy`.
+- Deprecated, removed in 4.0: `activeFilterChip`, `TableFilterChipContext` and `DefaultActiveFilterChip`; use
+  `filterChipContent` or `TableFilterChipStyle.chip`.
+
+Compare: [v3.2.0...v3.3.0](https://github.com/White-Wind-LLC/table/compare/v3.2.0...v3.3.0)
 
 ### 3.2.0 — 2026-10-19
 
