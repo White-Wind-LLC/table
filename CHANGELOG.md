@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+### Unreleased
+
+- Added: `filterChips: TableFilterChipStyle<C>` on both paged `Table` overloads, as on the core `Table`
+  ([#160](https://github.com/White-Wind-LLC/table/issues/160)).
+
 ### 3.4.0 — 2026-10-20
 
 A saved condition on a field the app no longer knows stays in the filter tree, visible and removable, and marks

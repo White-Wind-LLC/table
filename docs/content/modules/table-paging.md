@@ -13,6 +13,12 @@ fun PeoplePagingTable(paging: PagingData<Person>) {
 }
 ```
 
+## Filter chips
+
+The paged `Table` takes the same `filterChips: TableFilterChipStyle<C>` as the core table and passes it
+through, so colors, `unknownTitle`, `unresolvedTitle` and the `chip` renderer apply to the active filters
+row and the group popover of a paged table too — see [table-core](table-core.md).
+
 ## Load states
 
 The paged `Table` renders every `LoadState` it receives:
