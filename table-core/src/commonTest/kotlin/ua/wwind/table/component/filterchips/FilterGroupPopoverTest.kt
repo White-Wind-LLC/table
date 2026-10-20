@@ -333,7 +333,7 @@ class FilterGroupPopoverTest {
         }
 
     @Test
-    fun `clear in drill-in empties the leaf, goes back and prunes it`() =
+    fun `clear in drill-in empties the leaf then goes back and prunes it`() =
         runComposeUiTest {
             val state = setTable(and(or(eq("a"), eq("b"))))
             openGroup()
