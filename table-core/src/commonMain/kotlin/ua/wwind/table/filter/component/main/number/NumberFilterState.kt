@@ -12,6 +12,7 @@ import androidx.compose.runtime.setValue
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
 import ua.wwind.table.filter.component.main.FilterEmission
+import ua.wwind.table.filter.component.main.RegisterPendingFilterEdit
 import ua.wwind.table.filter.component.main.applyEmission
 import ua.wwind.table.filter.component.main.resolveSourceConstraint
 import ua.wwind.table.filter.data.FilterConstraint
@@ -126,6 +127,11 @@ internal fun <T : Number> rememberNumberFilterState(
                 isEditing = !applyEmission(emission, currentOnStateChange.value)
             }
         }
+    }
+
+    // An edit still waiting on the debounce when the panel closes is applied, not dropped.
+    RegisterPendingFilterEdit(autoApply) {
+        if (isEditing) isEditing = !applyEmission(emission, currentOnStateChange.value)
     }
 
     return remember(editingText, editingSecondText, editingConstraint, isEditing, inputFormat) {

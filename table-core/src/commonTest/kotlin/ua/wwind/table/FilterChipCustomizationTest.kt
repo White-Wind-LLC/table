@@ -37,7 +37,8 @@ class FilterChipCustomizationTest {
     /** The last mixed-column group chip drawn in the row; clicking its description opens its popover. */
     private var rowGroup: TableFilterChipNode.Group<String>? = null
 
-    private val placements = mutableSetOf<TableFilterChipPlacement>()
+    /** Each drawn condition's value with the placement it was drawn at. */
+    private val placements = mutableSetOf<Pair<String?, TableFilterChipPlacement>>()
 
     private fun columns(configure: ReadonlyColumnBuilder<String, String, Unit>.(String) -> Unit) =
         tableColumns<String, String, Unit> {
@@ -58,7 +59,7 @@ class FilterChipCustomizationTest {
                 columns { key ->
                     if (key == "a") {
                         filterChipContent { node ->
-                            placements += node.placement
+                            placements += node.state.values?.firstOrNull() as String? to node.placement
                             Text("Custom ${node.title}")
                         }
                     }
@@ -66,13 +67,30 @@ class FilterChipCustomizationTest {
             setTable(columns, and(eq("a"), or(eq("a", "x"), eq("b"))))
 
             onNodeWithText("Custom A").assertIsDisplayed()
-            assertThat(placements).containsExactlyInAnyOrder(TableFilterChipPlacement.Row)
+            assertThat(placements).containsExactlyInAnyOrder("a" to TableFilterChipPlacement.Row)
             openGroup()
 
             assertThat(onAllNodesWithText("Custom A").fetchSemanticsNodes().size).isEqualTo(2)
             onNodeWithText("B: Equals \"b\"").assertIsDisplayed()
             assertThat(placements)
-                .containsExactlyInAnyOrder(TableFilterChipPlacement.Row, TableFilterChipPlacement.Tree)
+                .containsExactlyInAnyOrder("a" to TableFilterChipPlacement.Row, "x" to TableFilterChipPlacement.Tree)
+        }
+
+    @Test
+    fun `column content draws without a table chip renderer`() =
+        runComposeUiTest {
+            val columns =
+                columns { key ->
+                    if (key == "a") filterChipContent { node -> Text("Custom ${node.title}") }
+                }
+            setTable(columns, and(eq("a"), or(eq("a", "x"), eq("b"))), wrapChips = false)
+
+            onNodeWithText("Custom A").assertIsDisplayed()
+            onNodeWithContentDescription("Any of: A equals \"x\", or B equals \"b\"").performClick()
+            waitForIdle()
+
+            assertThat(onAllNodesWithText("Custom A").fetchSemanticsNodes().size).isEqualTo(2)
+            onNodeWithText("B: Equals \"b\"").assertIsDisplayed()
         }
 
     @Test
@@ -168,6 +186,7 @@ class FilterChipCustomizationTest {
         columns: ImmutableList<ColumnSpec<String, String, Unit>>,
         expression: Group<String>,
         chip: (@Composable (TableFilterChipNode<String>) -> Unit)? = null,
+        wrapChips: Boolean = true,
     ): TableState<String> {
         lateinit var state: TableState<String>
         setContent {
@@ -183,17 +202,21 @@ class FilterChipCustomizationTest {
                     state = state,
                     columns = columns,
                     filterChips =
-                        TableFilterChipDefaults.style(
-                            chip = { node ->
-                                if (node is TableFilterChipNode.Group &&
-                                    node.placement == TableFilterChipPlacement.Row &&
-                                    node.sharedColumn == null
-                                ) {
-                                    rowGroup = node
-                                }
-                                if (chip != null) chip(node) else DefaultFilterChip(node)
-                            },
-                        ),
+                        if (wrapChips) {
+                            TableFilterChipDefaults.style(
+                                chip = { node ->
+                                    if (node is TableFilterChipNode.Group &&
+                                        node.placement == TableFilterChipPlacement.Row &&
+                                        node.sharedColumn == null
+                                    ) {
+                                        rowGroup = node
+                                    }
+                                    if (chip != null) chip(node) else DefaultFilterChip(node)
+                                },
+                            )
+                        } else {
+                            TableFilterChipDefaults.style()
+                        },
                 )
             }
         }

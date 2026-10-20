@@ -80,6 +80,8 @@ Compose:
       - LocalBubbledBodyKeyHandler
       # Internal: the active filters row's chip colors, read by DefaultFilterChip in custom renderers.
       - LocalFilterChipColors
+      # Internal: a filter panel's session, read by the state holders of the forms inside it.
+      - LocalFilterPanelSession
   CompositionLocalNaming:
     active: true
   ContentEmitterReturningValues:

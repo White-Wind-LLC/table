@@ -3,16 +3,28 @@ package ua.wwind.table
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsFocused
+import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.click
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.isRoot
+import androidx.compose.ui.test.isSelected
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onFirst
+import androidx.compose.ui.test.onLast
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performMouseInput
+import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.v2.runComposeUiTest
 import androidx.compose.ui.unit.dp
@@ -23,6 +35,7 @@ import assertk.assertions.isEqualTo
 import assertk.assertions.isFalse
 import assertk.assertions.isInstanceOf
 import assertk.assertions.isNotNull
+import assertk.assertions.isTrue
 import kotlinx.collections.immutable.persistentListOf
 import ua.wwind.table.config.TableSettings
 import ua.wwind.table.filter.data.FilterConstraint
@@ -35,7 +48,11 @@ import ua.wwind.table.filter.data.TableFilterType
 import ua.wwind.table.filter.data.isActive
 import ua.wwind.table.state.TableState
 import ua.wwind.table.state.rememberTableState
+import ua.wwind.table.strings.DefaultStrings
+import ua.wwind.table.strings.StringProvider
 import kotlin.test.Test
+
+private const val HOUR_MS = 3_600_000L
 
 @OptIn(ExperimentalTestApi::class)
 class ActiveFilterTreeRowTest {
@@ -48,6 +65,22 @@ class ActiveFilterTreeRowTest {
                     cell { item, _ -> Text(item) }
                 }
             }
+            column("e", valueOf = { it }) {
+                header("E")
+                cell { item, _ -> Text(item) }
+            }
+        }
+
+    private val badges = mutableListOf<String>()
+
+    /** Default strings that record the operator badges the chips draw. */
+    private val recordingStrings =
+        object : StringProvider by DefaultStrings {
+            @Composable
+            override fun filterOperatorBadge(
+                operator: Operator,
+                count: Int,
+            ): String = DefaultStrings.filterOperatorBadge(operator, count).also { badges += it }
         }
 
     private var lastGroup: TableFilterChipNode.Group<String>? = null
@@ -62,7 +95,7 @@ class ActiveFilterTreeRowTest {
             assertThat(group.text).isEqualTo("A, B")
             assertThat(group.operator).isEqualTo(Operator.OR)
             assertThat(group.itemCount).isEqualTo(2)
-            assertThat(group.description).isEqualTo("Any of: A Equals \"a\", or B Equals \"b\"")
+            assertThat(group.description).isEqualTo("Any of: A equals \"a\", or B equals \"b\"")
             onNodeWithContentDescription(group.description).assertIsDisplayed()
             onNodeWithText("C: Equals \"c\"").assertIsDisplayed()
             assertThat(onAllNodesWithContentDescription("Clear filter").fetchSemanticsNodes().size).isEqualTo(1)
@@ -197,16 +230,133 @@ class ActiveFilterTreeRowTest {
             onNodeWithText("Clear all").assertDoesNotExist()
         }
 
+    @Test
+    fun `a condition on a column without a filter type shows its title and only resets`() =
+        runComposeUiTest {
+            val state = setTable(and(eq("e", "v")))
+
+            // The header has an "E" too; the chip is the selected one.
+            onNode(hasText("E") and isSelected()).assertIsDisplayed().assertIsNotEnabled()
+            onNodeWithContentDescription("Clear filter").performClick()
+            waitForIdle()
+
+            assertThat(
+                state.filterExpression.children
+                    .single()
+                    .isActive(),
+            ).isFalse()
+            onNode(hasText("E") and isSelected()).assertDoesNotExist()
+        }
+
+    @Test
+    fun `a negated condition has no operator badge`() =
+        runComposeUiTest {
+            setTable(and(TableFilterNode.Not(eq("a", "a"))))
+
+            val group = lastGroup!!
+            assertThat(group.isGroup).isFalse()
+            assertThat(group.negated).isTrue()
+            assertThat(badges).isEmpty()
+        }
+
+    @Test
+    fun `a group shows its operator badge`() =
+        runComposeUiTest {
+            setTable(and(or(eq("a", "a"), eq("b", "b"))))
+
+            assertThat(lastGroup!!.isGroup).isTrue()
+            assertThat(badges.distinct()).containsExactly("Any 2")
+        }
+
+    @Test
+    fun `a group kept open with nothing active reads as its columns`() =
+        runComposeUiTest {
+            val state = setTable(and(or(eq("a", "a"), empty("b"))))
+            onNodeWithContentDescription(lastGroup!!.description).performClick()
+            waitForIdle()
+            onNodeWithText("A: Equals \"a\"").performClick()
+            waitForIdle()
+
+            onNodeWithText("Value").performTextReplacement("")
+            waitUntil { !state.filterExpression.isActive() }
+            waitForIdle()
+
+            assertThat(lastGroup!!.description).isEqualTo("A, B")
+            assertThat(lastGroup!!.text).isEqualTo("A, B")
+            assertThat(lastGroup!!.columnTitles).containsExactly("A", "B")
+        }
+
+    @Test
+    fun `clear all leaves the conditions it does not show`() =
+        runComposeUiTest {
+            val state = setTable(and(eq("c", "c"), empty("legacy"), empty("a"), eq("gone", "v")))
+
+            onNodeWithText("Clear all").performClick()
+            waitForIdle()
+
+            val children = state.filterExpression.children.map { it as Condition }
+            assertThat(children.map { it.column }).containsExactly("c", "legacy", "a")
+            assertThat(children.none { it.state.isActive() }).isTrue()
+            assertThat(children[1]).isEqualTo(empty("legacy"))
+        }
+
+    @Test
+    fun `the app replacing the condition under an open panel closes it`() =
+        runComposeUiTest {
+            val state = setTable(and(eq("c", "c")))
+            onNodeWithText("C: Equals \"c\"").performClick()
+            waitForIdle()
+            onNodeWithText("Value").assertIsDisplayed()
+
+            state.setFilterExpression(and(eq("d", "d")))
+            waitForIdle()
+
+            onNodeWithText("Value").assertDoesNotExist()
+            onNodeWithText("D: Equals \"d\"").assertIsDisplayed()
+        }
+
+    @Test
+    fun `removing another chip closes the open panel`() =
+        runComposeUiTest {
+            val state = setTable(and(eq("c", "c"), eq("legacy", "v")))
+            onNodeWithText("C: Equals \"c\"").performClick()
+            waitForIdle()
+            onNodeWithText("Value").assertIsDisplayed()
+
+            onNodeWithContentDescription("Remove filter legacy").performSemanticsAction(SemanticsActions.OnClick)
+            waitForIdle()
+
+            assertThat(state.filterExpression).isEqualTo(and(eq("c", "c")))
+            onNodeWithText("Value").assertDoesNotExist()
+        }
+
+    @Test
+    fun `an edit waiting on the debounce lands when the row panel closes`() =
+        runComposeUiTest {
+            val state = setTable(and(eq("c", "c")), debounce = HOUR_MS)
+            onNodeWithText("C: Equals \"c\"").performClick()
+            waitForIdle()
+
+            onNodeWithText("Value").performTextReplacement("z")
+            waitForIdle()
+            assertThat(state.filterExpression).isEqualTo(and(eq("c", "c")))
+            tapOutside()
+
+            assertThat(state.filterExpression).isEqualTo(and(eq("c", "z")))
+            onNodeWithText("Value").assertDoesNotExist()
+        }
+
     private fun ComposeUiTest.setTable(
         expression: Group<String>,
         unknownTitle: ((String) -> String?)? = null,
+        debounce: Long = 0,
     ): TableState<String> {
         lateinit var state: TableState<String>
         setContent {
             state =
                 rememberTableState(
-                    columns = persistentListOf("a", "b", "c", "d"),
-                    settings = TableSettings(showActiveFiltersHeader = true, autoFilterDebounce = 0),
+                    columns = persistentListOf("a", "b", "c", "d", "e"),
+                    settings = TableSettings(showActiveFiltersHeader = true, autoFilterDebounce = debounce),
                 )
             Box(Modifier.size(1200.dp, 400.dp)) {
                 Table(
@@ -214,6 +364,7 @@ class ActiveFilterTreeRowTest {
                     itemAt = { "row" },
                     state = state,
                     columns = columns,
+                    strings = recordingStrings,
                     filterChips =
                         TableFilterChipDefaults.style(
                             unknownTitle = unknownTitle,
@@ -239,6 +390,19 @@ class ActiveFilterTreeRowTest {
         column: String,
         value: String,
     ): Condition<String> = Condition(column, TableFilterState(FilterConstraint.EQUALS, listOf(value)))
+
+    private fun empty(column: String): Condition<String> = Condition(column, TableFilterState<String>(null, null))
+
+    /** A click on the popup layer below the table, which a popover or panel takes as a tap outside. */
+    private fun ComposeUiTest.tapOutside() {
+        val outside =
+            onAllNodes(isRoot())
+                .onFirst()
+                .fetchSemanticsNode()
+                .boundsInRoot.bottomCenter - Offset(0f, 8f)
+        onAllNodes(isRoot()).onLast().performMouseInput { click(outside) }
+        waitForIdle()
+    }
 
     private fun and(vararg children: TableFilterNode<String>): Group<String> = Group(Operator.AND, children.toList())
 

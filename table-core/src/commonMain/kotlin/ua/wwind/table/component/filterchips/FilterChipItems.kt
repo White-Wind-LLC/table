@@ -32,11 +32,13 @@ internal sealed interface FilterChipItem<C> {
 }
 
 internal data class FilterGroupSummary<C>(
+    /** False for a [Not] over a single condition, whose [operator] means nothing. */
+    val isGroup: Boolean,
     val operator: Operator,
     val negated: Boolean,
     /** Active direct children of the group. */
     val activeCount: Int,
-    /** Distinct columns of active leaves, in tree order. */
+    /** Distinct columns of active leaves, in tree order; of all leaves while none is active. */
     val columns: List<C>,
     /** Set only for a non-negated OR whose children are all active conditions on one column. */
     val sharedColumn: C?,
@@ -74,7 +76,11 @@ internal fun <C> TableFilterNode<C>.summary(): FilterGroupSummary<C> {
         negated = !negated
         inner = inner.child
     }
-    val columns = LinkedHashSet<C>().also { inner.collectActiveColumns(it) }.toList()
+    val columns =
+        LinkedHashSet<C>()
+            .also { inner.collectColumns(it, activeOnly = true) }
+            .ifEmpty { LinkedHashSet<C>().also { inner.collectColumns(it, activeOnly = false) } }
+            .toList()
     return when (val node = inner) {
         is Group -> {
             val shared =
@@ -87,19 +93,22 @@ internal fun <C> TableFilterNode<C>.summary(): FilterGroupSummary<C> {
                 } else {
                     null
                 }
-            FilterGroupSummary(node.operator, negated, node.children.count { it.isActive() }, columns, shared)
+            FilterGroupSummary(true, node.operator, negated, node.children.count { it.isActive() }, columns, shared)
         }
 
         else -> {
-            FilterGroupSummary(Operator.AND, negated, 1, columns, null)
+            FilterGroupSummary(false, Operator.AND, negated, if (node.isActive()) 1 else 0, columns, null)
         }
     }
 }
 
-private fun <C> TableFilterNode<C>.collectActiveColumns(into: MutableSet<C>) {
+private fun <C> TableFilterNode<C>.collectColumns(
+    into: MutableSet<C>,
+    activeOnly: Boolean,
+) {
     when (this) {
-        is Condition -> if (state.isActive()) into.add(column)
-        is Group -> children.forEach { it.collectActiveColumns(into) }
-        is Not -> child.collectActiveColumns(into)
+        is Condition -> if (!activeOnly || state.isActive()) into.add(column)
+        is Group -> children.forEach { it.collectColumns(into, activeOnly) }
+        is Not -> child.collectColumns(into, activeOnly)
     }
 }

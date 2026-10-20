@@ -57,6 +57,22 @@ class FilterChipStringsTest {
         }
 
     @Test
+    fun `operator badge and condition description have English defaults`() =
+        runComposeUiTest {
+            val actual = mutableListOf<String>()
+            setContent {
+                actual.clear()
+                actual += DefaultStrings.filterOperatorBadge(Operator.OR, 3)
+                actual += DefaultStrings.filterOperatorBadge(Operator.AND, 1)
+                actual += DefaultStrings.filterConditionDescription("Qty", "Equals 5")
+                actual += DefaultStrings.filterConditionDescription("Name", "Contains \"a\"")
+            }
+            runOnIdle {
+                assertThat(actual).isEqualTo(listOf("Any 3", "All 1", "Qty equals 5", "Name contains \"a\""))
+            }
+        }
+
+    @Test
     fun `group description reads the operator with its parts and the negation`() =
         runComposeUiTest {
             val actual = mutableListOf<String>()

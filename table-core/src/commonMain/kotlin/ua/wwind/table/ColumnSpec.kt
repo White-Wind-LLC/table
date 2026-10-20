@@ -289,10 +289,11 @@ public open class ReadonlyColumnBuilder<T : Any, C, E>
         }
 
         /**
-         * Draw this column's condition chips in the active filters row and in a group's popover, e.g. to mark a
-         * filter that cannot be applied right now or to replace what a click does. [DefaultActiveFilterChip]
-         * draws the table's chip and takes overrides for its parts. The filter panel opens on
-         * [TableFilterChipContext.onOpen]. A group of conditions on this column alone does not use it.
+         * Draw this column's condition chips in the active filters row and in a group's popover. Replaced by
+         * [filterChipContent], which keeps the table's chip around the content, and by
+         * [TableFilterChipStyle.chip], whose [DefaultFilterChip] draws the table's chip with overrides for its
+         * parts. The filter panel opens on [TableFilterChipContext.onOpen]. A group of conditions on this column
+         * alone does not use it.
          *
          * A custom chip owns its accessibility labels: give the × a localized `contentDescription`, and
          * do not report a chip whose click does nothing as a button.

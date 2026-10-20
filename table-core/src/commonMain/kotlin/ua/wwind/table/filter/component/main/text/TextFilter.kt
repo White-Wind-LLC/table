@@ -6,6 +6,7 @@ import kotlinx.coroutines.FlowPreview
 import ua.wwind.table.component.TableTextField
 import ua.wwind.table.filter.component.FilterDropdownField
 import ua.wwind.table.filter.component.FilterPanelActions
+import ua.wwind.table.filter.component.main.rememberFilterValueFieldModifier
 import ua.wwind.table.filter.data.TableFilterState
 import ua.wwind.table.filter.data.TableFilterType
 import ua.wwind.table.filter.data.isNullCheck
@@ -47,6 +48,7 @@ internal fun TextFilter(
             label = { Text(strings.get(UiString.FilterValueLabel), maxLines = 1) },
             placeholder = { Text(strings.get(UiString.FilterSearchPlaceholder)) },
             singleLine = true,
+            modifier = rememberFilterValueFieldModifier(),
         )
     }
     FilterPanelActions(

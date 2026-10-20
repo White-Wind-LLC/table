@@ -390,6 +390,30 @@ public interface StringProvider {
     @Composable
     public fun removeFilterGroupLabel(columns: String): String = "Remove group $columns"
 
+    /** A group chip's operator badge with its number of active children, e.g. `"Any 3"`. */
+    @Composable
+    public fun filterOperatorBadge(
+        operator: TableFilterNode.Operator,
+        count: Int,
+    ): String {
+        val word =
+            when (operator) {
+                TableFilterNode.Operator.OR -> get(UiString.FilterOperatorAny)
+                TableFilterNode.Operator.AND -> get(UiString.FilterOperatorAll)
+            }
+        return "$word $count"
+    }
+
+    /**
+     * A condition read as part of a group's description, from its column [title] and its chip [text], e.g.
+     * `"Qty equals 5"`. The default lowers the first letter of [text], which starts with the constraint.
+     */
+    @Composable
+    public fun filterConditionDescription(
+        title: String,
+        text: String,
+    ): String = "$title ${text.replaceFirstChar(Char::lowercaseChar)}"
+
     /**
      * A group read as one sentence for accessibility, from the already described [parts] of its children:
      * `"Any of: A, or B"` for [TableFilterNode.Operator.OR], `"All of: A and B"` for
