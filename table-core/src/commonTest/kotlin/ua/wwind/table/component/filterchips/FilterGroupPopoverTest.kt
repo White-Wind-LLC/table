@@ -17,7 +17,6 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performKeyInput
 import androidx.compose.ui.test.pressKey
-import androidx.compose.ui.test.requestFocus
 import androidx.compose.ui.test.v2.runComposeUiTest
 import androidx.compose.ui.unit.dp
 import assertk.assertThat
@@ -172,7 +171,8 @@ class FilterGroupPopoverTest {
             val state = setTable(and(or(eq("a"), eq("b"))))
             openGroup()
 
-            onNodeWithText("Any").requestFocus()
+            // Opening moves the focus to the first control, so Escape reaches the popover.
+            onNodeWithText("Any").assertIsFocused()
             onNodeWithText("Any").performKeyInput { pressKey(Key.Escape) }
             waitForIdle()
 

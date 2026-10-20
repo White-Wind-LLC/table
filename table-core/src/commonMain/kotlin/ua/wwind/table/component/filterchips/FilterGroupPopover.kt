@@ -18,9 +18,13 @@ import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
@@ -90,6 +94,7 @@ internal fun <T : Any, C, E> FilterGroupPopover(
         }
     }
     val tree = PopoverTree(style, texts, edit)
+    val firstControl = remember { FocusRequester() }
     DropdownMenu(
         expanded = true,
         onDismissRequest = onDismiss,
@@ -109,7 +114,9 @@ internal fun <T : Any, C, E> FilterGroupPopover(
                         true
                     },
         ) {
-            tree.Line(rootPath, node, isTop = true)
+            tree.Line(rootPath, node, Modifier.focusRequester(firstControl), isTop = true)
+            // Keys reach the popover only through a focused control inside it.
+            LaunchedEffect(Unit) { firstControl.requestFocus() }
         }
     }
 }
