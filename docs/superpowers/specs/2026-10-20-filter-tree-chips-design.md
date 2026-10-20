@@ -115,7 +115,8 @@ group. Not allowed: creating conditions, groups or branches.
   every complex top-level node. Inactive conditions are skipped by chips and summary counts, as
   today; apps ignore them through `isActive()`, as today.
 - **Other "is filtered" signals.** `TableEmptyScope.isFiltered` and `clearFilters()` look at the whole
-  tree (an active complex node counts; `clearFilters()` behaves like "Clear all"), otherwise a table
+  tree (an active complex node counts; `clearFilters()` keeps today's `filters.clear()` and also
+  removes every complex top-level node), otherwise a table
   emptied by a group shows "No data" and cannot be cleared. The header cell's filter indicator and
   the column menu's clear-filter item stay bound to the column's simple top-level condition, matching
   "a header edits only its column's simple top-level condition". A column used only inside a group
