@@ -21,13 +21,17 @@ import androidx.compose.material3.InputChip
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
@@ -38,6 +42,8 @@ import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 import ua.wwind.table.component.TableMotionSpecs
 import ua.wwind.table.component.filterchips.FilterChipItem
+import ua.wwind.table.component.filterchips.FilterGroupPopover
+import ua.wwind.table.component.filterchips.isGroupLikeAt
 import ua.wwind.table.component.filterchips.rowItems
 import ua.wwind.table.component.filterchips.summary
 import ua.wwind.table.component.header.ColumnFilterPanel
@@ -91,6 +97,9 @@ public fun <T : Any, C, E> TableActiveFilters(
         filterPanel = { spec, filter, onChange, onDismiss ->
             ColumnFilterPanel(spec, state, tableData, strings, onDismiss, filter, onChange)
         },
+        groupPopover = { path, keyToSpec, onDismiss ->
+            FilterGroupPopover(path, state, keyToSpec, tableData, filterChips, strings, onDismiss)
+        },
         filterChips = filterChips,
         modifier = modifier,
     )
@@ -120,6 +129,7 @@ public fun <T : Any, C, E> TableActiveFilters(
         strings = strings,
         includeClearAllChip = includeClearAllChip,
         filterPanel = null,
+        groupPopover = null,
         filterChips = filterChips,
         modifier = modifier,
     )
@@ -133,10 +143,17 @@ internal typealias ActiveFilterPanel<T, C, E> = @Composable (
     onDismiss: () -> Unit,
 ) -> Unit
 
+/** Renders the popover of the group or not at `rootPath`, a top-level path. */
+internal typealias ActiveGroupPopover<T, C, E> = @Composable (
+    rootPath: FilterPath,
+    keyToSpec: Map<C, ColumnSpec<T, C, E>>,
+    onDismiss: () -> Unit,
+) -> Unit
+
 /**
  * The chips row, one chip per top-level node of [TableState.filterExpression]. [filterPanel] renders a
- * condition's filter panel under its chip; null makes condition clicks do nothing. [footer] is shown
- * under the row while the row is shown.
+ * condition's filter panel under its chip, [groupPopover] a group's popover; null makes those clicks do
+ * nothing. [footer] is shown under the row while the row is shown.
  */
 @Composable
 @Suppress("LongParameterList", "LongMethod")
@@ -146,15 +163,25 @@ internal fun <T : Any, C, E> ActiveFilterChips(
     strings: StringProvider,
     includeClearAllChip: Boolean,
     filterPanel: ActiveFilterPanel<T, C, E>?,
+    groupPopover: ActiveGroupPopover<T, C, E>?,
     filterChips: TableFilterChipStyle<C>,
     modifier: Modifier = Modifier,
     footer: @Composable () -> Unit = {},
 ) {
     val keyToSpec: Map<C, ColumnSpec<T, C, E>> = remember(columns) { columns.associateBy { it.key } }
     var openPath by remember { mutableStateOf<FilterPath?>(null) }
+    var openGroupPath by remember { mutableStateOf<FilterPath?>(null) }
+    // The chip that gets the focus back when its popover closes.
+    var focusPath by remember { mutableStateOf<FilterPath?>(null) }
+    val closeGroup = {
+        focusPath = openGroupPath
+        openGroupPath = null
+    }
+    val openGroup = validOpenGroup(state, openGroupPath, onStale = closeGroup)
     // The open chip stays while its panel is open, so editing the filter down to empty
     // does not take the panel away under the user.
-    val items = rowItems(state.filterExpression, isKnown = keyToSpec::containsKey, keepPath = openPath)
+    val items =
+        rowItems(state.filterExpression, isKnown = keyToSpec::containsKey, keepPath = openPath ?: openGroup)
     if (items.isEmpty()) return
     val texts = FilterChipTexts(keyToSpec, filterChips.unknownTitle, strings)
     val listState: LazyListState = rememberLazyListState()
@@ -175,8 +202,10 @@ internal fun <T : Any, C, E> ActiveFilterChips(
         } else {
             UiString.FilterChipsScrollRight
         }
+    // A removal shifts the paths after it, so nothing stays open.
     val removeNode: (FilterPath) -> Unit = { path ->
-        if (openPath == path) openPath = null
+        openPath = null
+        openGroupPath = null
         state.updateFilterExpression { it.removeAt(path) }
     }
 
@@ -190,6 +219,7 @@ internal fun <T : Any, C, E> ActiveFilterChips(
                     selected = true,
                     onClick = {
                         openPath = null
+                        openGroupPath = null
                         clearAllFilters(state, keyToSpec, items)
                     },
                     label = { Text(strings.get(UiString.FilterClearAll)) },
@@ -224,71 +254,70 @@ internal fun <T : Any, C, E> ActiveFilterChips(
                 ) {
                     items.forEach { item ->
                         item {
-                            when (item) {
-                                is FilterChipItem.Condition -> {
-                                    val isOpen = item.path == openPath
-                                    val spec = keyToSpec.getValue(item.column)
-                                    ConditionChip(
-                                        spec = spec,
-                                        item = item,
-                                        isOpen = isOpen,
-                                        texts = texts,
-                                        filterChips = filterChips,
-                                        onOpen = { if (filterPanel != null) openPath = item.path },
-                                        // A null state removes the condition, as the header's panel does.
-                                        onChange = { newState ->
-                                            if (newState == null) {
-                                                removeNode(item.path)
-                                            } else {
-                                                val condition = TableFilterNode.Condition(item.column, newState)
-                                                state.updateFilterExpression { it.replaceAt(item.path, condition) }
-                                            }
-                                        },
-                                        onClear = {
-                                            if (isOpen) openPath = null
-                                            state.updateFilterExpression {
-                                                it.replaceAt(item.path, resetCondition(item.column, spec))
-                                            }
-                                        },
-                                    ) { onChange ->
-                                        filterPanel?.invoke(spec, item.state, onChange) { openPath = null }
+                            ReturnFocus(requested = item.path == focusPath, onReturn = { focusPath = null }) {
+                                when (item) {
+                                    is FilterChipItem.Condition -> {
+                                        val isOpen = item.path == openPath
+                                        val spec = keyToSpec.getValue(item.column)
+                                        ConditionChip(
+                                            spec = spec,
+                                            item = item,
+                                            isOpen = isOpen,
+                                            texts = texts,
+                                            filterChips = filterChips,
+                                            onOpen = { if (filterPanel != null) openPath = item.path },
+                                            // A null state removes the condition, as the header's panel does.
+                                            onChange = { newState ->
+                                                if (newState == null) {
+                                                    removeNode(item.path)
+                                                } else {
+                                                    val condition = TableFilterNode.Condition(item.column, newState)
+                                                    state.updateFilterExpression { it.replaceAt(item.path, condition) }
+                                                }
+                                            },
+                                            onClear = {
+                                                if (isOpen) openPath = null
+                                                state.updateFilterExpression {
+                                                    it.replaceAt(item.path, resetCondition(item.column, spec))
+                                                }
+                                            },
+                                        ) { onChange ->
+                                            filterPanel?.invoke(spec, item.state, onChange) { openPath = null }
+                                        }
                                     }
-                                }
 
-                                is FilterChipItem.Group -> {
-                                    val node = state.filterExpression.children[item.path.single()]
-                                    FilterChipSlot(
-                                        TableFilterChipNode.Group(
-                                            operator = item.summary.operator,
-                                            negated = item.summary.negated,
-                                            itemCount = item.summary.activeCount,
-                                            columnTitles = item.summary.columns.map { texts.title(it) },
-                                            sharedColumn = item.summary.sharedColumn,
-                                            text = texts.groupText(node),
-                                            description = texts.describe(node),
-                                            isOpen = item.path == openPath,
-                                            // The group's popover reads openPath.
-                                            onOpen = { openPath = item.path },
-                                            placement = TableFilterChipPlacement.Row,
-                                            strings = strings,
+                                    is FilterChipItem.Group -> {
+                                        GroupChip(
+                                            item = item,
+                                            node = state.filterExpression.children[item.path.single()],
+                                            isOpen = item.path == openGroup,
+                                            texts = texts,
+                                            filterChips = filterChips,
+                                            onOpen = {
+                                                openPath = null
+                                                openGroupPath = item.path
+                                            },
                                             onClear = { removeNode(item.path) },
-                                        ),
-                                        filterChips,
-                                    )
-                                }
+                                            popover =
+                                                groupPopover?.let { popover ->
+                                                    { popover(item.path, keyToSpec, closeGroup) }
+                                                },
+                                        )
+                                    }
 
-                                is FilterChipItem.Unknown -> {
-                                    FilterChipSlot(
-                                        TableFilterChipNode.Unknown(
-                                            column = item.column,
-                                            state = item.state,
-                                            title = texts.title(item.column),
-                                            placement = TableFilterChipPlacement.Row,
-                                            strings = strings,
-                                            onClear = { removeNode(item.path) },
-                                        ),
-                                        filterChips,
-                                    )
+                                    is FilterChipItem.Unknown -> {
+                                        FilterChipSlot(
+                                            TableFilterChipNode.Unknown(
+                                                column = item.column,
+                                                state = item.state,
+                                                title = texts.title(item.column),
+                                                placement = TableFilterChipPlacement.Row,
+                                                strings = strings,
+                                                onClear = { removeNode(item.path) },
+                                            ),
+                                            filterChips,
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -409,12 +438,83 @@ private fun <T : Any, C, E> ConditionChip(
     }
 }
 
+/** A top-level group's chip; while [isOpen], [popover] is anchored under it. */
+@Composable
+@Suppress("LongParameterList")
+private fun <C> GroupChip(
+    item: FilterChipItem.Group<C>,
+    node: TableFilterNode<C>,
+    isOpen: Boolean,
+    texts: FilterChipTexts<C>,
+    filterChips: TableFilterChipStyle<C>,
+    onOpen: () -> Unit,
+    onClear: () -> Unit,
+    popover: (@Composable () -> Unit)?,
+) {
+    Box {
+        FilterChipSlot(
+            TableFilterChipNode.Group(
+                operator = item.summary.operator,
+                negated = item.summary.negated,
+                itemCount = item.summary.activeCount,
+                columnTitles = item.summary.columns.map { texts.title(it) },
+                sharedColumn = item.summary.sharedColumn,
+                text = texts.groupText(node),
+                description = texts.describe(node),
+                isOpen = isOpen,
+                onOpen = if (popover != null) onOpen else ({}),
+                placement = TableFilterChipPlacement.Row,
+                strings = texts.strings,
+                onClear = onClear,
+            ),
+            filterChips,
+        )
+        if (isOpen && popover != null) popover()
+    }
+}
+
+/**
+ * [openGroupPath] while a group or not is there; else null, and [onStale] closes it, as when a tree set by
+ * the app leaves no group at the open path.
+ */
+@Composable
+private fun <C> validOpenGroup(
+    state: TableState<C>,
+    openGroupPath: FilterPath?,
+    onStale: () -> Unit,
+): FilterPath? {
+    val open = openGroupPath?.takeIf { state.filterExpression.isGroupLikeAt(it) }
+    val currentOnStale by rememberUpdatedState(onStale)
+    if (openGroupPath != null && open == null) LaunchedEffect(openGroupPath) { currentOnStale() }
+    return open
+}
+
+/** Moves the focus into [content] when [requested] turns true, after calling [onReturn]. */
+@Composable
+private fun ReturnFocus(
+    requested: Boolean,
+    onReturn: () -> Unit,
+    content: @Composable () -> Unit,
+) {
+    val focusRequester = remember { FocusRequester() }
+    val currentOnReturn by rememberUpdatedState(onReturn)
+    LaunchedEffect(requested) {
+        if (requested) {
+            currentOnReturn()
+            focusRequester.requestFocus()
+        }
+    }
+    Box(Modifier.focusRequester(focusRequester)) { content() }
+}
+
 /** Titles, texts and accessibility sentences of filter chips. */
 internal class FilterChipTexts<C>(
     private val keyToSpec: Map<C, ColumnSpec<*, C, *>>,
     private val unknownTitle: ((C) -> String?)?,
     val strings: StringProvider,
 ) {
+    fun isKnown(column: C): Boolean = column in keyToSpec
+
     /** The column's plain-text title; for an unknown column the app's title for it, else the key. */
     @Composable
     fun title(column: C): String {

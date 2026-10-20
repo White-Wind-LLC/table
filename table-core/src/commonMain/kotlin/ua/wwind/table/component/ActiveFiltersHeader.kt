@@ -7,6 +7,7 @@ import kotlinx.collections.immutable.ImmutableList
 import ua.wwind.table.ActiveFilterChips
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.TableFilterChipStyle
+import ua.wwind.table.component.filterchips.FilterGroupPopover
 import ua.wwind.table.component.header.ColumnFilterPanel
 import ua.wwind.table.config.currentTableColors
 import ua.wwind.table.state.TableState
@@ -29,6 +30,9 @@ internal fun <T : Any, C, E> ActiveFiltersHeader(
         includeClearAllChip = true,
         filterPanel = { spec, filter, onChange, onDismiss ->
             ColumnFilterPanel(spec, state, tableData, strings, onDismiss, filter, onChange)
+        },
+        groupPopover = { path, keyToSpec, onDismiss ->
+            FilterGroupPopover(path, state, keyToSpec, tableData, filterChips, strings, onDismiss)
         },
         filterChips = filterChips,
         modifier = modifier,
