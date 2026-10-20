@@ -315,7 +315,8 @@ internal fun <T : Any, C, E> ActiveFilterChips(
                                                 strings = strings,
                                                 onClear = { removeNode(item.path) },
                                             ),
-                                            filterChips,
+                                            spec = null,
+                                            filterChips = filterChips,
                                         )
                                     }
                                 }
@@ -366,15 +367,33 @@ private fun RowScope.ChipsScrollButton(
     }
 }
 
-/** [node] drawn by [TableFilterChipStyle.chip] or [DefaultFilterChip], with the row's spacing. */
+/** [node] drawn by [ResolvedFilterChip], with the row's spacing. */
 @Composable
 private fun <C> FilterChipSlot(
     node: TableFilterChipNode<C>,
+    spec: ColumnSpec<*, C, *>?,
     filterChips: TableFilterChipStyle<C>,
 ) {
-    Box(Modifier.padding(horizontal = 4.dp, vertical = 4.dp)) {
-        val chip = filterChips.chip
-        if (chip != null) chip(node) else DefaultFilterChip(node)
+    Box(Modifier.padding(horizontal = 4.dp, vertical = 4.dp)) { ResolvedFilterChip(node, spec, filterChips) }
+}
+
+/**
+ * Draws [node] in the row or in a popover: a condition by its column [spec]'s deprecated
+ * [ColumnSpec.activeFilterChip] when it has one; else [TableFilterChipStyle.chip], else [DefaultFilterChip].
+ */
+@Composable
+internal fun <C> ResolvedFilterChip(
+    node: TableFilterChipNode<C>,
+    spec: ColumnSpec<*, C, *>?,
+    style: TableFilterChipStyle<C>,
+) {
+    @Suppress("DEPRECATION")
+    val legacyChip = spec?.activeFilterChip
+    val chip = style.chip
+    when {
+        node is TableFilterChipNode.Condition && legacyChip != null -> legacyChip(node.toChipContext())
+        chip != null -> chip(node)
+        else -> DefaultFilterChip(node)
     }
 }
 
@@ -401,39 +420,23 @@ private fun <T : Any, C, E> ConditionChip(
     val title = texts.title(item.column)
     // The panel is anchored outside the slot, so a custom chip gets it by calling onOpen.
     Box {
-        val legacyChip = spec.activeFilterChip
-        if (legacyChip != null) {
-            val ctx =
-                TableFilterChipContext(
-                    column = item.column,
-                    state = item.state,
-                    title = title,
-                    text = text,
-                    isOpen = isOpen,
-                    strings = texts.strings,
-                    onOpen = onOpen,
-                    onChange = onChange,
-                    onClear = onClear,
-                )
-            Box(Modifier.padding(horizontal = 4.dp, vertical = 4.dp)) { legacyChip(ctx) }
-        } else {
-            FilterChipSlot(
-                TableFilterChipNode.Condition(
-                    column = item.column,
-                    state = item.state,
-                    title = title,
-                    text = text,
-                    isOpen = isOpen,
-                    placement = TableFilterChipPlacement.Row,
-                    strings = texts.strings,
-                    onOpen = onOpen,
-                    onChange = onChange,
-                    onClear = onClear,
-                    content = null,
-                ),
-                filterChips,
-            )
-        }
+        FilterChipSlot(
+            TableFilterChipNode.Condition(
+                column = item.column,
+                state = item.state,
+                title = title,
+                text = text,
+                isOpen = isOpen,
+                placement = TableFilterChipPlacement.Row,
+                strings = texts.strings,
+                onOpen = onOpen,
+                onChange = onChange,
+                onClear = onClear,
+                content = spec.filterChipContent,
+            ),
+            spec,
+            filterChips,
+        )
         if (isOpen) panel(onChange)
     }
 }
@@ -467,7 +470,8 @@ private fun <C> GroupChip(
                 strings = texts.strings,
                 onClear = onClear,
             ),
-            filterChips,
+            spec = null,
+            filterChips = filterChips,
         )
         if (isOpen && popover != null) popover()
     }

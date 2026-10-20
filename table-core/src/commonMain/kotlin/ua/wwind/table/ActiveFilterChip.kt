@@ -1,4 +1,4 @@
-// The file is named after DefaultActiveFilterChip; both its declarations go in 4.0.
+// The file is named after DefaultActiveFilterChip; all its declarations go in 4.0.
 @file:Suppress("MatchingDeclarationName")
 
 package ua.wwind.table
@@ -15,7 +15,8 @@ import ua.wwind.table.strings.StringProvider
 import ua.wwind.table.strings.UiString
 
 /**
- * What a column's chip in the active filters row knows, passed to [ColumnSpec.activeFilterChip].
+ * What a column's condition chip knows, passed to [ColumnSpec.activeFilterChip], in the active filters row
+ * and in a group's popover.
  *
  * @property column key of the column the filter belongs to
  * @property state the column's current filter state
@@ -28,6 +29,9 @@ import ua.wwind.table.strings.UiString
  * @property onChange replaces the column's filter state, e.g. from a value picked on the chip itself
  * @property onClear resets the column's filter and closes its panel
  */
+@Deprecated(
+    "Use TableFilterChipNode.Condition, passed to filterChipContent and TableFilterChipStyle.chip. Removed in 4.0.",
+)
 @Stable
 public class TableFilterChipContext<C> internal constructor(
     public val column: C,
@@ -58,8 +62,9 @@ public class TableFilterChipContext<C> internal constructor(
  * @param colors the chip's colors; the chip is always selected, so the `selected*` colors are the ones shown
  * @param clearContentDescription accessibility label of the ×
  */
+@Deprecated("Call DefaultFilterChip from TableFilterChipStyle.chip. Removed in 4.0.")
 @Composable
-@Suppress("LongParameterList")
+@Suppress("LongParameterList", "DEPRECATION")
 public fun <C> DefaultActiveFilterChip(
     ctx: TableFilterChipContext<C>,
     modifier: Modifier = Modifier,
@@ -79,3 +84,18 @@ public fun <C> DefaultActiveFilterChip(
         modifier = modifier,
     )
 }
+
+/** [this] condition as the context of the deprecated [ColumnSpec.activeFilterChip]. */
+@Suppress("DEPRECATION")
+internal fun <C> TableFilterChipNode.Condition<C>.toChipContext(): TableFilterChipContext<C> =
+    TableFilterChipContext(
+        column = column,
+        state = state,
+        title = title,
+        text = text,
+        isOpen = isOpen,
+        strings = strings,
+        onOpen = onOpen,
+        onChange = onChange,
+        onClear = onClear,
+    )

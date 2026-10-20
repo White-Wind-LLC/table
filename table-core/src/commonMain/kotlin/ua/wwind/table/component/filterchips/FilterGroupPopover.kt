@@ -46,8 +46,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.PopupProperties
 import org.jetbrains.compose.resources.painterResource
 import ua.wwind.table.ColumnSpec
-import ua.wwind.table.DefaultFilterChip
 import ua.wwind.table.FilterChipTexts
+import ua.wwind.table.ResolvedFilterChip
 import ua.wwind.table.ReturnFocus
 import ua.wwind.table.TableFilterChipNode
 import ua.wwind.table.TableFilterChipPlacement
@@ -114,7 +114,7 @@ internal fun <T : Any, C, E> FilterGroupPopover(
         drill.leave(state.filterExpression) { path -> state.updateFilterExpression { it.removeAt(path) } }
         onDismiss()
     }
-    val tree = PopoverTree(style, texts, edit, drill)
+    val tree = PopoverTree(keyToSpec, style, texts, edit, drill)
     DropdownMenu(
         expanded = true,
         onDismissRequest = dismiss,
@@ -278,6 +278,7 @@ private fun <C> Group<C>.siblingCount(path: FilterPath): Int =
     }
 
 private class PopoverTree<C>(
+    private val keyToSpec: Map<C, ColumnSpec<*, C, *>>,
     private val style: TableFilterChipStyle<C>,
     private val texts: FilterChipTexts<C>,
     private val edit: (transform: (Group<C>) -> Group<C>) -> Unit,
@@ -406,8 +407,9 @@ private class PopoverTree<C>(
     ) {
         val column = condition.column
         val remove = { edit { it.removeAt(path) } }
+        val spec = keyToSpec[column]
         val node =
-            if (texts.isKnown(column)) {
+            if (spec != null) {
                 TableFilterChipNode.Condition(
                     column = column,
                     state = condition.state,
@@ -419,7 +421,7 @@ private class PopoverTree<C>(
                     onOpen = { drill.path = path },
                     onChange = { new -> edit { it.replaceAt(path, Condition(column, new)) } },
                     onClear = remove,
-                    content = null,
+                    content = spec.filterChipContent,
                 )
             } else {
                 TableFilterChipNode.Unknown(
@@ -431,9 +433,8 @@ private class PopoverTree<C>(
                     onClear = remove,
                 )
             }
-        val chip = style.chip
         ReturnFocus(requested = path == drill.focusLeaf, onReturn = { drill.focusLeaf = null }) {
-            if (chip != null) chip(node) else DefaultFilterChip(node)
+            ResolvedFilterChip(node, spec, style)
         }
     }
 
