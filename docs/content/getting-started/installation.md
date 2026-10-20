@@ -4,10 +4,10 @@ Add repository (usually `mavenCentral`) and include the modules you need:
 
 ```kotlin
 dependencies {
-    implementation("ua.wwind.table-kmp:table-core:3.2.0")
+    implementation("ua.wwind.table-kmp:table-core:3.3.0")
     // optional
-    implementation("ua.wwind.table-kmp:table-format:3.2.0")
-    implementation("ua.wwind.table-kmp:table-paging:3.2.0")
+    implementation("ua.wwind.table-kmp:table-format:3.3.0")
+    implementation("ua.wwind.table-kmp:table-paging:3.3.0")
 }
 ```
 
