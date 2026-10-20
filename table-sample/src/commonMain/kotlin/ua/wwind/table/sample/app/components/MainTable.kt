@@ -35,6 +35,7 @@ import ua.wwind.table.EditableTable
 import ua.wwind.table.RowBlockMove
 import ua.wwind.table.RowBlocks
 import ua.wwind.table.RowWithinBlockMove
+import ua.wwind.table.TableFilterChipDefaults
 import ua.wwind.table.component.ColumnMenuBuilder
 import ua.wwind.table.component.ColumnMenuItem
 import ua.wwind.table.component.ColumnMenuItemId
@@ -119,6 +120,7 @@ fun MainTable(
             columns = columns,
             customization = customization,
             strings = DefaultStrings,
+            filterChips = TableFilterChipDefaults.style(unknownTitle = ::personUnknownColumnTitle),
             columnMenu =
                 remember(state) {
                     ColumnMenuBuilder<PersonColumn> { _, defaults ->

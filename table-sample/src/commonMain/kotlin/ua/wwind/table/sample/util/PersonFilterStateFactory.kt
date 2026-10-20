@@ -99,5 +99,9 @@ object PersonFilterStateFactory {
                     values = null,
                 )
             }
+
+            PersonColumn.REGION -> {
+                TableFilterState<String>(constraint = null, values = null)
+            }
         }
 }

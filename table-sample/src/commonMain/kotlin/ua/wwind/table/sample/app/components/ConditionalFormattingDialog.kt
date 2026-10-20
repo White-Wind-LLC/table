@@ -8,6 +8,7 @@ import ua.wwind.table.format.FormatDialog
 import ua.wwind.table.format.data.FormatDialogSettings
 import ua.wwind.table.format.data.TableFormatRule
 import ua.wwind.table.sample.column.PersonColumn
+import ua.wwind.table.sample.column.personTableColumns
 import ua.wwind.table.strings.DefaultStrings
 
 /**
@@ -69,10 +70,11 @@ fun ConditionalFormattingDialog(
                 PersonColumn.AGE_GROUP -> "Age group"
                 PersonColumn.EXPAND -> "Movements"
                 PersonColumn.SELECTION -> "Selection"
+                PersonColumn.REGION -> "Region"
             }
         },
         filters = buildFormatFilterData,
-        entries = PersonColumn.entries.toImmutableList(),
+        entries = personTableColumns.toImmutableList(),
         key = Unit,
         strings = DefaultStrings,
         onDismissRequest = onDismissRequest,

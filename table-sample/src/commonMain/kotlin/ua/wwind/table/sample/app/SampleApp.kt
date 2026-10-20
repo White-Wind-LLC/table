@@ -63,6 +63,7 @@ import ua.wwind.table.sample.app.components.SettingsSidebar
 import ua.wwind.table.sample.app.components.nestedFilterDemo
 import ua.wwind.table.sample.column.PersonColumn
 import ua.wwind.table.sample.column.createTableColumns
+import ua.wwind.table.sample.column.personTableColumns
 import ua.wwind.table.sample.icon.SampleIcons
 import ua.wwind.table.sample.model.Person
 import ua.wwind.table.sample.util.PersonFilterMatcher
@@ -209,7 +210,7 @@ fun SampleApp(
 
     val state =
         rememberTableState(
-            columns = PersonColumn.entries.toImmutableList(),
+            columns = personTableColumns.toImmutableList(),
             settings = settings,
             dimensions =
                 remember(tableConfig.useCompactMode) {

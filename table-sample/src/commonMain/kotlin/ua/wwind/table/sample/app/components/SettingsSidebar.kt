@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.painterResource
 import ua.wwind.table.config.PinnedSide
 import ua.wwind.table.sample.column.PersonColumn
+import ua.wwind.table.sample.column.personTableColumns
 import ua.wwind.table.sample.icon.SampleIcons
 
 // Dims a switch that stays composed while its section fades out.
@@ -325,7 +326,7 @@ fun SettingsSidebar(
 
 /** Data columns the user may hide; utility columns are excluded on purpose. */
 private val hideablePersonColumns =
-    PersonColumn.entries.filterNot {
+    personTableColumns.filterNot {
         it == PersonColumn.SELECTION || it == PersonColumn.EXPAND
     }
 
