@@ -3,6 +3,7 @@ package ua.wwind.table.sample.util
 import ua.wwind.table.filter.data.FilterConstraint
 import ua.wwind.table.filter.data.TableFilterNode
 import ua.wwind.table.filter.data.TableFilterState
+import ua.wwind.table.filter.data.isActive
 import ua.wwind.table.filter.data.isNullCheck
 import ua.wwind.table.sample.column.PersonColumn
 import ua.wwind.table.sample.filter.NumericRangeFilterState
@@ -20,14 +21,15 @@ object PersonFilterMatcher {
     ): Boolean = filters.all { (column, state) -> matchesCondition(person, column, state) }
 
     /**
-     * Evaluate whether the person matches the filter tree. An inactive condition matches everyone, so
-     * a half-edited leaf never hides rows.
+     * Evaluate whether the person matches the filter tree. Inactive nodes match everyone and groups skip
+     * their inactive children, so a half-edited leaf never hides or admits rows.
      */
     fun matchesPerson(
         person: Person,
         expression: TableFilterNode<PersonColumn>,
-    ): Boolean =
-        when (expression) {
+    ): Boolean {
+        if (!expression.isActive()) return true
+        return when (expression) {
             is TableFilterNode.Condition -> {
                 matchesCondition(person, expression.column, expression.state)
             }
@@ -37,17 +39,14 @@ object PersonFilterMatcher {
             }
 
             is TableFilterNode.Group -> {
+                val active = expression.children.filter { it.isActive() }
                 when (expression.operator) {
-                    TableFilterNode.Operator.AND -> {
-                        expression.children.all { matchesPerson(person, it) }
-                    }
-
-                    TableFilterNode.Operator.OR -> {
-                        expression.children.isEmpty() || expression.children.any { matchesPerson(person, it) }
-                    }
+                    TableFilterNode.Operator.AND -> active.all { matchesPerson(person, it) }
+                    TableFilterNode.Operator.OR -> active.any { matchesPerson(person, it) }
                 }
             }
         }
+    }
 
     /**
      * Supports Text, Number(Int), Boolean, LocalDate filter types.

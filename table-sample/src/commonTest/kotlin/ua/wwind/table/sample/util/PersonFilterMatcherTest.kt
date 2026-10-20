@@ -41,6 +41,9 @@ class PersonFilterMatcherTest {
     private fun name(text: String): TableFilterNode<PersonColumn> =
         TableFilterNode.Condition(PersonColumn.NAME, TableFilterState(FilterConstraint.CONTAINS, listOf(text)))
 
+    private val inactive: TableFilterNode<PersonColumn> =
+        TableFilterNode.Condition(PersonColumn.NAME, TableFilterState<String>(null, null))
+
     private fun matching(expression: TableFilterNode<PersonColumn>): List<String> =
         listOf(ann, bob, cid).filter { PersonFilterMatcher.matchesPerson(it, expression) }.map { it.name }
 
@@ -57,7 +60,27 @@ class PersonFilterMatcherTest {
 
     @Test
     fun `inactive conditions match everything`() {
-        val inactive = TableFilterNode.Condition(PersonColumn.NAME, TableFilterState<String>(null, null))
         assertThat(matching(inactive)).isEqualTo(listOf("Ann", "Bob", "Cid"))
+    }
+
+    @Test
+    fun `inactive leaf inside OR is ignored`() {
+        val or = TableFilterNode.Group(TableFilterNode.Operator.OR, listOf(name("Ann"), inactive))
+        assertThat(matching(or)).isEqualTo(listOf("Ann"))
+    }
+
+    @Test
+    fun `nested AND inside OR inside NOT`() {
+        val and = TableFilterNode.Group(TableFilterNode.Operator.AND, listOf(position(Position.TEAM_LEAD), name("C")))
+        val or = TableFilterNode.Group(TableFilterNode.Operator.OR, listOf(and, name("Ann"), inactive))
+        assertThat(matching(TableFilterNode.Not(or))).isEqualTo(listOf("Bob"))
+    }
+
+    @Test
+    fun `all-inactive group matches everyone`() {
+        val or = TableFilterNode.Group(TableFilterNode.Operator.OR, listOf(inactive, inactive))
+        assertThat(matching(or)).isEqualTo(listOf("Ann", "Bob", "Cid"))
+        assertThat(matching(TableFilterNode.Not(or))).isEqualTo(listOf("Ann", "Bob", "Cid"))
+        assertThat(matching(TableFilterNode.Not(inactive))).isEqualTo(listOf("Ann", "Bob", "Cid"))
     }
 }
