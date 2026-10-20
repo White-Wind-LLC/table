@@ -17,6 +17,7 @@ import ua.wwind.table.RowBlockMove
 import ua.wwind.table.RowWithinBlockMove
 import ua.wwind.table.applyRowBlockMove
 import ua.wwind.table.applyRowReorderWithinBlock
+import ua.wwind.table.filter.data.TableFilterNode
 import ua.wwind.table.filter.data.TableFilterState
 import ua.wwind.table.format.data.TableFormatRule
 import ua.wwind.table.sample.column.PersonColumn
@@ -38,9 +39,9 @@ class SampleViewModel : ViewModel() {
     private val _people = MutableStateFlow<List<Person>>(createDemoData())
     val people: StateFlow<List<Person>> = _people.asStateFlow()
 
-    // Current filters state
+    // Current filter expression: the table's always-AND root
     private val currentFilters =
-        MutableStateFlow<Map<PersonColumn, TableFilterState<*>>>(emptyMap())
+        MutableStateFlow(TableFilterNode.Group<PersonColumn>(TableFilterNode.Operator.AND, emptyList()))
 
     // Current sort state
     private val currentSort = MutableStateFlow<SortState<PersonColumn>?>(null)
@@ -90,7 +91,13 @@ class SampleViewModel : ViewModel() {
     private val peopleExcludingSalaryFilter: StateFlow<List<Person>> =
         combine(_people, currentFilters) { peopleList, filters ->
             // Apply all filters except salary filter
-            val filtersExcludingSalary = filters.filterKeys { it != PersonColumn.SALARY }
+            val filtersExcludingSalary =
+                filters.copy(
+                    children =
+                        filters.children.filterNot {
+                            it is TableFilterNode.Condition && it.column == PersonColumn.SALARY
+                        },
+                )
             peopleList.filter { person ->
                 PersonFilterMatcher.matchesPerson(person, filtersExcludingSalary)
             }
@@ -159,7 +166,7 @@ class SampleViewModel : ViewModel() {
     }
 
     /** Update filters - triggers automatic recalculation via StateFlow combination */
-    fun updateFilters(filters: Map<PersonColumn, TableFilterState<*>>) {
+    fun updateFilters(filters: TableFilterNode.Group<PersonColumn>) {
         currentFilters.value = filters
     }
 

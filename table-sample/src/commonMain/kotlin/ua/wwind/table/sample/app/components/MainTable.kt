@@ -40,7 +40,7 @@ import ua.wwind.table.component.ColumnMenuItem
 import ua.wwind.table.component.ColumnMenuItemId
 import ua.wwind.table.component.ColumnMenuSection
 import ua.wwind.table.config.TableCustomization
-import ua.wwind.table.filter.data.TableFilterState
+import ua.wwind.table.filter.data.TableFilterNode
 import ua.wwind.table.icon.TableIcons
 import ua.wwind.table.sample.column.PersonColumn
 import ua.wwind.table.sample.model.Person
@@ -56,7 +56,7 @@ fun MainTable(
     tableData: PersonTableData,
     columns: ImmutableList<ColumnSpec<Person, PersonColumn, PersonTableData>>,
     customization: TableCustomization<Person, PersonColumn>,
-    onFiltersChange: (Map<PersonColumn, TableFilterState<*>>) -> Unit,
+    onFiltersChange: (TableFilterNode.Group<PersonColumn>) -> Unit,
     onSortChange: (SortState<PersonColumn>?) -> Unit,
     onRowMove: (fromIndex: Int, toIndex: Int) -> Unit,
     onMovementRowMove: (person: Person, fromIndex: Int, toIndex: Int) -> Unit,
@@ -75,7 +75,7 @@ fun MainTable(
     val currentOnSortChange = rememberUpdatedState(onSortChange)
 
     LaunchedEffect(state) {
-        snapshotFlow { state.filters.toMap() }.collect { filters -> currentOnFiltersChange.value(filters) }
+        snapshotFlow { state.filterExpression }.collect { filters -> currentOnFiltersChange.value(filters) }
     }
 
     LaunchedEffect(state) { snapshotFlow { state.sort }.collect { sort -> currentOnSortChange.value(sort) } }
