@@ -45,6 +45,11 @@ object PersonFilterMatcher {
                     TableFilterNode.Operator.OR -> active.any { matchesPerson(person, it) }
                 }
             }
+
+            // The view model never evaluates a tree that has unresolved leaves.
+            is TableFilterNode.Unresolved -> {
+                false
+            }
         }
     }
 

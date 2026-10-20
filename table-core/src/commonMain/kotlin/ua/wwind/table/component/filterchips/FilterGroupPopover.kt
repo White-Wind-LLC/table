@@ -62,6 +62,7 @@ import ua.wwind.table.filter.data.TableFilterNode.Condition
 import ua.wwind.table.filter.data.TableFilterNode.Group
 import ua.wwind.table.filter.data.TableFilterNode.Not
 import ua.wwind.table.filter.data.TableFilterNode.Operator
+import ua.wwind.table.filter.data.TableFilterNode.Unresolved
 import ua.wwind.table.filter.data.TableFilterState
 import ua.wwind.table.filter.data.TableFilterType
 import ua.wwind.table.filter.data.isActive
@@ -313,7 +314,7 @@ private fun <C> Group<C>.siblingCount(path: FilterPath): Int =
     when (val parent = nodeAt(path.dropLast(1))) {
         is Group -> parent.children.size
         is Not -> 1
-        is Condition, null -> 0
+        is Condition, is Unresolved, null -> 0
     }
 
 private class PopoverTree<C>(
@@ -352,6 +353,10 @@ private class PopoverTree<C>(
                 GroupLine(path, path, node, negated = false, isTop)
             }
 
+            is Unresolved -> {
+                Unit
+            }
+
             is Not -> {
                 when (val child = node.child) {
                     is Group -> {
@@ -371,6 +376,10 @@ private class PopoverTree<C>(
                     is Not -> {
                         NotToggle(path, negated = true)
                         Children { Line(path + 0, child) }
+                    }
+
+                    is Unresolved -> {
+                        Unit
                     }
                 }
             }

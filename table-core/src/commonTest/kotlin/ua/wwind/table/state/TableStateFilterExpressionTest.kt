@@ -18,6 +18,7 @@ import ua.wwind.table.filter.data.TableFilterNode.Condition
 import ua.wwind.table.filter.data.TableFilterNode.Group
 import ua.wwind.table.filter.data.TableFilterNode.Operator
 import ua.wwind.table.filter.data.TableFilterState
+import ua.wwind.table.filter.data.removeAt
 import kotlin.test.Test
 
 class TableStateFilterExpressionTest {
@@ -158,5 +159,27 @@ class TableStateFilterExpressionTest {
         state.setFilterExpression(and(Condition("a", s1), or(x, y), TableFilterNode.Not(x), Condition("b", s2)))
         state.clearComplexFilters()
         assertThat(state.filterExpression).isEqualTo(and(Condition("a", s1), Condition("b", s2)))
+    }
+
+    @Test
+    fun `unresolvedFilters reports unresolved leaves`() {
+        val state = newState()
+        val u = TableFilterNode.Unresolved("old", payload = "p")
+        state.setFilterExpression(and(or(x, y, u), Condition("c", s1)))
+        assertThat(state.unresolvedFilters).containsExactly(u)
+        state.updateFilterExpression { it.removeAt(listOf(0, 2)) }
+        assertThat(state.unresolvedFilters).isEmpty()
+    }
+
+    @Test
+    fun `filters put leaves an unresolved leaf at its place`() {
+        val state = newState()
+        val u = TableFilterNode.Unresolved("old")
+        state.setFilterExpression(and(u, Condition("c", s1)))
+        state.filters["c"] = s2
+        assertThat(state.filterExpression).isEqualTo(and(u, Condition("c", s2)))
+        assertThat(state.filters.keys.toList()).containsExactly("c")
+        state.filters.clear()
+        assertThat(state.filterExpression).isEqualTo(and(u))
     }
 }

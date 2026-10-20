@@ -28,6 +28,7 @@ import ua.wwind.table.data.SortOrder
 import ua.wwind.table.filter.data.TableFilterNode
 import ua.wwind.table.filter.data.TableFilterState
 import ua.wwind.table.filter.data.asRoot
+import ua.wwind.table.filter.data.unresolvedLeaves
 
 private val settingsLogger = Logger.withTag("TableSettings")
 
@@ -249,6 +250,15 @@ public class TableState<C>
         public fun setFilterExpression(root: TableFilterNode<C>) {
             filterRoot = root.asRoot()
         }
+
+        /**
+         * The [TableFilterNode.Unresolved] leaves of [filterExpression], in tree order; empty when the
+         * expression is resolved. While it is not empty, do not apply or send the filter at all, not even with
+         * these leaves left out. The table shows them only in the active filters row, so an app that hides the
+         * row must check this itself. Snapshot-backed: observe with snapshotFlow.
+         */
+        public val unresolvedFilters: List<TableFilterNode.Unresolved>
+            get() = filterRoot.unresolvedLeaves()
 
         /**
          * Per-column filters: a mutable view of the first top-level condition of each column in

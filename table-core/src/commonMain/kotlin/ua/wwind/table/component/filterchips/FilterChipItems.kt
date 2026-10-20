@@ -6,6 +6,7 @@ import ua.wwind.table.filter.data.TableFilterNode.Condition
 import ua.wwind.table.filter.data.TableFilterNode.Group
 import ua.wwind.table.filter.data.TableFilterNode.Not
 import ua.wwind.table.filter.data.TableFilterNode.Operator
+import ua.wwind.table.filter.data.TableFilterNode.Unresolved
 import ua.wwind.table.filter.data.TableFilterState
 import ua.wwind.table.filter.data.isActive
 
@@ -65,6 +66,10 @@ internal fun <C> rowItems(
             is Group, is Not -> {
                 FilterChipItem.Group(path, node.summary())
             }
+
+            is Unresolved -> {
+                null
+            }
         }
     }
 
@@ -110,5 +115,6 @@ private fun <C> TableFilterNode<C>.collectColumns(
         is Condition -> if (!activeOnly || state.isActive()) into.add(column)
         is Group -> children.forEach { it.collectColumns(into, activeOnly) }
         is Not -> child.collectColumns(into, activeOnly)
+        is Unresolved -> Unit
     }
 }

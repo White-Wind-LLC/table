@@ -677,6 +677,10 @@ internal class FilterChipTexts<C>(
                 if (text != null) strings.filterConditionDescription(title(node.column), text) else title(node.column)
             }
 
+            is TableFilterNode.Unresolved -> {
+                strings.unresolvedFilterDescription(node.key)
+            }
+
             is TableFilterNode.Group, is TableFilterNode.Not -> {
                 var inner: TableFilterNode<C> = node
                 var negated = false

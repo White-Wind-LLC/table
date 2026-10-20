@@ -386,6 +386,10 @@ public interface StringProvider {
     @Composable
     public fun removeFilterLabel(subject: String): String = "Remove filter $subject"
 
+    /** An unresolved condition read as part of a group's description, e.g. `"Unknown field: legacyCode"`. */
+    @Composable
+    public fun unresolvedFilterDescription(title: String): String = "Unknown field: $title"
+
     /** Accessibility label of the × that removes a group, e.g. `"Remove group Type, Qty, Vip"`. */
     @Composable
     public fun removeFilterGroupLabel(columns: String): String = "Remove group $columns"
