@@ -3,6 +3,7 @@ package ua.wwind.table.strings
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import kotlinx.datetime.LocalDate
+import ua.wwind.table.filter.data.TableFilterNode
 
 /**
  * Typed keys for all table UI strings.
@@ -262,6 +263,32 @@ public sealed class UiString {
     /** The arrow that scrolls the active-filter chips forward. */
     public object FilterChipsScrollRight : UiString()
 
+    // Filter tree
+
+    /** A group whose children are joined by OR: its operator switch and badge. */
+    public object FilterOperatorAny : UiString()
+
+    /** A group whose children are joined by AND: its operator switch and badge. */
+    public object FilterOperatorAll : UiString()
+
+    /** Follows the operator in a group line, as in "Any of these". */
+    public object FilterOperatorOfThese : UiString()
+
+    /** The tag and toggle of a negated group. */
+    public object FilterNot : UiString()
+
+    /** Joins the values of a same-column OR group, as in "Status: Active or Pending". */
+    public object FilterOr : UiString()
+
+    /** Joins the parts of an AND group in a description. */
+    public object FilterAnd : UiString()
+
+    /** Leaves a condition's panel in the group popover and returns to the tree. */
+    public object FilterBack : UiString()
+
+    /** Describes a condition on a column the table does not know. */
+    public object FilterUnknownField : UiString()
+
     // Grouping menu
     public object GroupBy : UiString()
 
@@ -351,6 +378,33 @@ public interface StringProvider {
     /** Number shown in active-filter chips. Defaults to [defaultFormatNumber]. */
     @Composable
     public fun formatNumber(value: Number): String = defaultFormatNumber(value)
+
+    /** Accessibility label of the × that removes one condition, e.g. `"Remove filter Qty"`. */
+    @Composable
+    public fun removeFilterLabel(subject: String): String = "Remove filter $subject"
+
+    /** Accessibility label of the × that removes a group, e.g. `"Remove group Type, Qty, Vip"`. */
+    @Composable
+    public fun removeFilterGroupLabel(columns: String): String = "Remove group $columns"
+
+    /**
+     * A group read as one sentence for accessibility, from the already described [parts] of its children:
+     * `"Any of: A, or B"` for [TableFilterNode.Operator.OR], `"All of: A and B"` for
+     * [TableFilterNode.Operator.AND], led by `"Not "` when [negated].
+     */
+    @Composable
+    public fun filterGroupDescription(
+        operator: TableFilterNode.Operator,
+        negated: Boolean,
+        parts: List<String>,
+    ): String {
+        val sentence =
+            when (operator) {
+                TableFilterNode.Operator.OR -> "any of: " + parts.joinToString(", or ")
+                TableFilterNode.Operator.AND -> "all of: " + parts.joinToString(" and ")
+            }
+        return if (negated) "Not $sentence" else sentence.replaceFirstChar(Char::uppercaseChar)
+    }
 }
 
 /**
@@ -589,6 +643,23 @@ public object DefaultStrings : StringProvider {
             UiString.FilterChipsScrollLeft -> "Scroll left"
 
             UiString.FilterChipsScrollRight -> "Scroll right"
+
+            // Filter tree
+            UiString.FilterOperatorAny -> "Any"
+
+            UiString.FilterOperatorAll -> "All"
+
+            UiString.FilterOperatorOfThese -> "of these"
+
+            UiString.FilterNot -> "NOT"
+
+            UiString.FilterOr -> "or"
+
+            UiString.FilterAnd -> "and"
+
+            UiString.FilterBack -> "Back"
+
+            UiString.FilterUnknownField -> "Unknown field"
 
             // Grouping menu
             UiString.GroupBy -> "Group by"

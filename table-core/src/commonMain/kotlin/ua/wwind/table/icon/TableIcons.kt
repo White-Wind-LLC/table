@@ -29,6 +29,7 @@ import ua.wwind.table.generated.resources.error_outline_rounded
 import ua.wwind.table.generated.resources.filter_alt_filled
 import ua.wwind.table.generated.resources.filter_alt_outlined
 import ua.wwind.table.generated.resources.format_color_reset_rounded
+import ua.wwind.table.generated.resources.keyboard_arrow_down_rounded
 import ua.wwind.table.generated.resources.keyboard_arrow_left_auto_mirrored_rounded
 import ua.wwind.table.generated.resources.keyboard_arrow_right_auto_mirrored_rounded
 import ua.wwind.table.generated.resources.more_vert_rounded
@@ -42,6 +43,7 @@ import ua.wwind.table.generated.resources.swap_horiz_rounded
 import ua.wwind.table.generated.resources.table_rows_rounded
 import ua.wwind.table.generated.resources.visibility_off_rounded
 import ua.wwind.table.generated.resources.visibility_rounded
+import ua.wwind.table.generated.resources.warning_rounded
 
 /**
  * Icons drawn by the table, as Compose resources. Draw one with
@@ -62,6 +64,9 @@ import ua.wwind.table.generated.resources.visibility_rounded
 public object TableIcons {
     /** Material `Icons.Rounded.Close`. */
     public val Close: DrawableResource get() = Res.drawable.close_rounded
+
+    /** Material `Icons.Rounded.KeyboardArrowDown`. */
+    public val KeyboardArrowDown: DrawableResource get() = Res.drawable.keyboard_arrow_down_rounded
 
     /** Material `Icons.AutoMirrored.Rounded.KeyboardArrowLeft`. */
     public val KeyboardArrowLeft: DrawableResource get() = Res.drawable.keyboard_arrow_left_auto_mirrored_rounded
@@ -134,6 +139,9 @@ public object TableIcons {
 
     /** Material `Icons.Rounded.ErrorOutline`. */
     public val ErrorOutline: DrawableResource get() = Res.drawable.error_outline_rounded
+
+    /** Material `Icons.Rounded.Warning`. */
+    public val Warning: DrawableResource get() = Res.drawable.warning_rounded
 
     /** Material `Icons.Rounded.MoreVert`. */
     public val MoreVert: DrawableResource get() = Res.drawable.more_vert_rounded
