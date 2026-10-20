@@ -4,18 +4,25 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.click
+import androidx.compose.ui.test.isRoot
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onFirst
+import androidx.compose.ui.test.onLast
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performKeyInput
+import androidx.compose.ui.test.performMouseInput
+import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.pressKey
 import androidx.compose.ui.test.v2.runComposeUiTest
 import androidx.compose.ui.unit.dp
@@ -195,6 +202,110 @@ class FilterGroupPopoverTest {
             onNodeWithText("C: Equals \"c\"").assertIsDisplayed()
         }
 
+    @Test
+    fun `drill in, change, go back changes only that leaf`() =
+        runComposeUiTest {
+            val state = setTable(and(or(eq("a"), eq("b"))))
+            openGroup()
+
+            onNodeWithText(leaf("b")).performClick()
+            waitForIdle()
+            // The drill-in header's trail; the tree's switch is not shown.
+            onNodeWithText("Any").assertIsDisplayed()
+            onNodeWithText("All").assertDoesNotExist()
+            onNodeWithText("Value").performTextReplacement("z")
+            waitUntil { state.filterExpression == and(or(eq("a"), eq("b", "z"))) }
+            onNodeWithContentDescription("Back").performClick()
+            waitForIdle()
+
+            assertThat(state.filterExpression).isEqualTo(and(or(eq("a"), eq("b", "z"))))
+            onNodeWithText("Value").assertDoesNotExist()
+            onNodeWithText(leaf("a")).assertIsDisplayed()
+            onNodeWithText("B: Equals \"z\"").assertIsDisplayed().assertIsFocused()
+        }
+
+    @Test
+    fun `drill-in header names the column and the operators above the leaf`() =
+        runComposeUiTest {
+            setTable(and(or(and(eq("a"), eq("b")), eq("c"))))
+            openGroup()
+
+            val headerTitles = onAllNodesWithText("B").fetchSemanticsNodes().size
+            onNodeWithText(leaf("b")).performClick()
+            waitForIdle()
+
+            assertThat(onAllNodesWithText("B").fetchSemanticsNodes().size).isEqualTo(headerTitles + 1)
+            onNodeWithText("Any › All").assertIsDisplayed()
+        }
+
+    @Test
+    fun `escape in drill-in goes back, second escape closes`() =
+        runComposeUiTest {
+            val state = setTable(and(or(eq("a"), eq("b"))))
+            openGroup()
+            onNodeWithText(leaf("b")).performClick()
+            waitForIdle()
+
+            // Drilling in moves the focus into the drill-in view, so Escape reaches the popover.
+            onNodeWithContentDescription("Back").assertIsFocused()
+            onNodeWithContentDescription("Back").performKeyInput { pressKey(Key.Escape) }
+            waitForIdle()
+            onNodeWithText("Value").assertDoesNotExist()
+            onNodeWithText(leaf("b")).assertIsFocused()
+
+            onNodeWithText(leaf("b")).performKeyInput { pressKey(Key.Escape) }
+            waitForIdle()
+            onNodeWithText("Any").assertDoesNotExist()
+            assertThat(state.filterExpression).isEqualTo(and(or(eq("a"), eq("b"))))
+            onNodeWithContentDescription(lastGroup!!.description).assertIsFocused()
+        }
+
+    @Test
+    fun `going back with an emptied leaf prunes and dissolves`() =
+        runComposeUiTest {
+            val state = setTable(and(or(eq("a"), eq("b"))))
+            openGroup()
+            onNodeWithText(leaf("b")).performClick()
+            waitForIdle()
+
+            onNodeWithText("Value").performTextReplacement("")
+            // The emptied leaf stays while it is being edited.
+            waitUntil { state.filterExpression == and(or(eq("a"), empty("b"))) }
+            onNodeWithText("Value").assertIsDisplayed()
+
+            onNodeWithContentDescription("Back").performClick()
+            waitForIdle()
+
+            assertThat(state.filterExpression).isEqualTo(and(eq("a")))
+            onNodeWithText("Any").assertDoesNotExist()
+            onNodeWithText("Value").assertDoesNotExist()
+            onNodeWithText("A: Equals \"a\"").assertIsFocused()
+        }
+
+    @Test
+    fun `closing the popover from drill-in prunes an empty leaf`() =
+        runComposeUiTest {
+            val state = setTable(and(or(eq("a"), eq("b"), eq("c"))))
+            openGroup()
+            onNodeWithText(leaf("b")).performClick()
+            waitForIdle()
+            onNodeWithText("Value").performTextReplacement("")
+            waitUntil { state.filterExpression == and(or(eq("a"), empty("b"), eq("c"))) }
+
+            // The popup layer takes a click below the table.
+            val outside =
+                onAllNodes(isRoot())
+                    .onFirst()
+                    .fetchSemanticsNode()
+                    .boundsInRoot.bottomCenter - Offset(0f, 8f)
+            onAllNodes(isRoot()).onLast().performMouseInput { click(outside) }
+            waitForIdle()
+
+            assertThat(state.filterExpression).isEqualTo(and(or(eq("a"), eq("c"))))
+            onNodeWithText("Value").assertDoesNotExist()
+            onNodeWithText("Any").assertDoesNotExist()
+        }
+
     private fun ComposeUiTest.openGroup() {
         onNodeWithContentDescription(lastGroup!!.description).performClick()
         waitForIdle()
@@ -233,8 +344,12 @@ class FilterGroupPopoverTest {
     /** A leaf's chip label in the popover. */
     private fun leaf(column: String): String = "${column.uppercase()}: Equals \"$column\""
 
-    private fun eq(column: String): Condition<String> =
-        Condition(column, TableFilterState(FilterConstraint.EQUALS, listOf(column)))
+    private fun eq(
+        column: String,
+        value: String = column,
+    ): Condition<String> = Condition(column, TableFilterState(FilterConstraint.EQUALS, listOf(value)))
+
+    private fun empty(column: String): Condition<String> = Condition(column, TableFilterState<String>(null, null))
 
     private fun and(vararg children: TableFilterNode<String>): Group<String> = Group(Operator.AND, children.toList())
 

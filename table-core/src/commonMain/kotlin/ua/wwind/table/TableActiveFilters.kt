@@ -491,7 +491,7 @@ private fun <C> validOpenGroup(
 
 /** Moves the focus into [content] when [requested] turns true, after calling [onReturn]. */
 @Composable
-private fun ReturnFocus(
+internal fun ReturnFocus(
     requested: Boolean,
     onReturn: () -> Unit,
     content: @Composable () -> Unit,
