@@ -96,39 +96,21 @@ object PersonFilterMatcher {
 
         return when (column) {
             PersonColumn.NAME -> matchesTextField(person.name, stateAny)
-
             PersonColumn.AGE -> matchesComparableField(person.age, stateAny)
-
             PersonColumn.ACTIVE -> matchesBooleanField(person.active, stateAny)
-
             PersonColumn.ID -> matchesComparableField(person.id, stateAny)
-
             PersonColumn.EMAIL -> matchesTextField(person.email, stateAny)
-
             PersonColumn.CITY -> matchesTextField(person.city, stateAny)
-
             PersonColumn.COUNTRY -> matchesTextField(person.country, stateAny)
-
             PersonColumn.DEPARTMENT -> matchesTextField(person.department, stateAny)
-
             PersonColumn.POSITION -> matchesPositionField(person.position, stateAny)
-
             PersonColumn.SALARY -> matchesSalaryField(person.salary, stateAny)
-
             PersonColumn.RATING -> matchesComparableField(person.rating, stateAny)
-
             PersonColumn.HIRE_DATE -> matchesComparableField(person.hireDate, stateAny)
-
             PersonColumn.NOTES -> matchesTextField(person.notes, stateAny)
-
             PersonColumn.AGE_GROUP -> matchesAgeGroupField(person.age, stateAny)
-
             PersonColumn.EXPAND -> true
-
             PersonColumn.SELECTION -> true
-
-            // Person has no region any more; a saved filter on it restricts nothing.
-            PersonColumn.REGION -> true
         }
     }
 

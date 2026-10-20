@@ -17,8 +17,7 @@ private fun <T> condition(
 
 /**
  * A nested filter over the sample columns: two OR groups, a negated group and plain conditions under
- * the AND root, and a condition on [PersonColumn.REGION], which has no column, so the row shows the
- * chip of a key the table does not know (titled by [personUnknownColumnTitle]).
+ * the AND root.
  */
 internal fun nestedFilterDemo(): TableFilterNode.Group<PersonColumn> =
     TableFilterNode.Group(
@@ -54,7 +53,6 @@ internal fun nestedFilterDemo(): TableFilterNode.Group<PersonColumn> =
                     condition(PersonColumn.DEPARTMENT, FilterConstraint.EQUALS, "Engineering"),
                 ),
             ),
-            condition(PersonColumn.REGION, FilterConstraint.EQUALS, "EMEA"),
         ),
     )
 
@@ -88,7 +86,3 @@ internal fun personUnresolvedTitle(
     key: String,
     payload: Any?,
 ): String? = if (key == "salary_band" && payload == SALARY_BAND_PAYLOAD) "Salary band" else null
-
-/** The chips' title of a key the table has no column for. */
-internal fun personUnknownColumnTitle(column: PersonColumn): String? =
-    if (column == PersonColumn.REGION) "Region" else null
