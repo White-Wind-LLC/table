@@ -12,6 +12,8 @@ internal class FilterExpressionMap<C>(
     private val read: () -> Group<C>,
     private val write: (Group<C>) -> Unit,
 ) : AbstractMutableMap<C, TableFilterState<*>>() {
+    // Every read rebuilds this list, so get and size are O(n) in the root's children; fine at the
+    // filter counts tables have, and simpler than a cache kept in step with the tree.
     private fun firstConditions(): List<Condition<C>> =
         read()
             .children
@@ -97,13 +99,4 @@ internal class FilterExpressionMap<C>(
 
         override fun toString(): String = "$key=$value"
     }
-}
-
-internal fun <C> TableState<C>.updateFilterExpression(transform: (Group<C>) -> Group<C>) {
-    filterExpression = transform(filterExpression)
-}
-
-/** Removes every top-level child that is not a plain condition. */
-internal fun <C> TableState<C>.clearComplexFilters() {
-    updateFilterExpression { root -> root.copy(children = root.children.filterIsInstance<Condition<C>>()) }
 }

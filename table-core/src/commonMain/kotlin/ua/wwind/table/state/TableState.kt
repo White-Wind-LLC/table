@@ -58,11 +58,8 @@ public sealed interface ColumnWidthAction {
  *
  * The members those holders took over remain here as deprecated forwarders for one release, each
  * naming its replacement, so existing call sites keep compiling; they are removed in the next major.
- *
- * `TooManyFunctions` is suppressed because the public filter-tree setter is part of the contract
- * next to [setFilter]; the tree operations themselves live outside the class.
  */
-@Suppress("TooManyFunctions")
+@Suppress("TooManyFunctions") // The filter-tree setter belongs next to setFilter; tree operations live outside.
 @Stable
 public class TableState<C>
     internal constructor(
@@ -234,15 +231,23 @@ public class TableState<C>
         public var groupBy: C? by mutableStateOf(null)
             private set
 
-        /** The whole filter tree; always an AND group. Snapshot-backed: observe with snapshotFlow. */
-        public var filterExpression: TableFilterNode.Group<C> by mutableStateOf(
+        private var filterRoot: TableFilterNode.Group<C> by mutableStateOf(
             TableFilterNode.Group(TableFilterNode.Operator.AND, emptyList()),
         )
-            internal set
+
+        /**
+         * The whole filter tree; always an AND group. Snapshot-backed: observe with snapshotFlow.
+         * Internal writes are normalized as [setFilterExpression] does.
+         */
+        public var filterExpression: TableFilterNode.Group<C>
+            get() = filterRoot
+            internal set(value) {
+                filterRoot = value.asRoot()
+            }
 
         /** Replaces the tree. A root that is not an AND group becomes the single child of an AND root. */
         public fun setFilterExpression(root: TableFilterNode<C>) {
-            filterExpression = root.asRoot()
+            filterRoot = root.asRoot()
         }
 
         /**

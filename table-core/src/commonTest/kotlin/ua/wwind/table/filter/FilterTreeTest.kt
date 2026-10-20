@@ -3,6 +3,7 @@ package ua.wwind.table.filter
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isFalse
+import assertk.assertions.isNull
 import assertk.assertions.isSameInstanceAs
 import assertk.assertions.isTrue
 import ua.wwind.table.filter.data.FilterConstraint
@@ -15,6 +16,7 @@ import ua.wwind.table.filter.data.TableFilterNode.Operator.OR
 import ua.wwind.table.filter.data.TableFilterState
 import ua.wwind.table.filter.data.asRoot
 import ua.wwind.table.filter.data.isActive
+import ua.wwind.table.filter.data.nodeAt
 import ua.wwind.table.filter.data.removeAt
 import ua.wwind.table.filter.data.replaceAt
 import ua.wwind.table.filter.data.setOperatorAt
@@ -86,6 +88,37 @@ class FilterTreeTest {
         val wrapped = and(or(a, b)).toggleNotAt(listOf(0))
         assertThat(wrapped).isEqualTo(and(Not(or(a, b))))
         assertThat(wrapped.toggleNotAt(listOf(0))).isEqualTo(and(or(a, b)))
+    }
+
+    @Test
+    fun `toggleNotAt on a not over a condition leaves the condition`() {
+        assertThat(and(Not(a), c).toggleNotAt(listOf(0))).isEqualTo(and(a, c))
+        assertThat(and(or(Not(a), b)).toggleNotAt(listOf(0, 0))).isEqualTo(and(or(a, b)))
+    }
+
+    @Test
+    fun `toggleNotAt and setOperatorAt with an invalid path return the receiver`() {
+        val root = and(or(a, b), Not(c))
+        assertThat(root.toggleNotAt(listOf(5))).isSameInstanceAs(root)
+        assertThat(root.toggleNotAt(listOf(0, 0, 0))).isSameInstanceAs(root)
+        assertThat(root.toggleNotAt(listOf(1, 1))).isSameInstanceAs(root)
+        assertThat(root.toggleNotAt(emptyList())).isSameInstanceAs(root)
+        assertThat(root.setOperatorAt(listOf(5), AND)).isSameInstanceAs(root)
+        assertThat(root.setOperatorAt(listOf(1, 0), AND)).isSameInstanceAs(root)
+        assertThat(root.setOperatorAt(listOf(0, 0), AND)).isSameInstanceAs(root)
+    }
+
+    @Test
+    fun `nodeAt walks groups and nots`() {
+        val root = and(or(a, Not(b)), c)
+        assertThat(root.nodeAt(emptyList())).isSameInstanceAs(root)
+        assertThat(root.nodeAt(listOf(0))).isEqualTo(or(a, Not(b)))
+        assertThat(root.nodeAt(listOf(0, 1, 0))).isEqualTo(b)
+        assertThat(root.nodeAt(listOf(1))).isEqualTo(c)
+        assertThat(root.nodeAt(listOf(2))).isNull()
+        assertThat(root.nodeAt(listOf(0, 1, 1))).isNull()
+        assertThat(root.nodeAt(listOf(1, 0))).isNull()
+        assertThat(root.nodeAt(listOf(-1))).isNull()
     }
 
     @Test

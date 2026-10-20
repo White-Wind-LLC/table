@@ -93,6 +93,43 @@ class TableStateFilterExpressionTest {
         assertThat(state.filterExpression).isEqualTo(and(or(x, y)))
     }
 
+    @Test
+    fun `internal writers wrap a non-AND root too`() {
+        val state = newState()
+        state.filterExpression = or(x, y)
+        assertThat(state.filterExpression).isEqualTo(and(or(x, y)))
+        state.updateFilterExpression { or(x) }
+        assertThat(state.filterExpression).isEqualTo(and(or(x)))
+    }
+
+    @Test
+    fun `entry setValue writes through to the tree`() {
+        val state = newState()
+        state.setFilterExpression(and(Condition("a", s1), or(x, y), Condition("b", s2)))
+        val entry = state.filters.entries.first { it.key == "b" }
+
+        assertThat(entry.setValue(s3)).isEqualTo(s2)
+
+        assertThat(entry.value).isEqualTo(s3)
+        assertThat(state.filterExpression).isEqualTo(and(Condition("a", s1), or(x, y), Condition("b", s3)))
+    }
+
+    @Test
+    fun `iterator remove drops the shown condition and the next one on that column shows`() {
+        val state = newState()
+        state.setFilterExpression(and(Condition("a", s1), Condition("b", s2), Condition("a", s3)))
+        val iterator = state.filters.entries.iterator()
+
+        assertThat(iterator.next().key).isEqualTo("a")
+        iterator.remove()
+
+        assertThat(state.filterExpression).isEqualTo(and(Condition("b", s2), Condition("a", s3)))
+        assertThat(state.filters["a"]).isEqualTo(s3)
+        // The iteration goes on over the entries it started with.
+        assertThat(iterator.next().key).isEqualTo("b")
+        assertThat(iterator.hasNext()).isEqualTo(false)
+    }
+
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun `filters view is snapshot observable`() =

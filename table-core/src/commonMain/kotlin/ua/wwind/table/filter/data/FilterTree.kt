@@ -29,7 +29,7 @@ internal fun <C> Group<C>.replaceAt(
     node: TableFilterNode<C>,
 ): Group<C> {
     if (path.isEmpty() || nodeAt(path) == null) return this
-    return rewrite(path) { node } as Group<C>
+    return rewrite(path, depth = 0) { node } as Group<C>
 }
 
 /**
@@ -38,7 +38,7 @@ internal fun <C> Group<C>.replaceAt(
  */
 internal fun <C> Group<C>.removeAt(path: FilterPath): Group<C> {
     if (path.isEmpty() || nodeAt(path) == null) return this
-    return removeFrom(this, path, isRoot = true) as Group<C>
+    return removeFrom(path, depth = 0) as Group<C>
 }
 
 internal fun <C> Group<C>.setOperatorAt(
@@ -47,73 +47,61 @@ internal fun <C> Group<C>.setOperatorAt(
 ): Group<C> {
     if (path.isEmpty()) return this
     val target = nodeAt(path) as? Group ?: return this
-    return rewrite(path) { target.copy(operator = operator) } as Group<C>
+    return rewrite(path, depth = 0) { target.copy(operator = operator) } as Group<C>
 }
 
 internal fun <C> Group<C>.toggleNotAt(path: FilterPath): Group<C> {
     if (path.isEmpty()) return this
     val target = nodeAt(path) ?: return this
-    return rewrite(path) { if (target is Not) target.child else Not(target) } as Group<C>
+    return rewrite(path, depth = 0) { if (target is Not) target.child else Not(target) } as Group<C>
 }
+
+// Callers check the path with nodeAt first, so every step below a node goes into a group or a not.
 
 private fun <C> TableFilterNode<C>.rewrite(
     path: FilterPath,
+    depth: Int,
     transform: () -> TableFilterNode<C>,
 ): TableFilterNode<C> {
-    if (path.isEmpty()) return transform()
-    val index = path.first()
-    val rest = path.drop(1)
+    if (depth == path.size) return transform()
     return when (this) {
-        is Group -> {
-            copy(
+        is Not -> {
+            copy(child = child.rewrite(path, depth + 1, transform))
+        }
+
+        else -> {
+            val group = this as Group
+            val index = path[depth]
+            group.copy(
                 children =
-                    children.mapIndexed { i, child ->
-                        if (i == index) child.rewrite(rest, transform) else child
+                    group.children.mapIndexed { i, child ->
+                        if (i == index) child.rewrite(path, depth + 1, transform) else child
                     },
             )
-        }
-
-        is Not -> {
-            copy(child = child.rewrite(rest, transform))
-        }
-
-        is Condition -> {
-            this
         }
     }
 }
 
-private fun <C> removeFrom(
-    node: TableFilterNode<C>,
+private fun <C> TableFilterNode<C>.removeFrom(
     path: FilterPath,
-    isRoot: Boolean,
+    depth: Int,
 ): TableFilterNode<C>? {
-    val index = path.first()
-    val rest = path.drop(1)
-    return when (node) {
-        is Group -> {
-            val children =
-                node.children.mapIndexedNotNull { i, child ->
-                    when {
-                        i != index -> child
-                        rest.isEmpty() -> null
-                        else -> removeFrom(child, rest, isRoot = false)
-                    }
-                }
+    val isTarget = depth == path.lastIndex
+    if (this is Not) return if (isTarget) null else child.removeFrom(path, depth + 1)?.let { Not(it) }
+    val group = this as Group
+    val index = path[depth]
+    val children =
+        group.children.mapIndexedNotNull { i, child ->
             when {
-                isRoot -> node.copy(children = children)
-                children.isEmpty() -> null
-                children.size == 1 && node.children.size != 1 -> children.single()
-                else -> node.copy(children = children)
+                i != index -> child
+                isTarget -> null
+                else -> child.removeFrom(path, depth + 1)
             }
         }
-
-        is Not -> {
-            if (rest.isEmpty()) null else removeFrom(node.child, rest, isRoot = false)?.let { Not(it) }
-        }
-
-        is Condition -> {
-            node
-        }
+    return when {
+        depth == 0 -> group.copy(children = children)
+        children.isEmpty() -> null
+        children.size == 1 && group.children.size != 1 -> children.single()
+        else -> group.copy(children = children)
     }
 }
