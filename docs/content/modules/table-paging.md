@@ -28,8 +28,12 @@ The paged `Table` renders every `LoadState` it receives:
 | no rows yet, first ones loading (`items == null`, or size 0 and `Loading`) | `loadingContent` | centred progress indicator |
 | no rows, the first load failed | `errorContent` | "Couldn't load data" + **Retry** |
 | loaded, no rows | `emptyContent` | "No data" / "No results" (see [Empty state](../guides/filters.md#empty-state)) |
-| rows on screen, more loading for 400 ms+ | `loadingIndicator` | linear progress bar under the header |
-| rows on screen, a load failed | `errorBar` | "Couldn't load some rows" + **Retry** at the bottom |
+| rows on screen, the ones being looked at still loading after 400 ms | `loadingIndicator` | linear progress bar under the header |
+| rows on screen, loading the ones being looked at failed | `errorBar` | "Couldn't load some rows" + **Retry** at the bottom |
+
+The table reads only `loadState`, which since `paging-core` 2.4.0 covers the accessed position. Preloading
+the rest of the window is reported in `prefetchState`, and the table ignores it: scrolling over cached
+rows shows no indicator, and a failed preload shows no error bar until the user reaches those rows.
 
 `errorContent` and `errorBar` receive a `PagedTableErrorScope` with the `error` and a `retry()` that
 reloads the failed position. Pass `null` as `loadingIndicator` or `errorBar` to turn them off. All
@@ -64,7 +68,7 @@ Nothing to configure — the adapter keys rows without touching the accessor the
 
 Keying the list no longer reports a viewport at all. The other half of that loop was a pager bug and
 is fixed in `paging-core` 2.3.1 ([paging-kmp#45](https://github.com/White-Wind-LLC/paging-kmp/issues/45));
-either fix alone stops the reload loop, and `table-paging` is built against 2.3.1.
+either fix alone stops the reload loop, and `table-paging` is built against 2.4.0.
 
 ## Row blocks
 

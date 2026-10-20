@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+### Unreleased
+
+- Updated: `ua.wwind.paging:paging-core` to 2.4.0 (from 2.3.4). Its `loadState` now covers only the accessed
+  position, so the paged `Table` shows `loadingIndicator` and `errorBar` only for the rows being looked at, not for
+  preloading the window around them. 2.4.0 breaks binary compatibility for code calling the `Pager`,
+  `StreamingPager` or `PagingMediatorConfig` constructors: Gradle resolves the newer version at runtime, so
+  recompile against 2.4.0 ([release notes](https://github.com/White-Wind-LLC/paging-kmp/releases/tag/v2.4.0)).
+
 ### 3.6.0 — 2026-10-21
 
 A reference column can hold a "value is in any of these groups" condition as a normal filter instead of an

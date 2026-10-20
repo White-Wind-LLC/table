@@ -43,6 +43,7 @@ private fun noRows(
 ) = PagingData(
     data = PagingMap<String>(size = 0, values = persistentMapOf(), onGet = {}),
     loadState = loadState,
+    prefetchState = LoadState.Success,
     retry = retry,
 )
 

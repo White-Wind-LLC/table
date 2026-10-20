@@ -4,9 +4,10 @@ import ua.wwind.paging.core.LoadState
 import ua.wwind.paging.core.PagingData
 
 /**
- * What a paged table shows for one snapshot. The pager reports a single global [LoadState] over a
- * list whose total size is known up front, so "no rows yet" and "rows on screen" are the only
- * axes: without rows the state fills the body; with rows it is an indicator or an error bar.
+ * What a paged table shows for one snapshot. The pager's `loadState` covers only the accessed
+ * position (the preload window is in `prefetchState`, which the table ignores) over a list whose
+ * total size is known up front, so "no rows yet" and "rows on screen" are the only axes: without
+ * rows the state fills the body; with rows it is an indicator or an error bar.
  */
 internal sealed interface PagedBodyState {
     /** No rows, and the first ones are on their way: no snapshot yet, or size 0 while loading. */
