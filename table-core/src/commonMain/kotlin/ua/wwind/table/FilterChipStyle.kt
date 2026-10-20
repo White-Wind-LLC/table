@@ -75,17 +75,14 @@ public class TableFilterChipStyle<C>(
 /** Defaults for [TableFilterChipStyle]. */
 public object TableFilterChipDefaults {
     /**
-     * Colors of each chip kind: conditions keep the plain input chip look, groups use the secondary
+     * Colors of each chip kind: conditions keep the plain input chip look, groups use the primary
      * container, negated groups the error container and unknown columns the tertiary container.
      */
     @Composable
     public fun colors(
         condition: SelectableChipColors = InputChipDefaults.inputChipColors(),
         group: SelectableChipColors =
-            containerColors(
-                MaterialTheme.colorScheme.secondaryContainer,
-                MaterialTheme.colorScheme.onSecondaryContainer,
-            ),
+            containerColors(MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.onPrimaryContainer),
         negatedGroup: SelectableChipColors =
             containerColors(MaterialTheme.colorScheme.errorContainer, MaterialTheme.colorScheme.onErrorContainer),
         unknown: SelectableChipColors =
@@ -142,6 +139,29 @@ public fun <C> DefaultFilterChip(
     colors: SelectableChipColors = (LocalFilterChipColors.current ?: TableFilterChipDefaults.colors()).of(node),
     clearContentDescription: String = node.defaultClearContentDescription(),
 ) {
+    FilterInputChip(
+        onClick = onClick,
+        onClear = node.onClear,
+        label = label,
+        leadingIcon = leadingIcon,
+        colors = colors,
+        clearContentDescription = clearContentDescription,
+        modifier = modifier,
+    )
+}
+
+/** The input chip shell shared by [DefaultFilterChip] and [DefaultActiveFilterChip]. */
+@Composable
+@Suppress("LongParameterList")
+internal fun FilterInputChip(
+    onClick: (() -> Unit)?,
+    onClear: () -> Unit,
+    label: @Composable () -> Unit,
+    leadingIcon: (@Composable () -> Unit)?,
+    colors: SelectableChipColors,
+    clearContentDescription: String,
+    modifier: Modifier = Modifier,
+) {
     InputChip(
         selected = true,
         onClick = onClick ?: {},
@@ -159,7 +179,7 @@ public fun <C> DefaultFilterChip(
                         interactionSource = null,
                         indication = ripple(bounded = false, radius = ClearIconRippleRadius),
                         role = Role.Button,
-                        onClick = node.onClear,
+                        onClick = onClear,
                     ),
             )
         },

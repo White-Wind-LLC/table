@@ -1,25 +1,18 @@
+// The file is named after DefaultActiveFilterChip; both its declarations go in 4.0.
+@file:Suppress("MatchingDeclarationName")
+
 package ua.wwind.table
 
-import androidx.compose.foundation.clickable
-import androidx.compose.material3.Icon
 import androidx.compose.material3.InputChip
 import androidx.compose.material3.InputChipDefaults
 import androidx.compose.material3.SelectableChipColors
 import androidx.compose.material3.Text
-import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.unit.dp
-import org.jetbrains.compose.resources.painterResource
 import ua.wwind.table.filter.data.TableFilterState
-import ua.wwind.table.icon.TableIcons
 import ua.wwind.table.strings.StringProvider
 import ua.wwind.table.strings.UiString
-
-/** Radius of the round press and hover indication around a chip's ×; fits the 32 dp chip. */
-private val ClearIconRippleRadius = 12.dp
 
 /**
  * What a column's chip in the active filters row knows, passed to [ColumnSpec.activeFilterChip].
@@ -76,36 +69,13 @@ public fun <C> DefaultActiveFilterChip(
     colors: SelectableChipColors = InputChipDefaults.inputChipColors(),
     clearContentDescription: String = ctx.strings.get(UiString.ColumnMenuClearFilter),
 ) {
-    InputChip(
-        selected = true,
-        onClick = onClick ?: {},
+    FilterInputChip(
+        onClick = onClick,
+        onClear = ctx.onClear,
         label = label,
-        enabled = onClick != null,
         leadingIcon = leadingIcon,
-        trailingIcon = {
-            Icon(
-                painter = painterResource(TableIcons.Close),
-                contentDescription = clearContentDescription,
-                // A round, unbounded indication like an IconButton's, without its 48 dp target that would
-                // make the chip taller.
-                modifier =
-                    Modifier.clickable(
-                        interactionSource = null,
-                        indication = ripple(bounded = false, radius = ClearIconRippleRadius),
-                        role = Role.Button,
-                        onClick = ctx.onClear,
-                    ),
-            )
-        },
-        // A chip without a click is disabled only so that it does not react; it keeps the look of an active one.
-        colors =
-            colors.copy(
-                disabledSelectedContainerColor = colors.selectedContainerColor,
-                disabledLabelColor = colors.selectedLabelColor,
-                disabledLeadingIconColor = colors.selectedLeadingIconColor,
-                disabledTrailingIconColor = colors.selectedTrailingIconColor,
-            ),
-        border = InputChipDefaults.inputChipBorder(enabled = true, selected = true),
+        colors = colors,
+        clearContentDescription = clearContentDescription,
         modifier = modifier,
     )
 }
