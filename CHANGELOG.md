@@ -2,12 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
-### Unreleased
+### 3.6.0 — 2026-10-21
+
+A reference column can hold a "value is in any of these groups" condition as a normal filter instead of an
+unresolved one.
 
 - Added: `FilterConstraint.IN_HIERARCHY` (value under any of the listed hierarchy nodes) and
   `UiString.FilterConstraintInHierarchy`, for custom filters on reference columns; no built-in type offers it
   ([#163](https://github.com/White-Wind-LLC/table/issues/163)).
 - Changed: the new `FilterConstraint` and `UiString` branches break exhaustive `when`s.
+
+Compare: [v3.5.0...v3.6.0](https://github.com/White-Wind-LLC/table/compare/v3.5.0...v3.6.0)
 
 ### 3.5.0 — 2026-10-20
 
