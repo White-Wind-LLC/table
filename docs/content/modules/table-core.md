@@ -38,7 +38,7 @@ row selection, i18n, styling/customization, and dynamic or fixed row height.
   while it is not empty; show no rows meanwhile, and the default empty state says why. The row is the only place
   the table shows the conditions themselves.
 - Chip customization: a column draws the content of its chips with `filterChipContent(leadingIcon, label)`;
-  `TableFilterChipDefaults.style(colors, unknownTitle, unresolvedTitle, chip)` passed as `filterChips` to `Table` or
+  `TableFilterChipDefaults.style(colors, unknownTitle, unresolvedTitle, chip)` passed as `filterChips` to `Table` (core or paged) or
   `TableActiveFilters` sets colors, titles of unknown keys and unresolved conditions, and a full chip renderer, which can call
   `DefaultFilterChip` to keep parts of the default. `activeFilterChip`, `TableFilterChipContext` and
   `DefaultActiveFilterChip` are deprecated and removed in 4.0.
