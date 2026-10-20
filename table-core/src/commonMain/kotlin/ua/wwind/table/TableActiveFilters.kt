@@ -6,12 +6,14 @@ import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkHorizontally
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -19,6 +21,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.InputChip
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -35,6 +38,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.ImmutableList
@@ -110,7 +116,8 @@ public fun <T : Any, C, E> TableActiveFilters(
 
 /**
  * Renders a compact header row with one chip per top-level node of the filter tree.
- * Without table data the chips cannot open filter panels; their × removes the filter.
+ * Without table data the chips cannot open filter panels; their × removes the filter. Groups cannot be opened,
+ * so an unresolved condition inside a group goes away only with its group or with "Clear all".
  */
 @Deprecated(
     "Pass tableData so that clicking a chip opens its filter panel. Removed in 4.0.",
@@ -298,7 +305,35 @@ internal fun <T : Any, C, E> ActiveFilterChips(
                 },
             )
         }
+        if (state.unresolvedFilters.isNotEmpty()) UnresolvedFiltersLine(strings)
         footer()
+    }
+}
+
+/** Says that the filter is not applied while it has unresolved conditions. */
+@Composable
+private fun UnresolvedFiltersLine(strings: StringProvider) {
+    val color = MaterialTheme.colorScheme.error
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp, vertical = 2.dp)
+                .semantics { liveRegion = LiveRegionMode.Polite },
+    ) {
+        Icon(
+            painter = painterResource(TableIcons.Warning),
+            contentDescription = null,
+            tint = color,
+            modifier = Modifier.size(16.dp),
+        )
+        Text(
+            text = strings.get(UiString.FilterUnresolvedBlocked),
+            color = color,
+            style = MaterialTheme.typography.bodySmall,
+        )
     }
 }
 

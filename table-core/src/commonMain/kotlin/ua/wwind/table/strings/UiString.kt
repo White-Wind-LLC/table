@@ -292,6 +292,9 @@ public sealed class UiString {
     /** Describes a condition on a column the table does not know. */
     public object FilterUnknownField : UiString()
 
+    /** Shown under the active filters while the filter has unresolved conditions and so is not applied. */
+    public object FilterUnresolvedBlocked : UiString()
+
     // Grouping menu
     public object GroupBy : UiString()
 
@@ -691,6 +694,8 @@ public object DefaultStrings : StringProvider {
             UiString.FilterBack -> "Back"
 
             UiString.FilterUnknownField -> "Unknown field"
+
+            UiString.FilterUnresolvedBlocked -> "Filter contains unknown fields — remove them to apply"
 
             // Grouping menu
             UiString.GroupBy -> "Group by"

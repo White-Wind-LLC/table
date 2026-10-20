@@ -1,6 +1,7 @@
 package ua.wwind.table
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -48,13 +49,16 @@ import ua.wwind.table.filter.data.TableFilterNode.Operator
 import ua.wwind.table.filter.data.TableFilterState
 import ua.wwind.table.filter.data.TableFilterType
 import ua.wwind.table.filter.data.isActive
+import ua.wwind.table.filter.data.removeAt
 import ua.wwind.table.state.TableState
 import ua.wwind.table.state.rememberTableState
+import ua.wwind.table.state.updateFilterExpression
 import ua.wwind.table.strings.DefaultStrings
 import ua.wwind.table.strings.StringProvider
 import kotlin.test.Test
 
 private const val HOUR_MS = 3_600_000L
+private const val BLOCKED = "Filter contains unknown fields — remove them to apply"
 
 @OptIn(ExperimentalTestApi::class)
 class ActiveFilterTreeRowTest {
@@ -479,5 +483,47 @@ class ActiveFilterTreeRowTest {
             onNodeWithText("y").assertIsDisplayed()
             onNodeWithText("x").assertDoesNotExist()
             assertThat(unresolvedNodes.map { it.key to it.title }).containsExactly("x" to "Known name", "y" to "y")
+        }
+
+    @Test
+    fun `row shows the blocked line while an unresolved leaf exists`() =
+        runComposeUiTest {
+            val state = setTable(and(or(eq("a", "a"), TableFilterNode.Unresolved("old")), eq("c", "c")))
+
+            onNodeWithText(BLOCKED).assertIsDisplayed()
+            runOnIdle { state.updateFilterExpression { it.removeAt(listOf(0, 1)) } }
+            waitForIdle()
+
+            onNodeWithText(BLOCKED).assertDoesNotExist()
+        }
+
+    @Test
+    fun `standalone row shows the blocked line`() =
+        runComposeUiTest {
+            lateinit var state: TableState<String>
+            setContent {
+                state = rememberTableState(columns = persistentListOf("a", "b", "c", "d", "e"))
+                Column(Modifier.size(1200.dp, 400.dp)) {
+                    TableActiveFilters(columns = columns, state = state, tableData = Unit)
+                }
+            }
+            runOnIdle { state.setFilterExpression(and(TableFilterNode.Unresolved("old"))) }
+            waitForIdle()
+
+            onNodeWithText(BLOCKED).assertIsDisplayed()
+        }
+
+    @Test
+    fun `a tree of only an unresolved leaf is filtered and clear all removes it`() =
+        runComposeUiTest {
+            val state = setTable(and(TableFilterNode.Unresolved("old")))
+
+            onNodeWithText("old").assertIsDisplayed()
+            onNodeWithText(BLOCKED).assertIsDisplayed()
+            onNodeWithText("Clear all").performClick()
+            waitForIdle()
+
+            assertThat(state.filterExpression.children).isEmpty()
+            onNodeWithText(BLOCKED).assertDoesNotExist()
         }
 }
