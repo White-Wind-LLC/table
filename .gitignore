@@ -31,3 +31,4 @@ docs/superpowers/plans/
 # Claude Code local state (worktrees and machine-specific settings)
 /.claude/worktrees/
 /.claude/settings.local.json
+.superpowers/
