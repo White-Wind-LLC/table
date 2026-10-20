@@ -2,10 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
-### Unreleased
+### 3.5.0 — 2026-10-20
+
+The paged `Table` takes the same filter chip style as the core table.
 
 - Added: `filterChips: TableFilterChipStyle<C>` on both paged `Table` overloads, as on the core `Table`
   ([#160](https://github.com/White-Wind-LLC/table/issues/160)).
+
+Compare: [v3.4.0...v3.5.0](https://github.com/White-Wind-LLC/table/compare/v3.4.0...v3.5.0)
 
 ### 3.4.0 — 2026-10-20
 
