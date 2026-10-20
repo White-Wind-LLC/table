@@ -141,6 +141,7 @@ internal val DefaultRowKey: (Any?, Int) -> Any = { _, index -> index }
  * @param colors container/content colors
  * @param typography text styles of the header, body, footer and group rows
  * @param strings string provider for UI text
+ * @param filterChips how the chips of the active filters row are drawn
  * @param verticalState list scroll state
  * @param horizontalState horizontal scroll state of the whole table
  * @param icons header icons used for sort and filter affordances
@@ -186,6 +187,7 @@ public fun <T : Any, C, E> EditableTable(
     colors: TableColors = TableDefaults.colors(),
     typography: TableTypography = TableDefaults.typography(),
     strings: StringProvider = DefaultStrings,
+    filterChips: TableFilterChipStyle<C> = TableFilterChipDefaults.style(),
     verticalState: LazyListState = rememberLazyListState(),
     horizontalState: ScrollState = rememberScrollState(),
     icons: TableHeaderIcons = TableHeaderDefaults.icons(),
@@ -310,6 +312,7 @@ public fun <T : Any, C, E> EditableTable(
                             state = state,
                             tableData = tableData,
                             strings = strings,
+                            filterChips = filterChips,
                             modifier = activeFiltersModifier(embedded, state.tableWidth),
                         )
                     }
@@ -476,6 +479,7 @@ public fun <T : Any, C, E> EditableTable(
  * @param colors container/content colors
  * @param typography text styles of the header, body, footer and group rows
  * @param strings string provider for UI text
+ * @param filterChips how the chips of the active filters row are drawn
  * @param verticalState list scroll state
  * @param horizontalState horizontal scroll state of the whole table
  * @param icons header icons used for sort and filter affordances
@@ -520,6 +524,7 @@ public fun <T : Any, C> Table(
     colors: TableColors = TableDefaults.colors(),
     typography: TableTypography = TableDefaults.typography(),
     strings: StringProvider = DefaultStrings,
+    filterChips: TableFilterChipStyle<C> = TableFilterChipDefaults.style(),
     verticalState: LazyListState = rememberLazyListState(),
     horizontalState: ScrollState = rememberScrollState(),
     icons: TableHeaderIcons = TableHeaderDefaults.icons(),
@@ -550,6 +555,7 @@ public fun <T : Any, C> Table(
         colors = colors,
         typography = typography,
         strings = strings,
+        filterChips = filterChips,
         verticalState = verticalState,
         horizontalState = horizontalState,
         icons = icons,
@@ -600,6 +606,7 @@ public fun <T : Any, C> Table(
  * @param colors container/content colors
  * @param typography text styles of the header, body, footer and group rows
  * @param strings string provider for UI text
+ * @param filterChips how the chips of the active filters row are drawn
  * @param verticalState list scroll state
  * @param horizontalState horizontal scroll state of the whole table
  * @param icons header icons used for sort and filter affordances
@@ -645,6 +652,7 @@ public fun <T : Any, C, E> Table(
     colors: TableColors = TableDefaults.colors(),
     typography: TableTypography = TableDefaults.typography(),
     strings: StringProvider = DefaultStrings,
+    filterChips: TableFilterChipStyle<C> = TableFilterChipDefaults.style(),
     verticalState: LazyListState = rememberLazyListState(),
     horizontalState: ScrollState = rememberScrollState(),
     icons: TableHeaderIcons = TableHeaderDefaults.icons(),
@@ -675,6 +683,7 @@ public fun <T : Any, C, E> Table(
         colors = colors,
         typography = typography,
         strings = strings,
+        filterChips = filterChips,
         verticalState = verticalState,
         horizontalState = horizontalState,
         icons = icons,

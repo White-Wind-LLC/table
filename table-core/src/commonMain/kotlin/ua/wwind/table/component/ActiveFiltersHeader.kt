@@ -6,17 +6,20 @@ import androidx.compose.ui.Modifier
 import kotlinx.collections.immutable.ImmutableList
 import ua.wwind.table.ActiveFilterChips
 import ua.wwind.table.ColumnSpec
+import ua.wwind.table.TableFilterChipStyle
 import ua.wwind.table.component.header.ColumnFilterPanel
 import ua.wwind.table.config.currentTableColors
 import ua.wwind.table.state.TableState
 import ua.wwind.table.strings.StringProvider
 
 @Composable
+@Suppress("LongParameterList")
 internal fun <T : Any, C, E> ActiveFiltersHeader(
     columns: ImmutableList<ColumnSpec<T, C, E>>,
     state: TableState<C>,
     tableData: E,
     strings: StringProvider,
+    filterChips: TableFilterChipStyle<C>,
     modifier: Modifier = Modifier,
 ) {
     ActiveFilterChips(
@@ -24,7 +27,10 @@ internal fun <T : Any, C, E> ActiveFiltersHeader(
         state = state,
         strings = strings,
         includeClearAllChip = true,
-        filterPanel = { spec, onDismiss -> ColumnFilterPanel(spec, state, tableData, strings, onDismiss) },
+        filterPanel = { spec, filter, onChange, onDismiss ->
+            ColumnFilterPanel(spec, state, tableData, strings, onDismiss, filter, onChange)
+        },
+        filterChips = filterChips,
         modifier = modifier,
         footer = { HorizontalDivider(color = currentTableColors().dividerColor) },
     )

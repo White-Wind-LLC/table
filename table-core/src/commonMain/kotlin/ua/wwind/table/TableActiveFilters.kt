@@ -20,6 +20,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.InputChip
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -36,22 +37,32 @@ import kotlinx.datetime.LocalDate
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 import ua.wwind.table.component.TableMotionSpecs
+import ua.wwind.table.component.filterchips.FilterChipItem
+import ua.wwind.table.component.filterchips.rowItems
+import ua.wwind.table.component.filterchips.summary
 import ua.wwind.table.component.header.ColumnFilterPanel
 import ua.wwind.table.component.rememberTableMotionSpecs
 import ua.wwind.table.filter.data.FilterConstraint
+import ua.wwind.table.filter.data.FilterPath
+import ua.wwind.table.filter.data.TableFilterNode
 import ua.wwind.table.filter.data.TableFilterState
 import ua.wwind.table.filter.data.TableFilterType
 import ua.wwind.table.filter.data.isActive
 import ua.wwind.table.filter.data.isNullCheck
+import ua.wwind.table.filter.data.removeAt
+import ua.wwind.table.filter.data.replaceAt
 import ua.wwind.table.icon.TableIcons
 import ua.wwind.table.state.TableState
+import ua.wwind.table.state.clearComplexFilters
+import ua.wwind.table.state.updateFilterExpression
 import ua.wwind.table.strings.DefaultStrings
 import ua.wwind.table.strings.StringProvider
 import ua.wwind.table.strings.UiString
 
 /**
- * Renders a compact header row with chips describing currently active filters.
- * Clicking a chip opens that column's filter panel under the chip; its × removes the filter.
+ * Renders a compact header row with one chip per top-level node of the filter tree.
+ * Clicking a condition's chip opens that column's filter panel under the chip; its × resets the filter.
+ * A group's × removes the whole group.
  *
  * @param columns all column specs used by the table
  * @param state table state containing current filters
@@ -59,6 +70,7 @@ import ua.wwind.table.strings.UiString
  * @param modifier layout modifier for the chips row
  * @param strings string provider for localized labels
  * @param includeClearAllChip whether to include a leading "Clear all" chip to reset all filters
+ * @param filterChips how the chips are drawn
  */
 @Composable
 @Suppress("LongParameterList")
@@ -69,19 +81,23 @@ public fun <T : Any, C, E> TableActiveFilters(
     modifier: Modifier = Modifier,
     strings: StringProvider = DefaultStrings,
     includeClearAllChip: Boolean = true,
+    filterChips: TableFilterChipStyle<C> = TableFilterChipDefaults.style(),
 ) {
     ActiveFilterChips(
         columns = columns,
         state = state,
         strings = strings,
         includeClearAllChip = includeClearAllChip,
-        filterPanel = { spec, onDismiss -> ColumnFilterPanel(spec, state, tableData, strings, onDismiss) },
+        filterPanel = { spec, filter, onChange, onDismiss ->
+            ColumnFilterPanel(spec, state, tableData, strings, onDismiss, filter, onChange)
+        },
+        filterChips = filterChips,
         modifier = modifier,
     )
 }
 
 /**
- * Renders a compact header row with chips describing currently active filters.
+ * Renders a compact header row with one chip per top-level node of the filter tree.
  * Without table data the chips cannot open filter panels; their × removes the filter.
  */
 @Deprecated(
@@ -96,32 +112,51 @@ public fun <T : Any, C, E> TableActiveFilters(
     modifier: Modifier = Modifier,
     strings: StringProvider = DefaultStrings,
     includeClearAllChip: Boolean = true,
+    filterChips: TableFilterChipStyle<C> = TableFilterChipDefaults.style(),
 ) {
-    ActiveFilterChips(columns, state, strings, includeClearAllChip, filterPanel = null, modifier = modifier)
+    ActiveFilterChips(
+        columns = columns,
+        state = state,
+        strings = strings,
+        includeClearAllChip = includeClearAllChip,
+        filterPanel = null,
+        filterChips = filterChips,
+        modifier = modifier,
+    )
 }
 
+/** Renders a column's filter panel bound to one condition: its [filter] and [onChange]. */
+internal typealias ActiveFilterPanel<T, C, E> = @Composable (
+    spec: ColumnSpec<T, C, E>,
+    filter: TableFilterState<*>,
+    onChange: (TableFilterState<*>?) -> Unit,
+    onDismiss: () -> Unit,
+) -> Unit
+
 /**
- * The chips row. [filterPanel] renders a column's filter panel under its chip; null makes chip clicks do nothing.
- * [footer] is shown under the row while the row is shown.
+ * The chips row, one chip per top-level node of [TableState.filterExpression]. [filterPanel] renders a
+ * condition's filter panel under its chip; null makes condition clicks do nothing. [footer] is shown
+ * under the row while the row is shown.
  */
 @Composable
-@Suppress("LongParameterList")
+@Suppress("LongParameterList", "LongMethod")
 internal fun <T : Any, C, E> ActiveFilterChips(
     columns: ImmutableList<ColumnSpec<T, C, E>>,
     state: TableState<C>,
     strings: StringProvider,
     includeClearAllChip: Boolean,
-    filterPanel: (@Composable (spec: ColumnSpec<T, C, E>, onDismiss: () -> Unit) -> Unit)?,
+    filterPanel: ActiveFilterPanel<T, C, E>?,
+    filterChips: TableFilterChipStyle<C>,
     modifier: Modifier = Modifier,
     footer: @Composable () -> Unit = {},
 ) {
     val keyToSpec: Map<C, ColumnSpec<T, C, E>> = remember(columns) { columns.associateBy { it.key } }
-    var openColumn by remember { mutableStateOf<C?>(null) }
-    // The open panel's chip stays while the panel is open, so editing the filter down to empty
+    var openPath by remember { mutableStateOf<FilterPath?>(null) }
+    // The open chip stays while its panel is open, so editing the filter down to empty
     // does not take the panel away under the user.
-    val shownFilters: List<Pair<C, TableFilterState<*>>> =
-        state.filters.filter { (col, st) -> st.isActive() || col == openColumn }.toList()
-    if (shownFilters.isEmpty()) return
+    val items = rowItems(state.filterExpression, isKnown = keyToSpec::containsKey, keepPath = openPath)
+    if (items.isEmpty()) return
+    val texts = FilterChipTexts(keyToSpec, filterChips.unknownTitle, strings)
     val listState: LazyListState = rememberLazyListState()
     val scope = rememberCoroutineScope()
     // Also shown outside a Table, so it reads the motion setting from the state, not the table's local.
@@ -140,6 +175,10 @@ internal fun <T : Any, C, E> ActiveFilterChips(
         } else {
             UiString.FilterChipsScrollRight
         }
+    val removeNode: (FilterPath) -> Unit = { path ->
+        if (openPath == path) openPath = null
+        state.updateFilterExpression { it.removeAt(path) }
+    }
 
     Column(modifier) {
         Row(
@@ -150,8 +189,8 @@ internal fun <T : Any, C, E> ActiveFilterChips(
                 InputChip(
                     selected = true,
                     onClick = {
-                        openColumn = null
-                        shownFilters.forEach { (col, _) -> clearFilter(state, col, keyToSpec[col]) }
+                        openPath = null
+                        clearAllFilters(state, keyToSpec, items)
                     },
                     label = { Text(strings.get(UiString.FilterClearAll)) },
                     trailingIcon = {
@@ -177,28 +216,82 @@ internal fun <T : Any, C, E> ActiveFilterChips(
                     }
                 },
             )
-            LazyRow(
-                modifier = Modifier.weight(1f),
-                state = listState,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                shownFilters.forEach { (col, st) ->
-                    item {
-                        keyToSpec[col]?.let { spec ->
-                            val isOpen = col == openColumn
-                            ActiveFilterChip(
-                                spec = spec,
-                                filter = st,
-                                isOpen = isOpen,
-                                strings = strings,
-                                onOpen = { if (filterPanel != null) openColumn = col },
-                                onChange = { newState -> state.setFilter(col, newState) },
-                                onClear = {
-                                    if (isOpen) openColumn = null
-                                    clearFilter(state, col, spec)
-                                },
-                            ) {
-                                filterPanel?.invoke(spec) { openColumn = null }
+            CompositionLocalProvider(LocalFilterChipColors provides filterChips.colors) {
+                LazyRow(
+                    modifier = Modifier.weight(1f),
+                    state = listState,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    items.forEach { item ->
+                        item {
+                            when (item) {
+                                is FilterChipItem.Condition -> {
+                                    val isOpen = item.path == openPath
+                                    val spec = keyToSpec.getValue(item.column)
+                                    ConditionChip(
+                                        spec = spec,
+                                        item = item,
+                                        isOpen = isOpen,
+                                        texts = texts,
+                                        filterChips = filterChips,
+                                        onOpen = { if (filterPanel != null) openPath = item.path },
+                                        onChange = { newState ->
+                                            state.updateFilterExpression {
+                                                it.replaceAt(
+                                                    item.path,
+                                                    TableFilterNode.Condition(
+                                                        item.column,
+                                                        newState ?: TableFilterState<Any?>(null, null),
+                                                    ),
+                                                )
+                                            }
+                                        },
+                                        onClear = {
+                                            if (isOpen) openPath = null
+                                            state.updateFilterExpression {
+                                                it.replaceAt(item.path, resetCondition(item.column, spec))
+                                            }
+                                        },
+                                    ) { onChange ->
+                                        filterPanel?.invoke(spec, item.state, onChange) { openPath = null }
+                                    }
+                                }
+
+                                is FilterChipItem.Group -> {
+                                    val node = state.filterExpression.children[item.path.single()]
+                                    FilterChipSlot(
+                                        TableFilterChipNode.Group(
+                                            operator = item.summary.operator,
+                                            negated = item.summary.negated,
+                                            itemCount = item.summary.activeCount,
+                                            columnTitles = item.summary.columns.map { texts.title(it) },
+                                            sharedColumn = item.summary.sharedColumn,
+                                            text = texts.groupText(node),
+                                            description = texts.describe(node),
+                                            isOpen = item.path == openPath,
+                                            // The group's popover reads openPath.
+                                            onOpen = { openPath = item.path },
+                                            placement = TableFilterChipPlacement.Row,
+                                            strings = strings,
+                                            onClear = { removeNode(item.path) },
+                                        ),
+                                        filterChips,
+                                    )
+                                }
+
+                                is FilterChipItem.Unknown -> {
+                                    FilterChipSlot(
+                                        TableFilterChipNode.Unknown(
+                                            column = item.column,
+                                            state = item.state,
+                                            title = texts.title(item.column),
+                                            placement = TableFilterChipPlacement.Row,
+                                            strings = strings,
+                                            onClear = { removeNode(item.path) },
+                                        ),
+                                        filterChips,
+                                    )
+                                }
                             }
                         }
                     }
@@ -213,7 +306,7 @@ internal fun <T : Any, C, E> ActiveFilterChips(
                 modifier = Modifier.padding(start = 4.dp),
                 onClick = {
                     scope.launch(motion.scrollContext) {
-                        val lastIndex = (shownFilters.size - 1).coerceAtLeast(0)
+                        val lastIndex = (items.size - 1).coerceAtLeast(0)
                         val target = (listState.firstVisibleItemIndex + 1).coerceAtMost(lastIndex)
                         listState.animateScrollToItem(target)
                     }
@@ -246,55 +339,187 @@ private fun RowScope.ChipsScrollButton(
     }
 }
 
-/**
- * [spec]'s chip, drawn by [ColumnSpec.activeFilterChip] or [DefaultActiveFilterChip]: [onOpen] opens the
- * panel, [onChange] sets the filter, [onClear] removes it. While [isOpen], [panel] is anchored under the
- * chip, and the chip stays with only the column title if [filter] no longer describes a value.
- */
+/** [node] drawn by [TableFilterChipStyle.chip] or [DefaultFilterChip], with the row's spacing. */
 @Composable
-@Suppress("LongParameterList")
-private fun <T : Any, C, E> ActiveFilterChip(
-    spec: ColumnSpec<T, C, E>,
-    filter: TableFilterState<*>,
-    isOpen: Boolean,
-    strings: StringProvider,
-    onOpen: () -> Unit,
-    onChange: (TableFilterState<*>) -> Unit,
-    onClear: () -> Unit,
-    panel: @Composable () -> Unit,
+private fun <C> FilterChipSlot(
+    node: TableFilterChipNode<C>,
+    filterChips: TableFilterChipStyle<C>,
 ) {
-    val text = spec.filter?.let { buildFilterChipTextUnsafe(it, filter, strings) }
-    if (text == null && !isOpen) return
-    val ctx =
-        TableFilterChipContext(
-            column = spec.key,
-            state = filter,
-            title = spec.title?.invoke() ?: spec.key.toString(),
-            text = text,
-            isOpen = isOpen,
-            strings = strings,
-            onOpen = onOpen,
-            onChange = onChange,
-            onClear = onClear,
-        )
-    // The panel is anchored outside the slot, so a custom chip gets it by calling onOpen.
-    Box {
-        Box(Modifier.padding(horizontal = 4.dp, vertical = 4.dp)) {
-            val chip = spec.activeFilterChip
-            if (chip != null) chip(ctx) else DefaultActiveFilterChip(ctx)
-        }
-        if (isOpen) panel()
+    Box(Modifier.padding(horizontal = 4.dp, vertical = 4.dp)) {
+        val chip = filterChips.chip
+        if (chip != null) chip(node) else DefaultFilterChip(node)
     }
 }
 
-/** Resets [col]'s filter to its first constraint with no value. */
-private fun <C> clearFilter(
-    state: TableState<C>,
-    col: C,
-    spec: ColumnSpec<*, C, *>?,
+/**
+ * A top-level condition's chip: [onOpen] opens the panel, [onChange] sets the condition, [onClear] resets
+ * it. While [isOpen], [panel] is anchored under the chip, and the chip stays with only the column title if
+ * the condition no longer describes a value.
+ */
+@Composable
+@Suppress("LongParameterList")
+private fun <T : Any, C, E> ConditionChip(
+    spec: ColumnSpec<T, C, E>,
+    item: FilterChipItem.Condition<C>,
+    isOpen: Boolean,
+    texts: FilterChipTexts<C>,
+    filterChips: TableFilterChipStyle<C>,
+    onOpen: () -> Unit,
+    onChange: (TableFilterState<*>?) -> Unit,
+    onClear: () -> Unit,
+    panel: @Composable (onChange: (TableFilterState<*>?) -> Unit) -> Unit,
 ) {
+    val text = texts.leafText(item.column, item.state)
+    if (text == null && !isOpen) return
+    val title = texts.title(item.column)
+    // The panel is anchored outside the slot, so a custom chip gets it by calling onOpen.
+    Box {
+        val legacyChip = spec.activeFilterChip
+        if (legacyChip != null) {
+            val ctx =
+                TableFilterChipContext(
+                    column = item.column,
+                    state = item.state,
+                    title = title,
+                    text = text,
+                    isOpen = isOpen,
+                    strings = texts.strings,
+                    onOpen = onOpen,
+                    onChange = onChange,
+                    onClear = onClear,
+                )
+            Box(Modifier.padding(horizontal = 4.dp, vertical = 4.dp)) { legacyChip(ctx) }
+        } else {
+            FilterChipSlot(
+                TableFilterChipNode.Condition(
+                    column = item.column,
+                    state = item.state,
+                    title = title,
+                    text = text,
+                    isOpen = isOpen,
+                    placement = TableFilterChipPlacement.Row,
+                    strings = texts.strings,
+                    onOpen = onOpen,
+                    onChange = onChange,
+                    onClear = onClear,
+                    content = null,
+                ),
+                filterChips,
+            )
+        }
+        if (isOpen) panel(onChange)
+    }
+}
+
+/** Titles, texts and accessibility sentences of filter chips. */
+internal class FilterChipTexts<C>(
+    private val keyToSpec: Map<C, ColumnSpec<*, C, *>>,
+    private val unknownTitle: ((C) -> String?)?,
+    val strings: StringProvider,
+) {
+    /** The column's plain-text title; for an unknown column the app's title for it, else the key. */
+    @Composable
+    fun title(column: C): String {
+        val spec = keyToSpec[column]
+        val title = if (spec != null) spec.title?.invoke() else unknownTitle?.invoke(column)
+        return title ?: column.toString()
+    }
+
+    /** The filter described for a chip, e.g. `Contains "x"`; null when it describes no value. */
+    @Composable
+    fun leafText(
+        column: C,
+        state: TableFilterState<*>,
+    ): String? = keyToSpec[column]?.filter?.let { buildFilterChipTextUnsafe(it, state, strings) }
+
+    /**
+     * A group chip's text: `"Status: Active or Pending"` for an OR on one column, else the distinct
+     * titles of the columns under [node].
+     */
+    @Composable
+    fun groupText(node: TableFilterNode<C>): String {
+        val summary = node.summary()
+        val shared = summary.sharedColumn
+        if (shared != null && node is TableFilterNode.Group) {
+            val leafTexts =
+                node.children.map { child ->
+                    val condition = child as TableFilterNode.Condition
+                    leafText(condition.column, condition.state)
+                }
+            if (leafTexts.all { it != null }) {
+                return "${title(shared)}: " + leafTexts.joinToString(" ${strings.get(UiString.FilterOr)} ")
+            }
+        }
+        return summary.columns.map { title(it) }.joinToString(", ")
+    }
+
+    /** [node] read as a sentence; inactive children are left out. */
+    @Composable
+    fun describe(node: TableFilterNode<C>): String =
+        when (node) {
+            is TableFilterNode.Condition -> {
+                val text = leafText(node.column, node.state)
+                if (text != null) "${title(node.column)} $text" else title(node.column)
+            }
+
+            is TableFilterNode.Group, is TableFilterNode.Not -> {
+                var inner: TableFilterNode<C> = node
+                var negated = false
+                while (inner is TableFilterNode.Not) {
+                    negated = !negated
+                    inner = inner.child
+                }
+                when {
+                    inner is TableFilterNode.Group -> {
+                        val parts = inner.children.filter { it.isActive() }.map { describe(it) }
+                        strings.filterGroupDescription(inner.operator, negated, parts)
+                    }
+
+                    negated -> {
+                        strings.filterGroupDescription(TableFilterNode.Operator.AND, true, listOf(describe(inner)))
+                    }
+
+                    else -> {
+                        describe(inner)
+                    }
+                }
+            }
+        }
+}
+
+/** [column]'s condition reset to its first constraint with no value. */
+private fun <C> resetCondition(
+    column: C,
+    spec: ColumnSpec<*, C, *>?,
+): TableFilterNode.Condition<C> {
     val defaultConstraint = spec?.filter?.constraints?.firstOrNull() ?: FilterConstraint.EQUALS
-    state.setFilter(col, TableFilterState<Any?>(defaultConstraint, null))
+    return TableFilterNode.Condition(column, TableFilterState<Any?>(defaultConstraint, null))
+}
+
+/**
+ * Resets the shown top-level conditions as before the filter tree, removes conditions on unknown columns
+ * and every group or not.
+ */
+private fun <C> clearAllFilters(
+    state: TableState<C>,
+    keyToSpec: Map<C, ColumnSpec<*, C, *>>,
+    shown: List<FilterChipItem<C>>,
+) {
+    val reset = shown.filterIsInstance<FilterChipItem.Condition<C>>().mapTo(HashSet()) { it.path.single() }
+    state.updateFilterExpression { root ->
+        root.copy(
+            children =
+                root.children.mapIndexedNotNull { index, node ->
+                    when {
+                        node !is TableFilterNode.Condition -> node
+                        node.column !in keyToSpec -> null
+                        index in reset -> resetCondition(node.column, keyToSpec[node.column])
+                        else -> node
+                    }
+                },
+        )
+    }
+    state.clearComplexFilters()
 }
 
 @Composable

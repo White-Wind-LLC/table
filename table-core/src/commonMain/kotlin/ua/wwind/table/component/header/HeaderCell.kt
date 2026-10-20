@@ -282,26 +282,32 @@ private fun <C, E> HeaderContent(
     }
 }
 
-/** The filter dropdown of [spec]'s column, anchored to the enclosing layout. */
+/**
+ * The filter dropdown of [spec]'s column, anchored to the enclosing layout. It edits [filter] through
+ * [onChange], by default the column's entry in [TableState.filters].
+ */
 @Composable
+@Suppress("LongParameterList")
 internal fun <C, E> ColumnFilterPanel(
     spec: ColumnSpec<*, C, E>,
     state: TableState<C>,
     tableData: E,
     strings: StringProvider,
     onDismissFilter: () -> Unit,
+    filter: TableFilterState<*>? = state.filters[spec.key],
+    onChange: (TableFilterState<*>?) -> Unit = { newState -> state.setFilter(spec.key, newState) },
 ) {
     @Suppress("UNCHECKED_CAST")
     FilterPanel(
         type = spec.filter as? TableFilterType<Any?>,
-        state = state.filters[spec.key] as? TableFilterState<Any?>,
+        state = filter as? TableFilterState<Any?>,
         tableData = tableData,
         expanded = true,
         onDismissRequest = onDismissFilter,
         strings = strings,
         autoApplyFilters = state.settings.autoApplyFilters,
         autoFilterDebounce = state.settings.autoFilterDebounce,
-        onChange = { newState -> state.setFilter(spec.key, newState) },
+        onChange = onChange,
     )
 }
 
