@@ -202,11 +202,13 @@ internal fun <T : Any, C, E> ActiveFilterChips(
         } else {
             UiString.FilterChipsScrollRight
         }
-    // A removal shifts the paths after it, so nothing stays open.
+    // A removal shifts the paths after it, so nothing stays open; the focus goes to the chip now at that place,
+    // else the one before it.
     val removeNode: (FilterPath) -> Unit = { path ->
         openPath = null
         openGroupPath = null
         state.updateFilterExpression { it.removeAt(path) }
+        focusPath = chipAtRemoved(state.filterExpression, keyToSpec::containsKey, path)
     }
 
     Column(modifier) {
@@ -343,6 +345,16 @@ internal fun <T : Any, C, E> ActiveFilterChips(
         }
         footer()
     }
+}
+
+/** The chip now at the top-level [removed] path, else the last chip before it; null when the row is empty. */
+private fun <C> chipAtRemoved(
+    root: TableFilterNode.Group<C>,
+    isKnown: (C) -> Boolean,
+    removed: FilterPath,
+): FilterPath? {
+    val items = rowItems(root, isKnown, keepPath = null)
+    return (items.firstOrNull { it.path.single() >= removed.single() } ?: items.lastOrNull())?.path
 }
 
 /** An arrow that scrolls the chips row; shown only while the row overflows. */
@@ -517,8 +529,6 @@ internal class FilterChipTexts<C>(
     private val unknownTitle: ((C) -> String?)?,
     val strings: StringProvider,
 ) {
-    fun isKnown(column: C): Boolean = column in keyToSpec
-
     /** The column's plain-text title; for an unknown column the app's title for it, else the key. */
     @Composable
     fun title(column: C): String {

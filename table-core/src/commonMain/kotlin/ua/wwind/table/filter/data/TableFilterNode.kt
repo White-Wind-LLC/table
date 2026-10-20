@@ -3,7 +3,7 @@ package ua.wwind.table.filter.data
 import androidx.compose.runtime.Immutable
 
 /**
- * A node of the filter expression tree: a column [Condition], an [AND]/[OR] [Group], or a [Not].
+ * A node of the filter expression tree: a column [Condition], an [Operator.AND]/[Operator.OR] [Group], or a [Not].
  */
 @Immutable
 public sealed interface TableFilterNode<out C> {

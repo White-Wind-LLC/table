@@ -7,6 +7,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -106,6 +107,28 @@ class ActiveFilterTreeRowTest {
             waitForIdle()
 
             assertThat(state.filterExpression).isEqualTo(and(eq("c", "c")))
+        }
+
+    @Test
+    fun `x on a group chip moves the focus to the chip now at its place`() =
+        runComposeUiTest {
+            setTable(and(or(eq("a", "a"), eq("b", "b")), eq("c", "c")))
+
+            onNodeWithContentDescription("Remove group A, B").performClick()
+            waitForIdle()
+
+            onNodeWithText("C: Equals \"c\"").assertIsFocused()
+        }
+
+    @Test
+    fun `x on the last chip moves the focus to the previous chip`() =
+        runComposeUiTest {
+            setTable(and(eq("c", "c"), or(eq("a", "a"), eq("b", "b"))))
+
+            onNodeWithContentDescription("Remove group A, B").performClick()
+            waitForIdle()
+
+            onNodeWithText("C: Equals \"c\"").assertIsFocused()
         }
 
     @Test

@@ -66,10 +66,10 @@ public data class TableFilterChipColors(
  *   default; the library still owns the popover and its navigation
  */
 @Immutable
-public class TableFilterChipStyle<C>(
-    public val colors: TableFilterChipColors,
-    public val unknownTitle: ((C) -> String?)? = null,
-    public val chip: (@Composable (TableFilterChipNode<C>) -> Unit)? = null,
+public data class TableFilterChipStyle<C>(
+    val colors: TableFilterChipColors,
+    val unknownTitle: ((C) -> String?)? = null,
+    val chip: (@Composable (TableFilterChipNode<C>) -> Unit)? = null,
 )
 
 /** Defaults for [TableFilterChipStyle]. */

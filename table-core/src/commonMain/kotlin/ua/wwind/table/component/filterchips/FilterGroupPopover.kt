@@ -106,7 +106,7 @@ internal fun <T : Any, C, E> FilterGroupPopover(
     val drill = remember { PopoverDrill() }
     val drilled =
         drill.path?.let { path ->
-            (state.filterExpression.nodeAt(path) as? Condition)?.takeIf { texts.isKnown(it.column) }
+            (state.filterExpression.nodeAt(path) as? Condition)?.takeIf { keyToSpec[it.column]?.filter != null }
         }
     if (drill.path != null && drilled == null) LaunchedEffect(drill.path) { drill.path = null }
     val back = { drill.leave(state.filterExpression) { path -> edit { it.removeAt(path) } } }
@@ -352,6 +352,7 @@ private class PopoverTree<C>(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 OperatorSwitch(group.operator) { op -> edit { it.setOperatorAt(groupPath, op) } }
+                if (isTop) Text(strings.get(UiString.FilterOperatorOfThese))
                 NotToggle(linePath, negated)
                 if (!isTop) {
                     val columns = group.summary().columns.map { texts.title(it) }
@@ -418,7 +419,8 @@ private class PopoverTree<C>(
                     isOpen = false,
                     placement = TableFilterChipPlacement.Tree,
                     strings = strings,
-                    onOpen = { drill.path = path },
+                    // A column without a filter type has no panel to drill into.
+                    onOpen = if (spec.filter != null) ({ drill.path = path }) else ({}),
                     onChange = { new -> edit { it.replaceAt(path, Condition(column, new)) } },
                     onClear = remove,
                     content = spec.filterChipContent,

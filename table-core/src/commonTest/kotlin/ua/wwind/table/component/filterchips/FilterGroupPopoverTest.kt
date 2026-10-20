@@ -6,12 +6,16 @@ import androidx.compose.material3.Text
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.click
+import androidx.compose.ui.test.hasAnyAncestor
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.isPopup
 import androidx.compose.ui.test.isRoot
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithText
@@ -22,6 +26,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performKeyInput
 import androidx.compose.ui.test.performMouseInput
+import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.pressKey
 import androidx.compose.ui.test.v2.runComposeUiTest
@@ -57,6 +62,10 @@ class FilterGroupPopoverTest {
                     filter(TableFilterType.TextTableFilter())
                     cell { item, _ -> Text(item) }
                 }
+            }
+            column("e", valueOf = { it }) {
+                header("E")
+                cell { item, _ -> Text(item) }
             }
         }
 
@@ -306,6 +315,25 @@ class FilterGroupPopoverTest {
             onNodeWithText("Any").assertDoesNotExist()
         }
 
+    @Test
+    fun `leaf on a column without a filter type does not drill in`() =
+        runComposeUiTest {
+            val state = setTable(and(or(eq("a"), eq("e"))))
+            openGroup()
+
+            // The chip's center is its ×, so the click goes to the chip's own action.
+            onNode(hasText("E") and hasAnyAncestor(isPopup()))
+                .assertIsDisplayed()
+                .performSemanticsAction(SemanticsActions.OnClick)
+            waitForIdle()
+
+            onNodeWithContentDescription("Back").assertDoesNotExist()
+            onNodeWithText("Any").assertIsDisplayed()
+            onNodeWithContentDescription("Remove filter E").performClick()
+            waitForIdle()
+            assertThat(state.filterExpression).isEqualTo(and(eq("a")))
+        }
+
     private fun ComposeUiTest.openGroup() {
         onNodeWithContentDescription(lastGroup!!.description).performClick()
         waitForIdle()
@@ -316,7 +344,7 @@ class FilterGroupPopoverTest {
         setContent {
             state =
                 rememberTableState(
-                    columns = persistentListOf("a", "b", "c", "d"),
+                    columns = persistentListOf("a", "b", "c", "d", "e"),
                     settings = TableSettings(showActiveFiltersHeader = true, autoFilterDebounce = 0),
                 )
             Box(Modifier.size(1200.dp, 800.dp)) {

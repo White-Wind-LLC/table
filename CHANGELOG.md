@@ -13,11 +13,14 @@ colors, the titles of unknown keys or the chip itself.
   `filters` stays a view of the root's simple top-level conditions, and header edits and `setFilter` touch only
   those. The row shows summary chips for groups and NOT, a merged chip for an OR on one column, and a chip with
   only a × for a filter key the table has no column for. A group's popover has an Any/All switch, a NOT toggle,
-  a × on any node and a drill-in to a condition's filter panel
-  ([#152](https://github.com/White-Wind-LLC/table/issues/152)).
+  a × on any node and a drill-in to a condition's filter panel; adds eight `UiString` keys (`FilterOperatorAny`,
+  `FilterOperatorAll`, `FilterOperatorOfThese`, `FilterNot`, `FilterOr`, `FilterAnd`, `FilterBack`,
+  `FilterUnknownField`) and three `StringProvider` methods with English defaults (`removeFilterLabel`,
+  `removeFilterGroupLabel`, `filterGroupDescription`) ([#152](https://github.com/White-Wind-LLC/table/issues/152)).
 - Added: `filterChipContent(leadingIcon, label)` in the column DSL; `TableFilterChipStyle` (`colors`,
   `unknownTitle`, `chip`) from `TableFilterChipDefaults.style(...)`, passed as `filterChips` to `Table` and
-  `TableActiveFilters`; `DefaultFilterChip` with overridable parts; `TableFilterChipNode` and
+  `TableActiveFilters`; `TableFilterChipColors`, one set of colors per chip kind, from
+  `TableFilterChipDefaults.colors(...)`; `DefaultFilterChip` with overridable parts; `TableFilterChipNode` and
   `TableFilterChipPlacement`.
 - Changed: `TableEmptyScope.isFiltered` and `clearFilters()` see the whole filter tree. A filter key with no
   `ColumnSpec` in `columns` now shows an unknown chip. The new `ColumnSpec.filterChipContent` field changes the JVM

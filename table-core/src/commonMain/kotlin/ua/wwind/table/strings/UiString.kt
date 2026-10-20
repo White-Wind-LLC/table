@@ -277,7 +277,10 @@ public sealed class UiString {
     /** The tag and toggle of a negated group. */
     public object FilterNot : UiString()
 
-    /** Joins the values of a same-column OR group, as in "Status: Active or Pending". */
+    /**
+     * Joins the values of a same-column OR group, as in "Status: Active or Pending", and the parts of an OR
+     * group in a description.
+     */
     public object FilterOr : UiString()
 
     /** Joins the parts of an AND group in a description. */
@@ -400,8 +403,8 @@ public interface StringProvider {
     ): String {
         val sentence =
             when (operator) {
-                TableFilterNode.Operator.OR -> "any of: " + parts.joinToString(", or ")
-                TableFilterNode.Operator.AND -> "all of: " + parts.joinToString(" and ")
+                TableFilterNode.Operator.OR -> "any of: " + parts.joinToString(", ${get(UiString.FilterOr)} ")
+                TableFilterNode.Operator.AND -> "all of: " + parts.joinToString(" ${get(UiString.FilterAnd)} ")
             }
         return if (negated) "Not $sentence" else sentence.replaceFirstChar(Char::uppercaseChar)
     }
