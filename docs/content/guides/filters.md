@@ -5,7 +5,9 @@
   via `rangeOptions`.
 - **BooleanTableFilter**: equals; optional `getTitle(BooleanType)`.
 - **DateTableFilter**: gt/gte/lt/lte/equals/between/is_null/is_not_null (uses `kotlinx.datetime.LocalDate`).
-- **EnumTableFilter<T: Enum<T>>**: in/not_in/equals with `options: List<T>` and `getTitle(T)`.
+- **EnumTableFilter<T: Enum<T>>**: in/not_in/equals with `options: List<T>` and `getTitle(T)`. An optional
+  `getHint(T)` adds a one-line explanation under an option's title in the options list (null for no hint); the
+  selected value, the search and the chips use the title only.
 - **CustomTableFilter<T, E>**: fully custom filter UI and state with access to table data. Implement
   `CustomFilterRenderer<T, E>` for main panel and
   optional fast filter (both receive `tableData: E` parameter), and `CustomFilterStateProvider<T>` for chip text.

@@ -1,5 +1,6 @@
 package ua.wwind.table.filter.component
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -9,6 +10,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -33,6 +35,8 @@ internal const val OPTIONS_SEARCH_THRESHOLD: Int = 8
  *
  * The menu scrolls within the height available in the window.
  *
+ * @param getHint an optional second line under an option's title in the menu; the field and the search use the
+ *   title only
  * @param searchPlaceholder when set and there are more than eight [values], the menu starts with a
  *   search field that narrows the options by their [getTitle], ignoring case; null shows no search
  * @param selectAllLabel label of the action that checks every option shown
@@ -58,6 +62,7 @@ public fun FilterDropdownAnyField(
     selectAllLabel: String? = null,
     selectNoneLabel: String? = null,
     onShownCheckedChange: ((List<Any>, Boolean) -> Unit)? = null,
+    getHint: (@Composable (Any) -> String?)? = null,
 ) {
     var expanded by remember { mutableStateOf(false) }
     var query by remember { mutableStateOf("") }
@@ -108,7 +113,12 @@ public fun FilterDropdownAnyField(
             shown.forEach { (item, title) ->
                 DropdownMenuItem(
                     text = {
-                        OptionText(title = title, checked = checked?.invoke(item), onCheckedChange = { onClick(item) })
+                        OptionText(
+                            title = title,
+                            hint = getHint?.invoke(item),
+                            checked = checked?.invoke(item),
+                            onCheckedChange = { onClick(item) },
+                        )
                     },
                     onClick = {
                         onClick(item)
@@ -162,19 +172,39 @@ private fun SelectAllNoneRow(
     }
 }
 
-/** An option's title, behind a checkbox in multi-select mode ([checked] is not null). */
+/** An option's title with its [hint] below, behind a checkbox in multi-select mode ([checked] is not null). */
 @Composable
 private fun OptionText(
     title: String,
+    hint: String?,
     checked: Boolean?,
     onCheckedChange: () -> Unit,
 ) {
     if (checked == null) {
-        Text(title)
+        TitleWithHint(title = title, hint = hint)
         return
     }
     Row(verticalAlignment = Alignment.CenterVertically) {
         Checkbox(checked = checked, onCheckedChange = { onCheckedChange() })
+        TitleWithHint(title = title, hint = hint)
+    }
+}
+
+@Composable
+private fun TitleWithHint(
+    title: String,
+    hint: String?,
+) {
+    if (hint == null) {
         Text(title)
+        return
+    }
+    Column {
+        Text(title)
+        Text(
+            text = hint,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
