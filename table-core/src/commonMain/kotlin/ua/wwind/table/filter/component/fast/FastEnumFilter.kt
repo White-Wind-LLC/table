@@ -72,6 +72,11 @@ internal fun <T : Any, C, E, ENUM : Enum<ENUM>> FastEnumFilter(
             contentPadding = TableTextFieldDefaults.reducedContentPadding(),
             showBorder = false,
             searchPlaceholder = strings.get(UiString.FilterOptionsSearchPlaceholder),
+            getHint =
+                filter.getHint?.let { hint ->
+                    @Suppress("UNCHECKED_CAST")
+                    { item -> (hint as @Composable (Enum<*>) -> String?).invoke(item as Enum<*>) }
+                },
         )
     }
 }

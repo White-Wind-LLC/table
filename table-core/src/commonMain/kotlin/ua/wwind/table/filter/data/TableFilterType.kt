@@ -140,7 +140,13 @@ public sealed class TableFilterType<T>(
         constraints = persistentListOf(),
     )
 
-    /** Enum filter supporting IN/NOT_IN/EQUALS with custom [getTitle] provider. */
+    /**
+     * Enum filter supporting IN/NOT_IN/EQUALS with custom [getTitle] provider.
+     *
+     * @param getHint an optional one-line explanation shown under an option's title in the options list; null for an
+     *   option without one. Selected values, placeholders and chips show the title only. It precedes [getTitle] so that
+     *   [getTitle] stays the trailing lambda.
+     */
     @Immutable
     public data class EnumTableFilter<T : Enum<T>>(
         val options: ImmutableList<T>,
@@ -150,6 +156,7 @@ public sealed class TableFilterType<T>(
                 FilterConstraint.NOT_IN,
                 FilterConstraint.EQUALS,
             ),
+        val getHint: (@Composable (T) -> String?)? = null,
         val getTitle: @Composable (T) -> String,
     ) : TableFilterType<ImmutableList<T>>(constraints)
 

@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+### Unreleased
+
+- Added: `EnumTableFilter.getHint`, an optional one-line explanation drawn under an option's title in the main
+  filter panel and the fast filter menus; the selected value, the search and the chips keep the title only
+  ([#171](https://github.com/White-Wind-LLC/table/issues/171)). `FilterDropdownAnyField` takes the same `getHint`.
+- Changed: `getHint` sits before `getTitle` in the `EnumTableFilter` constructor so `getTitle` stays the trailing
+  lambda. A call passing `constraints` and `getTitle` by position must name them; the constructor's JVM signature
+  changed, so recompile against this version.
+
 ### 3.7.0 — 2026-11-07
 
 Columns can be pinned at both edges at once: a start block and an end block, each with its own count.

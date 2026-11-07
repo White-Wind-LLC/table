@@ -61,6 +61,10 @@ internal fun <E : Enum<E>> EnumFilter(
                     enumFilterState.onSingleValueChange(item as? E)
                 },
                 modifier = Modifier.fillMaxWidth(),
+                getHint =
+                    filter.getHint?.let { hint ->
+                        { item -> (hint as @Composable (Enum<*>) -> String?).invoke(item as Enum<*>) }
+                    },
                 searchPlaceholder = strings.get(UiString.FilterOptionsSearchPlaceholder),
             )
         }
@@ -94,6 +98,10 @@ internal fun <E : Enum<E>> EnumFilter(
                 onShownCheckedChange = { items, selected ->
                     enumFilterState.onMultiValuesSet(items as List<E>, selected)
                 },
+                getHint =
+                    filter.getHint?.let { hint ->
+                        { item -> (hint as @Composable (Enum<*>) -> String?).invoke(item as Enum<*>) }
+                    },
             )
         }
 
