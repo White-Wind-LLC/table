@@ -2,7 +2,9 @@
 
 All notable changes to this project will be documented in this file.
 
-### Unreleased
+### 3.8.0 — 2026-11-08
+
+An enum filter option can carry a one-line hint under its title.
 
 - Added: `EnumTableFilter.getHint`, an optional one-line explanation drawn under an option's title in the main
   filter panel and the fast filter menus; the selected value, the search and the chips keep the title only
@@ -10,6 +12,8 @@ All notable changes to this project will be documented in this file.
 - Changed: `getHint` sits before `getTitle` in the `EnumTableFilter` constructor so `getTitle` stays the trailing
   lambda. A call passing `constraints` and `getTitle` by position must name them; the constructor's JVM signature
   changed, so recompile against this version.
+
+Compare: [v3.7.0...v3.8.0](https://github.com/White-Wind-LLC/table/compare/v3.7.0...v3.8.0)
 
 ### 3.7.0 — 2026-11-07
 
