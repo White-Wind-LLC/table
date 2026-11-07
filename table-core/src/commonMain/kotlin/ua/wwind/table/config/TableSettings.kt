@@ -37,16 +37,6 @@ public data class TableSettings(
      */
     val enableDragToScroll: Boolean = getPlatform().isMobile(),
     /**
-     * Initial number of leading columns pinned at the start edge. The live count, changed by pinning
-     * from the column menu, is [ua.wwind.table.state.TableColumnsState.pinnedStartCount].
-     */
-    val pinnedStartCount: Int = 0,
-    /**
-     * Initial number of trailing columns pinned at the end edge. The live count, changed by pinning
-     * from the column menu, is [ua.wwind.table.state.TableColumnsState.pinnedEndCount].
-     */
-    val pinnedEndCount: Int = 0,
-    /**
      * Initial number of columns pinned at the [pinnedColumnsSide] edge, added to that side's
      * [pinnedStartCount] or [pinnedEndCount].
      */
@@ -85,6 +75,16 @@ public data class TableSettings(
     val showColumnMenuButton: Boolean = false,
     /** Whether the table animates; [TableMotion.System] follows the platform's reduced-motion setting. */
     val motion: TableMotion = TableMotion.System,
+    /**
+     * Initial number of leading columns pinned at the start edge. The live count, changed by pinning
+     * from the column menu, is [ua.wwind.table.state.TableColumnsState.pinnedStartCount].
+     */
+    val pinnedStartCount: Int = 0,
+    /**
+     * Initial number of trailing columns pinned at the end edge. The live count, changed by pinning
+     * from the column menu, is [ua.wwind.table.state.TableColumnsState.pinnedEndCount].
+     */
+    val pinnedEndCount: Int = 0,
 )
 
 /**
