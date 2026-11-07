@@ -950,8 +950,7 @@ private fun <T : Any, C, E> PinnedFooterOverlay(
             dimensions = dimensions,
             horizontalState = horizontalState,
             tableWidth = state.tableWidth,
-            pinnedColumnsCount = state.columns.pinnedCount,
-            pinnedColumnsSide = state.settings.pinnedColumnsSide,
+            pinned = state.columns.pinnedCounts,
             showVerticalDividers = state.settings.showVerticalDividers,
         )
     }

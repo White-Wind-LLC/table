@@ -222,7 +222,7 @@ public class TableState<C>
         private fun computeTableWidth(columnSpecs: List<ColumnSpec<*, C, *>>): Dp =
             columnSpecs.foldIndexed(0.dp) { index, acc, spec ->
                 acc + columns.resolveWidth(spec.key, spec) +
-                    dividerWidthAfterColumn(index, columnSpecs.size, columns.pinnedCount, settings, dimensions)
+                    dividerWidthAfterColumn(index, columnSpecs.size, columns.pinnedCounts, settings, dimensions)
             }
 
         // Sorting

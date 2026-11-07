@@ -47,69 +47,35 @@ internal fun PinnedEdge.hasContentUnder(horizontalState: ScrollState): Boolean =
     }
 
 /**
- * Calculates the pinned column state based on its index and table settings
+ * Calculates the pinned column state based on its index and both pinned blocks.
  *
  * @param columnIndex index of the column in the visible columns list
  * @param totalVisibleColumns total number of visible columns
- * @param pinnedColumnsCount number of pinned columns
- * @param pinnedColumnsSide side of pinning (start or end)
+ * @param pinned sizes of the start and end pinned blocks
  * @param horizontalState horizontal scroll state
  * @param layoutDirection the table's layout direction; translations are physical
  */
 internal fun calculatePinnedColumnState(
     columnIndex: Int,
     totalVisibleColumns: Int,
-    pinnedColumnsCount: Int,
-    pinnedColumnsSide: PinnedSide,
+    pinned: PinnedCounts,
     horizontalState: ScrollState,
     layoutDirection: LayoutDirection,
 ): PinnedColumnState {
-    val effectivePinnedCount = effectivePinnedCount(pinnedColumnsCount, totalVisibleColumns)
-    val isPinned =
-        isColumnPinned(columnIndex, totalVisibleColumns, effectivePinnedCount, pinnedColumnsSide)
-
+    val effective = pinned.effective(totalVisibleColumns)
+    val side = pinnedSideAt(columnIndex, totalVisibleColumns, effective)
     return PinnedColumnState(
-        isPinned = isPinned,
-        isLastBeforeEndPinned =
-            pinnedColumnsSide == PinnedSide.End &&
-                !isPinned &&
-                columnIndex == totalVisibleColumns - effectivePinnedCount - 1,
-        isLastStartPinned =
-            pinnedColumnsSide == PinnedSide.Start &&
-                isPinned &&
-                columnIndex == effectivePinnedCount - 1,
-        isFirstEndPinned =
-            pinnedColumnsSide == PinnedSide.End &&
-                isPinned &&
-                columnIndex == totalVisibleColumns - effectivePinnedCount,
-        zIndex = if (isPinned) 1f else 0f,
+        isPinned = side != null,
+        isLastBeforeEndPinned = effective.end > 0 && columnIndex == totalVisibleColumns - effective.end - 1,
+        isLastStartPinned = side == PinnedSide.Start && columnIndex == effective.start - 1,
+        isFirstEndPinned = side == PinnedSide.End && columnIndex == totalVisibleColumns - effective.end,
+        zIndex = if (side != null) 1f else 0f,
         translationX =
-            if (isPinned) {
-                pinnedTranslationX(pinnedColumnsSide, horizontalState.value, horizontalState.maxValue, layoutDirection)
-            } else {
-                0f
-            },
+            side?.let {
+                pinnedTranslationX(it, horizontalState.value, horizontalState.maxValue, layoutDirection)
+            } ?: 0f,
     )
 }
-
-/** Pinning every column pins none: there would be nothing left to scroll underneath them. */
-private fun effectivePinnedCount(
-    pinnedColumnsCount: Int,
-    totalVisibleColumns: Int,
-): Int = if (pinnedColumnsCount >= totalVisibleColumns) 0 else pinnedColumnsCount
-
-/** Pinned columns are the leading [effectivePinnedCount] at the start, the trailing ones at the end. */
-private fun isColumnPinned(
-    columnIndex: Int,
-    totalVisibleColumns: Int,
-    effectivePinnedCount: Int,
-    side: PinnedSide,
-): Boolean =
-    effectivePinnedCount > 0 &&
-        when (side) {
-            PinnedSide.Start -> columnIndex < effectivePinnedCount
-            PinnedSide.End -> columnIndex >= totalVisibleColumns - effectivePinnedCount
-        }
 
 /** Offset that holds a pinned column still while the rest of the row scrolls under it. */
 internal fun pinnedTranslationX(

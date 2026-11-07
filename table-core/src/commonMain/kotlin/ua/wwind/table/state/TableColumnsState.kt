@@ -292,9 +292,13 @@ public class TableColumnsState<C>
             moveVisible(keys, index, target)
         }
 
+        /** Both pinned blocks as stored, before [effectivePinnedCounts] drops ones covering every column. */
+        internal val pinnedCounts: PinnedCounts
+            get() = PinnedCounts(pinnedStartCount, pinnedEndCount)
+
         /** Both pinned blocks as rendered: counts covering every visible column pin none. */
         internal fun effectivePinnedCounts(visibleCount: Int = visibleKeys().size): PinnedCounts =
-            PinnedCounts(pinnedStartCount, pinnedEndCount).effective(visibleCount)
+            pinnedCounts.effective(visibleCount)
 
         /** The pinned block [column] sits in, or `null` when it is hidden or scrolls. */
         public fun pinnedSide(column: C): PinnedSide? {

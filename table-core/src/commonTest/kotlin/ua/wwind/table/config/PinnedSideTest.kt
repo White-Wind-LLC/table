@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package ua.wwind.table.config
 
 import assertk.assertThat

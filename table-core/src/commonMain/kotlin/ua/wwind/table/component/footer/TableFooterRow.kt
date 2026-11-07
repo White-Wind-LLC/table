@@ -13,9 +13,9 @@ import androidx.compose.ui.zIndex
 import kotlinx.collections.immutable.ImmutableList
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.component.body.TableCell
-import ua.wwind.table.config.PinnedSide
 import ua.wwind.table.config.TableCellStyle
 import ua.wwind.table.config.TableDimensions
+import ua.wwind.table.state.PinnedCounts
 import ua.wwind.table.state.calculatePinnedColumnState
 import ua.wwind.table.state.hasContentUnder
 
@@ -28,8 +28,7 @@ internal fun <T : Any, C, E> TableFooterRow(
     footerContentColor: Color,
     dimensions: TableDimensions,
     horizontalState: ScrollState,
-    pinnedColumnsCount: Int,
-    pinnedColumnsSide: PinnedSide,
+    pinned: PinnedCounts,
     showVerticalDividers: Boolean = true,
 ) {
     Row(
@@ -41,8 +40,7 @@ internal fun <T : Any, C, E> TableFooterRow(
                 calculatePinnedColumnState(
                     columnIndex = colIndex,
                     totalVisibleColumns = visibleColumns.size,
-                    pinnedColumnsCount = pinnedColumnsCount,
-                    pinnedColumnsSide = pinnedColumnsSide,
+                    pinned = pinned,
                     horizontalState = horizontalState,
                     layoutDirection = LocalLayoutDirection.current,
                 )

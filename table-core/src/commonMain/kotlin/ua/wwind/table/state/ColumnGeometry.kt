@@ -2,7 +2,6 @@ package ua.wwind.table.state
 
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import ua.wwind.table.config.PinnedSide
 import ua.wwind.table.config.TableDimensions
 import ua.wwind.table.config.TableSettings
 
@@ -10,17 +9,14 @@ import ua.wwind.table.config.TableSettings
 internal fun dividerWidthAfterColumn(
     columnIndex: Int,
     totalVisibleColumns: Int,
-    pinnedColumnsCount: Int,
+    pinned: PinnedCounts,
     settings: TableSettings,
     dimensions: TableDimensions,
 ): Dp {
-    val pinnedCount = if (pinnedColumnsCount >= totalVisibleColumns) 0 else pinnedColumnsCount
+    val effective = pinned.effective(totalVisibleColumns)
     val bordersPinnedBlock =
-        pinnedCount > 0 &&
-            when (settings.pinnedColumnsSide) {
-                PinnedSide.Start -> columnIndex == pinnedCount - 1
-                PinnedSide.End -> columnIndex == totalVisibleColumns - pinnedCount - 1
-            }
+        (effective.start > 0 && columnIndex == effective.start - 1) ||
+            (effective.end > 0 && columnIndex == totalVisibleColumns - effective.end - 1)
 
     return when {
         // A pinned block always draws its own edge, whatever the vertical-divider setting says.
