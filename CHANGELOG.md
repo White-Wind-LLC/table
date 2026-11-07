@@ -9,6 +9,8 @@ All notable changes to this project will be documented in this file.
   `pinnedEndCount`; `pin(column, side)`, `canPin(column, side)` and `pinnedSide(column)` work per edge. The column
   menu of an unpinned column offers both **Pin left** and **Pin right**: `ColumnMenuDefaults.Ids.Pin` now always pins
   to the start edge and the new `Ids.PinEnd` to the end edge.
+- Fixed: the fast filter row's column dividers after a start-pinned block were shifted by one divider thickness
+  against the header and body rows.
 - Deprecated: `TableSettings.pinnedColumnsCount` / `pinnedColumnsSide`, `TableColumnsState.pinnedCount`,
   `pin(column)` and `canPin(column)`, removed in 4.0. They keep working: the old count is added to its side's new
   count, and the single-side calls act on `pinnedColumnsSide`.
