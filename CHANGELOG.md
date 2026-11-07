@@ -2,7 +2,9 @@
 
 All notable changes to this project will be documented in this file.
 
-### Unreleased
+### 3.7.0 — 2026-11-07
+
+Columns can be pinned at both edges at once: a start block and an end block, each with its own count.
 
 - Added: pin columns at both edges at once ([#168](https://github.com/White-Wind-LLC/table/issues/168)).
   `TableSettings.pinnedStartCount` / `pinnedEndCount` seed the live `state.columns.pinnedStartCount` /
@@ -25,6 +27,8 @@ All notable changes to this project will be documented in this file.
   preloading the window around them. 2.4.0 breaks binary compatibility for code calling the `Pager`,
   `StreamingPager` or `PagingMediatorConfig` constructors: Gradle resolves the newer version at runtime, so
   recompile against 2.4.0 ([release notes](https://github.com/White-Wind-LLC/paging-kmp/releases/tag/v2.4.0)).
+
+Compare: [v3.6.0...v3.7.0](https://github.com/White-Wind-LLC/table/compare/v3.6.0...v3.7.0)
 
 ### 3.6.0 — 2026-10-21
 
