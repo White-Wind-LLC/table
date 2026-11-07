@@ -93,8 +93,11 @@ public object ColumnMenuDefaults {
         /** Clear the column filter. */
         public val ClearFilter: ColumnMenuItemId = ColumnMenuItemId("clear-filter")
 
-        /** Pin the column. */
+        /** Pin the column to the start edge: left in LTR, right in RTL. */
         public val Pin: ColumnMenuItemId = ColumnMenuItemId("pin")
+
+        /** Pin the column to the end edge: right in LTR, left in RTL. */
+        public val PinEnd: ColumnMenuItemId = ColumnMenuItemId("pin-end")
 
         /** Unpin the column. */
         public val Unpin: ColumnMenuItemId = ColumnMenuItemId("unpin")

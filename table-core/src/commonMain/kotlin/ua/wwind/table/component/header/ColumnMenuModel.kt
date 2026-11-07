@@ -163,7 +163,7 @@ private fun <C> layoutSection(
     val key = spec.key
     val entries =
         buildList {
-            add(pinEntry(columns, key, state.settings.pinnedColumnsSide, layoutDirection))
+            addAll(pinEntries(columns, key, layoutDirection))
             add(moveEntry(columns, key, -1, layoutDirection))
             add(moveEntry(columns, key, 1, layoutDirection))
             if (spec.resizable) {
@@ -191,24 +191,28 @@ private fun <C> layoutSection(
     return ColumnMenuEntrySection(Sections.Layout, entries)
 }
 
-private fun <C> pinEntry(
+/** "Unpin" for a pinned column; otherwise one pin entry per edge, labelled with its physical side. */
+private fun <C> pinEntries(
     columns: TableColumnsState<C>,
     key: C,
-    side: PinnedSide,
     layoutDirection: LayoutDirection,
-): ColumnMenuEntry {
+): List<ColumnMenuEntry> {
     if (columns.isPinned(key)) {
-        return ColumnMenuEntry(Ids.Unpin, UiString.ColumnMenuUnpin, TableIcons.PushPinOutlined) { columns.unpin(key) }
+        return listOf(
+            ColumnMenuEntry(Ids.Unpin, UiString.ColumnMenuUnpin, TableIcons.PushPinOutlined) { columns.unpin(key) },
+        )
     }
-    val canPin = columns.canPin(key)
-    val pinsLeft = layoutDirection.isPhysicallyLeft(towardStart = side == PinnedSide.Start)
-    return ColumnMenuEntry(
-        id = Ids.Pin,
-        label = if (pinsLeft) UiString.ColumnMenuPinLeft else UiString.ColumnMenuPinRight,
-        icon = TableIcons.PushPin,
-        enabled = canPin,
-        disabledReason = UiString.ColumnMenuReasonLastUnpinned.takeUnless { canPin },
-    ) { columns.pin(key) }
+    return listOf(PinnedSide.Start to Ids.Pin, PinnedSide.End to Ids.PinEnd).map { (side, id) ->
+        val canPin = columns.canPin(key, side)
+        val pinsLeft = layoutDirection.isPhysicallyLeft(towardStart = side == PinnedSide.Start)
+        ColumnMenuEntry(
+            id = id,
+            label = if (pinsLeft) UiString.ColumnMenuPinLeft else UiString.ColumnMenuPinRight,
+            icon = TableIcons.PushPin,
+            enabled = canPin,
+            disabledReason = UiString.ColumnMenuReasonLastUnpinned.takeUnless { canPin },
+        ) { columns.pin(key, side) }
+    }
 }
 
 private fun <C> moveEntry(
