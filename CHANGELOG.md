@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ### Unreleased
 
+- Added: pin columns at both edges at once ([#168](https://github.com/White-Wind-LLC/table/issues/168)).
+  `TableSettings.pinnedStartCount` / `pinnedEndCount` seed the live `state.columns.pinnedStartCount` /
+  `pinnedEndCount`; `pin(column, side)`, `canPin(column, side)` and `pinnedSide(column)` work per edge. The column
+  menu of an unpinned column offers both **Pin left** and **Pin right**: `ColumnMenuDefaults.Ids.Pin` now always pins
+  to the start edge and the new `Ids.PinEnd` to the end edge.
+- Deprecated: `TableSettings.pinnedColumnsCount` / `pinnedColumnsSide`, `TableColumnsState.pinnedCount`,
+  `pin(column)` and `canPin(column)`, removed in 4.0. They keep working: the old count is added to its side's new
+  count, and the single-side calls act on `pinnedColumnsSide`.
 - Updated: `ua.wwind.paging:paging-core` to 2.4.0 (from 2.3.4). Its `loadState` now covers only the accessed
   position, so the paged `Table` shows `loadingIndicator` and `errorBar` only for the rows being looked at, not for
   preloading the window around them. 2.4.0 breaks binary compatibility for code calling the `Pager`,

@@ -313,8 +313,9 @@ public class TableColumnsState<C>
 
         /**
          * Whether [pin] would pin [column] to [side]: it is visible, unpinned, and one column would
-         * stay unpinned.
+         * stay unpinned. Both edges share these rules today; [side] keeps the call paired with [pin].
          */
+        @Suppress("UnusedParameter")
         public fun canPin(
             column: C,
             side: PinnedSide,

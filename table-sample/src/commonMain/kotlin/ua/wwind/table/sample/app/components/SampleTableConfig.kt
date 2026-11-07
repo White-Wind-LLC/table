@@ -1,7 +1,6 @@
 package ua.wwind.table.sample.app.components
 
 import androidx.compose.runtime.Immutable
-import ua.wwind.table.config.PinnedSide
 import ua.wwind.table.platform.getPlatform
 import ua.wwind.table.platform.isMobile
 import ua.wwind.table.sample.column.PersonColumn
@@ -17,8 +16,8 @@ data class SampleTableConfig(
     val enableDragToScroll: Boolean = getPlatform().isMobile(),
     val enableRowReorder: Boolean = false,
     val enableRowBlocks: Boolean = false,
-    val pinnedColumnsCount: Int = 0,
-    val pinnedColumnsSide: PinnedSide = PinnedSide.Start,
+    val pinnedStartCount: Int = 0,
+    val pinnedEndCount: Int = 0,
     val showColumnMenuButton: Boolean = false,
     val enableEditing: Boolean = false,
     val useCompactMode: Boolean = true,

@@ -62,4 +62,4 @@ row selection, i18n, styling/customization, and dynamic or fixed row height.
   }
   ```
 - Targets: Android / JVM (Desktop) / JS (Web) / iOS (KMP source sets present; targets enabled via project conventions).
-- Pinned columns with configurable side (left/right) and count.
+- Pinned columns at the start edge, the end edge, or both at once, each with its own count.

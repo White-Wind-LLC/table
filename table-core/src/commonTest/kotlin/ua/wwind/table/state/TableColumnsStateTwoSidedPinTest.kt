@@ -186,4 +186,27 @@ class TableColumnsStateTwoSidedPinTest {
         assertThat(state.columns.pinnedStartCount).isEqualTo(2)
         assertThat(state.columns.pinnedEndCount).isEqualTo(1)
     }
+
+    @Test
+    fun `the documented restore recipe brings back both pinned blocks`() {
+        val keys = listOf("a", "b", "c", "d", "e", "f")
+        val original = stateWith(start = 1, end = 1, keys = keys)
+        original.columns.hide("b")
+        original.columns.pin("d", PinnedSide.Start)
+        original.columns.pin("c", PinnedSide.End)
+        val savedOrder = original.columns.order.toList()
+        val savedHidden = original.columns.hidden.toSet()
+        val restored = stateWith(start = 0, end = 0, keys = savedOrder)
+        // The recipe from docs/content/guides/column-menu.md.
+        savedHidden.forEach { restored.columns.hide(it) }
+        val visible = savedOrder.filter { it !in savedHidden }
+        visible.take(original.columns.pinnedStartCount).forEach { restored.columns.pin(it, PinnedSide.Start) }
+        visible.takeLast(original.columns.pinnedEndCount).asReversed().forEach {
+            restored.columns.pin(it, PinnedSide.End)
+        }
+        assertThat(restored.columns.order.toList()).containsExactly(*savedOrder.toTypedArray())
+        assertThat(restored.sides()).containsExactly(*original.sides().toTypedArray())
+        assertThat(restored.columns.pinnedStartCount).isEqualTo(2)
+        assertThat(restored.columns.pinnedEndCount).isEqualTo(2)
+    }
 }
