@@ -126,3 +126,30 @@ internal fun pinnedTranslationX(
             PinnedSide.End -> (scrollValue - maxScroll).toFloat()
         },
     )
+
+/** Sizes of the start and end pinned blocks, counted among visible columns. */
+internal data class PinnedCounts(
+    val start: Int,
+    val end: Int,
+) {
+    /** The blocks as rendered among [visibleCount] columns: counts covering every column pin none. */
+    fun effective(visibleCount: Int): PinnedCounts = if (start + end >= visibleCount) NONE else this
+
+    companion object {
+        val NONE: PinnedCounts = PinnedCounts(0, 0)
+    }
+}
+
+/** Side of the pinned block holding the visible column at [columnIndex], or `null` when it scrolls. */
+internal fun pinnedSideAt(
+    columnIndex: Int,
+    totalVisibleColumns: Int,
+    pinned: PinnedCounts,
+): PinnedSide? {
+    val effective = pinned.effective(totalVisibleColumns)
+    return when {
+        columnIndex < effective.start -> PinnedSide.Start
+        columnIndex >= totalVisibleColumns - effective.end -> PinnedSide.End
+        else -> null
+    }
+}

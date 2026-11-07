@@ -239,6 +239,6 @@ class TableColumnsStateShowPinnedTest {
         state.columns.showAll()
         assertThat(state.columns.visibleKeys()).containsExactly("a", "c", "d")
         assertThat(state.columns.hidden.toList()).isEmpty()
-        assertThat(state.columns.effectivePinnedCount()).isEqualTo(0)
+        assertThat(state.columns.effectivePinnedCounts()).isEqualTo(PinnedCounts.NONE)
     }
 }
