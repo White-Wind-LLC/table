@@ -38,8 +38,8 @@ public class TableColumnsState<C>
         initialOrder: List<C>,
         initialWidths: Map<C, Dp>,
         private val dimensions: TableDimensions,
-        initialPinnedCount: Int = 0,
-        private val pinnedSide: PinnedSide = PinnedSide.Start,
+        initialPinned: PinnedCounts = PinnedCounts.NONE,
+        private val legacySide: PinnedSide = PinnedSide.Start,
     ) {
         /** Column keys in render order. */
         public val order: SnapshotStateList<C> =
@@ -186,13 +186,30 @@ public class TableColumnsState<C>
         }
 
         /**
-         * Number of pinned columns, counted among visible columns from the
-         * [ua.wwind.table.config.TableSettings.pinnedColumnsSide] edge. Starts at
-         * [ua.wwind.table.config.TableSettings.pinnedColumnsCount]; [pin] and [unpin] change it at
-         * runtime. Pinning every visible column pins none.
+         * Number of leading visible columns pinned at the start edge. Starts at
+         * [ua.wwind.table.config.TableSettings.pinnedStartCount]; [pin] and [unpin] change it at
+         * runtime. When this and [pinnedEndCount] together cover every visible column, none is pinned.
          */
-        public var pinnedCount: Int by mutableIntStateOf(initialPinnedCount.coerceAtLeast(0))
+        public var pinnedStartCount: Int by mutableIntStateOf(initialPinned.start.coerceAtLeast(0))
             private set
+
+        /**
+         * Number of trailing visible columns pinned at the end edge. Starts at
+         * [ua.wwind.table.config.TableSettings.pinnedEndCount]; [pin] and [unpin] change it at
+         * runtime. When this and [pinnedStartCount] together cover every visible column, none is pinned.
+         */
+        public var pinnedEndCount: Int by mutableIntStateOf(initialPinned.end.coerceAtLeast(0))
+            private set
+
+        /**
+         * Number of pinned columns on the [ua.wwind.table.config.TableSettings.pinnedColumnsSide]
+         * edge: [pinnedStartCount] or [pinnedEndCount].
+         */
+        @Deprecated(
+            "Pins can sit at both edges now. Use pinnedStartCount / pinnedEndCount. Removed in 4.0.",
+        )
+        public val pinnedCount: Int
+            get() = if (legacySide == PinnedSide.Start) pinnedStartCount else pinnedEndCount
 
         /**
          * Keys of the columns whose spec is `visible`, ignoring [hidden]. `Table` sets it from the
@@ -240,88 +257,120 @@ public class TableColumnsState<C>
 
         /**
          * Show every column hidden by [hide], each one placed as [show] places it. Columns that all
-         * land at the pinned block's outer edge keep their relative order.
+         * land at the same pinned block's outer edge keep their relative order.
          */
         public fun showAll() {
             val toShow = order.filter { it in hidden }
-            // Each column lands at the edge, ahead of those placed before it on the left, behind them
-            // on the right; walking against that direction keeps the original order.
-            val sequence = if (pinnedSide == PinnedSide.Start) toShow.asReversed() else toShow
-            sequence.forEach { reveal(it) }
+            if (toShow.isEmpty()) return
+            val keys = visibleKeys()
+            val pinned = effectivePinnedCounts(keys.size)
+            val lastStart = keys.getOrNull(pinned.start - 1)?.let { order.indexOf(it) } ?: -1
+            // Each column landing at the start edge goes in ahead of those placed before it, so walk
+            // those backwards; the end edge takes them behind each other, so walk those forwards.
+            val (atStart, rest) = toShow.partition { order.indexOf(it) < lastStart }
+            atStart.asReversed().forEach { reveal(it) }
+            rest.forEach { reveal(it) }
         }
 
         /**
-         * Removes [column] from [hidden] and moves it out of the pinned block if it would land
+         * Removes [column] from [hidden] and moves it out of a pinned block if it would land
          * inside. A column the spec hides stays hidden, so it is only removed from [hidden].
          */
         private fun reveal(column: C) {
             hidden.remove(column)
             val keys = visibleKeys()
             if (column !in keys) return
-            val pinned = effectivePinnedCount(keys.size)
+            val pinned = effectivePinnedCounts(keys.size)
             val index = keys.indexOf(column)
-            // The block's outer edge, when the column would otherwise land inside the block.
+            // The block's outer edge, when the column would otherwise land inside a block.
             val target =
-                when (pinnedSide) {
-                    PinnedSide.Start -> pinned.takeIf { index < pinned }
-                    PinnedSide.End -> (keys.size - pinned - 1).takeIf { index >= keys.size - pinned }
-                } ?: return
+                when (pinnedSideAt(index, keys.size, pinned)) {
+                    PinnedSide.Start -> pinned.start
+                    PinnedSide.End -> keys.size - pinned.end - 1
+                    null -> return
+                }
             moveVisible(keys, index, target)
         }
 
-        /** The pinned block size as rendered: a count covering every visible column pins none. */
-        internal fun effectivePinnedCount(visibleCount: Int = visibleKeys().size): Int =
-            if (pinnedCount >= visibleCount) 0 else pinnedCount
+        /** Both pinned blocks as stored, before [effectivePinnedCounts] drops ones covering every column. */
+        internal val pinnedCounts: PinnedCounts
+            get() = PinnedCounts(pinnedStartCount, pinnedEndCount)
 
-        /** Whether [column] is visible and inside the pinned block. */
-        public fun isPinned(column: C): Boolean {
+        /** Both pinned blocks as rendered: counts covering every visible column pin none. */
+        internal fun effectivePinnedCounts(visibleCount: Int = visibleKeys().size): PinnedCounts =
+            pinnedCounts.effective(visibleCount)
+
+        /** The pinned block [column] sits in, or `null` when it is hidden or scrolls. */
+        public fun pinnedSide(column: C): PinnedSide? {
             val keys = visibleKeys()
             val index = keys.indexOf(column)
-            if (index < 0) return false
-            val pinned = effectivePinnedCount(keys.size)
-            return when (pinnedSide) {
-                PinnedSide.Start -> index < pinned
-                PinnedSide.End -> index >= keys.size - pinned
-            }
+            if (index < 0) return null
+            return pinnedSideAt(index, keys.size, effectivePinnedCounts(keys.size))
         }
 
-        /** Whether [pin] would pin [column]: it is visible, unpinned, and one column would stay unpinned. */
-        public fun canPin(column: C): Boolean {
+        /** Whether [column] is visible and inside either pinned block. */
+        public fun isPinned(column: C): Boolean = pinnedSide(column) != null
+
+        /**
+         * Whether [pin] would pin [column] to [side]: it is visible, unpinned, and one column would
+         * stay unpinned. Both edges share these rules today; [side] keeps the call paired with [pin].
+         */
+        @Suppress("UnusedParameter")
+        public fun canPin(
+            column: C,
+            side: PinnedSide,
+        ): Boolean {
             val keys = visibleKeys()
-            return column in keys && !isPinned(column) && effectivePinnedCount(keys.size) + 1 < keys.size
+            val pinned = effectivePinnedCounts(keys.size)
+            return column in keys && !isPinned(column) && pinned.start + pinned.end + 1 < keys.size
         }
 
-        /** Move [column] to the inner edge of the pinned block and grow the block by one. */
+        /** Whether [pin] would pin [column] to the deprecated single-side edge. */
+        @Deprecated("Pins can sit at both edges now. Use canPin(column, side). Removed in 4.0.")
+        public fun canPin(column: C): Boolean = canPin(column, legacySide)
+
+        /** Move [column] to the inner edge of the [side] pinned block and grow that block by one. */
+        public fun pin(
+            column: C,
+            side: PinnedSide,
+        ) {
+            if (!canPin(column, side)) return
+            val keys = visibleKeys()
+            val pinned = effectivePinnedCounts(keys.size)
+            val target =
+                when (side) {
+                    PinnedSide.Start -> pinned.start
+                    PinnedSide.End -> keys.size - pinned.end - 1
+                }
+            moveVisible(keys, keys.indexOf(column), target)
+            pinnedStartCount = pinned.start + if (side == PinnedSide.Start) 1 else 0
+            pinnedEndCount = pinned.end + if (side == PinnedSide.End) 1 else 0
+        }
+
+        /** Pin [column] to the deprecated single-side edge. */
+        @Deprecated("Pins can sit at both edges now. Use pin(column, side). Removed in 4.0.")
         public fun pin(column: C) {
-            if (!canPin(column)) return
-            val keys = visibleKeys()
-            val pinned = effectivePinnedCount(keys.size)
-            val target =
-                when (pinnedSide) {
-                    PinnedSide.Start -> pinned
-                    PinnedSide.End -> keys.size - pinned - 1
-                }
-            moveVisible(keys, keys.indexOf(column), target)
-            pinnedCount = pinned + 1
+            pin(column, legacySide)
         }
 
-        /** Move [column] just outside the pinned block and shrink the block by one. */
+        /** Move [column] just outside its pinned block and shrink that block by one. */
         public fun unpin(column: C) {
-            if (!isPinned(column)) return
+            val side = pinnedSide(column) ?: return
             val keys = visibleKeys()
-            val pinned = effectivePinnedCount(keys.size)
+            val pinned = effectivePinnedCounts(keys.size)
             val target =
-                when (pinnedSide) {
-                    PinnedSide.Start -> pinned - 1
-                    PinnedSide.End -> keys.size - pinned
+                when (side) {
+                    PinnedSide.Start -> pinned.start - 1
+                    PinnedSide.End -> keys.size - pinned.end
                 }
             moveVisible(keys, keys.indexOf(column), target)
-            pinnedCount = pinned - 1
+            pinnedStartCount = pinned.start - if (side == PinnedSide.Start) 1 else 0
+            pinnedEndCount = pinned.end - if (side == PinnedSide.End) 1 else 0
         }
 
         /**
          * Whether [moveBy] would move [column] by [delta] visible positions: the target exists and
-         * sits in the same block (pinned or unpinned) as the column.
+         * sits in the same block (start-pinned, scrolling or end-pinned) as the column.
          */
         public fun canMoveBy(
             column: C,
@@ -331,7 +380,7 @@ public class TableColumnsState<C>
             val from = keys.indexOf(column)
             if (from < 0 || delta == 0) return false
             val to = from + delta
-            return to in keys.indices && isPinned(column) == isPinned(keys[to])
+            return to in keys.indices && pinnedSide(column) == pinnedSide(keys[to])
         }
 
         /** Move [column] by [delta] positions among visible columns, staying inside its block. */

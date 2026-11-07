@@ -87,6 +87,7 @@ class ColumnMenuModelTest {
             Ids.SortDescending,
             Ids.OpenFilter,
             Ids.Pin,
+            Ids.PinEnd,
             Ids.MoveToStart,
             Ids.MoveToEnd,
             Ids.AutoFit,
@@ -107,7 +108,7 @@ class ColumnMenuModelTest {
 
     @Test
     fun `clear sort clear filter unpin ungroup and show hidden appear with their state`() {
-        val state = stateWith(TableSettings(pinnedColumnsCount = 1))
+        val state = stateWith(TableSettings(pinnedStartCount = 1))
         state.setSort("full", SortOrder.DESCENDING)
         state.setFilter("full", TableFilterState(constraint = null, values = listOf("x")))
         state.groupBy("full")
@@ -154,7 +155,7 @@ class ColumnMenuModelTest {
 
     @Test
     fun `move items explain the edge they hit`() {
-        val state = stateWith(TableSettings(pinnedColumnsCount = 1))
+        val state = stateWith(TableSettings(pinnedStartCount = 1))
         assertThat(model(state, "full").entry(Ids.MoveToStart).disabledReason).isEqualTo(UiString.ColumnMenuReasonFirst)
         assertThat(
             model(state, "full").entry(Ids.MoveToEnd).disabledReason,
@@ -179,30 +180,44 @@ class ColumnMenuModelTest {
 
     @Test
     fun `pin explains why the last unpinned column cannot be pinned`() {
-        val state = stateWith(TableSettings(pinnedColumnsCount = 2))
-        assertThat(model(state, "last").entry(Ids.Pin).disabledReason).isEqualTo(UiString.ColumnMenuReasonLastUnpinned)
+        val state = stateWith(TableSettings(pinnedStartCount = 1, pinnedEndCount = 1))
+        val sections = model(state, "plain")
+        assertThat(sections.entry(Ids.Pin).disabledReason).isEqualTo(UiString.ColumnMenuReasonLastUnpinned)
+        assertThat(sections.entry(Ids.PinEnd).disabledReason).isEqualTo(UiString.ColumnMenuReasonLastUnpinned)
+        assertThat(sections.entry(Ids.PinEnd).enabled).isFalse()
     }
 
     @Test
-    fun `pin label follows the pinned side`() {
-        val state = stateWith(TableSettings(pinnedColumnsSide = PinnedSide.End))
-        assertThat(model(state, "full").entry(Ids.Pin).label).isEqualTo(UiString.ColumnMenuPinRight)
+    fun `pin entries name the physical side in LTR`() {
+        val sections = model(stateWith(), "full")
+        assertThat(sections.entry(Ids.Pin).label).isEqualTo(UiString.ColumnMenuPinLeft)
+        assertThat(sections.entry(Ids.PinEnd).label).isEqualTo(UiString.ColumnMenuPinRight)
     }
 
     @Test
-    fun `pin label is Pin left on the left side`() {
-        val state = stateWith(TableSettings(pinnedColumnsSide = PinnedSide.Start))
-        assertThat(model(state, "full").entry(Ids.Pin).label).isEqualTo(UiString.ColumnMenuPinLeft)
+    fun `pin entries name the physical side in RTL`() {
+        val sections = model(stateWith(), "full", layoutDirection = LayoutDirection.Rtl)
+        assertThat(sections.entry(Ids.Pin).label).isEqualTo(UiString.ColumnMenuPinRight)
+        assertThat(sections.entry(Ids.PinEnd).label).isEqualTo(UiString.ColumnMenuPinLeft)
     }
 
     @Test
-    fun `pin labels name the physical side in RTL`() {
-        val start = stateWith(TableSettings(pinnedColumnsSide = PinnedSide.Start))
-        val end = stateWith(TableSettings(pinnedColumnsSide = PinnedSide.End))
-        assertThat(model(start, "full", layoutDirection = LayoutDirection.Rtl).entry(Ids.Pin).label)
-            .isEqualTo(UiString.ColumnMenuPinRight)
-        assertThat(model(end, "full", layoutDirection = LayoutDirection.Rtl).entry(Ids.Pin).label)
-            .isEqualTo(UiString.ColumnMenuPinLeft)
+    fun `a pinned column offers only unpin`() {
+        val state = stateWith(TableSettings(pinnedEndCount = 1))
+        val ids = model(state, "last").ids()
+        assertThat(ids).contains(Ids.Unpin)
+        assertThat(ids).doesNotContain(Ids.Pin)
+        assertThat(ids).doesNotContain(Ids.PinEnd)
+    }
+
+    @Test
+    fun `pin entries drive the state on both sides`() {
+        val state = stateWith()
+        model(state, "plain").entry(Ids.PinEnd).onClick()
+        assertThat(state.columns.pinnedSide("plain")).isEqualTo(PinnedSide.End)
+        model(state, "last").entry(Ids.Pin).onClick()
+        assertThat(state.columns.pinnedSide("last")).isEqualTo(PinnedSide.Start)
+        assertThat(state.columns.order.toList()).containsExactly("last", "full", "plain")
     }
 
     @Test

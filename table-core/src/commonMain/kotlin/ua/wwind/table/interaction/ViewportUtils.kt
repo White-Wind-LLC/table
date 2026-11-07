@@ -6,10 +6,10 @@ import androidx.compose.foundation.lazy.LazyListItemInfo
 import androidx.compose.foundation.lazy.LazyListLayoutInfo
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.ui.unit.Density
-import androidx.compose.ui.unit.dp
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.state.TableState
 import ua.wwind.table.state.dividerWidthAfterColumn
+import ua.wwind.table.state.pinnedSideAt
 
 /**
  * Ensure that the given [index] row becomes fully visible in the viewport (supports dynamic row heights).
@@ -163,38 +163,70 @@ public suspend fun <T : Any, C, E> ensureColumnFullyVisible(
     density: Density,
 ) {
     val dimensions = state.effectiveDimensions
+    val total = visibleColumns.size
+    val pinned = state.columns.pinnedCounts.effective(total)
 
-    var x = 0.dp
-    visibleColumns.take(targetColIndex).forEachIndexed { index, spec ->
-        x += state.columns.resolveWidth(spec.key, spec) +
-            dividerWidthAfterColumn(index, visibleColumns.size, state.columns.pinnedCount, state.settings, dimensions)
-    }
+    // Content width of column [index] together with the divider drawn after it.
+    fun spanPx(index: Int): Int =
+        with(density) {
+            val spec = visibleColumns[index]
+            (
+                state.columns.resolveWidth(spec.key, spec) +
+                    dividerWidthAfterColumn(index, total, state.columns.pinnedCounts, state.settings, dimensions)
+            ).toPx()
+        }.toInt()
 
+    val cellX1Px = (0 until targetColIndex).sumOf { spanPx(it) }
     val columnWidth = state.columns.resolveWidth(targetColKey, visibleColumns[targetColIndex])
-
-    // 1) Viewport coordinates relative to full content width
-    val viewportX1Px = horizontalState.value
-    val viewportX2Px = viewportX1Px + horizontalState.viewportSize
-
-    // 2) Selected cell coordinates
-    val cellX1Px = with(density) { x.toPx() }.toInt()
     val cellX2Px = cellX1Px + with(density) { columnWidth.toPx() }.toInt()
 
-    // 3) Decide scroll delta (px) using when
-    val deltaPx =
-        when {
-            // a) Cell's left is left of viewport -> scroll left by delta
-            cellX1Px < viewportX1Px -> cellX1Px - viewportX1Px
-
-            // b) Cell's right is right of viewport -> scroll right by delta
-            cellX2Px > viewportX2Px -> cellX2Px - viewportX2Px
-
-            // c) Otherwise do nothing
-            else -> 0
+    // The start block ends after its last column's pinned divider; the end block starts at the
+    // pinned divider drawn before its first column.
+    val startBlockPx = (0 until pinned.start).sumOf { spanPx(it) }
+    val endBlockPx =
+        if (pinned.end > 0) {
+            val edgePx = with(density) { dimensions.pinnedColumnDividerThickness.toPx() }.toInt()
+            edgePx + (total - pinned.end until total).sumOf { spanPx(it) }
+        } else {
+            0
         }
+
+    val deltaPx =
+        horizontalScrollDelta(
+            cellStartPx = cellX1Px,
+            cellEndPx = cellX2Px,
+            viewportStartPx = horizontalState.value,
+            viewportEndPx = horizontalState.value + horizontalState.viewportSize,
+            startBlockPx = startBlockPx,
+            endBlockPx = endBlockPx,
+            targetPinned = pinnedSideAt(targetColIndex, total, pinned) != null,
+        )
 
     if (deltaPx != 0) {
         horizontalState.animateScrollBy(deltaPx.toFloat())
+    }
+}
+
+/**
+ * Scroll needed to bring the cell `[cellStartPx, cellEndPx)` (content coordinates) into the part of
+ * the viewport the pinned blocks leave free. A pinned cell is always on screen, so it needs none.
+ */
+internal fun horizontalScrollDelta(
+    cellStartPx: Int,
+    cellEndPx: Int,
+    viewportStartPx: Int,
+    viewportEndPx: Int,
+    startBlockPx: Int,
+    endBlockPx: Int,
+    targetPinned: Boolean,
+): Int {
+    if (targetPinned) return 0
+    val freeStart = viewportStartPx + startBlockPx
+    val freeEnd = viewportEndPx - endBlockPx
+    return when {
+        cellStartPx < freeStart -> cellStartPx - freeStart
+        cellEndPx > freeEnd -> cellEndPx - freeEnd
+        else -> 0
     }
 }
 

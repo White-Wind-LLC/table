@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 
 ### Unreleased
 
+- Added: pin columns at both edges at once ([#168](https://github.com/White-Wind-LLC/table/issues/168)).
+  `TableSettings.pinnedStartCount` / `pinnedEndCount` seed the live `state.columns.pinnedStartCount` /
+  `pinnedEndCount`; `pin(column, side)`, `canPin(column, side)` and `pinnedSide(column)` work per edge. The column
+  menu of an unpinned column offers both **Pin left** and **Pin right**: `ColumnMenuDefaults.Ids.Pin` now always pins
+  to the start edge and the new `Ids.PinEnd` to the end edge.
+- Changed: the column menu now offers **Pin right** next to **Pin left** in every table, with no opt-in. Apps that
+  persist the column layout must save `pinnedStartCount` and `pinnedEndCount` instead of `pinnedCount`, which counts
+  only the `pinnedColumnsSide` block; see the restore recipe in the column menu guide. A `ColumnMenuBuilder` that hides
+  pinning by dropping `Ids.Pin` must now drop `Ids.PinEnd` too.
+- Fixed: keyboard navigation scrolls the selected cell clear of the pinned blocks instead of under them, and selecting
+  a pinned cell no longer scrolls the table.
+- Fixed: the fast filter row's column dividers after a start-pinned block were shifted by one divider thickness
+  against the header and body rows.
+- Deprecated: `TableSettings.pinnedColumnsCount` / `pinnedColumnsSide`, `TableColumnsState.pinnedCount`,
+  `pin(column)` and `canPin(column)`, removed in 4.0. They keep working: the old count is added to its side's new
+  count, and the single-side calls act on `pinnedColumnsSide`.
 - Updated: `ua.wwind.paging:paging-core` to 2.4.0 (from 2.3.4). Its `loadState` now covers only the accessed
   position, so the paged `Table` shows `loadingIndicator` and `errorBar` only for the rows being looked at, not for
   preloading the window around them. 2.4.0 breaks binary compatibility for code calling the `Pager`,

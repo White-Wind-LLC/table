@@ -37,11 +37,16 @@ public data class TableSettings(
      */
     val enableDragToScroll: Boolean = getPlatform().isMobile(),
     /**
-     * Initial number of pinned columns. The live count, changed by pinning from the column menu, is
-     * [ua.wwind.table.state.TableColumnsState.pinnedCount] on `TableState.columns`.
+     * Initial number of columns pinned at the [pinnedColumnsSide] edge, added to that side's
+     * [pinnedStartCount] or [pinnedEndCount].
      */
+    @Deprecated("Use pinnedStartCount / pinnedEndCount. Removed in 4.0.")
     val pinnedColumnsCount: Int = 0,
-    /** Side to pin columns to: [PinnedSide.Start] pins the leading columns, [PinnedSide.End] the trailing ones. */
+    /**
+     * Side [pinnedColumnsCount] pins to, and the side the deprecated single-side calls
+     * (`TableColumnsState.pinnedCount`, `pin(column)`, `canPin(column)`) act on.
+     */
+    @Deprecated("Use pinnedStartCount / pinnedEndCount. Removed in 4.0.")
     val pinnedColumnsSide: PinnedSide = PinnedSide.Start,
     /**
      * Enable cell editing mode for the table. When disabled, all column-level edit settings are
@@ -70,6 +75,16 @@ public data class TableSettings(
     val showColumnMenuButton: Boolean = false,
     /** Whether the table animates; [TableMotion.System] follows the platform's reduced-motion setting. */
     val motion: TableMotion = TableMotion.System,
+    /**
+     * Initial number of leading columns pinned at the start edge. The live count, changed by pinning
+     * from the column menu, is [ua.wwind.table.state.TableColumnsState.pinnedStartCount].
+     */
+    val pinnedStartCount: Int = 0,
+    /**
+     * Initial number of trailing columns pinned at the end edge. The live count, changed by pinning
+     * from the column menu, is [ua.wwind.table.state.TableColumnsState.pinnedEndCount].
+     */
+    val pinnedEndCount: Int = 0,
 )
 
 /**

@@ -97,7 +97,7 @@ internal fun <T : Any, C, E> ColumnResizersOverlay(
                 dividerWidthAfterColumn(
                     index,
                     visibleColumns.size,
-                    state.columns.pinnedCount,
+                    state.columns.pinnedCounts,
                     state.settings,
                     dimensions,
                 )

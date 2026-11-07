@@ -83,8 +83,7 @@ internal fun <T : Any, C, E> TableHeaderRow(
                 calculatePinnedColumnState(
                     columnIndex = index,
                     totalVisibleColumns = visibleColumns.size,
-                    pinnedColumnsCount = state.columns.pinnedCount,
-                    pinnedColumnsSide = settings.pinnedColumnsSide,
+                    pinned = state.columns.pinnedCounts,
                     horizontalState = horizontalState,
                     layoutDirection = LocalLayoutDirection.current,
                 )

@@ -10,6 +10,8 @@ import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertWidthIsEqualTo
+import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -78,13 +80,15 @@ class FastFiltersTest {
             }
         }
 
-    private fun ComposeUiTest.showTable(): TableState<String> {
+    private fun ComposeUiTest.showTable(
+        settings: TableSettings = TableSettings(showFastFilters = true, autoFilterDebounce = 0),
+    ): TableState<String> {
         lateinit var state: TableState<String>
         setContent {
             state =
                 rememberTableState(
                     columns = persistentListOf("text", "number", "enum", "bool", "date", "narrow"),
-                    settings = TableSettings(showFastFilters = true, autoFilterDebounce = 0),
+                    settings = settings,
                 )
             Box(Modifier.size(1200.dp, 400.dp)) {
                 Table(itemsCount = 1, itemAt = { "row" }, state = state, columns = columns)
@@ -101,6 +105,34 @@ class FastFiltersTest {
     ) {
         state.setFilter(column, filter)
         waitForIdle()
+    }
+
+    /** Offset of the last column's fast filter field from its header label: the same in every row layout. */
+    private fun filterOffsetFromHeader(pinnedStartCount: Int): Float {
+        var offset = 0f
+        runComposeUiTest {
+            showTable(
+                TableSettings(
+                    showFastFilters = true,
+                    autoFilterDebounce = 0,
+                    showVerticalDividers = true,
+                    pinnedStartCount = pinnedStartCount,
+                ),
+            )
+            val headerLeft =
+                onAllNodesWithText("Narrow")
+                    .fetchSemanticsNodes()
+                    .first()
+                    .boundsInRoot.left
+            val fieldLeft = onAllNodes(hasSetTextAction()).fetchSemanticsNodes().maxOf { it.boundsInRoot.left }
+            offset = fieldLeft - headerLeft
+        }
+        return offset
+    }
+
+    @Test
+    fun `fast filter cells line up with the header next to a start-pinned block`() {
+        assertThat(filterOffsetFromHeader(pinnedStartCount = 1)).isEqualTo(filterOffsetFromHeader(pinnedStartCount = 0))
     }
 
     @Test

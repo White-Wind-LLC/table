@@ -12,8 +12,8 @@ import androidx.compose.ui.unit.Dp
 import kotlinx.collections.immutable.ImmutableList
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.config.LocalTableTypography
-import ua.wwind.table.config.PinnedSide
 import ua.wwind.table.config.TableDimensions
+import ua.wwind.table.state.PinnedCounts
 
 @Composable
 internal fun <T : Any, C, E> TableFooter(
@@ -25,8 +25,7 @@ internal fun <T : Any, C, E> TableFooter(
     dimensions: TableDimensions,
     horizontalState: ScrollState,
     tableWidth: Dp,
-    pinnedColumnsCount: Int,
-    pinnedColumnsSide: PinnedSide,
+    pinned: PinnedCounts,
     showVerticalDividers: Boolean = true,
 ) {
     Surface(color = footerColor, contentColor = footerContentColor) {
@@ -40,8 +39,7 @@ internal fun <T : Any, C, E> TableFooter(
                     footerContentColor = footerContentColor,
                     dimensions = dimensions,
                     horizontalState = horizontalState,
-                    pinnedColumnsCount = pinnedColumnsCount,
-                    pinnedColumnsSide = pinnedColumnsSide,
+                    pinned = pinned,
                     showVerticalDividers = showVerticalDividers,
                 )
             }

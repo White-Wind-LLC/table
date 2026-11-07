@@ -4,7 +4,7 @@ Every column header has a menu with the actions the column supports.
 
 - **Sort:** ascending, descending, clear.
 - **Filter:** open, clear.
-- **Layout:** pin or unpin, move left or right, auto-fit width, reset width.
+- **Layout:** pin left or right, unpin, move left or right, auto-fit width, reset width.
 - **Group:** group by, ungroup.
 - **Hide column**, and **Show hidden columns** once something is hidden.
 
@@ -76,39 +76,50 @@ Ungroup) is not customizable.
 
 The menu drives public state on `state.columns`:
 
-- `pinnedCount`, `pin(key)`, `unpin(key)`
+- `pinnedStartCount`, `pinnedEndCount`, `pinnedSide(key)`, `pin(key, side)`, `unpin(key)`
 - `hidden`, `hide(key)`, `show(key)`, `showAll()`
 - `order`, `moveBy(key, delta)`
 - `state.clearSort()`
 
-`TableSettings.pinnedColumnsCount` is read once, when the state is created, and never again: it
-seeds `pinnedCount`, which is the live count. Change visibility with `hide()` and `show()` rather
-than writing to `hidden`: direct writes skip the last-visible-column and pinned-block rules.
+Columns can be pinned at both edges at once: `pinnedStartCount` leading columns stay at the start
+edge (left in LTR) and `pinnedEndCount` trailing ones at the end edge. The menu of an unpinned column
+offers **Pin left** and **Pin right** (`ColumnMenuDefaults.Ids.Pin` pins to the start edge,
+`Ids.PinEnd` to the end edge); a pinned column offers **Unpin**. At least one column always stays
+unpinned, and if the two counts together cover every visible column, none is pinned.
+
+`TableSettings.pinnedStartCount` and `pinnedEndCount` are read once, when the state is created, and
+never again: they seed the live counts on `state.columns`. Change visibility with `hide()` and
+`show()` rather than writing to `hidden`: direct writes skip the last-visible-column and
+pinned-block rules.
 
 `hidden` holds only the columns hidden at runtime. A column whose spec has `visible = false` is not
-in it and is never shown by `show()` or `showAll()`; the spec stays in your control. `pinnedCount`
-counts rendered columns only, so spec-hidden columns are not part of the pinned block.
+in it and is never shown by `show()` or `showAll()`; the spec stays in your control. The pinned
+counts count rendered columns only, so spec-hidden columns are not part of a pinned block.
 
-To persist the layout, save `order`, `hidden` and `pinnedCount`. To restore it, pass the order as
-`initialOrder`, keep `TableSettings.pinnedColumnsCount` at `0`, and hide and pin through the state.
-A non-zero setting would pin columns before the recipe starts, and `pin()` would then add to that
-block instead of rebuilding it:
+To persist the layout, save `order`, `hidden`, `pinnedStartCount` and `pinnedEndCount`. To restore
+it, pass the order as `initialOrder`, keep both pinned counts in `TableSettings` at `0`, and hide
+and pin through the state. Non-zero settings would pin columns before the recipe starts, and
+`pin()` would then add to those blocks instead of rebuilding them:
 
 ```kotlin
 val state = rememberTableState(columns = columns, initialOrder = saved.order.toImmutableList())
 LaunchedEffect(state) {
     // Only runtime-hidden keys: spec.visible = false columns are not in `saved.hidden`.
     saved.hidden.forEach { state.columns.hide(it) }
-    // Rendered columns in saved order; the pinned block is the first (left) or last (right) N of them.
+    // Rendered columns in saved order; the pinned blocks are their first and last N.
     val specVisible = columns.filter { it.visible }.map { it.key }.toSet()
     val visible = saved.order.filter { it in specVisible && it !in saved.hidden }
-    when (settings.pinnedColumnsSide) {
-        PinnedSide.Start -> visible.take(saved.pinnedCount)
-        // pin() grows the block inwards, so pin the outermost column first.
-        PinnedSide.End -> visible.takeLast(saved.pinnedCount).asReversed()
-    }.forEach { state.columns.pin(it) }
+    visible.take(saved.pinnedStartCount).forEach { state.columns.pin(it, PinnedSide.Start) }
+    // pin() grows a block inwards, so pin the outermost end column first.
+    visible.takeLast(saved.pinnedEndCount).asReversed().forEach { state.columns.pin(it, PinnedSide.End) }
 }
 ```
 
 Hide first and then pin: a hidden column can sit between pinned ones in `order`, and `hide()` on a
 pinned column unpins it.
+
+!!! note "Before 3.7.0"
+    `TableSettings.pinnedColumnsCount` / `pinnedColumnsSide` and `state.columns.pinnedCount`,
+    `pin(key)`, `canPin(key)` pinned a single block on one side. They still work, deprecated, and are
+    removed in 4.0: the old count is added to its side's new count, and the single-side calls act on
+    `pinnedColumnsSide`.

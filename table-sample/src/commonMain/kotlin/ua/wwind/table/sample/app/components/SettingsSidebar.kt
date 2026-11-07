@@ -19,9 +19,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -32,7 +29,6 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.painterResource
-import ua.wwind.table.config.PinnedSide
 import ua.wwind.table.sample.column.PersonColumn
 import ua.wwind.table.sample.icon.SampleIcons
 
@@ -225,55 +221,17 @@ fun SettingsSidebar(
                         onCheckedChange = { onConfigChange(config.copy(showColumnMenuButton = it)) },
                     )
                     Spacer(modifier = Modifier.height(12.dp))
-                    // Pinned columns count
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text("Pinned columns")
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            OutlinedButton(
-                                onClick = {
-                                    if (config.pinnedColumnsCount > 0) {
-                                        onConfigChange(config.copy(pinnedColumnsCount = config.pinnedColumnsCount - 1))
-                                    }
-                                },
-                            ) { Text("-") }
-                            Text("${config.pinnedColumnsCount}", modifier = Modifier.width(24.dp))
-                            OutlinedButton(
-                                onClick = {
-                                    onConfigChange(config.copy(pinnedColumnsCount = config.pinnedColumnsCount + 1))
-                                },
-                            ) { Text("+") }
-                        }
-                    }
-
+                    PinnedCountStepper(
+                        label = "Pinned start",
+                        count = config.pinnedStartCount,
+                        onCountChange = { onConfigChange(config.copy(pinnedStartCount = it)) },
+                    )
                     Spacer(modifier = Modifier.height(12.dp))
-
-                    // Pinned columns side
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text("Pinned side")
-                        SingleChoiceSegmentedButtonRow {
-                            SegmentedButton(
-                                selected = config.pinnedColumnsSide == PinnedSide.Start,
-                                onClick = { onConfigChange(config.copy(pinnedColumnsSide = PinnedSide.Start)) },
-                                shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
-                            ) { Text("Start") }
-                            SegmentedButton(
-                                selected = config.pinnedColumnsSide == PinnedSide.End,
-                                onClick = { onConfigChange(config.copy(pinnedColumnsSide = PinnedSide.End)) },
-                                shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
-                            ) { Text("End") }
-                        }
-                    }
+                    PinnedCountStepper(
+                        label = "Pinned end",
+                        count = config.pinnedEndCount,
+                        onCountChange = { onConfigChange(config.copy(pinnedEndCount = it)) },
+                    )
 
                     Spacer(modifier = Modifier.height(12.dp))
 
@@ -354,5 +312,29 @@ private fun SettingSwitch(
             checked = checked,
             onCheckedChange = onCheckedChange,
         )
+    }
+}
+
+/** A "label  [-] N [+]" row for one pinned-block size; the count never drops below zero. */
+@Composable
+private fun PinnedCountStepper(
+    label: String,
+    count: Int,
+    onCountChange: (Int) -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(label)
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            OutlinedButton(onClick = { if (count > 0) onCountChange(count - 1) }) { Text("-") }
+            Text("$count", modifier = Modifier.width(24.dp))
+            OutlinedButton(onClick = { onCountChange(count + 1) }) { Text("+") }
+        }
     }
 }

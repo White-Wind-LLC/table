@@ -73,8 +73,7 @@ internal fun <T : Any, C, E> FastFiltersRow(
                     calculatePinnedColumnState(
                         columnIndex = index,
                         totalVisibleColumns = visibleColumns.size,
-                        pinnedColumnsCount = state.columns.pinnedCount,
-                        pinnedColumnsSide = settings.pinnedColumnsSide,
+                        pinned = state.columns.pinnedCounts,
                         horizontalState = horizontalState,
                         layoutDirection = LocalLayoutDirection.current,
                     )
@@ -199,21 +198,26 @@ internal fun <T : Any, C, E> FastFiltersRow(
                                 }
                             }
                         }
-                        if (!pinnedState.isLastBeforeEndPinned) {
-                            if (pinnedState.isLastStartPinned) {
-                                VerticalDivider(
-                                    modifier = Modifier.fillMaxHeight(),
-                                    thickness = state.effectiveDimensions.pinnedColumnDividerThickness,
-                                    color = currentTableColors().pinnedDividerColor,
-                                )
-                            }
-                            if (state.settings.showVerticalDividers) {
-                                VerticalDivider(
-                                    modifier = Modifier.fillMaxHeight(),
-                                    thickness = state.effectiveDimensions.dividerThickness,
-                                    color = currentTableColors().dividerColor,
-                                )
-                            }
+                        // One end divider, as in the header and body cells: the pinned edge replaces the
+                        // regular divider instead of adding to it, so every boundary lines up.
+                        if (!pinnedState.isLastBeforeEndPinned &&
+                            (state.settings.showVerticalDividers || pinnedState.isLastStartPinned)
+                        ) {
+                            VerticalDivider(
+                                modifier = Modifier.fillMaxHeight(),
+                                thickness =
+                                    if (pinnedState.isLastStartPinned) {
+                                        state.effectiveDimensions.pinnedColumnDividerThickness
+                                    } else {
+                                        state.effectiveDimensions.dividerThickness
+                                    },
+                                color =
+                                    if (pinnedState.isLastStartPinned) {
+                                        currentTableColors().pinnedDividerColor
+                                    } else {
+                                        currentTableColors().dividerColor
+                                    },
+                            )
                         }
                     }
                 }

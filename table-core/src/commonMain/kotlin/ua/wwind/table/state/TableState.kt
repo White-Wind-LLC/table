@@ -21,6 +21,7 @@ import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.toPersistentList
 import ua.wwind.table.ColumnSpec
 import ua.wwind.table.component.header.ColumnMenuContext
+import ua.wwind.table.config.PinnedSide
 import ua.wwind.table.config.TableDefaults
 import ua.wwind.table.config.TableDimensions
 import ua.wwind.table.config.TableSettings
@@ -77,8 +78,8 @@ public class TableState<C>
                 initialOrder = initialOrder.ifEmpty { initialColumns },
                 initialWidths = initialWidths,
                 dimensions = dimensions,
-                initialPinnedCount = settings.pinnedColumnsCount,
-                pinnedSide = settings.pinnedColumnsSide,
+                initialPinned = settings.initialPinnedCounts(),
+                legacySide = settings.legacyPinnedSide(),
             )
 
         /** Focused row, checked rows and the selected cell. */
@@ -221,7 +222,7 @@ public class TableState<C>
         private fun computeTableWidth(columnSpecs: List<ColumnSpec<*, C, *>>): Dp =
             columnSpecs.foldIndexed(0.dp) { index, acc, spec ->
                 acc + columns.resolveWidth(spec.key, spec) +
-                    dividerWidthAfterColumn(index, columnSpecs.size, columns.pinnedCount, settings, dimensions)
+                    dividerWidthAfterColumn(index, columnSpecs.size, columns.pinnedCounts, settings, dimensions)
             }
 
         // Sorting
@@ -435,3 +436,18 @@ private fun <C> normalizeTableStateInput(
         warnings = warnings,
     )
 }
+
+/** Seeds of both pinned blocks: the new counts plus the deprecated count on its own side. */
+@Suppress("DEPRECATION")
+private fun TableSettings.initialPinnedCounts(): PinnedCounts {
+    val legacy = pinnedColumnsCount.coerceAtLeast(0)
+    val start = pinnedStartCount.coerceAtLeast(0)
+    val end = pinnedEndCount.coerceAtLeast(0)
+    return when (pinnedColumnsSide) {
+        PinnedSide.Start -> PinnedCounts(start + legacy, end)
+        PinnedSide.End -> PinnedCounts(start, end + legacy)
+    }
+}
+
+@Suppress("DEPRECATION")
+private fun TableSettings.legacyPinnedSide(): PinnedSide = pinnedColumnsSide
