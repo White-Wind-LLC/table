@@ -74,6 +74,10 @@ jobs:
       - name: Spotless
         run: ./gradlew --no-daemon --continue spotlessCheck
 
+      # The sample's webpack loader that keeps Skiko's Wasm calls out of JS tail position for Safari 27.2.
+      - name: Skiko webpack loader tests
+        run: node --test table-sample/webpack/skiko-no-tail-call.test.cjs
+
   test-linux:
     timeout-minutes: 30
     runs-on: ubuntu-latest
