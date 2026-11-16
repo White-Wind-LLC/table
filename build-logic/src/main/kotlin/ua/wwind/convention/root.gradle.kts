@@ -16,7 +16,7 @@ allprojects {
     repositories {
         google()
         mavenCentral()
-        maven("https://maven.pkg.jetbrains.space/public/p/ktor/eap")
+        maven("https://packages.jetbrains.team/maven/p/ktor/eap")
         maven("https://packages.jetbrains.team/maven/p/firework/dev")
     }
 }
