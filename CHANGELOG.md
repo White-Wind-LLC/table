@@ -2,12 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
-### Unreleased
+### 3.9.0 — 2026-11-19
+
+An app can mark the unresolved filter conditions it shows and applies itself, so the table stops warning about them.
 
 - Added: `TableFilterChipStyle.unresolvedShown`, which marks the unresolved conditions the app shows and applies
   itself, for instance through its own `chip`. They raise no warning line under the active filters row, no empty
   state warning and no mark on their group's chip (`TableFilterChipNode.Group.hasUnresolved`); they still count in
-  `TableState.unresolvedFilters`. `TableFilterChipDefaults.style` takes the same parameter.
+  `TableState.unresolvedFilters`. `TableFilterChipDefaults.style` takes the same parameter
+  ([#176](https://github.com/White-Wind-LLC/table/pull/176)).
+
+Compare: [v3.8.0...v3.9.0](https://github.com/White-Wind-LLC/table/compare/v3.8.0...v3.9.0)
 
 ### 3.8.0 — 2026-11-08
 
