@@ -77,8 +77,9 @@ public sealed interface TableFilterChipNode<C> {
      * @property text the chip's text: `"Status: Active or Pending"` for a shared column, else the column titles,
      *   e.g. `"Type, Qty, Vip"`
      * @property description the whole group read as a sentence, for accessibility
-     * @property hasUnresolved whether an [Unresolved] leaf is anywhere under the group; its title is then in
-     *   [columnTitles] and [text], after the columns
+     * @property hasUnresolved whether an [Unresolved] leaf the app does not show itself
+     *   ([TableFilterChipStyle.unresolvedShown]) is anywhere under the group. The titles of all unresolved leaves are
+     *   in [columnTitles] and [text], after the columns
      * @property isOpen whether the group's popover is open
      * @property canOpen whether [onOpen] opens the popover: false where there are no popovers. The default chip
      *   is then not clickable

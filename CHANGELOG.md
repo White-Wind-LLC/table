@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+### Unreleased
+
+- Added: `TableFilterChipStyle.unresolvedShown`, which marks the unresolved conditions the app shows and applies
+  itself, for instance through its own `chip`. They raise no warning line under the active filters row, no empty
+  state warning and no mark on their group's chip (`TableFilterChipNode.Group.hasUnresolved`); they still count in
+  `TableState.unresolvedFilters`. `TableFilterChipDefaults.style` takes the same parameter.
+
 ### 3.8.0 — 2026-11-08
 
 An enum filter option can carry a one-line hint under its title.

@@ -27,6 +27,7 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.painterResource
+import ua.wwind.table.filter.data.TableFilterNode
 import ua.wwind.table.icon.TableIcons
 import ua.wwind.table.strings.UiString
 
@@ -65,6 +66,11 @@ public data class TableFilterChipColors(
  *   a null result shows the key itself
  * @property chip draws every chip in place of [DefaultFilterChip], which it can call to keep parts of the
  *   default; the library still owns the popover and its navigation
+ * @property unresolvedShown whether the app shows and applies an unresolved condition itself, from its raw key and
+ *   payload, e.g. through its own [chip]. Such a condition raises no warning: not the line under the active filters
+ *   row, not the empty state's, not the mark on its group's chip ([TableFilterChipNode.Group.hasUnresolved]). It
+ *   still counts in [ua.wwind.table.state.TableState.unresolvedFilters]. Null treats every unresolved condition as
+ *   not shown
  */
 @Immutable
 public data class TableFilterChipStyle<C>(
@@ -72,7 +78,14 @@ public data class TableFilterChipStyle<C>(
     val unknownTitle: ((C) -> String?)? = null,
     val unresolvedTitle: ((key: String, payload: Any?) -> String?)? = null,
     val chip: (@Composable (TableFilterChipNode<C>) -> Unit)? = null,
-)
+    val unresolvedShown: ((key: String, payload: Any?) -> Boolean)? = null,
+) {
+    /** The unresolved conditions of [nodes] the app does not show itself, which the table warns about. */
+    internal fun unshown(nodes: List<TableFilterNode.Unresolved>): List<TableFilterNode.Unresolved> {
+        val shown = unresolvedShown ?: return nodes
+        return nodes.filterNot { shown(it.key, it.payload) }
+    }
+}
 
 /** Defaults for [TableFilterChipStyle]. */
 public object TableFilterChipDefaults {
@@ -101,7 +114,8 @@ public object TableFilterChipDefaults {
         unknownTitle: ((C) -> String?)? = null,
         unresolvedTitle: ((key: String, payload: Any?) -> String?)? = null,
         chip: (@Composable (TableFilterChipNode<C>) -> Unit)? = null,
-    ): TableFilterChipStyle<C> = TableFilterChipStyle(colors, unknownTitle, unresolvedTitle, chip)
+        unresolvedShown: ((key: String, payload: Any?) -> Boolean)? = null,
+    ): TableFilterChipStyle<C> = TableFilterChipStyle(colors, unknownTitle, unresolvedTitle, chip, unresolvedShown)
 
     @Composable
     private fun containerColors(

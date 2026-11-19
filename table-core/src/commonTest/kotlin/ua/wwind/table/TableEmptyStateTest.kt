@@ -296,4 +296,26 @@ class TableEmptyStateTest {
             assertThat(state.filterExpression.children).isEmpty()
             onNodeWithText(NO_DATA).assertIsDisplayed()
         }
+
+    @Test
+    fun `an unresolved filter the app shows reads as no results`() =
+        runComposeUiTest {
+            lateinit var state: TableState<String>
+            setContent {
+                val columns = remember { columns() }
+                state = rememberTableState(columns = persistentListOf("name"))
+                Box(Modifier.size(400.dp)) {
+                    Table(
+                        itemsCount = 0,
+                        itemAt = { null },
+                        state = state,
+                        columns = columns,
+                        filterChips = TableFilterChipDefaults.style(unresolvedShown = { _, _ -> true }),
+                    )
+                }
+            }
+            runOnIdle { state.setFilterExpression(TableFilterNode.Unresolved("week")) }
+            onNodeWithText(NO_RESULTS).assertIsDisplayed()
+            onNodeWithText(UNRESOLVED).assertDoesNotExist()
+        }
 }

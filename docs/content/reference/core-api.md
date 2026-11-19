@@ -97,8 +97,11 @@ column(PersonField.Name, valueOf = { it.name }) {
       not apply or send the filter at all. The active filters row shows them and a line saying the filter is not
       applied (`UiString.FilterUnresolvedBlocked`); an app that hides the row must check `unresolvedFilters` itself.
       Show no rows meanwhile: the default empty state then says the same (`TableEmptyScope.hasUnresolvedFilters`).
+      An app that draws and applies some of them itself (say, through its own `chip`) marks them with
+      `TableFilterChipStyle.unresolvedShown = { key, payload -> ... }`: they then raise no warning line, no empty
+      state warning and no mark on their group's chip, though they stay in `unresolvedFilters`.
     - Filter chips: `Table(..., filterChips = TableFilterChipDefaults.style(colors = ..., unknownTitle = { key ->
-      ... }, unresolvedTitle = { key, payload -> ... }, chip = { node -> ... }))`, also accepted by
+      ... }, unresolvedTitle = { key, payload -> ... }, chip = { node -> ... }, unresolvedShown = { key, payload -> ... }))`, also accepted by
       `TableActiveFilters`. `node` is a `TableFilterChipNode` (`Condition`, `Group`, `Unknown` or `Unresolved`) with a `TableFilterChipPlacement` (`Row` or
       `Tree`). `chip` replaces every chip and can call `DefaultFilterChip(node, onClick, label, leadingIcon,
       colors, clearContentDescription)` to change one part. A filter key with no `ColumnSpec` in `columns` shows
