@@ -305,7 +305,7 @@ internal fun <T : Any, C, E> ActiveFilterChips(
                 },
             )
         }
-        if (state.unresolvedFilters.isNotEmpty()) UnresolvedFiltersLine(strings)
+        if (filterChips.unshown(state.unresolvedFilters).isNotEmpty()) UnresolvedFiltersLine(strings)
         footer()
     }
 }
@@ -645,7 +645,7 @@ private fun <C> GroupChip(
                 sharedColumn = item.summary.sharedColumn,
                 text = texts.groupText(node),
                 description = texts.describe(node),
-                hasUnresolved = item.summary.unresolved.isNotEmpty(),
+                hasUnresolved = filterChips.unshown(item.summary.unresolved).isNotEmpty(),
                 isOpen = isOpen,
                 canOpen = popover != null,
                 onOpen = onOpen,

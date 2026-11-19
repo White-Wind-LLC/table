@@ -242,7 +242,8 @@ public fun <T : Any, C, E> EditableTable(
     val showPinnedFooter = !embedded && state.settings.footerPinned && state.settings.showFooter
 
     var contextMenuState by remember { mutableStateOf(ContextMenuState<T>()) }
-    val emptyScope = remember(state) { TableStateEmptyScope(state) }
+    val currentFilterChips by rememberUpdatedState(filterChips)
+    val emptyScope = remember(state) { TableStateEmptyScope(state) { currentFilterChips } }
     val emptyBody: @Composable () -> Unit = { emptyScope.emptyContent() }
     // Where the rows start inside the surface, for the empty state overlay.
     var scrollAreaTopPx by remember { mutableIntStateOf(0) }

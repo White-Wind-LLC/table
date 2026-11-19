@@ -432,6 +432,7 @@ class ActiveFilterTreeRowTest {
         unknownTitle: ((String) -> String?)? = null,
         debounce: Long = 0,
         unresolvedTitle: ((key: String, payload: Any?) -> String?)? = null,
+        unresolvedShown: ((key: String, payload: Any?) -> Boolean)? = null,
     ): TableState<String> {
         lateinit var state: TableState<String>
         setContent {
@@ -451,6 +452,7 @@ class ActiveFilterTreeRowTest {
                         TableFilterChipDefaults.style(
                             unknownTitle = unknownTitle,
                             unresolvedTitle = unresolvedTitle,
+                            unresolvedShown = unresolvedShown,
                             chip = { node ->
                                 when (node) {
                                     is TableFilterChipNode.Group -> lastGroup = node
@@ -609,5 +611,42 @@ class ActiveFilterTreeRowTest {
             val group = lastGroup!!
             assertThat(group.columnTitles).containsExactly("A", "old")
             assertThat(group.text).isEqualTo("A, old")
+        }
+
+    @Test
+    fun `an unresolved leaf the app shows raises no blocked line`() =
+        runComposeUiTest {
+            setTable(
+                and(TableFilterNode.Unresolved("week", "shown"), eq("c", "c")),
+                unresolvedShown = { _, payload -> payload == "shown" },
+            )
+
+            assertThat(unresolvedNodes.map { it.key }).containsExactly("week")
+            onNodeWithText(BLOCKED).assertDoesNotExist()
+        }
+
+    @Test
+    fun `a group whose unresolved leaves the app shows is not marked`() =
+        runComposeUiTest {
+            setTable(
+                and(or(eq("a", "a"), TableFilterNode.Unresolved("week", "shown"))),
+                unresolvedShown = { _, payload -> payload == "shown" },
+            )
+
+            assertThat(lastGroup!!.hasUnresolved).isFalse()
+            assertThat(lastGroup!!.text).isEqualTo("A, week")
+            onNodeWithText(BLOCKED).assertDoesNotExist()
+        }
+
+    @Test
+    fun `an unknown leaf beside a shown one keeps the group marked and the blocked line`() =
+        runComposeUiTest {
+            setTable(
+                and(or(TableFilterNode.Unresolved("week", "shown"), TableFilterNode.Unresolved("old"))),
+                unresolvedShown = { _, payload -> payload == "shown" },
+            )
+
+            assertThat(lastGroup!!.hasUnresolved).isTrue()
+            onNodeWithText(BLOCKED).assertIsDisplayed()
         }
 }

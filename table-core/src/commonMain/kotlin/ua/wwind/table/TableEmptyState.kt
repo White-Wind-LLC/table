@@ -30,8 +30,9 @@ public interface TableEmptyScope {
     public val isFiltered: Boolean
 
     /**
-     * Whether the filter has unresolved conditions, so the app shows no rows until they are removed
-     * (see [ua.wwind.table.state.TableState.unresolvedFilters]).
+     * Whether the filter has unresolved conditions the app does not show itself, so it shows no rows until they
+     * are removed (see [ua.wwind.table.state.TableState.unresolvedFilters] and
+     * [ua.wwind.table.TableFilterChipStyle.unresolvedShown]).
      */
     public val hasUnresolvedFilters: Boolean get() = false
 
@@ -41,12 +42,13 @@ public interface TableEmptyScope {
 
 internal class TableStateEmptyScope<C>(
     private val state: TableState<C>,
+    private val filterChips: () -> TableFilterChipStyle<C>,
 ) : TableEmptyScope {
     override val isFiltered: Boolean
         get() = state.filterExpression.isActive()
 
     override val hasUnresolvedFilters: Boolean
-        get() = state.unresolvedFilters.isNotEmpty()
+        get() = filterChips().unshown(state.unresolvedFilters).isNotEmpty()
 
     override fun clearFilters() {
         state.filters.clear()

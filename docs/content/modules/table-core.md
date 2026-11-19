@@ -36,9 +36,10 @@ row selection, i18n, styling/customization, and dynamic or fixed row height.
   payload, in place on every edit; it shows as a warning chip or popover line with × only, and the row says the
   filter is not applied until it is removed. Check `state.unresolvedFilters` and do not apply or send the filter
   while it is not empty; show no rows meanwhile, and the default empty state says why. The row is the only place
-  the table shows the conditions themselves.
+  the table shows the conditions themselves. A condition the app draws and applies itself is marked with
+  `unresolvedShown` of the chip style and raises none of these warnings.
 - Chip customization: a column draws the content of its chips with `filterChipContent(leadingIcon, label)`;
-  `TableFilterChipDefaults.style(colors, unknownTitle, unresolvedTitle, chip)` passed as `filterChips` to `Table` (core or paged) or
+  `TableFilterChipDefaults.style(colors, unknownTitle, unresolvedTitle, chip, unresolvedShown)` passed as `filterChips` to `Table` (core or paged) or
   `TableActiveFilters` sets colors, titles of unknown keys and unresolved conditions, and a full chip renderer, which can call
   `DefaultFilterChip` to keep parts of the default. `activeFilterChip`, `TableFilterChipContext` and
   `DefaultActiveFilterChip` are deprecated and removed in 4.0.
